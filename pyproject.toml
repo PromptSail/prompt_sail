@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "prompt_sail"
+version = "0.1.0"
+description = ""
+authors = ["Przemysław Górecki <przemyslaw.gorecki@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.103.2"
+uvicorn = {extras = ["stable"], version = "^0.23.2"}
+httpx = "^0.25.0"
+python-dotenv = "^1.0.0"
+openai = "^0.28.1"
+pytest = "^7.4.2"
+pre-commit = "^3.5.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
