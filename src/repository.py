@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from config import config
 
 
 class Project(BaseModel):

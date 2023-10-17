@@ -1,13 +1,10 @@
-from fastapi import FastAPI, Request, Response, BackgroundTasks
+import httpx
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
-from tasks import process_response
+
 from config import config
 from repository import project_repository
-import httpx
-import gzip
-import socket
-
 
 app = FastAPI()
 
