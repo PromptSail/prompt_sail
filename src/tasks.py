@@ -1,5 +1,5 @@
-def process_response(data):
-    print(data["project_id"])
-    print(data["request"])
-    print(data["response"])
-    print()
+from models import Transaction
+
+
+def persist_transaction(transaction: Transaction):
+    print("persisting", transaction)

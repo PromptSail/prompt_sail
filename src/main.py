@@ -1,12 +1,43 @@
+from typing import Annotated
+
 import httpx
-from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, Request
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 
 from config import config
-from repository import project_repository
+from config.containers import TopLevelContainer
+from models import Transaction
+from project.use_cases import get_project
+from seedwork.application import Application, TransactionContext
+from tasks import persist_transaction
+
+container = TopLevelContainer()
 
 app = FastAPI()
+app.container = container
+
+
+async def get_application(request: Request) -> Application:
+    application = request.app.container.application()
+    return application
+
+
+async def xxx_get_transaction_context(
+    application: Annotated[Application, Depends(get_application)],
+) -> TransactionContext:
+    """Creates a new transaction context for each request"""
+
+    with application.transaction_context() as ctx:
+        yield ctx
+
+
+def get_transaction_context(request: Request) -> TransactionContext:
+    return request.state.transaction_context
+
+
+def get_logger(request: Request):
+    return request.app.container.application().dependency_provider["logger"]
 
 
 @app.middleware("detect_project")
@@ -14,12 +45,25 @@ async def __call__(request: Request, call_next):
     host = config["DOMAIN"] or request.headers.get("host", "")
     subdomain = host.split(".")[0]
 
-    project = project_repository.get(subdomain)
+    ctx = get_transaction_context(request)
+    project = ctx.call(get_project, project_id=subdomain)
     request.state.project = project
 
-    print("middleware", host, request.state.project)
+    logger = get_logger(request)
+    logger.debug(f"got project for {host}: {project}")
 
     response = await call_next(request)
+    return response
+
+
+@app.middleware("transaction_context")
+async def __call__(request: Request, call_next):
+    application = request.app.container.application()
+    ctx = application.transaction_context()
+    request.state.transaction_context = ctx
+    ctx.__enter__()
+    response = await call_next(request)
+    ctx.__exit__(None, None, None)
     return response
 
 
@@ -53,20 +97,23 @@ async def __call__(request: Request, call_next):
     return response
 
 
-async def iterate_stream(response):
+async def iterate_stream(response, transaction):
     async for chunk in response.aiter_raw():
         print("chunk", chunk)
+        transaction.buffer.append(chunk)
         yield chunk
 
 
-async def close_stream(response):
+async def close_stream(response, transaction, background_tasks: BackgroundTasks):
     print("close_stream")
-    return response.aclose()
+    persist_transaction(transaction)
+    await response.aclose()
 
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 async def reverse_proxy(path: str, request: Request, background_tasks: BackgroundTasks):
-    print("reverse_proxy", path, request.state.project)
+    logger = get_logger(request)
+    logger.debug("reverse_proxy {path} {request.state.project}")
     project = request.state.project
     # Get the body as bytes for non-GET requests
     body = await request.body() if request.method != "GET" else None
@@ -82,11 +129,14 @@ async def reverse_proxy(path: str, request: Request, background_tasks: Backgroun
         params=request.query_params,
         content=body,
     )
+
     rp_resp = await client.send(rp_req, stream=True)
+    transaction = Transaction(project=project, request=rp_req, response=rp_resp)
+
     buffer = []
     return StreamingResponse(
-        iterate_stream(rp_resp, buffer),
+        iterate_stream(rp_resp, transaction),
         status_code=rp_resp.status_code,
         headers=rp_resp.headers,
-        background=BackgroundTask(close_stream, rp_resp),
+        background=BackgroundTask(close_stream, rp_resp, transaction, background_tasks),
     )
