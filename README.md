@@ -5,7 +5,7 @@
     </a>
   </p>
   <p align="center">
-    Open Source LLM prompt performance monitoring for quality and efficiency validation.
+    Open Source LLM prompt management and monitoring.
   </p>
 </p>
 
@@ -24,7 +24,7 @@ your code.
 
 If you prefer to install and manage Prompt Sail yourself, you can download a docker image and run it locally.
 
-## Run Start Prompt locally
+## Run Prompt Sail locally
 
 To try out Start Prompt on your own machine, we recommend using docker-compose. Docker images are available from ...
 
@@ -36,19 +36,20 @@ git clone ...
 docker-docker-compose up -d
 ```
 
+TODO: handling wildcard domains on localhost 
+
+
 ### Create a project
 
-Navigate to http://localhost:8000 and create a project. 
+Navigate to http://promptsail.local:8000 and create a project.
 
-TODO: modify `hosts` file to point to `localhost`
-
-### Modify your code to use Prompt Sail
+### Modify your code to use Prompt Sail proxy
 
 To use Prompt Sail with `openai` Python library, you need to set `OPENAI_API_BASE` environment variable, or
 modify `openai.api_base` parameter to point to your Prompt Sail project.
 ```python
 import openai        
-openai.api_base = "[your project api base]"
+openai.api_base = "http://[your-project-id].promptsail.local:8000"
 openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "user", "content": "Explaining the meaning of life in one sentence."}],
@@ -60,7 +61,7 @@ Using Prompt Sail with `langchain` is similar:
 from langchain.llms import OpenAI
 llm = OpenAI(
     model_name="text-davinci-003",
-    openai_api_base="[your project api base]",
+    openai_api_base="http://[your-project-id].promptsail.local:8000",
 )
 llm("Explaining the meaning of life in one sentence.")
 ```
@@ -68,6 +69,10 @@ llm("Explaining the meaning of life in one sentence.")
 ### Analyzing the prompts and responses
 
 After running your LLM code, navigate back to your project page and see the prompt and response recorded.
+
+## Testing
+
+To run tests, simpy run `pytest` in the `src` directory of the project.
 
 ## Building docker image
 
