@@ -1,0 +1,16 @@
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <p>Lorem ipsum...</p>
+
+    <h1>Projects</h1>
+    <ul>
+        {% for project in projects %}
+        <li><a href="/ui/project/{{project.id}}">{{project.name}}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

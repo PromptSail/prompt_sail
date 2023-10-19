@@ -1,0 +1,34 @@
+<html>
+<head>
+    <title>{{project.name}} - details</title>
+</head>
+<body>
+    <h1>Project details - {{project.name}}</h1>
+    <p>Lorem ipsum...</p>
+
+
+    <p><strong>API base</strong></p>
+    <p>{{project.api_base}}</p>
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Path</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for endpoint in project.endpoints %}
+            <tr>
+                <td>{{endpoint.method}}</td>
+                <td>{{endpoint.path}}</td>
+                <td>{{endpoint.description}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

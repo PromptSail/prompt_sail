@@ -1,5 +1,5 @@
-from project.models import Project
-from project.repositories import ProjectRepository
+from projects.models import Project
+from projects.repositories import ProjectRepository
 
 
 def get_project(

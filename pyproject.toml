@@ -15,6 +15,8 @@ pytest = "^7.4.2"
 pre-commit = "^3.5.0"
 requests-mock = "^1.11.0"
 dependency-injector = "^4.41.0"
+Jinja2 = "^3.1.2"
+langchain = "^0.0.316"
 
 [tool.poetry.dev-dependencies]
 

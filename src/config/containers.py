@@ -11,7 +11,7 @@ from dependency_injector.containers import Container
 from dependency_injector.providers import Dependency, Factory, Provider, Singleton
 from dependency_injector.wiring import Provide, inject  # noqa
 
-from project.repositories import ProjectRepository
+from projects.repositories import ProjectRepository
 from seedwork.application import Application, DependencyProvider, TransactionContext
 
 logger = logging.getLogger("ps")

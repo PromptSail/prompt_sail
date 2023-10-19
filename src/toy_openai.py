@@ -10,7 +10,7 @@ print("Using key", os.environ["OPENAI_API_KEY"])
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 # openai.proxy = "http://127.0.0.1:8000"
-openai.api_base = "http://127.0.0.1:8000"
+openai.api_base = "http://project1.promptsail.local:8000"
 
 
 def capture_and_print_urls(request, context):
