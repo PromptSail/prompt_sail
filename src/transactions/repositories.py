@@ -1,22 +1,18 @@
+from seedwork.exceptions import NotFoundException
+from seedwork.repositories import MongoRepository
 from transactions.models import Transaction
 
 
-class TransactionNotFoundException(Exception):
-    ...
+class TransactionNotFoundException(NotFoundException):
+    pass
 
 
-class TransactionRepository:
-    def __init__(self):
-        self._transactions = {}
+class TransactionRepository(MongoRepository):
+    model_class = Transaction
 
-    def add(self, transaction: Transaction):
-        self._transactions[transaction.id] = transaction
+    def add(self, doc):
+        result = super().add(doc)
+        return result
 
-    def get(self, transaction_id: str) -> Transaction:
-        try:
-            return self._transactions[transaction_id]
-        except KeyError:
-            raise TransactionNotFoundException(transaction_id)
-
-    def get_all(self):
-        return self._transactions.values()
+    def get_for_project(self, project_id: str) -> list[Transaction]:
+        return self.find({"project_id": project_id})

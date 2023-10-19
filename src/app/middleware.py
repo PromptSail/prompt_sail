@@ -1,24 +1,22 @@
 from fastapi import Request
 
+from config import config
+
 from .app import app
 
-# @app.middleware("detect_project")
-# async def __call__(request: Request, call_next):
-#     host = config.get("DOMAIN") or request.headers.get("host", "")
-#     subdomain = host.split(".")[0]
-#
-#     if subdomain not in ['ui']:
-#         ctx = get_transaction_context(request)
-#         projects = ctx.call(get_project, project_id=subdomain)
-#         request.state.projects = projects
-#
-#         logger = get_logger(request)
-#         logger.debug(f"got projects for {host}: {projects}")
-#     else:
-#         request.state.projects = None
-#
-#     response = await call_next(request)
-#     return response
+
+@app.middleware("detect_subdomain")
+async def __call__(request: Request, call_next):
+    host = config.get("DOMAIN") or request.headers.get("host", "")
+    subdomain = host.split(".")[0]
+
+    if subdomain in ["ui", "www", "promptsail"]:
+        request.state.is_web = True
+    else:
+        request.state.is_web = False
+
+    response = await call_next(request)
+    return response
 
 
 @app.middleware("transaction_context")

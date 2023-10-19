@@ -9,22 +9,27 @@ from app.dependencies import get_logger, get_transaction_context
 from config import config
 from projects.use_cases import get_project
 from seedwork.application import Application, TransactionContext
-from transactions.models import Transaction
 from transactions.use_cases import store_transaction
 
 from .app import app
 
 
-async def iterate_stream(response, transaction):
+async def iterate_stream(response, buffer):
     async for chunk in response.aiter_raw():
-        transaction.buffer.append(chunk)
+        buffer.append(chunk)
         yield chunk
 
 
-async def close_stream(response, app: Application, transaction):
+async def close_stream(app: Application, project_id, request, response, buffer):
     await response.aclose()
     with app.transaction_context() as ctx:
-        ctx.call(store_transaction, transaction=transaction)
+        ctx.call(
+            store_transaction,
+            project_id=project_id,
+            request=request,
+            response=response,
+            buffer=buffer,
+        )
 
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
@@ -62,11 +67,12 @@ async def reverse_proxy(
     )
     rp_resp = await client.send(rp_req, stream=True)
 
-    transaction = Transaction(project=project, request=rp_req, response=rp_resp)
-
+    buffer = []
     return StreamingResponse(
-        iterate_stream(rp_resp, transaction),
+        iterate_stream(rp_resp, buffer),
         status_code=rp_resp.status_code,
         headers=rp_resp.headers,
-        background=BackgroundTask(close_stream, rp_resp, ctx.app, transaction),
+        background=BackgroundTask(
+            close_stream, ctx.app, project.id, rp_req, rp_resp, buffer
+        ),
     )

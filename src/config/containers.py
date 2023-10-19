@@ -6,6 +6,7 @@ from logging import Logger
 from typing import Optional
 from uuid import UUID
 
+import pymongo
 from dependency_injector import containers, providers
 from dependency_injector.containers import Container
 from dependency_injector.providers import Dependency, Factory, Provider, Singleton
@@ -13,6 +14,7 @@ from dependency_injector.wiring import Provide, inject  # noqa
 
 from projects.repositories import ProjectRepository
 from seedwork.application import Application, DependencyProvider, TransactionContext
+from transactions.repositories import TransactionRepository
 
 logger = logging.getLogger("ps")
 logger.setLevel(logging.DEBUG)
@@ -93,6 +95,8 @@ def create_application(**kwargs):
         transaction_container = TransactionContainer(
             correlation_id=correlation_id, logger=logger
         )
+        tlc = ctx.app.dependency_provider["container"]
+        transaction_container.tlc.override(tlc)
         ctx.dependency_provider = IocProvider(transaction_container)
         logger.debug(f"transaction started")
 
@@ -108,18 +112,33 @@ def create_application(**kwargs):
     return application
 
 
-class TransactionContainer(containers.DeclarativeContainer):
-    correlation_id = providers.Dependency(instance_of=UUID)
-    logger = providers.Dependency(instance_of=Logger)
-
-    project_repository = providers.Singleton(ProjectRepository)
-
-
 class TopLevelContainer(containers.DeclarativeContainer):
     __self__ = providers.Self()
     config = providers.Configuration()
     logger = providers.Object(logger)
-    db_engine = providers.Singleton(lambda config: None, config)
-    application = providers.Singleton(
-        create_application, db_engine=db_engine, logger=logger
+    db_client = providers.Singleton(
+        lambda config: pymongo.MongoClient(config["MONGO_URL"]).get_database(
+            "prompt_sail"
+        ),
+        config=config,
+    )
+    application: Application = providers.Singleton(
+        create_application,
+        db_client=db_client,
+        logger=logger,
+        container=__self__,
+    )
+
+
+class TransactionContainer(containers.DeclarativeContainer):
+    correlation_id = providers.Dependency(instance_of=UUID)
+    logger = providers.Dependency(instance_of=Logger)
+    tlc = providers.Container(
+        TopLevelContainer,
+    )
+    project_repository = providers.Singleton(
+        ProjectRepository, db_client=tlc.db_client, collection_name="projects"
+    )
+    transaction_repository = providers.Singleton(
+        TransactionRepository, db_client=tlc.db_client, collection_name="transactions"
     )

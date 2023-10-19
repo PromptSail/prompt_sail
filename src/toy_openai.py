@@ -33,7 +33,7 @@ else:
     # stream version
     response_stream = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": "Generate poem made of 2 sentences."}],
+        messages=[{"role": "user", "content": "Generate poem made of 1 sentence."}],
         stream=True,
     )
     for chunk in response_stream:
