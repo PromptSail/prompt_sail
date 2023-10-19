@@ -1,13 +1,11 @@
 from fastapi import Request
 
-from config import config
-
 from .app import app
 
 
 @app.middleware("detect_subdomain")
 async def __call__(request: Request, call_next):
-    host = config.get("DOMAIN") or request.headers.get("host", "")
+    host = request.headers.get("host", "")
     subdomain = host.split(".")[0]
 
     if subdomain in ["ui", "www", "promptsail"]:

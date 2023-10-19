@@ -22,7 +22,7 @@
     <h1>Project details - {{project.name}}</h1>
     <p>Lorem ipsum...</p>
     
-    <p><code>http://{{project.id}}.promptsail.local:8000</code> &rarr; <code>{{project.api_base}}</code></p>
+    <p><code>{{project_url}}</code> &rarr; <code>{{project.api_base}}</code></p>
 
 
     <h2>Usage example</h2>
@@ -31,7 +31,7 @@
     <pre>
 import openai        
 openai.api_key = os.environ["OPENAI_API_KEY"]
-openai.api_base = "http://{{project.id}}.promptsail.local:8000"
+openai.api_base = "{{project_url}}"
 openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "user", "content": "Generate poem made of 2 sentences."}],
@@ -43,7 +43,7 @@ openai.ChatCompletion.create(
 from langchain.llms import OpenAI
 llm = OpenAI(
     model_name="text-davinci-003",
-    openai_api_base="http://{{project.id}}.promptsail.local:8000",
+    openai_api_base="{{project_url}}",
 )
 llm("Explaining the meaning of life in one sentence")
     </pre>

@@ -6,7 +6,6 @@ from fastapi.responses import RedirectResponse, StreamingResponse
 from starlette.background import BackgroundTask
 
 from app.dependencies import get_logger, get_transaction_context
-from config import config
 from projects.use_cases import get_project
 from seedwork.application import Application, TransactionContext
 from transactions.use_cases import store_transaction
@@ -38,7 +37,7 @@ async def reverse_proxy(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ):
-    host = config.get("DOMAIN") or request.headers.get("host", "")
+    host = request.headers.get("host", "")
 
     logger = get_logger(request)
     subdomain = host.split(".")[0]

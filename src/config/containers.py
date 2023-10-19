@@ -117,7 +117,7 @@ class TopLevelContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     logger = providers.Object(logger)
     db_client = providers.Singleton(
-        lambda config: pymongo.MongoClient(config["MONGO_URL"]).get_database(
+        lambda config: pymongo.MongoClient(config.MONGO_URL).get_database(
             "prompt_sail"
         ),
         config=config,
