@@ -32,11 +32,15 @@ To try out Start Prompt on your own machine, we recommend using docker-compose. 
 ### Start Prompt Sail
 
 ```bash
-git clone ...
-docker-docker-compose up -d
+docker-docker-compose up --build
 ```
 
-TODO: handling wildcard domains on localhost 
+update `/ect/hosts` file with the following line:
+```bash
+127.0.1.1	project1.promptsail.local
+127.0.1.1	project2.promptsail.local
+127.0.1.1	promptsail.local
+```
 
 
 ### Create a project
