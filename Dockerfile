@@ -34,6 +34,6 @@ COPY static/. /static
 
 FROM base as production
 USER promptsail
-CMD ["uvicorn", "app:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80"]
+CMD uvicorn app:app --proxy-headers --host 0.0.0.0 --port=${PORT:-8000}
 
 

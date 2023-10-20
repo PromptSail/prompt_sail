@@ -6,9 +6,11 @@ from fastapi.responses import RedirectResponse, StreamingResponse
 from starlette.background import BackgroundTask
 
 from app.dependencies import get_logger, get_transaction_context
+from config import config
 from projects.use_cases import get_project
 from seedwork.application import Application, TransactionContext
 from transactions.use_cases import store_transaction
+from utils import detect_subdomain
 
 from .app import app
 
@@ -42,7 +44,9 @@ async def reverse_proxy(
     logger = get_logger(request)
     subdomain = host.split(".")[0]
 
-    if subdomain in ["ui", "www", "promptsail"]:
+    subdomain = detect_subdomain(host, config.BASE_URL)
+
+    if subdomain in [None, "ui", "www", "promptsail"]:
         return RedirectResponse("/ui")
 
     project = ctx.call(get_project, project_id=subdomain)

@@ -9,3 +9,7 @@ build:
 	
 precommit:
 	pre-commit run --all-files
+	
+heroku:
+	heroku container:push web -a promptsail
+	heroku container:release web -a promptsail
