@@ -1,10 +1,4 @@
 FROM python:3.10.2-slim-buster AS requirements
-RUN pwd
-RUN ls -la
-RUN mkdir /tmp/build/
-# Add context to /tmp/build/
-COPY . /tmp/build/
-RUN ls -la /tmp/build/
 
 ADD pyproject.toml poetry.lock ./
 
