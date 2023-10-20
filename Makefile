@@ -6,3 +6,6 @@ run-dev:
 	
 build:
 	docker-compose build
+	
+precommit:
+	pre-commit run --all-files

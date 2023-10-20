@@ -1,7 +1,7 @@
 default_language_version:
   python: python3.10
 
-repos:
+repos:   
   # native hints instead of `from typing` | List -> list
   - repo: https://github.com/sondrelg/pep585-upgrade
     rev: 'v1.0' # Version to check
@@ -29,3 +29,13 @@ repos:
     rev: 22.3.0
     hooks:
       - id: black
+        
+  - repo: local
+    hooks:
+    - id: update-requirements-txt
+      name: update-requirements-txt
+      description: 'Generate requirements.txt based on poetry.lock'
+      entry: poetry
+      args: [export, --format, requirements.txt, --output, requirements.txt]
+      language: system
+      pass_filenames: false
