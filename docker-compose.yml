@@ -9,6 +9,11 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:21017"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
   app:
     build:
       context: .
