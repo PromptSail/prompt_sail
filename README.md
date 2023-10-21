@@ -28,6 +28,17 @@ If you prefer to install and manage Prompt Sail yourself, you can download a doc
 
 To try out Start Prompt on your own machine, we recommend using docker-compose. Docker images are available from ...
 
+### Requirements
+
+* installed docker and docker-compose on your machine [Windows](https://docs.docker.com/docker-for-windows/install/) | [Mac](https://docs.docker.com/docker-for-mac/install/) | [Linux](https://docs.docker.com/engine/install/ubuntu/)
+* git clone repository and navigate to main directory
+```bash
+git clone https://github.com/PromptSail/prompt_sail.git
+cd prompt_sail
+```
+
+
+
 ### Linux machine
 
 1. Since Prompt Sail relies on subdomains, first you should update your `/ect/hosts` file with the following lines:
@@ -37,14 +48,37 @@ To try out Start Prompt on your own machine, we recommend using docker-compose. 
 127.0.1.1	project2.promptsail.local
 127.0.1.1	promptsail.local
 ```
-2. Clone the repository and navigate to the main directory:
-
-3. Build and run the docker image:
-
+2. Build and run the docker image:
 
 ```bash
 docker-docker-compose up --build
 ```
+
+
+### Windows 11 machine
+
+1. Since Prompt Sail relies on subdomains, first you should update your system  `host` 
+```
+notepad C:\Windows\System32\Drivers\etc\hosts
+```
+file with the following lines:
+
+
+```bash
+127.0.1.1	project1.promptsail.local
+127.0.1.1	project2.promptsail.local
+127.0.1.1	promptsail.local
+```
+
+
+2. Build and run the docker image:
+
+```bash
+docker-docker-compose up --build
+```
+
+
+
 
 ### Create a project
 
