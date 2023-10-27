@@ -1,0 +1,90 @@
+<html>
+<head>
+    <title>{{project.name}} - details</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid dimgrey;
+            padding: 4px;
+        }
+        pre {
+            background: aliceblue;
+            padding: 16px;
+        }
+        code {
+            background: aliceblue;
+        }
+    </style>
+</head>
+<body>
+    <h1>Project details - {{project.name}}</h1>
+    <p>Lorem ipsum...</p>
+    
+    <p><code>{{project_url}}</code> &rarr; <code>{{project.api_base}}</code></p>
+
+
+    <h2>Usage example</h2>
+    <p>Lorem ipsum...</p>
+    <h3>Using openai library</h3>
+    <pre>
+import openai        
+openai.api_key = os.environ["OPENAI_API_KEY"]
+openai.api_base = "{{project_url}}"
+openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": "Generate poem made of 2 sentences."}],
+)        
+    </pre>
+
+    <h3>Using langchain library</h3>
+    <pre>
+from langchain.llms import OpenAI
+llm = OpenAI(
+    model_name="text-davinci-003",
+    openai_api_base="{{project_url}}",
+)
+llm("Explaining the meaning of life in one sentence")
+    </pre>
+
+    <h3>LLM Transactions</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Request url</th>
+                <th>Prompt</th>
+                <th>Response</th>
+                <th>Model</th>
+                <th>Content Type</th>
+                <th>Response status</th>
+                <th>Usage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td>{{t.timestamp}}</td>
+                <td>{{t.request.url}}</td>
+                <td>
+                    {% for m in t.request.content.messages %}
+                    <p title="{{m.role}}">{{m.content}}</p>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for c in t.response.content.choices %}
+                    <p title="{{c.message.role}}">{{c.message.content}}</p>
+                    {% endfor %}
+                </td>
+                <td>{{t.response.content.model}}</td>
+                <td>{{t.response.headers['content-type']}}</td>
+                <td>{{t.response.status_code}}</td>
+                <td>{{t.response.content.usage.prompt_tokens}} + {{t.response.content.usage.completion_tokens}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
