@@ -50,4 +50,8 @@ jobs:
             docker tag prompt_sail_app:latest registry.heroku.com/promptsail/web
             docker push registry.heroku.com/promptsail/web
 
+      - name: Release to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:release web -a promptsail
 
