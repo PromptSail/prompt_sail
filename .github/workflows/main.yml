@@ -25,9 +25,12 @@ jobs:
         run: |
           poetry config virtualenvs.create false
           poetry config virtualenvs.in-project true
+            
+      - name: Install dependencies
+        run: poetry install            
 
       - name: Run tests
-        run: make test
+        run: poetry shell && make test
 
       - name: Log in to Heroku Container Registry
         env:
