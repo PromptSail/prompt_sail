@@ -10,7 +10,7 @@ test:
 	cd src && pytest
 
 build:
-	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
+	echo "Building $(BUILD_SHA)" && docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
 	
 precommit:
 	pre-commit run --all-files
