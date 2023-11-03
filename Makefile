@@ -10,11 +10,11 @@ test:
 	cd src && pytest
 
 build:
-	echo "Building $(BUILD_SHA)" && docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
+	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
 	
 precommit:
 	pre-commit run --all-files
 	
 heroku:
-	heroku container:push web -a promptsail
+	heroku container:push web --arg BUILD_SHA=$(BUILD_SHA) -a promptsail
 	heroku container:release web -a promptsail

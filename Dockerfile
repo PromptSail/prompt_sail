@@ -46,7 +46,7 @@ ENV BUILD_SHA=${BUILD_SHA}
 
 # Copy the production requirements and install them
 COPY --from=base --chown=promptsail /src/production.txt ./
-RUN printenv && pip install --no-cache-dir -r production.txt
+RUN pip install --no-cache-dir -r production.txt
 
 # Expose the port the app runs on
 EXPOSE 8000
