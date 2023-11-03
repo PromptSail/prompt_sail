@@ -10,6 +10,9 @@ class Config(BaseSettings):
     STATIC_DIRECTORY: str = "../static"
     MONGO_URL: str = "mongodb://localhost:27017"
     BASE_URL: str = "http://localhost:8000"
+    BUILD_SHA: str = "unknown"
 
 
 config = Config()
+
+print(config)

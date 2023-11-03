@@ -39,6 +39,8 @@ jobs:
 
       - name: Build the Docker image
         run: make build
+        env:
+          BUILD_SHA: ${{ github.sha }}        
 
       - name: Push Docker image to Heroku
         env:
