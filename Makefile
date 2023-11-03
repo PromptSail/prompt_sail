@@ -4,6 +4,9 @@ run:
 run-dev:
 	cd src && uvicorn app:app --reload --proxy-headers --host 0.0.0.0
 	
+test: 
+	cd src && pytest
+
 build:
 	docker-compose build
 	
