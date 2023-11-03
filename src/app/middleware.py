@@ -11,7 +11,7 @@ async def __call__(request: Request, call_next):
     host = request.headers.get("host", "")
     subdomain = detect_subdomain(host, config.BASE_URL)
 
-    if subdomain in ["ui", "www", "promptsail"]:
+    if subdomain in [None, "ui", "www"]:
         request.state.is_handled_by_proxy = False
     else:
         request.state.is_handled_by_proxy = True

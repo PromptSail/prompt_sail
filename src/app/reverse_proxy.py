@@ -37,8 +37,6 @@ async def reverse_proxy(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ):
-    host = request.headers.get("host", "")
-
     logger = get_logger(request)
 
     if not request.state.is_handled_by_proxy:
@@ -46,7 +44,7 @@ async def reverse_proxy(
 
     project = ctx.call(get_project, project_id=request.state.project_id)
 
-    logger.debug(f"got projects for {host}: {project}")
+    logger.debug(f"got projects for {project}")
 
     # Get the body as bytes for non-GET requests
     body = await request.body() if request.method != "GET" else None
