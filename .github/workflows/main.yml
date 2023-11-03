@@ -30,7 +30,7 @@ jobs:
         run: poetry install            
 
       - name: Run tests
-        run: poetry shell && make test
+        run: poetry run make test
 
       - name: Log in to Heroku Container Registry
         env:
