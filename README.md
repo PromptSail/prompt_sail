@@ -74,7 +74,7 @@ file with the following lines:
 2. Build and run the docker image:
 
 ```bash
-docker-docker-compose up --build
+docker-compose up --build
 ```
 
 

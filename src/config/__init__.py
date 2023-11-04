@@ -8,7 +8,7 @@ load_dotenv(find_dotenv())
 
 class Config(BaseSettings):
     STATIC_DIRECTORY: str = "../static"
-    MONGO_URL: str = "mongodb://localhost:27017"
+    MONGO_URL: str = os.getenv("MONGO_URL", "mongodb://localhost:27017")
     BASE_URL: str = "http://localhost:8000"
 
 
