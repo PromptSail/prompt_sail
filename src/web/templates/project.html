@@ -68,13 +68,23 @@ llm("Explaining the meaning of life in one sentence")
                 <td>{{t.timestamp}}</td>
                 <td>{{t.request.url}}</td>
                 <td>
-                    {% for m in t.request.content.messages %}
-                    <p title="{{m.role}}">{{m.content}}</p>
-                    {% endfor %}
+                    {% if 'messages' in t.request.content %}
+                        {% for m in t.request.content.messages %}
+                            <p title="{{m.role}}">{{m.content}}</p>
+                        {% endfor %}
+                    {% else %}
+                        {% for p in t.request.content.prompt %}
+                            <p title="prompt_{{loop.index}}">{{p}}</p>
+                        {% endfor %}
+                    {% endif %}
                 </td>
                 <td>
                     {% for c in t.response.content.choices %}
-                    <p title="{{c.message.role}}">{{c.message.content}}</p>
+                        {% if 'message' in c %}
+                            <p title="{{c.message.role}}">{{c.message.content}}</p>
+                        {% else %}
+                            <p title="response_{{c.index}}">{{c.text}}</p>
+                        {% endif %}
                     {% endfor %}
                 </td>
                 <td>{{t.response.content.model}}</td>
