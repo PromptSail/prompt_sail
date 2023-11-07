@@ -12,7 +12,7 @@ test:
 build:
 	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
 	
-precommit:
+format:
 	pre-commit run --all-files
 	
 heroku:

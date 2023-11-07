@@ -18,7 +18,7 @@ async def fastapi_lifespan(app: FastAPI):
     from projects.models import Project
 
     application = container.application()
-    with (application.transaction_context() as ctx):
+    with application.transaction_context() as ctx:
         project_repository = ctx["project_repository"]
         if project_repository.count() == 0:
             project_repository.add(
