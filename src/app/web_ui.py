@@ -37,3 +37,25 @@ async def read_item(request: Request, project_id: str):
             "project_url": project_url,
         },
     )
+
+
+@app.get(
+    "/ui/project/{project_id}/transaction/{transacion_id}", response_class=HTMLResponse
+)
+async def read_sepcific_transaction(
+    request: Request, project_id: str, transacion_id: str
+):
+    ctx = get_transaction_context(request)
+    project = ctx["project_repository"].get(project_id)
+    transaction = ctx["transaction_repository"].get_one_by_id(transacion_id)
+    scheme, host = config.BASE_URL.split("://")
+    project_url = f"{scheme}://{project_id}.{host}"
+    return templates.TemplateResponse(
+        "transaction.html",
+        {
+            "request": request,
+            "project": project,
+            "transaction": transaction,
+            "project_url": project_url,
+        },
+    )
