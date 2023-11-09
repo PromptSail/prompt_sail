@@ -7,9 +7,14 @@ load_dotenv(find_dotenv())
 
 
 class Config(BaseSettings):
+    DEBUG: bool = True
     STATIC_DIRECTORY: str = "../static"
     MONGO_URL: str = "mongodb://localhost:27017"
     BASE_URL: str = "http://localhost:8000"
+    BUILD_SHA: str = "unknown"
 
 
 config = Config()
+
+if config.DEBUG:
+    print("Using config:", config)

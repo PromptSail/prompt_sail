@@ -12,7 +12,12 @@ async def dashboard(request: Request):
     ctx = get_transaction_context(request)
     projects = ctx["project_repository"].get_all()
     return templates.TemplateResponse(
-        "dashboard.html", {"request": request, "projects": projects}
+        "dashboard.html",
+        {
+            "request": request,
+            "projects": projects,
+            "build_sha": config.BUILD_SHA,
+        },
     )
 
 

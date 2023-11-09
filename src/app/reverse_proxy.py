@@ -3,14 +3,12 @@ from typing import Annotated
 import httpx
 from fastapi import Depends, Request
 from fastapi.responses import RedirectResponse, StreamingResponse
+from lato import Application, TransactionContext
 from starlette.background import BackgroundTask
 
 from app.dependencies import get_logger, get_transaction_context
-from config import config
 from projects.use_cases import get_project
-from seedwork.application import Application, TransactionContext
 from transactions.use_cases import store_transaction
-from utils import detect_subdomain
 
 from .app import app
 
@@ -39,19 +37,14 @@ async def reverse_proxy(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ):
-    host = request.headers.get("host", "")
-
     logger = get_logger(request)
-    subdomain = host.split(".")[0]
 
-    subdomain = detect_subdomain(host, config.BASE_URL)
-
-    if subdomain in [None, "ui", "www", "promptsail"]:
+    if not request.state.is_handled_by_proxy:
         return RedirectResponse("/ui")
 
-    project = ctx.call(get_project, project_id=subdomain)
+    project = ctx.call(get_project, project_id=request.state.project_id)
 
-    logger.debug(f"got projects for {host}: {project}")
+    logger.debug(f"got projects for {project}")
 
     # Get the body as bytes for non-GET requests
     body = await request.body() if request.method != "GET" else None

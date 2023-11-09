@@ -1,6 +1,5 @@
 from fastapi import Request
-
-from seedwork.application import Application, TransactionContext
+from lato import Application, TransactionContext
 
 
 async def get_application(request: Request) -> Application:

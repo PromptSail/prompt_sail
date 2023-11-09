@@ -1,38 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="/static/main.css" />
-        <script src="https://cdn.tailwindcss.com"></script>
-        <title>Dashboard</title>
-    </head>
-    <body class="flex flex-col">
-        <div class="m-auto mt-[100px] max-w-[80%]">
-            <h1 class="text-3xl md:text-5xl font-semibold text-center mb-5">
-                Dashboard
-            </h1>
-            <p class="text-center mb-5">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Curabitur rutrum dapibus lorem quis hendrerit. Fusce eu sapien
-                at lacus facilisis tincidunt eu ut quam. Ut quis lectus quis
-                tortor vehicula fermentum vitae id nibh. Class aptent taciti
-                sociosqu ad litora torquent per conubia nostra, per inceptos
-                himenaeos. Sed vel tortor eget eros pulvinar blandit.
-            </p>
-            <h2 class="text-2xl md:text-4xl text-center font-semibold">
-                Projects
-            </h2>
-            <div class="grid grid-cols-1 p-5 gap-3 md:grid-cols-2">
-                {% for project in projects %}
-                <a
-                    href="/ui/project/{{project.id}}"
-                    class="p-5 border-2 rounded-md border-[#DBDBDB] text-center hover:bg-[#EEE]"
-                >
-                    <span>{{project.name}}</span>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-    </body>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <p>Lorem ipsum...</p>
+
+    <h1>Projects</h1>
+    <ul>
+        {% for project in projects %}
+        <li><a href="/ui/project/{{project.id}}">{{project.name}}</a></li>
+        {% endfor %}
+    </ul>
+
+    <p><pre>Build: {{build_sha}}</pre></p>
+</body>
 </html>
