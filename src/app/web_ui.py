@@ -1,5 +1,5 @@
 from fastapi import Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from app.dependencies import get_transaction_context
 from config import config
@@ -19,6 +19,11 @@ async def dashboard(request: Request):
             "build_sha": config.BUILD_SHA,
         },
     )
+
+
+@app.post("/api/project", response_class=JSONResponse)
+async def add_project(request: Request):
+    return {"request_url": request.url, "request_base_url": request.base_url}
 
 
 @app.get("/ui/project/{project_id}", response_class=HTMLResponse)
