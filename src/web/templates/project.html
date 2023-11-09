@@ -60,6 +60,7 @@ llm("Explaining the meaning of life in one sentence")
                 <th>Content Type</th>
                 <th>Response status</th>
                 <th>Usage</th>
+                <th>More</th>
             </tr>
         </thead>
         <tbody>
@@ -91,6 +92,7 @@ llm("Explaining the meaning of life in one sentence")
                 <td>{{t.response.headers['content-type']}}</td>
                 <td>{{t.response.status_code}}</td>
                 <td>{{t.response.content.usage.prompt_tokens}} + {{t.response.content.usage.completion_tokens}}</td>
+                <td><a href="/ui/project/{{project.id}}/transaction/{{t.id}}">Details</a></td>
             </tr>
             {% endfor %}
         </tbody>

@@ -35,10 +35,11 @@
         
     <h3>Other</h3>
     <pre id="other">
-        "timestamp": "{{transaction.timestamp}}"
+        {
+            "timestamp": "{{transaction.timestamp}}",
+            "status_code": "{{transaction.response.status_code}}",
+            "processing_time": "{{transaction.response.elapsed}}"
+        }
     </pre>
-
-
-
 </body>
 </html>
