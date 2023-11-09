@@ -20,9 +20,9 @@ logging_context = LoggingContext()
 
 class ContextFilter(logging.Filter):
     def filter(self, record):
-        cid = str(logging_context.correlation_id) or ""
+        cid = str(logging_context.correlation_id or "")
         # make cid first 4 characters and 4 last characters visible
-        record.correlation_id = f"{cid[:4]}...{cid[-4:]}"
+        record.correlation_id = f"{cid[:4]}...{cid[-4:]}" if cid else ""
         return True
 
 
