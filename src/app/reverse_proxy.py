@@ -3,11 +3,11 @@ from typing import Annotated
 import httpx
 from fastapi import Depends, Request
 from fastapi.responses import RedirectResponse, StreamingResponse
+from lato import Application, TransactionContext
 from starlette.background import BackgroundTask
 
 from app.dependencies import get_logger, get_transaction_context
 from projects.use_cases import get_project
-from seedwork.application import Application, TransactionContext
 from transactions.use_cases import store_transaction
 
 from .app import app

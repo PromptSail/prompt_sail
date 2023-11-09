@@ -6,10 +6,9 @@ from fastapi.templating import Jinja2Templates
 from config import config
 from config.containers import TopLevelContainer
 
-templates = Jinja2Templates(directory="web/templates")
+templates = Jinja2Templates(directory=config.TEMPLATES_DIRECTORY)
 
 container = TopLevelContainer()
-# container.config.from_pydantic(config)
 container.config.override(config)
 
 
@@ -18,7 +17,7 @@ async def fastapi_lifespan(app: FastAPI):
     from projects.models import Project
 
     application = container.application()
-    with (application.transaction_context() as ctx):
+    with application.transaction_context() as ctx:
         project_repository = ctx["project_repository"]
         if project_repository.count() == 0:
             project_repository.add(

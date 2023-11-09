@@ -1,5 +1,6 @@
 from fastapi import Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from pydantic import BaseModel
 
 from app.dependencies import get_transaction_context
 from config import config
@@ -21,9 +22,19 @@ async def dashboard(request: Request):
     )
 
 
+class CreateProjectSchema(BaseModel):
+    id: int
+    name: str
+
+
+class GetProjectSchema(BaseModel):
+    id: int
+    name: str
+
+
 @app.post("/api/project", response_class=JSONResponse)
-async def add_project(request: Request):
-    return {"request_url": request.url, "request_base_url": request.base_url}
+async def add_project(request: Request, data: CreateProjectSchema) -> GetProjectSchema:
+    return GetProjectSchema(id=data.id, name=data.name)
 
 
 @app.get("/ui/project/{project_id}", response_class=HTMLResponse)

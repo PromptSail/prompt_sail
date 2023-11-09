@@ -7,12 +7,12 @@ run-dev:
 	cd src && uvicorn app:app --reload --proxy-headers --host 0.0.0.0
 	
 test: 
-	cd src && pytest
+	cd src && pytest ../tests
 
 build:
 	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
 	
-precommit:
+format:
 	pre-commit run --all-files
 	
 heroku:
