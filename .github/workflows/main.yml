@@ -17,11 +17,7 @@ jobs:
           MONGO_INITDB_ROOT_PASSWORD: password 
         ports:
           - 27017:27017
-        options: >-
-          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5    
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
