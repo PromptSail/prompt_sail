@@ -22,6 +22,8 @@ services:
     environment: 
       ME_CONFIG_MONGODB_URL: "mongodb://root:password@mongodb:27017"
       ME_CONFIG_OPTIONS_EDITORTHEME: "ambiance"
+      ME_CONFIG_BASICAUTH_USERNAME: "admin" 
+      ME_CONFIG_BASICAUTH_PASSWORD: "pass"
     depends_on:
       mongodb:
         condition: service_healthy
