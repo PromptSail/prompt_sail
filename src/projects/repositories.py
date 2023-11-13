@@ -1,6 +1,7 @@
 from projects.models import Project
 from seedwork.exceptions import NotFoundException
 from seedwork.repositories import MongoRepository
+from utils import deserialize_data
 
 
 class ProjectNotFoundException(NotFoundException):
@@ -18,8 +19,8 @@ class ProjectRepository(MongoRepository):
         result = super().update(doc)
         return result
 
-    def get_one_by_id(self, project_id: str) -> Project:
-        return self.find_one({"_id": project_id})
-
-    def get_one_by_snippet(self, project_snippet: str) -> Project:
-        return self.find({"snippet": project_snippet})
+    def find_one(self, filter_by=None):
+        data = self._collection.find_one(filter_by or {})
+        if data is None:
+            return None
+        return self.model_class(**deserialize_data(data))
