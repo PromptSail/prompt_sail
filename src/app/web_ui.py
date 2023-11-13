@@ -24,6 +24,7 @@ class GetProjectSchema(BaseModel):
     org_id: str
 
 
+# UI GET ALL PROJECTS
 @app.get("/ui", response_class=HTMLResponse)
 async def dashboard(request: Request):
     ctx = get_transaction_context(request)
@@ -38,6 +39,7 @@ async def dashboard(request: Request):
     )
 
 
+# API GET ALL PROJECTS
 @app.get("/api/projects", response_class=JSONResponse)
 async def get_projects(request: Request):
     ctx = get_transaction_context(request)
@@ -45,13 +47,7 @@ async def get_projects(request: Request):
     return projects
 
 
-@app.post("/api/project", response_class=JSONResponse)
-async def add_project(request: Request, data: CreateProjectSchema) -> GetProjectSchema:
-    return GetProjectSchema(
-        id=1, name=data.name, slug=data.slug, api_base=data.api_base, org_id=data.org_id
-    )
-
-
+# UI ADD PROJECT
 @app.get("/ui/project", response_class=HTMLResponse)
 async def get_project_form(request: Request):
     ctx = get_transaction_context(request)
@@ -106,6 +102,59 @@ async def add_project_via_ui(
     )
 
 
+# API ADD PROJECT
+@app.post("/api/project", response_class=JSONResponse)
+async def add_project(request: Request, data: CreateProjectSchema):
+    ctx = get_transaction_context(request)
+    if ctx["project_repository"].find_one({"_id": data.id}) or ctx[
+        "project_repository"
+    ].find_one({"slug": data.slug}):
+        return {"error": "Project already exists", "code": 400}
+    project = ctx["project_repository"].add(data)
+    return project
+
+
+# UI DELETE PROJECT
+@app.post("/ui/project/delete", response_class=HTMLResponse)
+async def delete_project_via_ui(request: Request, project_id: str = Form(...)):
+    ctx = get_transaction_context(request)
+    projects = ctx["project_repository"].get_all()
+    project = ctx["project_repository"].get(project_id)
+    if project:
+        ctx["project_repository"].delete(project_id)
+        projects = ctx["project_repository"].get_all()
+        return templates.TemplateResponse(
+            "dashboard.html",
+            {
+                "request": request,
+                "projects": projects,
+                "success": f"Project {project_id} deleted successfully",
+                "build_sha": config.BUILD_SHA,
+            },
+        )
+    return templates.TemplateResponse(
+        "dashboard.html",
+        {
+            "request": request,
+            "projects": projects,
+            "error": f"Project {project_id} not found",
+            "build_sha": config.BUILD_SHA,
+        },
+    )
+
+
+# API DELETE PROJECT
+@app.delete("/api/project/{project_id}", response_class=JSONResponse)
+async def delete_project(request: Request, project_id: str):
+    ctx = get_transaction_context(request)
+    project = ctx["project_repository"].get(project_id)
+    if project:
+        ctx["project_repository"].delete(project_id)
+        return {"success": "Project deleted successfully", "code": 200}
+    return {"error": "Project not found", "code": 404}
+
+
+# UI GET PROJECT WITH TRANSACTIONS
 @app.get("/ui/project/{project_id}", response_class=HTMLResponse)
 async def read_item(request: Request, project_id: str):
     ctx = get_transaction_context(request)
@@ -125,6 +174,18 @@ async def read_item(request: Request, project_id: str):
     )
 
 
+# API GET PROJECT WITH TRANSACTIONS
+@app.get("/api/project/{project_id}", response_class=JSONResponse)
+async def get_project(request: Request, project_id: str):
+    ctx = get_transaction_context(request)
+    transactions = ctx["transaction_repository"].get_for_project(project_id)
+    project = ctx["project_repository"].get(project_id)
+    project = project.dict()  # convert to dict to add transactions
+    project["transactions"] = transactions
+    return project
+
+
+# UI GET SPECIFIC TRANSACTION
 @app.get(
     "/ui/project/{project_id}/transaction/{transacion_id}", response_class=HTMLResponse
 )
