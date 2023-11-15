@@ -1,30 +1,13 @@
 from fastapi import Form, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
+from fastapi.responses import HTMLResponse
 
 from app.dependencies import get_transaction_context
 from config import config
+from projects.schemas import CreateProjectSchema, UpdateProjectSchema
 
 from .app import app, templates
 
 
-class CreateProjectSchema(BaseModel):
-    id: str
-    name: str
-    slug: str
-    api_base: str
-    org_id: str
-
-
-class GetProjectSchema(BaseModel):
-    id: str
-    name: str
-    slug: str
-    api_base: str
-    org_id: str
-
-
-# UI GET ALL PROJECTS
 @app.get("/ui", response_class=HTMLResponse)
 async def dashboard(request: Request):
     ctx = get_transaction_context(request)
@@ -39,16 +22,7 @@ async def dashboard(request: Request):
     )
 
 
-# API GET ALL PROJECTS
-@app.get("/api/projects", response_class=JSONResponse)
-async def get_projects(request: Request):
-    ctx = get_transaction_context(request)
-    projects = ctx["project_repository"].get_all()
-    return projects
-
-
-# UI ADD PROJECT
-@app.get("/ui/project", response_class=HTMLResponse)
+@app.get("/ui/project/add", response_class=HTMLResponse)
 async def get_project_form(request: Request):
     ctx = get_transaction_context(request)
     return templates.TemplateResponse(
@@ -67,7 +41,7 @@ async def add_project_via_ui(
     name: str = Form(...),
     slug: str = Form(...),
     api_base: str = Form(default="https://api.openai.com/v1"),
-    org_id: str = Form(default="none"),
+    org_id: str | None = Form(...),
 ):
     ctx = get_transaction_context(request)
     if ctx["project_repository"].find_one({"_id": proj_id}) or ctx[
@@ -90,6 +64,7 @@ async def add_project_via_ui(
     data = CreateProjectSchema(
         id=proj_id, name=name, slug=slug, api_base=api_base, org_id=org_id
     )
+    print(data.model_dump())
     project = ctx["project_repository"].add(data)
     return templates.TemplateResponse(
         "project-form.html",
@@ -102,19 +77,6 @@ async def add_project_via_ui(
     )
 
 
-# API ADD PROJECT
-@app.post("/api/project", response_class=JSONResponse)
-async def add_project(request: Request, data: CreateProjectSchema):
-    ctx = get_transaction_context(request)
-    if ctx["project_repository"].find_one({"_id": data.id}) or ctx[
-        "project_repository"
-    ].find_one({"slug": data.slug}):
-        return {"error": "Project already exists", "code": 400}
-    project = ctx["project_repository"].add(data)
-    return project
-
-
-# UI DELETE PROJECT
 @app.post("/ui/project/delete", response_class=HTMLResponse)
 async def delete_project_via_ui(request: Request, project_id: str = Form(...)):
     ctx = get_transaction_context(request)
@@ -143,18 +105,6 @@ async def delete_project_via_ui(request: Request, project_id: str = Form(...)):
     )
 
 
-# API DELETE PROJECT
-@app.delete("/api/project/{project_id}", response_class=JSONResponse)
-async def delete_project(request: Request, project_id: str):
-    ctx = get_transaction_context(request)
-    project = ctx["project_repository"].get(project_id)
-    if project:
-        ctx["project_repository"].delete(project_id)
-        return {"success": "Project deleted successfully", "code": 200}
-    return {"error": "Project not found", "code": 404}
-
-
-# UI GET PROJECT WITH TRANSACTIONS
 @app.get("/ui/project/{project_id}", response_class=HTMLResponse)
 async def read_item(request: Request, project_id: str):
     ctx = get_transaction_context(request)
@@ -174,18 +124,58 @@ async def read_item(request: Request, project_id: str):
     )
 
 
-# API GET PROJECT WITH TRANSACTIONS
-@app.get("/api/project/{project_id}", response_class=JSONResponse)
-async def get_project(request: Request, project_id: str):
+@app.get("/ui/project/{project_id}/update", response_class=HTMLResponse)
+async def get_project_update_form(request: Request, project_id: str):
     ctx = get_transaction_context(request)
-    transactions = ctx["transaction_repository"].get_for_project(project_id)
     project = ctx["project_repository"].get(project_id)
-    project = project.dict()  # convert to dict to add transactions
-    project["transactions"] = transactions
-    return project
+    return templates.TemplateResponse(
+        "project-update-form.html",
+        {
+            "request": request,
+            "project": project,
+            "build_sha": config.BUILD_SHA,
+        },
+    )
 
 
-# UI GET SPECIFIC TRANSACTION
+@app.post("/ui/project/update", response_class=HTMLResponse)
+async def update_project_via_ui(
+    request: Request,
+    proj_id: str = Form(...),
+    name: str = Form(...),
+    slug: str = Form(...),
+    api_base: str = Form(...),
+    org_id: str = Form(...),
+):
+    ctx = get_transaction_context(request)
+    project = ctx["project_repository"].get(proj_id)
+    if project:
+        data = UpdateProjectSchema(
+            id=proj_id, name=name, slug=slug, api_base=api_base, org_id=org_id
+        )
+        ctx["project_repository"].update(data)
+        project = ctx["project_repository"].get(proj_id)
+        return templates.TemplateResponse(
+            "project-update-form.html",
+            {
+                "request": request,
+                "project": project,
+                "success": "Project updated successfully",
+                "build_sha": config.BUILD_SHA,
+            },
+        )
+    projects = ctx["project_repository"].get_all()
+    return templates.TemplateResponse(
+        "dashboard.html",
+        {
+            "request": request,
+            "projects": projects,
+            "error": "Project not found",
+            "build_sha": config.BUILD_SHA,
+        },
+    )
+
+
 @app.get(
     "/ui/project/{project_id}/transaction/{transacion_id}", response_class=HTMLResponse
 )

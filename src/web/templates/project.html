@@ -15,10 +15,11 @@
 {% block  title%} {{project.name}} - details{% endblock%}
 {% block main %}
 <div class="m-auto mt-[100px] max-w-[80%] mb-5">
-    <form method="post" action="/ui/project/delete">
+    <form method="post" action="/ui/project/delete" onSubmit="if(!confirm('Are you sure?')){return false;}">
         <input type="hidden" name="project_id" value="{{ project.id }}">
         <button type="submit">Delete</button>
     </form>
+    <a href="/ui/project/{{project.id}}/update"><button>Edit</button></a>
     <h1 class="text-3xl md:text-5xl font-semibold text-center mb-5">
         {{project.name}}
     </h1>
