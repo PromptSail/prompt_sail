@@ -24,7 +24,6 @@ async def dashboard(request: Request):
 
 @app.get("/ui/project/add", response_class=HTMLResponse)
 async def get_project_form(request: Request):
-    ctx = get_transaction_context(request)
     return templates.TemplateResponse(
         "project-form.html",
         {
@@ -64,7 +63,6 @@ async def add_project_via_ui(
     data = CreateProjectSchema(
         id=proj_id, name=name, slug=slug, api_base=api_base, org_id=org_id
     )
-    print(data.model_dump())
     project = ctx["project_repository"].add(data)
     return templates.TemplateResponse(
         "project-form.html",
