@@ -15,6 +15,11 @@
 {% block  title%} {{project.name}} - details{% endblock%}
 {% block main %}
 <div class="m-auto mt-[100px] max-w-[80%] mb-5">
+    <form method="post" action="/ui/project/delete" onSubmit="if(!confirm('Are you sure?')){return false;}">
+        <input type="hidden" name="project_id" value="{{ project.id }}">
+        <button type="submit">Delete</button>
+    </form>
+    <a href="/ui/project/{{project.id}}/update"><button>Edit</button></a>
     <h1 class="text-3xl md:text-5xl font-semibold text-center mb-5">
         {{project.name}}
     </h1>
@@ -75,6 +80,7 @@ llm("Explaining the meaning of life in one sentence")</code></pre>
                 <th>Content Type</th>
                 <th>Response status</th>
                 <th>Usage</th>
+                <th>More</th>
             </tr>
         </thead>
         <tbody>
@@ -84,24 +90,30 @@ llm("Explaining the meaning of life in one sentence")</code></pre>
                     <td>{{t.timestamp}}</td>
                     <td>{{t.request.url}}</td>
                     <td>
-                        {% for m in t.request.content.messages %}
-                        <p title="{{m.role}}">{{m.content}}</p>
-                        {% endfor %}
+                        {% if 'messages' in t.request.content %}
+                            {% for m in t.request.content.messages %}
+                                <p title="{{m.role}}">{{m.content}}</p>
+                            {% endfor %}
+                        {% else %}
+                            {% for p in t.request.content.prompt %}
+                                <p title="prompt_{{loop.index}}">{{p}}</p>
+                            {% endfor %}
+                        {% endif %}
                     </td>
                     <td>
                         {% for c in t.response.content.choices %}
-                        <p title="{{c.message.role}}">
-                            {{c.message.content}}
-                        </p>
+                            {% if 'message' in c %}
+                                <p title="{{c.message.role}}">{{c.message.content}}</p>
+                            {% else %}
+                                <p title="response_{{c.index}}">{{c.text}}</p>
+                            {% endif %}
                         {% endfor %}
                     </td>
                     <td>{{t.response.content.model}}</td>
                     <td>{{t.response.headers['content-type']}}</td>
                     <td>{{t.response.status_code}}</td>
-                    <td>
-                        {{t.response.content.usage.prompt_tokens}} +
-                        {{t.response.content.usage.completion_tokens}}
-                    </td>
+                    <td>{{t.response.content.usage.prompt_tokens}} + {{t.response.content.usage.completion_tokens}}</td>
+                    <td><a href="/ui/project/{{project.id}}/transaction/{{t.id}}">Details</a></td>
                 </tr>
                 {% endfor %}
             {% else %}
@@ -115,5 +127,4 @@ llm("Explaining the meaning of life in one sentence")</code></pre>
 <script>
     hljs.highlightAll();
 </script>
-{% include "footer.html" %}
 {% endblock %}
