@@ -1,0 +1,38 @@
+html
+    head
+        title Transaction {{transaction.id}} - details
+        style.
+            table {
+                border-collapse: collapse;
+            }
+            table, th, td {
+                border: 1px solid dimgrey;
+                padding: 4px;
+            }
+            pre {
+                background: aliceblue;
+                padding: 16px;
+            }
+            code {
+                background: aliceblue;
+            }
+    body
+        h1 Transaction details - {{transaction.id}} in {{project.name}}
+        p
+            code {{project_url}}
+            |  &rarr; 
+            code {{project.api_base}}
+        h2 Request
+        pre#request {{transaction.request | tojson(indent=4) }}
+
+        h3 Response
+        pre#response {{transaction.response | tojson(indent=4) }}
+
+        h3 Other
+        pre#other.
+            {
+                "timestamp": "{{transaction.timestamp}}",
+                "status_code": "{{transaction.response.status_code}}",
+                "processing_time": "{{transaction.response.elapsed}}"
+            }
+

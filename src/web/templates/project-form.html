@@ -1,45 +1,40 @@
+
 {% extends 'base.html' %}
 {% block styles %}
-    <style>
-        thead th, tbody td {
-            padding: 10px;
-            text-align: center;
-        }
-        tr{
-            border-bottom: 1px solid #EEE;
-        }
-        tr:hover {
-            background: #F5F5F5
-        }
-        #error {
-            color: red;
-        }
-        #success {
-            color: green;
-        }
-    </style>
-{% endblock %}
+<style>
+  thead th, tbody td {
+      padding: 10px;
+      text-align: center;
+  }
+  tr{
+      border-bottom: 1px solid #EEE;
+  }
+  tr:hover {
+      background: #F5F5F5
+  }
+  #error {
+      color: red;
+  }
+  #success {
+      color: green;
+  }
+</style>{% endblock %}
 {% block  title%} Project form {% endblock%}
 {% block main %}
-    {% if error %}
-        <h1 id="error">{{error}}</h1>
-    {% endif %}
-    
-    {% if success %}
-        <h1 id="success">{{success}}</h1>
-    {% endif %}
-
-    <form method="post" action="/ui/project">
-        <label for="proj_id">ID:</label>
-        <input type="text" name="proj_id" required><br>
-        <label for="name">Name:</label>
-        <input type="text" name="name" required><br>
-        <label for="slug">Slug:</label>
-        <input type="text" name="slug" required><br>
-        <label for="api_base">API Base URL:</label>
-        <input type="url" name="api_base" placeholder="https://api.openai.com/v1"><br>
-        <label for="org_id">Organization:</label>
-        <input type="text" name="org_id"><br>
-        <button type="submit">Add Project</button>
-    </form>
-{% endblock %}
+  {% if error %}
+<h1 id="error">{{error}}</h1>  {% endif %}
+  {% if success %}
+<h1 id="success">{{success}}</h1>  {% endif %}
+<form method="post" action="/ui/project">
+  <label for="proj_id">ID:</label>
+  <input type="text" name="proj_id" required=""/><br/>
+  <label for="name">Name:</label>
+  <input type="text" name="name" required=""/><br/>
+  <label for="slug">Slug:</label>
+  <input type="text" name="slug" required=""/><br/>
+  <label for="api_base">API Base URL:</label>
+  <input type="url" name="api_base" placeholder="https://api.openai.com/v1"/><br/>
+  <label for="org_id">Organization:</label>
+  <input type="text" name="org_id"/><br/>
+  <button type="submit">Add Project</button>
+</form>{% endblock %}

@@ -1,0 +1,46 @@
+| {% extends 'base.html' %}
+| {% block styles %}
+style.
+    thead th, tbody td {
+        padding: 10px;
+        text-align: center;
+    }
+    tr{
+        border-bottom: 1px solid #EEE;
+    }
+    tr:hover {
+        background: #F5F5F5
+    }
+    #error {
+        color: red;
+    }
+    #success {
+        color: green;
+    }
+| {% endblock %}
+| {% block  title%} Project form {% endblock%}
+| {% block main %}
+|   {% if error %}
+h1#error {{error}}
+|   {% endif %}
+|   {% if success %}
+h1#success {{success}}
+|   {% endif %}
+form(method='post' action='/ui/project')
+    label(for='proj_id') ID:
+    input(type='text' name='proj_id' required='')
+    br
+    label(for='name') Name:
+    input(type='text' name='name' required='')
+    br
+    label(for='slug') Slug:
+    input(type='text' name='slug' required='')
+    br
+    label(for='api_base') API Base URL:
+    input(type='url' name='api_base' placeholder='https://api.openai.com/v1')
+    br
+    label(for='org_id') Organization:
+    input(type='text' name='org_id')
+    br
+    button(type='submit') Add Project
+| {% endblock %}

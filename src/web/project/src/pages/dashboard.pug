@@ -1,0 +1,35 @@
+| {% extends "base.html" %}
+| {% block title%} Dashboard {% endblock %} 
+| {% block style %}
+style.
+  #error {
+  color: red;
+  }
+  #success {
+  color: green;
+  }
+| {% endblock %}
+| {% block main %}
+.flex.flex-col
+  .m-auto(class='mt-[100px] max-w-[80%]') {% if error %}
+    h1#error {{error}}
+    | {% endif %} {% if success %}
+    h1#success {{success}}
+    | {% endif %}
+    h1.text-3xl.font-semibold.text-center.mb-5(class='md:text-5xl') Dashboard
+    p.text-center.mb-5.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur
+      rutrum dapibus lorem quis hendrerit. Fusce eu sapien at lacus
+      facilisis tincidunt eu ut quam. Ut quis lectus quis tortor vehicula
+      fermentum vitae id nibh. Class aptent taciti sociosqu ad litora
+      torquent per conubia nostra, per inceptos himenaeos. Sed vel tortor
+      eget eros pulvinar blandit.
+    h2.text-2xl.text-center.font-semibold(class='md:text-4xl') Projects
+    a.block.w-full.p-5.border-2.rounded-md.text-center(href='/ui/project/add' class='border-[green] hover:bg-[#EEE]')
+      span
+        b Add new project
+    .grid.grid-cols-1.p-5.gap-3(class='md:grid-cols-2') {% for project in projects %}
+      a.p-5.border-2.rounded-md.text-center(href='/ui/project/{{project.id}}' class='border-[#DBDBDB] hover:bg-[#EEE]')
+        span {{project.name}}
+      | {% endfor %}
+| {% endblock %}

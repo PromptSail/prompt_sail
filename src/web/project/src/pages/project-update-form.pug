@@ -1,0 +1,45 @@
+| {% extends 'base.html' %}
+| {% block styles %}
+style.
+    thead th, tbody td {
+        padding: 10px;
+        text-align: center;
+    }
+    tr{
+        border-bottom: 1px solid #EEE;
+    }
+    tr:hover {
+        background: #F5F5F5
+    }
+    #error {
+        color: red;
+    }
+    #success {
+        color: green;
+    }
+| {% endblock %}
+| {% block  title%} Project form {% endblock%}
+| {% block main %}
+| {% if error %}
+h1#error {{error}}
+| {% endif %}
+| {% if success %}
+h1#success {{success}}
+| {% endif %}
+form(method='post' action='/ui/project/update')
+    input(type='hidden' name='proj_id' value='{{project.id}}' required='')
+    br
+    label(for='name') Name:
+    input(type='text' name='name' value='{{project.name}}')
+    br
+    label(for='slug') Slug:
+    input(type='text' name='slug' value='{{project.slug}}')
+    br
+    label(for='api_base') API Base URL:
+    input(type='url' name='api_base' value='{{project.api_base}}')
+    br
+    label(for='org_id') Organization:
+    input(type='text' name='org_id' value='{{project.org_id}}')
+    br
+    button(type='submit') Save Project
+| {% endblock %}
