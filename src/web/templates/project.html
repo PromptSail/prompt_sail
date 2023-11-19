@@ -1,57 +1,77 @@
-<html>
-<head>
-    <title>{{project.name}} - details</title>
-    <style>
-        table {
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid dimgrey;
-            padding: 4px;
-        }
-        pre {
-            background: aliceblue;
-            padding: 16px;
-        }
-        code {
-            background: aliceblue;
-        }
-    </style>
-</head>
-<body>
-    <h1>Project details - {{project.name}}</h1>
-    <p>Lorem ipsum...</p>
-    
-    <p><code>{{project_url}}</code> &rarr; <code>{{project.api_base}}</code></p>
+{% extends 'base.html' %}
+{% block styles%}
+<style>
+    thead th, tbody td {
+        padding: 10px;
+        text-align: center;
+    }
+    tr{
+        border-bottom: 1px solid #EEE;
+    }
+    tr:hover {
+        background: #F5F5F5
+    }
+</style>{% endblock %}
+{% block  title%} {{project.name}} - details{% endblock%}
+{% block main %}
+<div class="m-auto mt-[100px] max-w-[80%] mb-5">
+    <form method="post" action="/ui/project/delete" onSubmit="if(!confirm('Are you sure?')){return false;}">
+        <input type="hidden" name="project_id" value="{{ project.id }}">
+        <button type="submit">Delete</button>
+    </form>
+    <a href="/ui/project/{{project.id}}/update"><button>Edit</button></a>
+    <h1 class="text-3xl md:text-5xl font-semibold text-center mb-5">
+        {{project.name}}
+    </h1>
+    <h2 class="text-2xl md:text-4xl font-semibold mb-2">
+        Project details:
+    </h2>
+    <p class="mb-5">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Curabitur rutrum dapibus lorem quis hendrerit. Fusce eu sapien
+        at lacus facilisis tincidunt eu ut quam. Ut quis lectus quis
+        tortor vehicula fermentum vitae id nibh. Class aptent taciti
+        sociosqu ad litora torquent per conubia nostra, per inceptos
+        himenaeos. Sed vel tortor eget eros pulvinar blandit.
+    </p>
+    <p>
+        <pre class="mb-5"><code style = "display:inline;" class="python">{{project_url}}</code><span class="hidden md:inline"> &rArr; </span> <span class="block md:hidden my-5 ms-3"> &dArr; </span><code style = "display:inline;" class="python">{{project.api_base}}</code></pre>
+    </p>
 
-
-    <h2>Usage example</h2>
-    <p>Lorem ipsum...</p>
-    <h3>Using openai library</h3>
-    <pre>
-import openai        
+    <h2 class="text-2xl md:text-4xl font-semibold mb-2">
+        Usage example
+    </h2>
+    <p class="mb-5">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Curabitur rutrum dapibus lorem quis hendrerit. Fusce eu sapien
+        at lacus facilisis tincidunt eu ut quam. Ut quis lectus quis
+        tortor vehicula fermentum vitae id nibh. Class aptent taciti
+        sociosqu ad litora torquent per conubia nostra, per inceptos
+        himenaeos. Sed vel tortor eget eros pulvinar blandit.
+    </p>
+    <h4 class="text-xl md:text-2xl font-semibold mb-2">
+        Using openai library
+    </h4>
+    <pre><code class="python">import openai        
 openai.api_key = os.environ["OPENAI_API_KEY"]
 openai.api_base = "{{project_url}}"
 openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[{"role": "user", "content": "Generate poem made of 2 sentences."}],
-)        
-    </pre>
+model="gpt-3.5-turbo",
+messages=[{"role": "user", "content": "Generate poem made of 2 sentences."}],
+)</code></pre>
 
-    <h3>Using langchain library</h3>
-    <pre>
-from langchain.llms import OpenAI
+    <h4 class="text-xl md:text-2xl font-semibold mb-2 mt-3">Using langchain library</h4>
+    <pre><code class="python">from langchain.llms import OpenAI
 llm = OpenAI(
-    model_name="text-davinci-003",
-    openai_api_base="{{project_url}}",
+model_name="text-davinci-003",
+openai_api_base="{{project_url}}",
 )
-llm("Explaining the meaning of life in one sentence")
-    </pre>
-
-    <h3>LLM Transactions</h3>
-    <table>
-        <thead>
-            <tr>
+llm("Explaining the meaning of life in one sentence")</code></pre>
+    <h4 class="text-xl md:text-2xl font-semibold mb-2 mt-3">LLM Transactions</h4>
+    <div class="overflow-x-auto p-3">
+    <table class="table-auto rounded-md shadow-lg w-full">
+        <thead class="bg-[#EEE] text-[#565656] rounded-md">
+            <tr class = "rounded-md">
                 <th>Timestamp</th>
                 <th>Request url</th>
                 <th>Prompt</th>
@@ -60,31 +80,51 @@ llm("Explaining the meaning of life in one sentence")
                 <th>Content Type</th>
                 <th>Response status</th>
                 <th>Usage</th>
+                <th>More</th>
             </tr>
         </thead>
         <tbody>
-            {% for t in transactions %}
-            <tr>
-                <td>{{t.timestamp}}</td>
-                <td>{{t.request.url}}</td>
-                <td>
-                    {% for m in t.request.content.messages %}
-                    <p title="{{m.role}}">{{m.content}}</p>
-                    {% endfor %}
-                </td>
-                <td>
-                    {% for c in t.response.content.choices %}
-                    <p title="{{c.message.role}}">{{c.message.content}}</p>
-                    {% endfor %}
-                </td>
-                <td>{{t.response.content.model}}</td>
-                <td>{{t.response.headers['content-type']}}</td>
-                <td>{{t.response.status_code}}</td>
-                <td>{{t.response.content.usage.prompt_tokens}} + {{t.response.content.usage.completion_tokens}}</td>
-            </tr>
-            {% endfor %}
+            {% if transactions %}
+                {% for t in transactions %}
+                <tr>
+                    <td>{{t.timestamp}}</td>
+                    <td>{{t.request.url}}</td>
+                    <td>
+                        {% if 'messages' in t.request.content %}
+                            {% for m in t.request.content.messages %}
+                                <p title="{{m.role}}">{{m.content}}</p>
+                            {% endfor %}
+                        {% else %}
+                            {% for p in t.request.content.prompt %}
+                                <p title="prompt_{{loop.index}}">{{p}}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% for c in t.response.content.choices %}
+                            {% if 'message' in c %}
+                                <p title="{{c.message.role}}">{{c.message.content}}</p>
+                            {% else %}
+                                <p title="response_{{c.index}}">{{c.text}}</p>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{t.response.content.model}}</td>
+                    <td>{{t.response.headers['content-type']}}</td>
+                    <td>{{t.response.status_code}}</td>
+                    <td>{{t.response.content.usage.prompt_tokens}} + {{t.response.content.usage.completion_tokens}}</td>
+                    <td><a href="/ui/project/{{project.id}}/transaction/{{t.id}}">Details</a></td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="8" class="p-5"> No data </td></tr>
+            {% endif %}
         </tbody>
     </table>
-
-</body>
-</html>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+<script>
+    hljs.highlightAll();
+</script>
+{% endblock %}

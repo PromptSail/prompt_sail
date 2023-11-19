@@ -48,12 +48,39 @@ cd prompt_sail
 127.0.1.1	project2.promptsail.local
 127.0.1.1	promptsail.local
 ```
-2. Build and run the docker image:
+
+3. Build and run the docker image:
 
 ```bash
 docker-docker-compose up --build
 ```
 
+If you want to run the code locally:
+
+Create `.env` file in the root project directory with the following content:
+
+```
+OPENAI_API_KEY="[your-openai-api-key]"
+MONGO_URL="mongodb://root:password@localhost:27017"
+BASE_URL="http://promptsail.local:8000"
+```
+
+Make sure you have Poetry installed, then:
+```bash
+poetry install
+poetry shell
+```
+
+Make sure you have `make` installed, then:
+
+```bash
+make run # to start docker-compose
+```
+
+```bash
+cd src
+python main.py # to run the code
+```
 
 ### Windows 11 machine
 
@@ -114,10 +141,10 @@ After running your LLM code, navigate back to your project page and see the prom
 
 ## Testing
 
-To run tests, simpy run `pytest` in the `src` directory of the project.
+To run tests, simpy run `make test`.
 
-## Building docker image
+## Building the docker image
 
 ```bash
-docker build -t prompt_sail .
+make build
 ```

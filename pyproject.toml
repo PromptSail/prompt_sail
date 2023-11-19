@@ -18,6 +18,8 @@ Jinja2 = "^3.1.2"
 pymongo = "^4.5.0"
 pydantic-settings = "^2.0.3"
 gunicorn = "^21.2.0"
+lato = "^0.6.0"
+python-multipart = "0.0.6"
 
 [tool.poetry.dev-dependencies]
 

@@ -1,17 +1,21 @@
 from fastapi import Request
 
+from config import config
+from utils import detect_subdomain
+
 from .app import app
 
 
 @app.middleware("detect_subdomain")
 async def __call__(request: Request, call_next):
     host = request.headers.get("host", "")
-    subdomain = host.split(".")[0]
+    subdomain = detect_subdomain(host, config.BASE_URL)
 
-    if subdomain in ["ui", "www", "promptsail"]:
-        request.state.is_web = True
+    if subdomain in [None, "ui", "www"]:
+        request.state.is_handled_by_proxy = False
     else:
-        request.state.is_web = False
+        request.state.is_handled_by_proxy = True
+        request.state.project_id = subdomain
 
     response = await call_next(request)
     return response

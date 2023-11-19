@@ -20,6 +20,7 @@ def detect_subdomain(host, base_url) -> str | None:
     :param base_url: as in config, for example: https://mydomain.com or http://localhost:8000
     :return: subdomain, if any
     """
+    host = host.split(":")[0]
     base_name = base_url.split("://")[-1].split(":")[0]
     if host.endswith(base_name):
         subdomain = host.replace(base_name, "").split(".")[0]

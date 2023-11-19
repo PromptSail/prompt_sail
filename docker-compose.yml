@@ -31,6 +31,9 @@ services:
   app:
     build:
       context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_SHA      
     ports:
       - "80:8000"
     environment:

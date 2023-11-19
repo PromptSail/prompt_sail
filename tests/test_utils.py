@@ -23,3 +23,9 @@ def test_detect_subdomain():
         )
         == "project2"
     )
+
+
+def test_local_domains():
+    host = "project1.promptsail.local:8000"
+    base_url = "http://promptsail.local:8000"
+    assert detect_subdomain(host, base_url) == "project1"
