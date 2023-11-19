@@ -51,6 +51,9 @@ async def reverse_proxy(
 
     # Make the request to the upstream server
     client = httpx.AsyncClient()
+    # todo: copy timeout from request, temporary set to 100s
+    timeout = httpx.Timeout(100.0, connect=50.0)
+
     rp_req = client.build_request(
         method=request.method,
         url=f"{project.api_base}/{path}",
@@ -60,6 +63,7 @@ async def reverse_proxy(
         },
         params=request.query_params,
         content=body,
+        timeout=timeout,
     )
     rp_resp = await client.send(rp_req, stream=True)
 
