@@ -1,1 +1,3 @@
-console.log('work1');
+import 'bootstrap';
+
+// console.log('work1');

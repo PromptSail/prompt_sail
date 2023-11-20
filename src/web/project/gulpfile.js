@@ -12,6 +12,9 @@ import { deleteAsync } from 'del';
 import prettier from 'gulp-prettier';
 import eslint from 'gulp-eslint';
 import webpack from 'webpack-stream';
+import GulpPostCss from 'gulp-postcss';
+import tailwindcss from 'tailwindcss';
+import autoPrefixer from 'autoprefixer';
 const sass = gulpSass(dartSass);
 
 const pugDir = '../templates';
@@ -53,9 +56,10 @@ function sassCompile() {
         gulp
             .src('src/main.sass')
             .pipe(sass())
+            .pipe(GulpPostCss([tailwindcss('./tailwind.config.js'), autoPrefixer]))
             .pipe(prefix())
             // .pipe(cssmin())
-            .pipe(rename('main.min.css'))
+            .pipe(rename('main.css'))
             .pipe(gulp.dest(cssDir))
     );
 }
@@ -74,6 +78,11 @@ function tsCompile() {
                                 exclude: /(node_modules)/,
                                 use: 'ts-loader'
                             }
+                            // {
+                            //     test: /\.css$/i,
+                            //     include: './src',
+                            //     use: ['style-loader', 'css-loader', 'postcss-loader']
+                            // }
                         ]
                     },
                     resolve: {
