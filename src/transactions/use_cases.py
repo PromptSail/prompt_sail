@@ -4,8 +4,20 @@ import json
 from transactions.repositories import Transaction, TransactionRepository
 
 
-def get_transactions_for_project(project_id):
-    ...
+def get_transactions_for_project(
+    project_id: str, 
+    transaction_repository: TransactionRepository
+) -> list[Transaction]:
+    transactions = transaction_repository.get_for_project(project_id)
+    return transactions
+
+
+def get_transaction(
+    transaction_id: str, 
+    transaction_repository: TransactionRepository
+) -> Transaction:
+    transaction = transaction_repository.find_one({"_id": transaction_id})
+    return transaction
 
 
 def store_transaction(

@@ -14,7 +14,7 @@ container.config.override(config)
 
 @asynccontextmanager
 async def fastapi_lifespan(app: FastAPI):
-    from projects.models import Project
+    from projects.models import Project, AIProvider
 
     application = container.application()
     with application.transaction_context() as ctx:
@@ -22,16 +22,34 @@ async def fastapi_lifespan(app: FastAPI):
         if project_repository.count() == 0:
             project_repository.add(
                 Project(
-                    id="project1",
                     name="Project 1",
-                    api_base="https://api.openai.com/v1",
+                    slug="project-1",
+                    description="Project 1 description",
+                    ai_providers=[
+                        AIProvider(
+                            api_base="https://api.openai.com/v1",
+                            provider_name="provider1",
+                            model_name="model1",
+                        ),
+                    ],
+                    tags=["tag1", "tag2"],
+                    org_id="organization",
                 )
             )
             project_repository.add(
                 Project(
-                    id="project2",
                     name="Project 2",
-                    api_base="https://api.openai.com/v1",
+                    slug="project-2",
+                    description="Project 2 description",
+                    ai_providers=[
+                        AIProvider(
+                            api_base="https://api.openai.com/v1",
+                            provider_name="provider1",
+                            model_name="model1",
+                        ),
+                    ],
+                    tags=["tag1", "tag2"],
+                    org_id="organization",
                 )
             )
     yield
