@@ -20,27 +20,39 @@ style.
 | {% endblock %}
 | {% block  title%} Project form {% endblock%}
 | {% block main %}
-|   {% if error %}
+| {% if error %}
 h1#error {{error}}
-|   {% endif %}
-|   {% if success %}
+| {% endif %}
+| {% if success %}
 h1#success {{success}}
-|   {% endif %}
+| {% endif %}
 form(method='post' action='/ui/project')
-    label(for='proj_id') ID:
-    input(type='text' name='proj_id' required='')
-    br
     label(for='name') Name:
     input(type='text' name='name' required='')
     br
     label(for='slug') Slug:
     input(type='text' name='slug' required='')
     br
+    label(for='description') Description:
+    textarea#description(name='description' rows='4' cols='50' maxlength='280' required='')
+    br
     label(for='api_base') API Base URL:
-    input(type='url' name='api_base' placeholder='https://api.openai.com/v1')
+    input(type='url' name='api_base' placeholder='https://api.openai.com/v1' required='')
+    br
+    label(for='provider_name') Provider name:
+    select#provider_name(name='provider_name') {% for pn in provider_names %}
+        option(value='{{pn}}') {{pn}}
+        | {% endfor %}
+    br
+    label(for='model_name') Model name:
+    input(type='text' name='model_name' required='')
+    br
+    label(for='tags') Tags:
+    textarea#tags(name='tags' rows='4' cols='50' required='')
     br
     label(for='org_id') Organization:
     input(type='text' name='org_id')
     br
     button(type='submit') Add Project
+
 | {% endblock %}

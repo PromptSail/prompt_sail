@@ -24,7 +24,60 @@
       torquent per conubia nostra, per inceptos himenaeos. Sed vel tortor
       eget eros pulvinar blandit.
     </p>
-    <h2 class="text-2xl text-center font-semibold md:text-4xl">Projects</h2><a class="block w-full p-5 border-2 rounded-md text-center border-[green] hover:bg-[#EEE]" href="/ui/project/add"><span><b>Add new project</b></span></a>
+    <h2 class="text-2xl text-center font-semibold md:text-4xl">Projects</h2>
+    <div>
+      <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addProjectModal">New Project +</button>
+      <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+        <form method="post" action="/api/project">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addProjectModalLabel">New Project</h1>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="input-group mb-3"><span class="input-group-text">Name</span>
+                  <input class="form-control" type="text" name="name" required="required"/>
+                </div>
+                <div class="input-group mb-3"><span class="input-group-text">Slug</span>
+                  <input class="form-control" type="text" name="slug" required="required"/>
+                </div>
+                <div class="input-group mb-3"><span class="input-group-text">Description</span>
+                  <textarea class="form-control" id="description" name="description" rows="4" cols="50" maxlength="280" required="required"></textarea>
+                </div>
+                <div class="input-group mb-3"> <span class="input-group-text">API Base URL</span>
+                  <input class="form-control" type="url" name="api_base" placeholder="https://api.openai.com/v1" required="required"/>
+                </div>
+                <div class="input-group mb-3"> <span class="input-group-text">Provider name</span>
+                  <select class="form-select" id="provider_name" name="provider_name">
+                    <option value="OpenAI">OpenAI</option>
+                    <option value="Azure OpenAI">Azure OpenAI</option>
+                    <option value="Google Palm">Google Palm</option>
+                    <option value="Anthropic Cloud">Anthropic Cloud</option>
+                    <option value="Meta LLama">Meta LLama</option>
+                    <option value="HuggingFace">HuggingFace</option>
+                    <option value="Custom">Custom</option>
+                  </select>
+                </div>
+                <div class="input-group mb-3"> <span class="input-group-text">Model name</span>
+                  <input class="form-control" type="text" name="model_name" required=""/>
+                </div>
+                <div class="input-group mb-3"><span class="input-group-text">Tags</span>
+                  <textarea class="form-control" id="tags" name="tags" rows="4" cols="50" required=""></textarea>
+                </div>
+                <div class="input-group mb-3"> <span class="input-group-text">Organization</span>
+                  <input class="form-control" type="text" name="org_id"/>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-primary" type="submit">Create</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div><a class="block w-full p-5 border-2 rounded-md text-center border-[green] hover:bg-[#EEE]" href="/ui/project/add"><span><b>Add new project</b></span></a>
     <div class="grid grid-cols-1 p-5 gap-3 md:grid-cols-2">{% for project in projects %}<a class="p-5 border-2 rounded-md text-center border-[#DBDBDB] hover:bg-[#EEE]" href="/ui/project/{{project.id}}"><span>{{project.name}}</span></a>{% endfor %}</div>
   </div>
 </div>{% endblock %}
