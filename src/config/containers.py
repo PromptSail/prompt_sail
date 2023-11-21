@@ -115,6 +115,7 @@ def create_application(container, **kwargs):
             correlation_id=correlation_id,
             logger=logger,
             db_client=container.db_client,
+            app=application
         )
         transaction_level_provider = ContainerProvider(transaction_level_container)
         return TransactionContext(dependency_provider=transaction_level_provider)
@@ -159,6 +160,7 @@ class TransactionContainer(containers.DeclarativeContainer):
     correlation_id = providers.Dependency(instance_of=UUID)
     logger = providers.Dependency(instance_of=Logger)
     db_client = providers.Dependency(instance_of=pymongo.database.Database)
+    app = providers.Dependency(instance_of=Application)
     project_repository = providers.Singleton(
         ProjectRepository, db_client=db_client, collection_name="projects"
     )
