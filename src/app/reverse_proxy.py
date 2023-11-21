@@ -70,6 +70,6 @@ async def reverse_proxy(
         status_code=rp_resp.status_code,
         headers=rp_resp.headers,
         background=BackgroundTask(
-            close_stream, ctx.app, project.id, rp_req, rp_resp, buffer
+            close_stream, ctx['app'], project.id, rp_req, rp_resp, buffer
         ),
     )
