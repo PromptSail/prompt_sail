@@ -7,7 +7,7 @@ from lato import Application, TransactionContext
 from starlette.background import BackgroundTask
 
 from app.dependencies import get_logger, get_transaction_context
-from projects.use_cases import get_project
+from projects.use_cases import get_project_by_slug
 from transactions.use_cases import store_transaction
 
 from .app import app
@@ -41,8 +41,8 @@ async def reverse_proxy(
 
     if not request.state.is_handled_by_proxy:
         return RedirectResponse("/ui")
-
-    project = ctx.call(get_project, project_id=request.state.project_id)
+    
+    project = ctx.call(get_project_by_slug, slug=request.state.slug)
 
     logger.debug(f"got projects for {project}")
 
@@ -50,10 +50,11 @@ async def reverse_proxy(
     body = await request.body() if request.method != "GET" else None
 
     # Make the request to the upstream server
+    api_base = project.ai_providers[0].api_base
     client = httpx.AsyncClient()
     rp_req = client.build_request(
         method=request.method,
-        url=f"{project.api_base}/{path}",
+        url=f"{api_base}/{path}",
         # headers=request.headers.raw,
         headers={
             k: v for k, v in request.headers.items() if k.lower() not in ("host",)

@@ -15,36 +15,45 @@
 </style>{% endblock %}
 {% block  title%} {{project.name}} - details{% endblock%}
 {% block main %}
-<div class="m-auto mb-5 mt-[100px] max-w-[80%]">
-  <form method="post" action="/ui/project/delete" onsubmit="if(!confirm('Are you sure?')){return false;}">
-    <input type="hidden" name="project_id" value="{{ project.id }}"/>
-    <button type="submit">Delete</button>
-  </form><a href="/ui/project/{{project.id}}/update">
-    <button>Edit</button></a>
-  <h1 class="text-3xl font-semibold text-center mb-5 md:text-5xl">{{project.name}}</h1>
-  <h2 class="text-2xl font-semibold mb-2 md:text-4xl">Project details:</h2>
-  <p class="mb-5">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-    Curabitur rutrum dapibus lorem quis hendrerit. Fusce eu sapien
-    at lacus facilisis tincidunt eu ut quam. Ut quis lectus quis
-    tortor vehicula fermentum vitae id nibh. Class aptent taciti
-    sociosqu ad litora torquent per conubia nostra, per inceptos
-    himenaeos. Sed vel tortor eget eros pulvinar blandit.
-  </p>
-  <p>
-    <pre class="mb-5"><code class="python" style="display:inline;">{{project_url}}</code><span class="hidden md:inline">&rArr;</span><span class="block md:hidden my-5 ms-3">&dArr;</span><code class="python" style="display:inline">{{project.api_base}} </code></pre>
-  </p>
-  <h2 class="text-2xl font-semibold mb-2 md:text-4xl">Usage example</h2>
-  <p class="mb-5">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-    Curabitur rutrum dapibus lorem quis hendrerit. Fusce eu sapien
-    at lacus facilisis tincidunt eu ut quam. Ut quis lectus quis
-    tortor vehicula fermentum vitae id nibh. Class aptent taciti
-    sociosqu ad litora torquent per conubia nostra, per inceptos
-    himenaeos. Sed vel tortor eget eros pulvinar blandit.
-  </p>
-  <h4 class="text-xl font-semibold mb-2 md:text-2xl">Using openai library</h4>
-  <pre><code class="python">import openai        
+<div class="m-auto mt-[100px] max-w-[80%] mb-5">
+    <form method="post" action="/ui/project/delete" onSubmit="if(!confirm('Are you sure?')){return false;}">
+        <input type="hidden" name="project_id" value="{{ project.id }}">
+        <button type="submit">Delete</button>
+    </form>
+    <a href="/ui/project/{{project.id}}/update"><button>Edit</button></a>
+    <h1 class="text-3xl md:text-5xl font-semibold text-center mb-5">
+        {{project.name}}
+    </h1>
+    <h2 class="text-2xl md:text-4xl font-semibold mb-2">
+        Project details:
+    </h2>
+    <p class="mb-5">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Curabitur rutrum dapibus lorem quis hendrerit. Fusce eu sapien
+        at lacus facilisis tincidunt eu ut quam. Ut quis lectus quis
+        tortor vehicula fermentum vitae id nibh. Class aptent taciti
+        sociosqu ad litora torquent per conubia nostra, per inceptos
+        himenaeos. Sed vel tortor eget eros pulvinar blandit.
+    </p>
+    <p>
+        <pre class="mb-5"><code style = "display:inline;" class="python">{{project_url}}</code><span class="hidden md:inline"> &rArr; </span> <span class="block md:hidden my-5 ms-3"> &dArr; </span><code style = "display:inline;" class="python">{{project.ai_providers.0.api_base}}</code></pre>
+    </p>
+
+    <h2 class="text-2xl md:text-4xl font-semibold mb-2">
+        Usage example
+    </h2>
+    <p class="mb-5">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Curabitur rutrum dapibus lorem quis hendrerit. Fusce eu sapien
+        at lacus facilisis tincidunt eu ut quam. Ut quis lectus quis
+        tortor vehicula fermentum vitae id nibh. Class aptent taciti
+        sociosqu ad litora torquent per conubia nostra, per inceptos
+        himenaeos. Sed vel tortor eget eros pulvinar blandit.
+    </p>
+    <h4 class="text-xl md:text-2xl font-semibold mb-2">
+        Using openai library
+    </h4>
+    <pre><code class="python">import openai        
 openai.api_key = os.environ["OPENAI_API_KEY"]
 openai.api_base = "{{project_url}}"
 openai.ChatCompletion.create(

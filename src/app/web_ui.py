@@ -3,15 +3,17 @@ from fastapi.responses import HTMLResponse
 
 from app.dependencies import get_transaction_context
 from config import config
-from projects.schemas import CreateProjectSchema, UpdateProjectSchema
+from projects.schemas import CreateProjectSchema, UpdateProjectSchema, ProjectAIProviderSchema
 
 from .app import app, templates
+from projects.use_cases import add_project, get_project, get_all_projects, delete_project, update_project
+from transactions.use_cases import get_transactions_for_project, get_transaction
 
 
 @app.get("/ui", response_class=HTMLResponse)
 async def dashboard(request: Request):
     ctx = get_transaction_context(request)
-    projects = ctx["project_repository"].get_all()
+    projects = ctx.call(get_all_projects)
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -24,11 +26,12 @@ async def dashboard(request: Request):
 
 @app.get("/ui/project/add", response_class=HTMLResponse)
 async def get_project_form(request: Request):
-    ctx = get_transaction_context(request)
+    provider_names = ["OpenAI", "Azure OpenAI", "Google Palm", "Anthropic Cloud", "Meta LLama", "HuggingFace", "Custom"]
     return templates.TemplateResponse(
         "project-form.html",
         {
             "request": request,
+            "provider_names": provider_names,
             "build_sha": config.BUILD_SHA,
         },
     )
@@ -37,16 +40,34 @@ async def get_project_form(request: Request):
 @app.post("/ui/project", response_class=HTMLResponse)
 async def add_project_via_ui(
     request: Request,
-    proj_id: str = Form(...),
     name: str = Form(...),
     slug: str = Form(...),
-    api_base: str = Form(default="https://api.openai.com/v1"),
+    description: str = Form(...),
+    api_base: str = Form(...),
+    provider_name: str = Form(...),
+    model_name: str = Form(...),
+    tags: str = Form(...),
     org_id: str | None = Form(...),
 ):
     ctx = get_transaction_context(request)
-    if ctx["project_repository"].find_one({"_id": proj_id}) or ctx[
-        "project_repository"
-    ].find_one({"slug": slug}):
+    tags = tags.replace(" ", "").split(",")
+    data = CreateProjectSchema(
+        name=name,
+        slug=slug,
+        description=description,
+        ai_providers=[
+            ProjectAIProviderSchema(
+                api_base=api_base,
+                provider_name=provider_name,
+                model_name=model_name
+            )
+        ],
+        tags=tags,
+        org_id=org_id
+    )
+    project = ctx.call(add_project, data)
+
+    if project is None:
         return templates.TemplateResponse(
             "project-form.html",
             {
@@ -55,17 +76,6 @@ async def add_project_via_ui(
                 "build_sha": config.BUILD_SHA,
             },
         )
-
-    if api_base == "":
-        api_base = "https://api.openai.com/v1"
-    if org_id == "":
-        org_id = "none"
-
-    data = CreateProjectSchema(
-        id=proj_id, name=name, slug=slug, api_base=api_base, org_id=org_id
-    )
-    print(data.model_dump())
-    project = ctx["project_repository"].add(data)
     return templates.TemplateResponse(
         "project-form.html",
         {
@@ -80,11 +90,11 @@ async def add_project_via_ui(
 @app.post("/ui/project/delete", response_class=HTMLResponse)
 async def delete_project_via_ui(request: Request, project_id: str = Form(...)):
     ctx = get_transaction_context(request)
-    projects = ctx["project_repository"].get_all()
-    project = ctx["project_repository"].get(project_id)
-    if project:
-        ctx["project_repository"].delete(project_id)
-        projects = ctx["project_repository"].get_all()
+    projects = ctx.call(get_all_projects)
+    deleted = ctx.call(delete_project, project_id=project_id)
+    
+    if deleted:
+        projects = ctx.call(get_all_projects)
         return templates.TemplateResponse(
             "dashboard.html",
             {
@@ -108,10 +118,10 @@ async def delete_project_via_ui(request: Request, project_id: str = Form(...)):
 @app.get("/ui/project/{project_id}", response_class=HTMLResponse)
 async def read_item(request: Request, project_id: str):
     ctx = get_transaction_context(request)
-    project = ctx["project_repository"].get(project_id)
-    transactions = ctx["transaction_repository"].get_for_project(project_id)
+    project = ctx.call(get_project, project_id=project_id)
+    transactions = ctx.call(get_transactions_for_project, project_id=project_id)
     scheme, host = config.BASE_URL.split("://")
-    project_url = f"{scheme}://{project_id}.{host}"
+    project_url = f"{scheme}://{project.slug}.{host}"
     return templates.TemplateResponse(
         "project.html",
         {
@@ -127,12 +137,14 @@ async def read_item(request: Request, project_id: str):
 @app.get("/ui/project/{project_id}/update", response_class=HTMLResponse)
 async def get_project_update_form(request: Request, project_id: str):
     ctx = get_transaction_context(request)
-    project = ctx["project_repository"].get(project_id)
+    project = ctx.call(get_project, project_id=project_id)
+    provider_names = ["OpenAI", "Azure OpenAI", "Google Palm", "Anthropic Cloud", "Meta LLama", "HuggingFace", "Custom"]
     return templates.TemplateResponse(
         "project-update-form.html",
         {
             "request": request,
             "project": project,
+            "provider_names": provider_names,
             "build_sha": config.BUILD_SHA,
         },
     )
@@ -144,17 +156,36 @@ async def update_project_via_ui(
     proj_id: str = Form(...),
     name: str = Form(...),
     slug: str = Form(...),
+    description: str = Form(...),
     api_base: str = Form(...),
-    org_id: str = Form(...),
+    provider_name: str = Form(...),
+    model_name: str = Form(...),
+    tags: str = Form(...),
+    org_id: str | None = Form(...),
 ):
     ctx = get_transaction_context(request)
-    project = ctx["project_repository"].get(proj_id)
-    if project:
-        data = UpdateProjectSchema(
-            id=proj_id, name=name, slug=slug, api_base=api_base, org_id=org_id
-        )
-        ctx["project_repository"].update(data)
-        project = ctx["project_repository"].get(proj_id)
+
+    tags = tags.replace(" ", "").split(",")
+    
+    tags = tags[0:len(tags)-2] if tags[len(tags)-1] == " " else tags  # remove empty tag if exists
+    data = UpdateProjectSchema(
+        id=proj_id,
+        name=name,
+        slug=slug,
+        description=description,
+        ai_providers=[
+            ProjectAIProviderSchema(
+                api_base=api_base,
+                provider_name=provider_name,
+                model_name=model_name
+            )
+        ],
+        tags=tags,
+        org_id=org_id
+    )
+    updated = ctx.call(update_project, data=data)
+    if updated:
+        project = ctx.call(get_project, project_id=proj_id)
         return templates.TemplateResponse(
             "project-update-form.html",
             {
@@ -164,7 +195,7 @@ async def update_project_via_ui(
                 "build_sha": config.BUILD_SHA,
             },
         )
-    projects = ctx["project_repository"].get_all()
+    projects = ctx.call(get_all_projects)
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -183,8 +214,8 @@ async def read_sepcific_transaction(
     request: Request, project_id: str, transacion_id: str
 ):
     ctx = get_transaction_context(request)
-    project = ctx["project_repository"].get(project_id)
-    transaction = ctx["transaction_repository"].get_one_by_id(transacion_id)
+    project = ctx.call(get_project, project_id=project_id)
+    transaction = ctx.call(get_transaction, transaction_id=transacion_id)
     scheme, host = config.BASE_URL.split("://")
     project_url = f"{scheme}://{project_id}.{host}"
     return templates.TemplateResponse(
