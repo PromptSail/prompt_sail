@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 from app.dependencies import get_transaction_context
 from projects.schemas import CreateProjectSchema, UpdateProjectSchema
-from projects.use_cases import get_all_projects, add_project, update_project, delete_project
+from projects.use_cases import get_all_projects, add_project, update_project, delete_project, get_project
 from transactions.use_cases import get_transactions_for_project
 
 from .app import app
@@ -17,7 +17,7 @@ async def get_projects(request: Request):
 
 
 @app.get("/api/project/{project_id}", response_class=JSONResponse)
-async def get_project(request: Request, project_id: str):
+async def get_specific_project(request: Request, project_id: str):
     ctx = get_transaction_context(request)
     transactions = ctx.call(get_transactions_for_project, project_id=project_id)
     project = ctx.call(get_project, project_id=project_id)
