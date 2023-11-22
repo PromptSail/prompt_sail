@@ -1,6 +1,7 @@
 import gzip
 import json
 
+# from transactions.models import Tags
 from transactions.repositories import Transaction, TransactionRepository
 
 
@@ -21,7 +22,12 @@ def get_transaction(
 
 
 def store_transaction(
-    request, response, buffer, project_id, transaction_repository: TransactionRepository
+    request, 
+    response, 
+    buffer,
+    project_id, 
+    # tags,
+    transaction_repository: TransactionRepository
 ):
     if response.headers.get("content-encoding") == "gzip":
         response_content = gzip.decompress(buffer[0]).decode()
@@ -62,20 +68,27 @@ def store_transaction(
     transaction = Transaction(
         project_id=project_id,
         request=dict(
+            method=request.method,
             url=str(request.url),
             host=request.headers.get("host", ""),
             headers=dict(request.headers),
+            extensions=dict(request.extensions),
             content=json.loads(request.content),
         ),
         response=dict(
+            status_code=response.status_code,
             headers=dict(response.headers),
             is_error=response.is_error,
             is_success=response.is_success,
-            status_code=response.status_code,
             content=response_content,
             elapsed=response.elapsed.total_seconds(),
             encoding=response.encoding,
         ),
+        # tags=Tags(
+        #     model=tags.model,
+        #     experiment=tags.experiment,
+        #     tags=tags.tags
+        # )
     )
 
     transaction_repository.add(transaction)
