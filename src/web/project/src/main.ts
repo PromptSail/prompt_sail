@@ -1,9 +1,11 @@
 import 'bootstrap';
 import api from './api/api';
 
-import addProject from './components/addProjectModal';
+import addProject from './components/addProjectModal/addProjectModal';
+import updateProject from './components/updateProjectModal/updateProjectModal';
 
 addProject.init();
+updateProject.init();
 const product = () => {
     api.getProjects()
         .then((el) => {

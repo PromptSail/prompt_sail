@@ -1,5 +1,5 @@
-import api from '../api/api';
-import { addProjectRequest } from '../api/interfaces';
+import api from '../../api/api';
+import { addProjectRequest } from '../../api/interfaces';
 
 const settings = {
     target: '#addProjectModal',
@@ -12,18 +12,17 @@ const DOM = {
 };
 
 const addProject = {
-    DOM: {},
-    init: () => {
+    DOM: {} as { [key: string]: HTMLElement },
+    init: function () {
         if (document.querySelectorAll(settings.target).length > 0) {
-            addProject.catchDOM();
-            addProject.submit();
+            this.catchDOM(settings);
+            this.submit();
         }
     },
-    submit: () => {
-        DOM.form.addEventListener('submit', (e: SubmitEvent) => {
+    submit: function () {
+        this.DOM.form.addEventListener('submit', (e: SubmitEvent) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
-            console.log(formData.get('name'));
             const formDataObject: { [key: string]: string } = {};
             formData.forEach((value, key) => {
                 formDataObject[key] = value.toString();
@@ -39,18 +38,17 @@ const addProject = {
                         model_name: formDataObject['model_name']
                     }
                 ],
-                tags: formDataObject['tags'].replace(' ', '').split(','),
+                tags: formDataObject['tags'].replace(/\s/g, '').split(','),
                 org_id: formDataObject['org_id']
             };
-            console.log(data);
             api.addProject(data)
-                .then((e) => console.log(e))
+                .then((e) => window.location.reload())
                 .catch((err) => console.error(err));
         });
     },
-    catchDOM: () => {
-        (DOM.target = document.body.querySelector(settings.target)),
-            (DOM.form = document.body.querySelector(settings.form));
+    catchDOM: function (sets: { [key: string]: string }) {
+        this.DOM.target = document.body.querySelector(sets.target);
+        this.DOM.form = document.body.querySelector(sets.form);
     }
 };
 

@@ -20,6 +20,7 @@ style.
         button(type='submit') Delete
     a(href='/ui/project/{{project.id}}/update')
         button Edit
+    include ../components/updateProjectModal/updateProjectModal
     h1.text-3xl.font-semibold.text-center.mb-5(class='md:text-5xl') {{project.name}}
     h2.text-2xl.font-semibold.mb-2(class='md:text-4xl')
         | Project details:
