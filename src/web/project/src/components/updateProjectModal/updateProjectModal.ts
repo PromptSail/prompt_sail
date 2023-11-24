@@ -18,14 +18,14 @@ const settings = {
 
 const updateProject = {
     DOM: {} as { [key: string]: HTMLElement },
-    init: function () {
+    init() {
         if (document.querySelectorAll(settings.target).length > 0) {
-            updateProject.catchDOM(settings);
-            updateProject.load();
-            updateProject.submit();
+            this.catchDOM(settings);
+            this.load();
+            this.submit();
         }
     },
-    load: function () {
+    load() {
         this.id = this.DOM.target.getAttribute(settings.id);
         api.getProject(this.id)
             .then((response) => {
@@ -41,7 +41,7 @@ const updateProject = {
             })
             .catch((err) => console.error(err));
     },
-    submit: function () {
+    submit() {
         this.DOM.form.addEventListener('submit', (e: SubmitEvent) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
@@ -71,7 +71,7 @@ const updateProject = {
                 .catch((err) => console.error(err));
         });
     },
-    catchDOM: function (sets: { [key: string]: string }) {
+    catchDOM(sets: { [key: string]: string }) {
         this.DOM.target = document.body.querySelector(sets.target);
         this.DOM.form = document.body.querySelector(sets.form);
         this.DOM.name = document.body.querySelector(`${sets.form} ${sets.name}`);

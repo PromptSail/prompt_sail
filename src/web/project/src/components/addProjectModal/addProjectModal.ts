@@ -13,13 +13,13 @@ const DOM = {
 
 const addProject = {
     DOM: {} as { [key: string]: HTMLElement },
-    init: function () {
+    init() {
         if (document.querySelectorAll(settings.target).length > 0) {
             this.catchDOM(settings);
             this.submit();
         }
     },
-    submit: function () {
+    submit() {
         this.DOM.form.addEventListener('submit', (e: SubmitEvent) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
@@ -41,12 +41,13 @@ const addProject = {
                 tags: formDataObject['tags'].replace(/\s/g, '').split(','),
                 org_id: formDataObject['org_id']
             };
+            window.location.reload();
             api.addProject(data)
                 .then((e) => window.location.reload())
                 .catch((err) => console.error(err));
         });
     },
-    catchDOM: function (sets: { [key: string]: string }) {
+    catchDOM(sets: { [key: string]: string }) {
         this.DOM.target = document.body.querySelector(sets.target);
         this.DOM.form = document.body.querySelector(sets.form);
     }
