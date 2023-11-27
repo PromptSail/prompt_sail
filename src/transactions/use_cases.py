@@ -34,32 +34,7 @@ def store_transaction(
         response_content = json.loads(response_content)
     else:
         chunks = [chunk.decode() for chunk in buffer]
-        response_content = None
-        for chunk in chunks:
-            chunk_data = chunk.split("data:")
-            for part_str in chunk_data:
-                try:
-                    part = json.loads(part_str)
-                    if response_content is None:
-                        response_content = part
-                        response_content["choices"][0]["message"] = dict(
-                            content=part["choices"][0]["delta"]["content"],
-                            role=part["choices"][0]["delta"]["role"],
-                        )
-                    else:
-                        if "usage" in part_str:
-                            raise NotImplementedError()
-                        try:
-                            if part["choices"][0]["finish_reason"] == "stop":
-                                continue
-                            else:
-                                response_content["choices"][0]["message"][
-                                    "content"
-                                ] += part["choices"][0]["delta"]["content"]
-                        except KeyError:
-                            ...
-                except json.JSONDecodeError:
-                    pass
+        response_content = [json.loads(chunk.split("data:")) for chunk in chunks]
 
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response
@@ -67,23 +42,8 @@ def store_transaction(
 
     transaction = Transaction(
         project_id=project_id,
-        request=dict(
-            method=request.method,
-            url=str(request.url),
-            host=request.headers.get("host", ""),
-            headers=dict(request.headers),
-            extensions=dict(request.extensions),
-            content=json.loads(request.content),
-        ),
-        response=dict(
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            is_error=response.is_error,
-            is_success=response.is_success,
-            content=response_content,
-            elapsed=response.elapsed.total_seconds(),
-            encoding=response.encoding,
-        ),
+        request=dict(**request),
+        response=dict(**response),
         # tags=Tags(
         #     model=tags.model,
         #     experiment=tags.experiment,
