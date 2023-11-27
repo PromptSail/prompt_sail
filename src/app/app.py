@@ -29,7 +29,7 @@ async def fastapi_lifespan(app: FastAPI):
                         ProjectAIProviderSchema(
                             api_base="https://api.openai.com/v1",
                             provider_name="OpenAI",
-                            model_name="gpt-3.5-turbo",
+                            ai_model_name="gpt-3.5-turbo",
                         ),
                     ],
                     tags=["tag1", "tag2"],
@@ -43,7 +43,7 @@ async def fastapi_lifespan(app: FastAPI):
                         ProjectAIProviderSchema(
                             api_base="https://api.openai.com/v1",
                             provider_name="OpenAI",
-                            model_name="gpt-3.5-turbo",
+                            ai_model_name="gpt-3.5-turbo",
                         ),
                     ],
                     tags=["tag1", "tag2", "tag3"],

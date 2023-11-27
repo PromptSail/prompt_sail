@@ -34,7 +34,7 @@ def store_transaction(
         response_content = json.loads(response_content)
     else:
         chunks = [chunk.decode() for chunk in buffer]
-        response_content = [json.loads(chunk.split("data:")) for chunk in chunks]
+        response_content = [json.loads(chunk.split("data:")) for chunk in chunks if len(chunk) > 0]
 
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response
@@ -42,8 +42,25 @@ def store_transaction(
 
     transaction = Transaction(
         project_id=project_id,
-        request=dict(**request),
-        response=dict(**response),
+
+        request=dict(
+            method=request.method,
+            url=str(request.url),
+            host=request.headers.get("host", ""),
+            headers=dict(request.headers),
+            extensions=dict(request.extensions),
+            content=json.loads(request.content),
+        ),
+        response=dict(
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            next_requset=response.next_request,
+            is_error=response.is_error,
+            is_success=response.is_success,
+            content=response_content,
+            elapsed=response.elapsed.total_seconds(),
+            encoding=response.encoding,
+        ),
         # tags=Tags(
         #     model=tags.model,
         #     experiment=tags.experiment,
