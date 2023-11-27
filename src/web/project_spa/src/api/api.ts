@@ -1,12 +1,12 @@
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import client from './client';
-import { addProjectRequest, updateProjectRequest } from './interfaces';
+import { addProjectRequest, getProjectResponse, updateProjectRequest } from './interfaces';
 
 const api = {
-    getProjects: (): Promise<AxiosResponse<any>> => {
+    getProjects: (): Promise<AxiosResponse<Array<getProjectResponse>>> => {
         return client.get('/api/projects');
     },
-    getProject: (id: string): Promise<AxiosResponse<any>> => {
+    getProject: (id: string): Promise<AxiosResponse<getProjectResponse>> => {
         return client.get(`/api/project/${id}`);
     },
     addProject: (data: addProjectRequest): Promise<AxiosResponse<any>> => {

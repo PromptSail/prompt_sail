@@ -1,9 +1,12 @@
 import axios from 'axios';
 
 const client = axios.create({
-    baseURL: 'http://localhost:8000', // blocked by CORS
+    // baseURL: 'http://promptsail.local', // blocked by CORS
+    baseURL: 'api',
     headers: {
-        'Content-Type': 'application/json'
+        // Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store'
     }
 });
 
