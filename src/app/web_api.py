@@ -21,6 +21,8 @@ async def get_specific_project(request: Request, project_id: str):
     ctx = get_transaction_context(request)
     transactions = ctx.call(get_transactions_for_project, project_id=project_id)
     project = ctx.call(get_project, project_id=project_id)
+    if project is None:
+        return JSONResponse({"error": "Project not found"}, status_code=404)
     project = project.model_dump()  # convert to dict to append transactions
     project["transactions"] = transactions
     return project
