@@ -45,7 +45,7 @@ async def add_project_via_ui(
     description: str = Form(...),
     api_base: str = Form(...),
     provider_name: str = Form(...),
-    model_name: str = Form(...),
+    ai_model_name: str = Form(...),
     tags: str = Form(...),
     org_id: str | None = Form(...),
 ):
@@ -59,7 +59,7 @@ async def add_project_via_ui(
             ProjectAIProviderSchema(
                 api_base=api_base,
                 provider_name=provider_name,
-                model_name=model_name
+                ai_model_name=ai_model_name
             )
         ],
         tags=tags,
@@ -159,7 +159,7 @@ async def update_project_via_ui(
     description: str = Form(...),
     api_base: str = Form(...),
     provider_name: str = Form(...),
-    model_name: str = Form(...),
+    ai_model_name: str = Form(...),
     tags: str = Form(...),
     org_id: str | None = Form(...),
 ):
@@ -177,7 +177,7 @@ async def update_project_via_ui(
             ProjectAIProviderSchema(
                 api_base=api_base,
                 provider_name=provider_name,
-                model_name=model_name
+                ai_model_name=ai_model_name
             )
         ],
         tags=tags,
