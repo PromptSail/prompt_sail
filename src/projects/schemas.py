@@ -1,11 +1,18 @@
 from pydantic import BaseModel
 
 
+class ProjectAIProviderSchema(BaseModel):
+    api_base: str
+    provider_name: str
+    ai_model_name: str
+
+
 class CreateProjectSchema(BaseModel):
-    id: str
     name: str
     slug: str
-    api_base: str = "https://api.openai.com/v1"
+    description: str
+    ai_providers: list[ProjectAIProviderSchema]
+    tags: list[str] = []
     org_id: str | None = None
 
 
@@ -13,7 +20,9 @@ class UpdateProjectSchema(BaseModel):
     id: str
     name: str
     slug: str
-    api_base: str
+    description: str
+    ai_providers: list[ProjectAIProviderSchema]
+    tags: list[str] = []
     org_id: str | None = None
 
 
@@ -21,5 +30,6 @@ class GetProjectSchema(BaseModel):
     id: str
     name: str
     slug: str
-    api_base: str
+    ai_providers: list[ProjectAIProviderSchema]
+    tags: list[str] = []
     org_id: str | None = None
