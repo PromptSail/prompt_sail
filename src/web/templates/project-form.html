@@ -1,48 +1,64 @@
-
-{% extends 'base.html' %}
-{% block styles %}
+{% extends 'base.html' %} {% block styles %}
 <style>
-  thead th, tbody td {
-      padding: 10px;
-      text-align: center;
-  }
-  tr{
-      border-bottom: 1px solid #EEE;
-  }
-  tr:hover {
-      background: #F5F5F5
-  }
-  #error {
-      color: red;
-  }
-  #success {
-      color: green;
-  }
-</style>{% endblock %}
-{% block  title%} Project form {% endblock%}
-{% block main %}
-{% if error %}
-<h1 id="error">{{error}}</h1>{% endif %}
-{% if success %}
-<h1 id="success">{{success}}</h1>{% endif %}
+    thead th,
+    tbody td {
+        padding: 10px;
+        text-align: center;
+    }
+    tr {
+        border-bottom: 1px solid #eee;
+    }
+    tr:hover {
+        background: #f5f5f5;
+    }
+    #error {
+        color: red;
+    }
+    #success {
+        color: green;
+    }</style
+>{% endblock %} {% block title%} Project form {% endblock%} {% block main %} {%
+if error %}
+<h1 id="error">{{error}}</h1>
+{% endif %} {% if success %}
+<h1 id="success">{{success}}</h1>
+{% endif %}
+
 <form method="post" action="/ui/project">
-  <label for="name">Name:</label>
-  <input type="text" name="name" required=""/><br/>
-  <label for="slug">Slug:</label>
-  <input type="text" name="slug" required=""/><br/>
-  <label for="description">Description:</label>
-  <textarea id="description" name="description" rows="4" cols="50" maxlength="280" required=""></textarea><br/>
-  <label for="api_base">API Base URL:</label>
-  <input type="url" name="api_base" placeholder="https://api.openai.com/v1" required=""/><br/>
-  <label for="provider_name">Provider name:</label>
-  <select id="provider_name" name="provider_name">{% for pn in provider_names %}
-    <option value="{{pn}}">{{pn}}</option>{% endfor %}
-  </select><br/>
-  <label for="model_name">Model name:</label>
-  <input type="text" name="model_name" required=""/><br/>
-  <label for="tags">Tags:</label>
-  <textarea id="tags" name="tags" rows="4" cols="50" required=""></textarea><br/>
-  <label for="org_id">Organization:</label>
-  <input type="text" name="org_id"/><br/>
-  <button type="submit">Add Project</button>
-</form>{% endblock %}
+    <label for="name">Name:</label>
+    <input type="text" name="name" required /><br />
+    <label for="slug">Slug:</label>
+    <input type="text" name="slug" required /><br />
+    <label for="description">Description:</label>
+    <textarea
+        id="description"
+        name="description"
+        rows="4"
+        cols="50"
+        maxlength="280"
+        required
+    ></textarea
+    ><br />
+    <label for="api_base">API Base URL:</label>
+    <input
+        type="url"
+        name="api_base"
+        placeholder="https://api.openai.com/v1"
+        required
+    /><br />
+    <label for="provider_name">Provider name:</label>
+    <select id="provider_name" name="provider_name">
+        {% for pn in provider_names %}
+        <option value="{{pn}}">{{pn}}</option>
+        {% endfor %}</select
+    ><br />
+    <label for="ai_model_name">Model name:</label>
+    <input type="text" name="ai_model_name" required /><br />
+    <label for="tags">Tags:</label>
+    <textarea id="tags" name="tags" rows="4" cols="50" required></textarea
+    ><br />
+    <label for="org_id">Organization:</label>
+    <input type="text" name="org_id" /><br />
+    <button type="submit">Add Project</button>
+</form>
+{% endblock %}

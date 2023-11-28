@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class ProjectAIProviderSchema(BaseModel):
     api_base: str
     provider_name: str
-    model_name: str
+    ai_model_name: str
 
 
 class CreateProjectSchema(BaseModel):
