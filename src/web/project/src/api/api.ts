@@ -15,8 +15,8 @@ const api = {
     deleteProject: (id: string): Promise<AxiosResponse<any>> => {
         return client.delete(`/api/project/${id}`);
     },
-    updateProject: (id: string, data: updateProjectRequest): Promise<AxiosResponse<any>> => {
-        return client.post(`/api/project${id}/update`, data);
+    updateProject: (data: updateProjectRequest): Promise<AxiosResponse<any>> => {
+        return client.post(`/api/project`, data);
     }
 };
 

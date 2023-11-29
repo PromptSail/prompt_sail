@@ -6,7 +6,7 @@ export interface addProjectRequest {
         {
             api_base: string;
             provider_name: string;
-            model_name: string;
+            ai_model_name: string;
         }
     ];
     tags: string[];
@@ -22,7 +22,7 @@ export interface updateProjectRequest {
         {
             api_base: string;
             provider_name: string;
-            model_name: string;
+            ai_model_name: string;
         }
     ];
     tags: string[];
@@ -38,9 +38,52 @@ export interface getProjectResponse {
         {
             api_base: string;
             provider_name: string;
-            model_name: string;
+            ai_model_name: string;
         }
     ];
     tags: string[];
     org_id: string;
+    transactions: [
+        {
+            id: string;
+            project_id: string;
+            timestamp: string;
+            request: {
+                url: string;
+                content: {
+                    messages?: [
+                        {
+                            role: string;
+                            content: string;
+                        }
+                    ];
+                    prompt: string[];
+                };
+                [key: string]: unknown;
+            };
+            response: {
+                headers: { [key: string]: string };
+                status_code: string;
+                content: {
+                    model: string;
+                    usage: {
+                        prompt_tokens: number;
+                        completion_tokens: number;
+                        total_tokens: number;
+                    };
+                    choices: [
+                        {
+                            index: string;
+                            text: string;
+                            message: {
+                                role: string;
+                                content: string;
+                            };
+                        }
+                    ];
+                };
+                [key: string]: unknown;
+            };
+        }
+    ];
 }

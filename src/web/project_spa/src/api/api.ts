@@ -7,16 +7,16 @@ const api = {
         return client.get('/api/projects');
     },
     getProject: (id: string): Promise<AxiosResponse<getProjectResponse>> => {
-        return client.get(`/api/project/${id}`);
+        return client.get(`/api/projects/${id}`);
     },
     addProject: (data: addProjectRequest): Promise<AxiosResponse<any>> => {
-        return client.post('/api/project', data);
+        return client.post('/api/projects', data);
     },
     deleteProject: (id: string): Promise<AxiosResponse<any>> => {
         return client.delete(`/api/project/${id}`);
     },
-    updateProject: (id: string, data: updateProjectRequest): Promise<AxiosResponse<any>> => {
-        return client.post(`/api/project${id}/update`, data);
+    updateProject: (data: updateProjectRequest): Promise<AxiosResponse<any>> => {
+        return client.post(`/api/projects`, data);
     }
 };
 
