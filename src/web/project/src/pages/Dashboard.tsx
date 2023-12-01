@@ -110,7 +110,7 @@ const Dashboard = () => {
                         <Modal show={showModal} onHide={() => setShowModal((e) => !e)}>
                             <form onSubmit={formik.handleSubmit}>
                                 <Modal.Header closeButton>
-                                    <Modal.Title>Edit Project</Modal.Title>
+                                    <Modal.Title>Add project</Modal.Title>
                                 </Modal.Header>
                                 <Modal.Body>
                                     <InputGroup className="mb-3">

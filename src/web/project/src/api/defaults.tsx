@@ -8,7 +8,7 @@ const default_getProjectRespons: getProjectResponse = {
         {
             api_base: '',
             provider_name: '',
-            model_name: ''
+            ai_model_name: ''
         }
     ],
     tags: [],

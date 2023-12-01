@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import * as styles from 'react-syntax-highlighter/dist/esm/styles/hljs';
@@ -10,10 +10,10 @@ import { AxiosResponse } from 'axios';
 import { UseQueryResult } from 'react-query';
 const Project: React.FC = () => {
     const params = useParams();
-    const [showModal, setShowModal] = useState(false);
+    const [isUpdateModalShowed, setUpdateModal] = useState(false);
     const [isDelModalShowed, setDeleteModal] = useState(false);
     const project: UseQueryResult<AxiosResponse<getProjectResponse>> = useGetProject(
-        params.projectId
+        params.projectId || ''
     );
     const deleteProject = useDeleteProject();
     const updateProject = useUpdateProject();
@@ -40,6 +40,7 @@ const Project: React.FC = () => {
             org_id
         }) => {
             const reqValues: updateProjectRequest = {
+                id: params.projectId || '',
                 name,
                 slug,
                 description,
@@ -51,16 +52,30 @@ const Project: React.FC = () => {
                     }
                 ],
                 tags: tags.replace(/\s/g, '').split(','),
-                org_id,
-                id: ''
+                org_id
             };
             console.log(reqValues);
             updateProject.mutateAsync(reqValues).then(() => {
-                setShowModal((e) => !e);
+                setUpdateModal((e) => !e);
                 project.refetch();
             });
         }
     });
+    useEffect(() => {
+        if (project.isSuccess) {
+            const data = project.data.data;
+            formik.setValues({
+                name: data.name,
+                slug: data.slug,
+                description: data.description,
+                api_base: data.ai_providers[0].api_base,
+                provider_name: data.ai_providers[0].provider_name,
+                ai_model_name: data.ai_providers[0].ai_model_name,
+                tags: data.tags.join(', '),
+                org_id: data.org_id
+            });
+        }
+    }, [project.isSuccess]);
     if (project.isLoading)
         return (
             <>
@@ -76,16 +91,6 @@ const Project: React.FC = () => {
         );
     if (project.isSuccess) {
         const data = project.data.data;
-        formik.initialValues = {
-            name: data.name,
-            slug: data.slug,
-            description: data.description,
-            api_base: data.ai_providers[0].api_base,
-            provider_name: data.ai_providers[0].provider_name,
-            ai_model_name: data.ai_providers[0].ai_model_name,
-            tags: data.tags.join(', '),
-            org_id: data.org_id
-        };
         return (
             <>
                 <div className="m-auto mb-5 mt-[100px] max-w-[80%]">
@@ -97,11 +102,11 @@ const Project: React.FC = () => {
                         Delete
                     </Button>
                     <div>
-                        <Button variant="primary" onClick={() => setShowModal((e) => !e)}>
+                        <Button variant="primary" onClick={() => setUpdateModal((e) => !e)}>
                             Edit
                         </Button>
-                        <Modal show={showModal} onHide={() => setShowModal((e) => !e)}>
-                            <form>
+                        <Modal show={isUpdateModalShowed} onHide={() => setUpdateModal((e) => !e)}>
+                            <form onSubmit={formik.handleSubmit}>
                                 <Modal.Header closeButton>
                                     <Modal.Title>Edit Project</Modal.Title>
                                 </Modal.Header>
@@ -208,14 +213,11 @@ const Project: React.FC = () => {
                                 <Modal.Footer>
                                     <Button
                                         variant="secondary"
-                                        onClick={() => setShowModal((e) => !e)}
+                                        onClick={() => setUpdateModal((e) => !e)}
                                     >
                                         Close
                                     </Button>
-                                    <Button
-                                        variant="primary"
-                                        onClick={() => setShowModal((e) => !e)}
-                                    >
+                                    <Button variant="primary" type="submit">
                                         Save Changes
                                     </Button>
                                 </Modal.Footer>
@@ -240,8 +242,7 @@ const Project: React.FC = () => {
                                 <Button
                                     variant="primary"
                                     onClick={() => {
-                                        console.log(deleteProject);
-                                        deleteProject.mutateAsync(params);
+                                        deleteProject.mutateAsync(params.projectId || '');
                                     }}
                                 >
                                     Yes

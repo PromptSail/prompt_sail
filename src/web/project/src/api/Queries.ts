@@ -1,10 +1,11 @@
 import { UseMutationResult, UseQueryResult, useMutation, useQuery } from 'react-query';
 import api from './api';
-import { AxiosResponse } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
-import { Navigate, redirect, useNavigate, useRoutes } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { getProjectResponse, updateProjectRequest } from './interfaces';
 
-export const useGetAllProjects = (): UseQueryResult<any> => {
+export const useGetAllProjects = (): UseQueryResult<getProjectResponse[], AxiosError> => {
     return useQuery(
         'projects',
         async () => {
@@ -18,11 +19,13 @@ export const useGetAllProjects = (): UseQueryResult<any> => {
         }
     );
 };
-export const useGetProject = (id: string | undefined): UseQueryResult<any> => {
+export const useGetProject = (
+    id: string
+): UseQueryResult<AxiosResponse<getProjectResponse>, AxiosError> => {
     return useQuery(
         'project',
         async () => {
-            return await api.getProject(id || '');
+            return await api.getProject(id);
         },
         {
             staleTime: Infinity,
@@ -33,7 +36,11 @@ export const useGetProject = (id: string | undefined): UseQueryResult<any> => {
     );
 };
 
-export const useUpdateProject = (): UseMutationResult<any> => {
+export const useUpdateProject = (): UseMutationResult<
+    AxiosResponse,
+    AxiosError,
+    updateProjectRequest
+> => {
     return useMutation(
         async (obj) => {
             return await api.updateProject(obj);
@@ -50,11 +57,12 @@ export const useUpdateProject = (): UseMutationResult<any> => {
     );
 };
 
-export const useDeleteProject = (): UseMutationResult<any> => {
+export const useDeleteProject = (): UseMutationResult<AxiosResponse, AxiosError, string> => {
     const navigate = useNavigate();
     return useMutation(
-        async (obj) => {
-            return await api.deleteProject(obj.projectId);
+        async (id) => {
+            console.log(id);
+            return await api.deleteProject(id);
         },
         {
             onSuccess: () => {
