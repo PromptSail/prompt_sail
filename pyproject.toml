@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "prompt_sail"
+name = "PromptSail"
 version = "0.1.0"
-description = ""
-authors = ["Przemysław Górecki <przemyslaw.gorecki@gmail.com>"]
+description = "Prompt Sail - prompt management and monitoring tool"
+authors = ["Przemysław Górecki <przemyslaw.gorecki@gmail.com>, Krzysztof Sopyła <krzysztof.sopyla@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -10,20 +10,22 @@ fastapi = "^0.103.2"
 uvicorn = {extras = ["stable"], version = "^0.23.2"}
 httpx = "^0.25.0"
 python-dotenv = "^1.0.0"
-openai = "^0.28.1"
 pytest = "^7.4.2"
 pre-commit = "^3.5.0"
 requests-mock = "^1.11.0"
 dependency-injector = "^4.41.0"
 Jinja2 = "^3.1.2"
-langchain = "^0.0.316"
 pymongo = "^4.5.0"
 pydantic-settings = "^2.0.3"
 gunicorn = "^21.2.0"
 lato = "^0.6.0"
 python-multipart = "0.0.6"
 
-[tool.poetry.dev-dependencies]
+
+[tool.poetry.group.examples.dependencies]
+ipykernel = "^6.25.2"
+langchain = "^0.0"
+openai = "^1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

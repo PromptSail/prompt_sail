@@ -10,10 +10,24 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
     healthcheck:
-      test: ["CMD", "curl", "http://localhost:21017"]
-      interval: 15s
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
       timeout: 10s
       retries: 5
+      start_period: 40s
+  mongoexperss:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment: 
+      ME_CONFIG_MONGODB_URL: "mongodb://root:password@mongodb:27017"
+      ME_CONFIG_OPTIONS_EDITORTHEME: "ambiance"
+      ME_CONFIG_BASICAUTH_USERNAME: "admin" 
+      ME_CONFIG_BASICAUTH_PASSWORD: "pass"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    
   app:
     build:
       context: .
@@ -26,8 +40,9 @@ services:
       BASE_URL: "http://promptsail.local"
       STATIC_DIRECTORY: "/static"
       MONGO_URL: "mongodb://root:password@mongodb:27017"
-    depends_on: 
-      - mongodb
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
 networks:
   internal-network:

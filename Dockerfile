@@ -7,10 +7,11 @@ WORKDIR /src
 
 # Install curl and Poetry in a single step, and clean up the apt cache to keep the image small
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
-    && curl -sSL https://install.python-poetry.org | python3 - \
+    && curl -sSL https://install.python-poetry.org | python3 - --version 1.7.1 \
     && ln -s /root/.local/bin/poetry /usr/local/bin/poetry \
     && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Copy the Python dependency files into the image
 COPY pyproject.toml poetry.lock ./
