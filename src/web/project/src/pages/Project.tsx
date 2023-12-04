@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import * as styles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { Button, InputGroup, Modal, Form } from 'react-bootstrap';
@@ -9,6 +9,8 @@ import { useFormik } from 'formik';
 import { AxiosResponse } from 'axios';
 import { UseQueryResult } from 'react-query';
 const Project: React.FC = () => {
+    const navigate = useNavigate();
+    const { state } = useLocation();
     const params = useParams();
     const [isUpdateModalShowed, setUpdateModal] = useState(false);
     const [isDelModalShowed, setDeleteModal] = useState(false);
@@ -17,6 +19,9 @@ const Project: React.FC = () => {
     );
     const deleteProject = useDeleteProject();
     const updateProject = useUpdateProject();
+    // const passTransactionData (link: string, data: Transaction) => {
+    //     history.pushState
+    // }
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
@@ -64,6 +69,26 @@ const Project: React.FC = () => {
     useEffect(() => {
         if (project.isSuccess) {
             const data = project.data.data;
+            if (state !== null) {
+                const transactionData = data.transactions.filter((el) => el.id == state);
+                if (transactionData.length > 0) {
+                    console.log(params.projectId);
+                    console.log(state);
+                    navigate(`/projects/${params.projectId}/transaction/${state}`, {
+                        state: {
+                            transaction: transactionData[0],
+                            project: {
+                                id: data.id,
+                                name: data.name,
+                                api_base: data.ai_providers[0].api_base
+                            }
+                        }
+                    });
+                } else {
+                    console.log(2);
+                    navigate('/');
+                }
+            }
             formik.setValues({
                 name: data.name,
                 slug: data.slug,
@@ -87,6 +112,7 @@ const Project: React.FC = () => {
             <>
                 <div>An error has occurred</div>
                 {console.error(project.error)}
+                {navigate('/')}
             </>
         );
     if (project.isSuccess) {
@@ -391,7 +417,17 @@ llm("Explaining the meaning of life in one sentence")`}
                                                 </td>
                                                 <td>
                                                     <Link
-                                                        to={`/project/${params.projectId}/transaction/${tr.id}`}
+                                                        id={tr.id}
+                                                        to={`/projects/${params.projectId}/transaction/${tr.id}`}
+                                                        state={{
+                                                            transaction: tr,
+                                                            project: {
+                                                                id: data.id,
+                                                                name: data.name,
+                                                                api_base:
+                                                                    data.ai_providers[0].api_base
+                                                            }
+                                                        }}
                                                     >
                                                         Details
                                                     </Link>

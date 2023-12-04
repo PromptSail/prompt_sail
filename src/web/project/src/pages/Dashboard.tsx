@@ -101,7 +101,7 @@ const Dashboard = () => {
                     </div>
                     <div className="grid grid-cols-1 p-5 gap-3 md:grid-cols-2">
                         {projects.data.map((project: getProjectResponse, id: number) => (
-                            <Link to={`/project/${project.id}`} key={project.id}>
+                            <Link to={`/projects/${project.id}`} key={project.id}>
                                 <ProjetTile key={id} data={project} />
                             </Link>
                         ))}

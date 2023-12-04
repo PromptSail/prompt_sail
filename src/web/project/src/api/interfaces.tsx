@@ -43,47 +43,47 @@ export interface getProjectResponse {
     ];
     tags: string[];
     org_id: string;
-    transactions: [
-        {
-            id: string;
-            project_id: string;
-            timestamp: string;
-            request: {
-                url: string;
-                content: {
-                    messages?: [
-                        {
-                            role: string;
-                            content: string;
-                        }
-                    ];
-                    prompt: string[];
-                };
-                [key: string]: unknown;
+    transactions: TransactionResponse[];
+}
+
+export interface TransactionResponse {
+    id: string;
+    project_id: string;
+    timestamp: string;
+    request: {
+        url: string;
+        content: {
+            messages?: [
+                {
+                    role: string;
+                    content: string;
+                }
+            ];
+            prompt: string[];
+        };
+        [key: string]: unknown;
+    };
+    response: {
+        headers: { [key: string]: string };
+        status_code: string;
+        content: {
+            model: string;
+            usage: {
+                prompt_tokens: number;
+                completion_tokens: number;
+                total_tokens: number;
             };
-            response: {
-                headers: { [key: string]: string };
-                status_code: string;
-                content: {
-                    model: string;
-                    usage: {
-                        prompt_tokens: number;
-                        completion_tokens: number;
-                        total_tokens: number;
+            choices: [
+                {
+                    index: string;
+                    text: string;
+                    message: {
+                        role: string;
+                        content: string;
                     };
-                    choices: [
-                        {
-                            index: string;
-                            text: string;
-                            message: {
-                                role: string;
-                                content: string;
-                            };
-                        }
-                    ];
-                };
-                [key: string]: unknown;
-            };
-        }
-    ];
+                }
+            ];
+        };
+        [key: string]: unknown;
+    };
 }
