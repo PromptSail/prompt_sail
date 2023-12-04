@@ -18,12 +18,15 @@ def test_create_project(client):
     }
     response = client.post("/api/projects", json=test_obj)
 
-    assert response.status_code == 200
-    assert response.json() == test_obj
+    assert response.status_code == 201
+    assert_obj = test_obj.copy()
+    assert_obj["id"] = response.json()["id"]
+    assert response.json() == assert_obj
 
     response2 = client.post("/api/projects", json=test_obj)
     assert response2.status_code == 400
-    assert response2.json() == {"error": "Project already exists"}
+    print(response2.json())
+    assert response2.json() == {'message': f'Slug already exists: {test_obj["slug"]}'}
 
 
 def test_get_project(client):
@@ -79,7 +82,7 @@ def test_update_project(client):
         "org_id": "org1"
     }
     
-    response = client.put("/api/projects", json=update_object)
+    response = client.put(f"/api/projects/{proj_ids['autotest1']}", json=update_object)
 
     assert response.status_code == 200
     assert response.json() == update_object
@@ -89,13 +92,9 @@ def test_delete_project(client):
     proj_id = client.get("/api/projects").json()[2]["id"]
     response = client.delete(f"/api/projects/{proj_id}")
 
-    assert response.status_code == 200
-    assert response.json() == {"success": "Project deleted successfully"}
-
+    assert response.status_code == 204
     response2 = client.delete("/api/projects/autotest")
-
-    assert response2.status_code == 404
-    assert response2.json() == {"error": "Project not found"}
+    assert response2.status_code == 204
 
 
 def test_get_projects(client):

@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from transactions.schemas import GetTransactionSchema
+
 
 class ProjectAIProviderSchema(BaseModel):
     api_base: str
@@ -17,7 +19,6 @@ class CreateProjectSchema(BaseModel):
 
 
 class UpdateProjectSchema(BaseModel):
-    id: str
     name: str
     slug: str
     description: str
@@ -30,6 +31,12 @@ class GetProjectSchema(BaseModel):
     id: str
     name: str
     slug: str
+    description: str
     ai_providers: list[ProjectAIProviderSchema]
     tags: list[str] = []
     org_id: str | None = None
+
+
+class GetProjectWithTransactionsSchema(GetProjectSchema):
+    transactions: list[GetTransactionSchema] = []
+    
