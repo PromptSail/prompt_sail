@@ -7,7 +7,7 @@ def get_project(
     project_id: str,
     project_repository: ProjectRepository,
 ) -> Project:
-    project = project_repository.find_one({"_id": project_id})
+    project = project_repository.get(project_id)
     return project
 
 
@@ -15,7 +15,7 @@ def get_project_by_slug(
     slug: str,
     project_repository: ProjectRepository,
 ) -> Project:
-    project = project_repository.find_one({"slug": slug})
+    project = project_repository.get_by_slug(slug)
     return project
 
 
@@ -29,29 +29,25 @@ def get_all_projects(
 def add_project(
     data: CreateProjectSchema,
     project_repository: ProjectRepository,
-) -> Project | None:
-    if project_repository.find_one({"slug": data.slug}):
-        return None
+) -> Project:
     data = Project(**data.model_dump())
-    project = project_repository.add(data)
+    project_repository.add(data)
+    project = project_repository.get_by_slug(data.slug)
     return project
 
 
 def update_project(
     data: UpdateProjectSchema, 
     project_repository: ProjectRepository
-) -> bool:
-    update_result = project_repository.update(data)
-    if update_result.modified_count == 0:
-        return False
-    return True
+) -> Project:
+    project_repository.update(data)
+    project = project_repository.get(data.id)
+    return project
 
 
 def delete_project(
     project_id: str,
     project_repository: ProjectRepository,
-) -> bool:
-    delete_result = project_repository.delete(project_id)
-    if delete_result.deleted_count == 0:
-        return False
-    return True
+) -> dict:
+    project_repository.delete(project_id)
+    return {}
