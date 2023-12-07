@@ -7,17 +7,24 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [react()],
         server: {
-            port: process.env.VITE_PORT,
+            port: parseInt(process.env.VITE_PORT),
             proxy: {
                 '/api': {
-                    target: 'http://promptsail.local',
+                    target: 'http://promptsail.local:8000',
                     changeOrigin: true,
                     rewrite: (path) => path.replace(/^\/api/, '')
                 }
             }
         },
         preview: {
-            port: parseInt(process.env.VITE_PORT)
+            port: parseInt(process.env.VITE_PORT),
+            proxy: {
+                '/api': {
+                    target: 'http://api:8000',
+                    changeOrigin: true,
+                    rewrite: (path) => path.replace(/^\/api/, '')
+                }
+            }
         }
     };
 });

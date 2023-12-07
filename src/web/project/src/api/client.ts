@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const client = axios.create({
-    // baseURL: 'http://promptsail.local', // blocked by CORS
-    baseURL: `http://localhost:${import.meta.env.VITE_PORT}/api`,
+    baseURL: `http://localhost/api`,
     headers: {
         // Accept: 'application/json',
         'Content-Type': 'application/json',

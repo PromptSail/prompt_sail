@@ -29,13 +29,14 @@ services:
         condition: service_healthy
     
   app:
+    container_name: api
     build:
       context: .
       dockerfile: Dockerfile
       args:
         - BUILD_SHA      
     ports:
-      - "80:8000"
+      - "8000:8000"
     environment:
       BASE_URL: "http://promptsail.local"
       STATIC_DIRECTORY: "/static"
@@ -43,6 +44,13 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+  spa:
+    container_name: spa
+    build:
+      context: ./src/web/project
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
 
 networks:
   internal-network:
