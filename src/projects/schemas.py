@@ -19,11 +19,11 @@ class CreateProjectSchema(BaseModel):
 
 
 class UpdateProjectSchema(BaseModel):
-    name: str
-    slug: str
-    description: str
-    ai_providers: list[ProjectAIProviderSchema]
-    tags: list[str] = []
+    name: str | None = None
+    slug: str | None = None
+    description: str | None = None
+    ai_providers: list[ProjectAIProviderSchema] | None = None
+    tags: list[str] | None = None
     org_id: str | None = None
 
 

@@ -35,7 +35,6 @@ def add_project(
     project = project_repository.get_by_slug(data.slug)
     return project
 
-
 def update_project(
     data: UpdateProjectSchema, 
     project_repository: ProjectRepository
@@ -43,7 +42,6 @@ def update_project(
     project_repository.update(data)
     project = project_repository.get(data.id)
     return project
-
 
 def delete_project(
     project_id: str,

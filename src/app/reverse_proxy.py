@@ -67,13 +67,17 @@ async def reverse_proxy(
         timeout=timeout,
     )
     rp_resp = await client.send(rp_req, stream=True)
-
-    buffer = []
-    return StreamingResponse(
-        iterate_stream(rp_resp, buffer),
-        status_code=rp_resp.status_code,
-        headers=rp_resp.headers,
-        background=BackgroundTask(
-            close_stream, ctx['app'], project.id, rp_req, rp_resp, buffer
-        ),
-    )
+    
+    if rp_resp.status_code < 300: 
+        buffer = []
+        return StreamingResponse(
+            iterate_stream(rp_resp, buffer),
+            status_code=rp_resp.status_code,
+            headers=rp_resp.headers,
+            background=BackgroundTask(
+                close_stream, ctx['app'], project.id, rp_req, rp_resp, buffer
+            ),
+        )
+    else:
+        raise NotImplementedError()
+    
