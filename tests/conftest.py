@@ -22,5 +22,7 @@ def client(fastapi_instance):
 
 
 @pytest.fixture
-def application(api_instance):
-    api_instance.container.application()
+def application(fastapi_instance):
+    return fastapi_instance.container.application()
+    
+    # TODO: make sure that database is cleared before every test
