@@ -23,6 +23,9 @@ def client(fastapi_instance):
 
 @pytest.fixture
 def application(fastapi_instance):
-    return fastapi_instance.container.application()
-    
-    # TODO: make sure that database is cleared before every test
+    app = fastapi_instance.container.application()
+    with app.transaction_context() as ctx:
+        ctx["project_repository"].remove_all()
+        ctx["transaction_repository"].remove_all()
+        
+    return app

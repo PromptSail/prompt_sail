@@ -1,6 +1,5 @@
 from projects.models import Project
 from projects.repositories import ProjectRepository
-from projects.schemas import CreateProjectSchema, UpdateProjectSchema
 
 
 def get_project(
@@ -48,6 +47,5 @@ def update_project(
 def delete_project(
     project_id: str,
     project_repository: ProjectRepository,
-) -> dict:
+) -> None:
     project_repository.delete(project_id)
-    return {}
