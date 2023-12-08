@@ -22,5 +22,10 @@ def client(fastapi_instance):
 
 
 @pytest.fixture
-def application(api_instance):
-    api_instance.container.application()
+def application(fastapi_instance):
+    app = fastapi_instance.container.application()
+    with app.transaction_context() as ctx:
+        ctx["project_repository"].remove_all()
+        ctx["transaction_repository"].remove_all()
+        
+    return app

@@ -14,26 +14,43 @@ container.config.override(config)
 
 @asynccontextmanager
 async def fastapi_lifespan(app: FastAPI):
-    from projects.models import Project
+    from projects.models import Project, AIProvider
+    from projects.use_cases import add_project
 
     application = container.application()
     with application.transaction_context() as ctx:
         project_repository = ctx["project_repository"]
         if project_repository.count() == 0:
-            project_repository.add(
-                Project(
-                    id="project1",
+            data1 = Project(
                     name="Project 1",
-                    api_base="https://api.openai.com/v1",
+                    slug="project1",
+                    description="Project 1 description",
+                    ai_providers=[
+                        AIProvider(
+                            api_base="https://api.openai.com/v1",
+                            provider_name="OpenAI",
+                            ai_model_name="gpt-3.5-turbo",
+                        ),
+                    ],
+                    tags=["tag1", "tag2"],
+                    org_id="organization",
                 )
-            )
-            project_repository.add(
-                Project(
-                    id="project2",
+            data2 = Project(
                     name="Project 2",
-                    api_base="https://api.openai.com/v1",
+                    slug="project2",
+                    description="Project 2 description",
+                    ai_providers=[
+                        AIProvider(
+                            api_base="https://api.openai.com/v1",
+                            provider_name="OpenAI",
+                            ai_model_name="gpt-3.5-turbo",
+                        ),
+                    ],
+                    tags=["tag1", "tag2", "tag3"],
+                    org_id="organization",
                 )
-            )
+            ctx.call(add_project, data1)
+            ctx.call(add_project, data2)
     yield
     ...
 

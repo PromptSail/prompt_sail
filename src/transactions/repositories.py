@@ -16,3 +16,6 @@ class TransactionRepository(MongoRepository):
 
     def get_for_project(self, project_id: str) -> list[Transaction]:
         return self.find({"project_id": project_id})
+
+    def get_one_by_id(self, transaction_id: str) -> Transaction:
+        return self.find_one({"_id": transaction_id})

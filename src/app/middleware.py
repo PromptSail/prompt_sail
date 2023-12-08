@@ -15,7 +15,7 @@ async def __call__(request: Request, call_next):
         request.state.is_handled_by_proxy = False
     else:
         request.state.is_handled_by_proxy = True
-        request.state.project_id = subdomain
+        request.state.slug = subdomain
 
     response = await call_next(request)
     return response
