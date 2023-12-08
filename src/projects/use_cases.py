@@ -27,21 +27,23 @@ def get_all_projects(
 
 
 def add_project(
-    data: CreateProjectSchema,
+    project: Project,
     project_repository: ProjectRepository,
 ) -> Project:
-    data = Project(**data.model_dump())
-    project_repository.add(data)
-    project = project_repository.get_by_slug(data.slug)
+    project_repository.add(project)
     return project
 
+
 def update_project(
-    data: UpdateProjectSchema, 
-    project_repository: ProjectRepository
+    project_repository: ProjectRepository,
+    project_id: str,
+    fields_to_update: dict
 ) -> Project:
-    project_repository.update(data)
-    project = project_repository.get(data.id)
+    project = project_repository.get(project_id)
+    project.__dict__.update(**fields_to_update)
+    project_repository.update(project)
     return project
+
 
 def delete_project(
     project_id: str,

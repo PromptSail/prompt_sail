@@ -48,12 +48,35 @@ def test_create_project_with_existing_slug_returns_400(client, application):
     assert response2.status_code == 400
     print(response2.json())
     assert response2.json() == {'message': f'Slug already exists: {test_obj["slug"]}'}
+    
+   
+def test_when_no_projects_returns_200_and_empy_list(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["project_repository"]
+        repo.remove_all()
+
+    # act
+    result = client.get("/api/projects")
+    
+    # assert
+    assert result.status_code == 200
+    assert result.json() == []
 
 
-def test_get_project(client):
-    proj_id = client.get("/api/projects").json()[0]["id"]
-    response = client.get(f"/api/projects/{proj_id}")
+def test_get_project_happy_path(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        from projects.models import Project
+        repo = ctx["project_repository"]
+        repo.remove_all()
+        repo.add(Project(**test_obj))
+        project_id = repo.find_one({"slug": test_obj["slug"]}).id
+    
+    # act
+    response = client.get(f"/api/projects/{project_id}")
 
+    # assert
     assert response.status_code == 200
     
     json_response = response.json()
@@ -62,25 +85,6 @@ def test_get_project(client):
     json_response.pop("id")
     assert json_response == test_obj
     
-    assert response == {
-        "id": proj_id,
-        "name": "Project 1",
-        "slug": "project1",
-        "description": "Project 1 description",
-        "ai_providers": [
-            {
-                "api_base": "https://api.openai.com/v1",
-                "provider_name": "OpenAI",
-                "ai_model_name": "gpt-3.5-turbo"
-            }
-        ], 
-        "tags": [
-            "tag1",
-            "tag2",
-        ],
-        "org_id": "organization"
-    }
-
 
 def test_update_project(client, application):
     # arrange
