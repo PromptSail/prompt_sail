@@ -1,5 +1,4 @@
-def test_create_project(client):
-    test_obj = {
+test_obj = {
         "name": "Autotest",
         "slug": "autotest1",
         "description": "Project 1 description",
@@ -16,128 +15,118 @@ def test_create_project(client):
         ],
         "org_id": "organization"
     }
+
+
+def test_create_project_returns_201(client, application):
+    # arrange
+    ...
+    
+    # act
     response = client.post("/api/projects", json=test_obj)
 
-    assert response.status_code == 200
-    assert response.json() == test_obj
+    # assert
+    assert response.status_code == 201
+    assert_obj = test_obj.copy()
+    assert_obj["id"] = response.json()["id"]
+    assert response.json() == assert_obj
 
-    response2 = client.post("/api/projects", json=test_obj)
-    assert response2.status_code == 400
-    assert response2.json() == {"error": "Project already exists"}
 
-
-def test_get_project(client):
-    proj_id = client.get("/api/projects").json()[0]["id"]
-    response = client.get(f"/api/projects/{proj_id}")
-
-    assert response.status_code == 200
+def test_create_project_with_existing_slug_returns_400(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        from projects.models import Project
+        repo = ctx["project_repository"]
+        repo.add(Project(**test_obj))
     
-    response = response.json()
-    if "transactions" in response:
-        response.pop("transactions")
+    # act
+    response = client.post("/api/projects", json=test_obj)
     
-    assert response == {
-        "id": proj_id,
-        "name": "Project 1",
-        "slug": "project1",
-        "description": "Project 1 description",
-        "ai_providers": [
-            {
-                "api_base": "https://api.openai.com/v1",
-                "provider_name": "OpenAI",
-                "ai_model_name": "gpt-3.5-turbo"
-            }
-        ], 
-        "tags": [
-            "tag1",
-            "tag2",
-        ],
-        "org_id": "organization"
-    }
-
-
-def test_update_project(client):
-    projects = client.get("/api/projects").json()
-    proj_ids = {proj['slug']: proj["id"] for proj in projects}
+    # assert
+    assert response.status_code == 400
+    assert response.json() == {'message': f'Slug already exists: {test_obj["slug"]}'}
     
-    update_object = {
-        "id": proj_ids["autotest1"],
-        "name": "Autotest",
-        "slug": "autotest-1u",
-        "description": "Project 1 description for updated autotest.",
-        "ai_providers": [
-            {
-                "api_base": "https://api.openai.com/v1",
-                "provider_name": "provider1",
-                "ai_model_name": "model1"
-            }
-        ],
-        "tags": [
-            "tag1", 
-            "tag2"
-        ],
-        "org_id": "org1"
-    }
+   
+def test_when_no_projects_returns_200_and_empy_list(client, application):
+    # arrange
+    ...
+
+    # act
+    result = client.get("/api/projects")
     
-    response = client.put("/api/projects", json=update_object)
+    # assert
+    assert result.status_code == 200
+    assert result.json() == []
 
+
+def test_get_project_happy_path(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        from projects.models import Project
+        repo = ctx["project_repository"]
+        repo.add(Project(id="project1", **test_obj))
+        project_id = repo.find_one({"slug": test_obj["slug"]}).id
+    
+    # act
+    response = client.get(f"/api/projects/{project_id}")
+
+    # assert
     assert response.status_code == 200
-    assert response.json() == update_object
-
-
-def test_delete_project(client):
-    proj_id = client.get("/api/projects").json()[2]["id"]
-    response = client.delete(f"/api/projects/{proj_id}")
-
+    assert response.json() == dict(id="project1", transactions=[], **test_obj)
+        
+    
+def test_update_project(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        from projects.models import Project
+        repo = ctx["project_repository"]
+        project_id = "project1"
+        repo.add(Project(id=project_id, **test_obj))
+        
+    # act
+    response = client.put(f"/api/projects/{project_id}", json={"name": "Autotest2"})
+    
+    # assert
     assert response.status_code == 200
-    assert response.json() == {"success": "Project deleted successfully"}
-
-    response2 = client.delete("/api/projects/autotest")
-
-    assert response2.status_code == 404
-    assert response2.json() == {"error": "Project not found"}
+    assert response.json() == test_obj | dict(id=project_id, name="Autotest2")
 
 
-def test_get_projects(client):
-    response = client.get("/api/projects")
-    proj1_id, proj2_id = response.json()[0]["id"], response.json()[1]["id"]
-    assert response.status_code == 200
-    assert response.json() == [
-        {
-            "id": proj1_id,
-            "name": "Project 1",
-            "slug": "project1",
-            "description": "Project 1 description",
-            "ai_providers": [
-                {
-                    "api_base": "https://api.openai.com/v1",
-                    "provider_name": "OpenAI",
-                    "ai_model_name": "gpt-3.5-turbo"
-                }
-            ], 
-            "tags": [
-                "tag1",
-                "tag2",
-            ],
-            "org_id": "organization"
-        },
-        {
-            "id": proj2_id,
-            "name": "Project 2",
-            "slug": "project2",
-            "description": "Project 2 description",
-            "ai_providers": [
-                {
-                    "api_base": "https://api.openai.com/v1",
-                    "provider_name": "OpenAI",
-                    "ai_model_name": "gpt-3.5-turbo"
-                }
-            ], 
-            "tags": [
-                "tag1",
-                "tag2",
-                "tag3",
-            ],
-            "org_id": "organization"
-        }
-    ]
+def test_delete_project(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        from projects.models import Project
+        repo = ctx["project_repository"]
+        project_id = "project-test"
+        repo.add(Project(id=project_id, **test_obj))
+        
+    # act
+    response = client.delete(f"/api/projects/{project_id}")
+
+    # assert
+    assert response.status_code == 204
+
+
+def test_delete_not_exisitng_project_returns_204(client, application):
+    # arrange
+    ...
+        
+    # act
+    response = client.delete(f"/api/projects/non-existing")
+
+    # assert
+    assert response.status_code == 204
+
+
+def test_get_projects(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        from projects.models import Project
+        repo = ctx["project_repository"]
+        project_id = "project-test"
+        repo.add(Project(id=project_id, **test_obj))
+
+    # act
+    result = client.get("/api/projects")
+
+    # assert
+    assert result.status_code == 200
+    assert result.json() == [dict(id=project_id, **test_obj)]

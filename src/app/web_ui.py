@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 
 from app.dependencies import get_transaction_context
 from config import config
-from projects.schemas import CreateProjectSchema, UpdateProjectSchema, ProjectAIProviderSchema
+from projects.schemas import CreateProjectSchema, GetProjectSchema, ProjectAIProviderSchema
 
 from .app import app, templates
 from projects.use_cases import add_project, get_project, get_all_projects, delete_project, update_project
@@ -168,7 +168,7 @@ async def update_project_via_ui(
     tags = tags.replace(" ", "").split(",")
     
     tags = tags[0:len(tags)-2] if tags[len(tags)-1] == " " else tags  # remove empty tag if exists
-    data = UpdateProjectSchema(
+    data = GetProjectSchema(
         id=proj_id,
         name=name,
         slug=slug,
