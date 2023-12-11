@@ -3,7 +3,12 @@ import api from './api';
 import { AxiosError, AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { getAllProjects, getProjectResponse, updateProjectRequest } from './interfaces';
+import {
+    addProjectRequest,
+    getAllProjects,
+    getProjectResponse,
+    updateProjectRequest
+} from './interfaces';
 
 export const useGetAllProjects = (): UseQueryResult<getAllProjects[], AxiosError> => {
     return useQuery(
@@ -36,6 +41,30 @@ export const useGetProject = (
     );
 };
 
+export const useAddProject = (): UseMutationResult<
+    AxiosResponse,
+    AxiosError,
+    { data: addProjectRequest }
+> => {
+    return useMutation(
+        async ({ data }) => {
+            return await api.addProject(data);
+        },
+        {
+            onSuccess: () => {
+                toast.success('Project successfully added', {
+                    position: 'bottom-left',
+                    autoClose: 1000,
+                    theme: 'colored'
+                });
+            },
+            onError: (err) => {
+                console.error(err);
+            }
+        }
+    );
+};
+
 export const useUpdateProject = (): UseMutationResult<
     AxiosResponse,
     AxiosError,
@@ -52,6 +81,9 @@ export const useUpdateProject = (): UseMutationResult<
                     theme: 'colored',
                     autoClose: 1000
                 });
+            },
+            onError: (err) => {
+                console.error(err);
             }
         }
     );
@@ -61,7 +93,6 @@ export const useDeleteProject = (): UseMutationResult<AxiosResponse, AxiosError,
     const navigate = useNavigate();
     return useMutation(
         async (id) => {
-            console.log(id);
             return await api.deleteProject(id);
         },
         {

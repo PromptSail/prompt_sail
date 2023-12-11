@@ -2,70 +2,21 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import * as styles from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { Button, InputGroup, Modal, Form } from 'react-bootstrap';
-import { useDeleteProject, useGetProject, useUpdateProject } from '../api/queries';
-import { getProjectResponse, updateProjectRequest } from '../api/interfaces';
-import { useFormik } from 'formik';
+import { Button, Modal } from 'react-bootstrap';
+import { useDeleteProject, useGetProject } from '../api/queries';
+import { getProjectResponse } from '../api/interfaces';
 import { AxiosResponse } from 'axios';
 import { UseQueryResult } from 'react-query';
+import UpdateProject from '../components/ProjectForms/UpdateProject';
 const Project: React.FC = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
     const params = useParams();
-    const [isUpdateModalShowed, setUpdateModal] = useState(false);
     const [isDelModalShowed, setDeleteModal] = useState(false);
     const project: UseQueryResult<AxiosResponse<getProjectResponse>> = useGetProject(
         params.projectId || ''
     );
     const deleteProject = useDeleteProject();
-    const updateProject = useUpdateProject();
-    // const passTransactionData (link: string, data: Transaction) => {
-    //     history.pushState
-    // }
-    const formik = useFormik({
-        enableReinitialize: true,
-        initialValues: {
-            name: '',
-            slug: '',
-            description: '',
-            api_base: '',
-            provider_name: '',
-            ai_model_name: '',
-            tags: '',
-            org_id: ''
-        },
-        onSubmit: async ({
-            name,
-            slug,
-            description,
-            api_base,
-            provider_name,
-            ai_model_name,
-            tags,
-            org_id
-        }) => {
-            const reqValues: updateProjectRequest = {
-                id: params.projectId || '',
-                name,
-                slug,
-                description,
-                ai_providers: [
-                    {
-                        api_base,
-                        provider_name,
-                        ai_model_name
-                    }
-                ],
-                tags: tags.replace(/\s/g, '').split(','),
-                org_id
-            };
-            console.log(reqValues);
-            updateProject.mutateAsync({ id: params.projectId || '', data: reqValues }).then(() => {
-                setUpdateModal((e) => !e);
-                project.refetch();
-            });
-        }
-    });
     useEffect(() => {
         if (project.isSuccess) {
             const data = project.data.data;
@@ -85,20 +36,9 @@ const Project: React.FC = () => {
                         }
                     });
                 } else {
-                    console.log(2);
                     navigate('/');
                 }
             }
-            formik.setValues({
-                name: data.name,
-                slug: data.slug,
-                description: data.description,
-                api_base: data.ai_providers[0].api_base,
-                provider_name: data.ai_providers[0].provider_name,
-                ai_model_name: data.ai_providers[0].ai_model_name,
-                tags: data.tags.join(', '),
-                org_id: data.org_id || ''
-            });
         }
     }, [project.isSuccess]);
     if (project.isLoading)
@@ -124,9 +64,10 @@ const Project: React.FC = () => {
                         <Button variant="primary" onClick={() => setDeleteModal((e) => !e)}>
                             Delete
                         </Button>
-                        <Button variant="primary" onClick={() => setUpdateModal((e) => !e)}>
-                            Edit
-                        </Button>
+                        <UpdateProject
+                            projectId={params.projectId || ''}
+                            queryToRefetch={project}
+                        />
                     </div>
                     <h1 className="text-3xl font-semibold text-center mb-5 md:text-5xl">
                         {data.name}
@@ -306,121 +247,6 @@ llm("Explaining the meaning of life in one sentence")`}
                             Yes
                         </Button>
                     </Modal.Footer>
-                </Modal>
-                <Modal show={isUpdateModalShowed} onHide={() => setUpdateModal((e) => !e)}>
-                    <form onSubmit={formik.handleSubmit}>
-                        <Modal.Header closeButton>
-                            <Modal.Title>Edit Project</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Name</InputGroup.Text>
-                                <Form.Control
-                                    type="text"
-                                    name="name"
-                                    onChange={formik.handleChange}
-                                    value={formik.values['name']}
-                                    required
-                                />
-                            </InputGroup>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Slug</InputGroup.Text>
-                                <Form.Control
-                                    type="text"
-                                    name="slug"
-                                    onChange={formik.handleChange}
-                                    value={formik.values['slug']}
-                                    required
-                                />
-                            </InputGroup>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Description</InputGroup.Text>
-                                <Form.Control
-                                    as="textarea"
-                                    name="description"
-                                    onChange={formik.handleChange}
-                                    rows={4}
-                                    cols={50}
-                                    value={formik.values['description']}
-                                    maxLength={280}
-                                    required
-                                />
-                            </InputGroup>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>API Base URL</InputGroup.Text>
-                                <Form.Control
-                                    type="url"
-                                    name="api_base"
-                                    onChange={formik.handleChange}
-                                    value={formik.values['api_base']}
-                                    placeholder="https://api.openai.com/v1"
-                                    required
-                                />
-                            </InputGroup>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Provider name</InputGroup.Text>
-                                <Form.Select
-                                    name="provider_name"
-                                    onChange={formik.handleChange}
-                                    value={formik.values['provider_name']}
-                                >
-                                    {[
-                                        'OpenAI',
-                                        'Azure OpenAI',
-                                        'Google Palm',
-                                        'Anthropic Cloud',
-                                        'Meta LLama',
-                                        'HuggingFace',
-                                        'Custom'
-                                    ].map((el, id) => (
-                                        <option value={el} key={`${el}${id}`}>
-                                            {el}
-                                        </option>
-                                    ))}
-                                </Form.Select>
-                            </InputGroup>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Model name</InputGroup.Text>
-                                <Form.Control
-                                    type="text"
-                                    name="ai_model_name"
-                                    onChange={formik.handleChange}
-                                    value={formik.values['ai_model_name']}
-                                    required
-                                />
-                            </InputGroup>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Tags</InputGroup.Text>
-                                <Form.Control
-                                    as="textarea"
-                                    name="tags"
-                                    onChange={formik.handleChange}
-                                    rows={4}
-                                    cols={50}
-                                    value={formik.values['tags']}
-                                    required
-                                />
-                            </InputGroup>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Organization</InputGroup.Text>
-                                <Form.Control
-                                    type="text"
-                                    name="org_id"
-                                    onChange={formik.handleChange}
-                                    value={formik.values['org_id']}
-                                    required
-                                />
-                            </InputGroup>
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={() => setUpdateModal((e) => !e)}>
-                                Close
-                            </Button>
-                            <Button variant="primary" type="submit">
-                                Save Changes
-                            </Button>
-                        </Modal.Footer>
-                    </form>
                 </Modal>
             </>
         );

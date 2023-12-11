@@ -47,7 +47,7 @@ services:
   spa:
     container_name: spa
     build:
-      context: ./src/web/project
+      context: ./FRONTEND
       dockerfile: Dockerfile
     ports:
       - "80:80"
