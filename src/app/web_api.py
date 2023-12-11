@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Request, Depends
+from fastapi import Depends
 from fastapi.responses import JSONResponse
 
 from app.dependencies import get_transaction_context
@@ -10,7 +10,7 @@ from projects.schemas import CreateProjectSchema, UpdateProjectSchema, GetProjec
 from projects.use_cases import get_all_projects, add_project, update_project, delete_project, get_project
 from transactions.models import generate_uuid
 from transactions.schemas import GetTransactionSchema
-from transactions.use_cases import get_transactions_for_project
+from transactions.use_cases import get_transactions_for_project, get_transaction
 from lato import TransactionContext
 from .app import app
 
@@ -66,3 +66,13 @@ async def delete_existing_project(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
 ):
     ctx.call(delete_project, project_id=project_id)
+
+
+@app.get("/api/transactions/{transaction_id}", response_class=JSONResponse, status_code=200)
+async def get_transaction_details(
+    transaction_id: str, 
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> GetTransactionSchema:
+    transaction = ctx.call(get_transaction, transaction_id=transaction_id)
+    transaction = GetTransactionSchema(**transaction.model_dump())
+    return transaction
