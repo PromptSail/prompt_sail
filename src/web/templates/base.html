@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>{% block styles%}{% endblock %}
-    <title>{% block title %}{% endblock %}</title>
-  </head>
-  <body class="flex flex-col">
-    <main>{% block main %}{% endblock %} {% include "footer.html" %}</main>
-    <script src="/static/js/main.js"></script>
-  </body>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/static/main.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        {% block styles%}{% endblock %}
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body class="flex flex-col">
+        <main>{% block main %}{% endblock %} {% include "footer.html" %}</main>
+    </body>
 </html>

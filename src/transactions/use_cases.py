@@ -17,7 +17,7 @@ def get_transaction(
     transaction_id: str, 
     transaction_repository: TransactionRepository
 ) -> Transaction:
-    transaction = transaction_repository.find_one({"_id": transaction_id})
+    transaction = transaction_repository.get_one_by_id(transaction_id)
     return transaction
 
 

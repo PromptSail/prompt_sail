@@ -12,8 +12,24 @@ services:
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
       timeout: 10s
       retries: 5
+      start_period: 40s
+  mongoexperss:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment: 
+      ME_CONFIG_MONGODB_URL: "mongodb://root:password@mongodb:27017"
+      ME_CONFIG_OPTIONS_EDITORTHEME: "ambiance"
+      ME_CONFIG_BASICAUTH_USERNAME: "admin" 
+      ME_CONFIG_BASICAUTH_PASSWORD: "pass"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    
       start_period: 40s
   mongoexperss:
     image: mongo-express:latest

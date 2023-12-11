@@ -48,6 +48,5 @@ def update_project(
 def delete_project(
     project_id: str,
     project_repository: ProjectRepository,
-) -> dict:
+) -> None:
     project_repository.delete(project_id)
-    return {}
