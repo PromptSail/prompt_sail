@@ -1,6 +1,7 @@
 import { AxiosResponse } from 'axios';
 import client from './client';
 import {
+    TransactionResponse,
     addProjectRequest,
     getAllProjects,
     getProjectResponse,
@@ -13,6 +14,9 @@ const api = {
     },
     getProject: (id: string): Promise<AxiosResponse<getProjectResponse>> => {
         return client.get(`/api/projects/${id}`);
+    },
+    getTransaction: (id: string): Promise<AxiosResponse<TransactionResponse>> => {
+        return client.get(`/api/transactions/${id}`);
     },
     addProject: (data: addProjectRequest): Promise<AxiosResponse<any>> => {
         return client.post('/api/projects', data);

@@ -23,11 +23,8 @@ const Project: React.FC = () => {
             if (state !== null) {
                 const transactionData = data.transactions.filter((el) => el.id == state);
                 if (transactionData.length > 0) {
-                    console.log(params.projectId);
-                    console.log(state);
-                    navigate(`/projects/${params.projectId}/transaction/${state}`, {
+                    navigate(`/transaction/${state}`, {
                         state: {
-                            transaction: transactionData[0],
                             project: {
                                 id: data.id,
                                 name: data.name,
@@ -204,9 +201,8 @@ llm("Explaining the meaning of life in one sentence")`}
                                                 <td>
                                                     <Link
                                                         id={tr.id}
-                                                        to={`/projects/${params.projectId}/transaction/${tr.id}`}
+                                                        to={`/transaction/${tr.id}`}
                                                         state={{
-                                                            transaction: tr,
                                                             project: {
                                                                 id: data.id,
                                                                 name: data.name,

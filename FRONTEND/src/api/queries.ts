@@ -4,6 +4,7 @@ import { AxiosError, AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import {
+    TransactionResponse,
     addProjectRequest,
     getAllProjects,
     getProjectResponse,
@@ -31,6 +32,23 @@ export const useGetProject = (
         'project',
         async () => {
             return await api.getProject(id);
+        },
+        {
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
+        }
+    );
+};
+
+export const useGetTransaction = (
+    id: string
+): UseQueryResult<AxiosResponse<TransactionResponse>, AxiosError> => {
+    return useQuery(
+        'transaction',
+        async () => {
+            return await api.getTransaction(id);
         },
         {
             staleTime: Infinity,

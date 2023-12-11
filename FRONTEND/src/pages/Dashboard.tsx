@@ -27,7 +27,7 @@ const Dashboard = () => {
         return (
             <>
                 <div>An error has occurred</div>
-                {console.log(projects.error)}
+                {console.error(projects.error)}
             </>
         );
     if (projects.isSuccess) {
@@ -66,7 +66,6 @@ const Dashboard = () => {
                                 </Link>
                             ))}
                     </div>
-                    <div></div>
                 </div>
             </>
         );
