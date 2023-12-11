@@ -8,7 +8,7 @@
 
 3. Go to project folder
 
-    > prompt_sail\src\web\project
+    > prompt_sail\FRONTEND
 
 4. Install packages
     > npm i
