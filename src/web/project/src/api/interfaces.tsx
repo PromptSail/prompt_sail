@@ -29,7 +29,7 @@ export interface updateProjectRequest {
     org_id: string;
 }
 
-export interface getProjectResponse {
+export interface getAllProjects {
     id: string;
     name: string;
     slug: string;
@@ -42,7 +42,10 @@ export interface getProjectResponse {
         }
     ];
     tags: string[];
-    org_id: string;
+    org_id: string | undefined;
+}
+
+export interface getProjectResponse extends getAllProjects {
     transactions: TransactionResponse[];
 }
 

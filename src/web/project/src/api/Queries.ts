@@ -3,9 +3,9 @@ import api from './api';
 import { AxiosError, AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { getProjectResponse, updateProjectRequest } from './interfaces';
+import { getAllProjects, getProjectResponse, updateProjectRequest } from './interfaces';
 
-export const useGetAllProjects = (): UseQueryResult<getProjectResponse[], AxiosError> => {
+export const useGetAllProjects = (): UseQueryResult<getAllProjects[], AxiosError> => {
     return useQuery(
         'projects',
         async () => {
@@ -39,11 +39,11 @@ export const useGetProject = (
 export const useUpdateProject = (): UseMutationResult<
     AxiosResponse,
     AxiosError,
-    updateProjectRequest
+    { id: string; data: updateProjectRequest }
 > => {
     return useMutation(
-        async (obj) => {
-            return await api.updateProject(obj);
+        async ({ id, data }) => {
+            return await api.updateProject(id, data);
         },
         {
             onSuccess: () => {

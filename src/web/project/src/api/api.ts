@@ -1,9 +1,14 @@
 import { AxiosResponse } from 'axios';
 import client from './client';
-import { addProjectRequest, getProjectResponse, updateProjectRequest } from './interfaces';
+import {
+    addProjectRequest,
+    getAllProjects,
+    getProjectResponse,
+    updateProjectRequest
+} from './interfaces';
 
 const api = {
-    getProjects: (): Promise<AxiosResponse<getProjectResponse[]>> => {
+    getProjects: (): Promise<AxiosResponse<getAllProjects[]>> => {
         return client.get('/api/projects');
     },
     getProject: (id: string): Promise<AxiosResponse<getProjectResponse>> => {
@@ -15,8 +20,8 @@ const api = {
     deleteProject: (id: string): Promise<AxiosResponse<any>> => {
         return client.delete(`/api/projects/${id}`);
     },
-    updateProject: (data: updateProjectRequest): Promise<AxiosResponse<any>> => {
-        return client.put(`/api/projects`, data);
+    updateProject: (id: string, data: updateProjectRequest): Promise<AxiosResponse<any>> => {
+        return client.put(`/api/projects/${id}`, data);
     }
 };
 
