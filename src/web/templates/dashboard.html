@@ -1,24 +1,20 @@
-{% extends "base.html" %} 
-{% block title%} Dashboard {% endblock %}
-{% block style %}
-    <style>
-        #error {
-            color: red;
-        }
-        #success {
-            color: green;
-        }
-    </style>
-{% endblock %}
-{% block main %}
+{% extends "base.html" %} {% block title%} Dashboard {% endblock %} {% block
+style %}
+<style>
+    #error {
+        color: red;
+    }
+    #success {
+        color: green;
+    }
+</style>
+{% endblock %} {% block main %}
 <div class="flex flex-col">
     <div class="m-auto mt-[100px] max-w-[80%]">
         {% if error %}
-            <h1 id="error">{{error}}</h1>
-        {% endif %}
-        
-        {% if success %}
-            <h1 id="success">{{success}}</h1>
+        <h1 id="error">{{error}}</h1>
+        {% endif %} {% if success %}
+        <h1 id="success">{{success}}</h1>
         {% endif %}
         <h1 class="text-3xl md:text-5xl font-semibold text-center mb-5">
             Dashboard

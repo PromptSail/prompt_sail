@@ -1,5 +1,6 @@
 from projects.models import Project
 from projects.repositories import ProjectRepository
+from projects.schemas import CreateProjectSchema, UpdateProjectSchema
 
 
 def get_project(
