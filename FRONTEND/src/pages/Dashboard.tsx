@@ -37,9 +37,9 @@ const Dashboard = () => {
                     <div className="flex flex-row justify-between">
                         <div className="flex flex-col">
                             <h2 className="text-3xl font-semibold text-left">Projects</h2>
-                            <div className="flex flex-row">
+                            <div className="flex flex-row gap-2">
                                 <span>17 members</span>
-                                <span>30 projects</span>
+                                <span>{projects.data.length} projects</span>
                             </div>
                         </div>
                         <div className="flex flex-row gap-2">
