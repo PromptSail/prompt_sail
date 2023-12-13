@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useGetProject } from '../api/queries';
 import { getProjectResponse } from '../api/interfaces';
 import { AxiosResponse } from 'axios';
@@ -7,6 +7,7 @@ import { UseQueryResult } from 'react-query';
 import UpdateProject from '../components/ProjectForms/UpdateProject';
 import ProjectInstall from '../components/ProjectInstall/ProjectInstall';
 import DeleteProject from '../components/ProjectForms/DeleteProject';
+import TransactionsTable from '../components/TransactionsTable/TransactionsTable';
 const Project: React.FC = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
@@ -53,7 +54,7 @@ const Project: React.FC = () => {
         const data = project.data.data;
         return (
             <>
-                <div className="m-auto mb-5 mt-[100px] w-5/6 flex flex-col justify-between">
+                <div className="p-5 px-20 pt-[100px] w-full w-5/6 h-full flex flex-col justify-between">
                     <div>
                         <div className="flex flex-row justify-end gap-3">
                             <DeleteProject name={data.name} projectId={params.projectId || ''} />
@@ -92,114 +93,14 @@ const Project: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">
-                            LLM Transactions
-                        </h4>
-                        <div className="overflow-x-auto p-3">
-                            <table className="table-auto rounded-md shadow-lg w-full">
-                                <thead className="rounded-md bg-[#EEE] text-[#565656]">
-                                    <tr className="rounded-md">
-                                        <th>Timestamp</th>
-                                        <th>Request url</th>
-                                        <th>Prompt</th>
-                                        <th>Response</th>
-                                        <th>Model</th>
-                                        <th>Content Type</th>
-                                        <th>Response status</th>
-                                        <th>Usage</th>
-                                        <th>More</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.transactions.length > 0 &&
-                                        data.transactions.map((tr, id) => {
-                                            return (
-                                                <tr key={id}>
-                                                    <td>{tr.timestamp}</td>
-                                                    <td>{tr.request.url}</td>
-                                                    <td>
-                                                        {(() => {
-                                                            if (tr.request.content.messages) {
-                                                                return tr.request.content.messages.map(
-                                                                    (m, id) => (
-                                                                        <p
-                                                                            title={m.role}
-                                                                            key={`${m.role}${id}`}
-                                                                        >
-                                                                            {m.content}
-                                                                        </p>
-                                                                    )
-                                                                );
-                                                            } else
-                                                                return tr.request.content.prompt.map(
-                                                                    (p, id) => (
-                                                                        <p
-                                                                            title={`prompt_${id}`}
-                                                                            key={`prompt_${id}`}
-                                                                        >
-                                                                            {p}
-                                                                        </p>
-                                                                    )
-                                                                );
-                                                        })()}
-                                                    </td>
-                                                    <td>
-                                                        {tr.response.content.choices.map(
-                                                            (c, id) => {
-                                                                if (c.message) {
-                                                                    return (
-                                                                        <p
-                                                                            title={c.message.role}
-                                                                            key={`${c.message.role}${id}`}
-                                                                        >
-                                                                            {c.message.content}
-                                                                        </p>
-                                                                    );
-                                                                } else
-                                                                    return (
-                                                                        <p
-                                                                            title={`response_${c.index}`}
-                                                                            key={`response_${c.index}`}
-                                                                        >
-                                                                            {c.text}
-                                                                        </p>
-                                                                    );
-                                                            }
-                                                        )}
-                                                    </td>
-                                                    <td>{tr.response.content.model}</td>
-                                                    <td>{tr.response.headers['content-type']}</td>
-                                                    <td>{tr.response.status_code}</td>
-                                                    <td>
-                                                        {tr.response.content.usage.prompt_tokens} +{' '}
-                                                        {
-                                                            tr.response.content.usage
-                                                                .completion_tokens
-                                                        }
-                                                    </td>
-                                                    <td>
-                                                        <Link
-                                                            id={tr.id}
-                                                            to={`/transaction/${tr.id}`}
-                                                            state={{
-                                                                project: {
-                                                                    id: data.id,
-                                                                    name: data.name,
-                                                                    api_base:
-                                                                        data.ai_providers[0]
-                                                                            .api_base
-                                                                }
-                                                            }}
-                                                        >
-                                                            Details
-                                                        </Link>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                </tbody>
-                            </table>
-                        </div>
+                        <TransactionsTable
+                            transactions={data.transactions}
+                            project={{
+                                id: data.id,
+                                name: data.name,
+                                api_base: data.ai_providers[0].api_base
+                            }}
+                        />
                     </div>
                 </div>
             </>

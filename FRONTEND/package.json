@@ -10,6 +10,7 @@
         "preview": "vite preview --host"
     },
     "dependencies": {
+        "@tanstack/react-table": "^8.10.7",
         "axios": "^1.6.2",
         "bootstrap": "^5.3.2",
         "formik": "^2.4.5",
