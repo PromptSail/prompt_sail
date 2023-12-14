@@ -1,5 +1,7 @@
 import gzip
 import json
+import zlib
+import brotli
 
 # from transactions.models import Tags
 from transactions.repositories import Transaction, TransactionRepository
@@ -29,8 +31,15 @@ def store_transaction(
     # tags,
     transaction_repository: TransactionRepository
 ):
-    if response.headers.get("content-encoding") == "gzip":
+    encoding = str(response.headers.get("content-encoding")).split(',')
+    if encoding[0] == "gzip":
         response_content = gzip.decompress(buffer[0]).decode()
+        response_content = json.loads(response_content)
+    elif encoding[0] == "br":
+        response_content = brotli.decompress(buffer[0]).decode()
+        response_content = json.loads(response_content)
+    elif encoding[0] == "deflate":
+        response_content = zlib.decompress(buffer[0]).decode()
         response_content = json.loads(response_content)
     else:
         chunks = [chunk.decode() for chunk in buffer]
