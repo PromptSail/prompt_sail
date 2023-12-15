@@ -1,6 +1,7 @@
-from pydantic import BaseModel
 from typing import Any
+
 from _datetime import datetime
+from pydantic import BaseModel
 
 
 class GetTransactionSchema(BaseModel):
@@ -9,4 +10,3 @@ class GetTransactionSchema(BaseModel):
     request: dict[str, Any]
     response: dict[str, Any]
     timestamp: datetime
-    

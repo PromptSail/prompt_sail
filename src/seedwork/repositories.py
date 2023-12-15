@@ -48,7 +48,7 @@ class MongoRepository:
 
     def count(self, filter_by=None):
         return self._collection.count_documents(filter_by or {})
-    
+
     # def exists(self, filter_by=None) -> bool:
     #     return self._collection.find_one(filter_by or {}) is not None
 

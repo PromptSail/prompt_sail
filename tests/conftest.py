@@ -27,5 +27,5 @@ def application(fastapi_instance):
     with app.transaction_context() as ctx:
         ctx["project_repository"].remove_all()
         ctx["transaction_repository"].remove_all()
-        
+
     return app
