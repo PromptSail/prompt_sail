@@ -1,12 +1,24 @@
 import { Link } from 'react-router-dom';
 import { TransactionResponse } from '../../api/interfaces';
 import {
+    SortingState,
     createColumnHelper,
     flexRender,
     getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
 import { useState } from 'react';
+import { randomTransactionData } from '../../api/test/randomTransactionsData';
+import { Button, Form } from 'react-bootstrap';
+
+declare global {
+    interface Window {
+        test(length: number): void;
+    }
+}
 
 interface Props {
     transactions: TransactionResponse[];
@@ -19,12 +31,9 @@ interface Props {
 
 type transaction = {
     timestamp: string;
-    requestUrl: string;
     prompt: string;
     response: string;
     model: string;
-    contentType: string;
-    responseStatus: string;
     usage: string;
     more: JSX.Element;
 };
@@ -32,50 +41,50 @@ const columnHelper = createColumnHelper<transaction>();
 const columns = [
     columnHelper.accessor('timestamp', {
         header: 'timestamp',
-        cell: (info) => info.getValue()
-    }),
-    columnHelper.accessor((row) => row.requestUrl, {
-        id: 'requestUrl',
-        header: () => <span>Request URL</span>,
-        cell: (v) => v.getValue()
+        cell: (v) => v.getValue(),
+        sortingFn: 'datetime',
+        size: 100
     }),
     columnHelper.accessor('prompt', {
         header: () => 'Prompt',
-        cell: (v) => v.getValue()
+        cell: (v) => v.getValue(),
+        size: 200
     }),
     columnHelper.accessor('response', {
         header: () => <span>Response</span>,
         cell: (v) => v.getValue(),
-        size: 200
+        size: 400
     }),
     columnHelper.accessor('model', {
         header: 'Model',
         cell: (v) => v.getValue()
     }),
-    columnHelper.accessor('contentType', {
-        header: 'Content Type',
-        cell: (v) => v.getValue()
-    }),
-    columnHelper.accessor('responseStatus', {
-        header: 'Response status',
-        cell: (v) => v.getValue()
-    }),
     columnHelper.accessor('usage', {
         header: 'Usage',
-        cell: (v) => v.getValue()
+        cell: (v) => v.getValue(),
+        size: 50
     }),
     columnHelper.accessor('more', {
         header: 'More',
-        cell: (v) => v.getValue()
+        cell: (v) => v.getValue(),
+        size: 50,
+        enableSorting: false,
+        enableGlobalFilter: false
     })
 ];
-
 const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
+    window.test = (length: number) => {
+        setData(randomTransactionData(length || 5));
+    };
+    const [search, setSearch] = useState('');
+    const [sorting, setSorting] = useState<SortingState>([]);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [data, setData] = useState<transaction[]>(
         transactions.map((tr) => ({
-            timestamp: tr.timestamp,
-            requestUrl: tr.request.url,
+            timestamp: (() => {
+                const d = new Date(tr.timestamp);
+                return `${d.toLocaleDateString()}\n${d.getHours()}:${d.getMinutes()}`;
+            })(),
             prompt: (() => {
                 let str = '';
                 if (tr.request.content.messages)
@@ -91,9 +100,9 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
                 });
                 return str;
             })(),
-            model: tr.response.content.model,
-            contentType: tr.response.headers['content-type'],
-            responseStatus: tr.response.status_code,
+            model: (() => {
+                return `${tr.response.content.model}\n(${tr.request.url})`;
+            })(),
             usage: `${tr.response.content.usage.prompt_tokens}+\n${tr.response.content.usage.completion_tokens}`,
             more: (
                 <Link
@@ -115,10 +124,33 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
     const table = useReactTable({
         data,
         columns,
-        getCoreRowModel: getCoreRowModel()
+        state: { sorting, globalFilter: search },
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setSearch,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getPaginationRowModel: getPaginationRowModel()
     });
     return (
         <>
+            <Form.Control
+                value={search ?? ''}
+                onChange={(obj) => {
+                    console.log(obj.target.value);
+                    setSearch(obj.target.value);
+                }}
+                placeholder="Search all columns"
+            />
+            <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+                Prev page
+            </Button>
+            <Button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+                Next page
+            </Button>
+            <span>
+                {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+            </span>
             <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">LLM Transactions</h4>
             <div className="overflow-x-auto p-3">
                 <table className="border-2 border-black">
@@ -126,10 +158,18 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
                         {table.getHeaderGroups().map((hGroup) => (
                             <tr className="border-2 border-black" key={hGroup.id}>
                                 {hGroup.headers.map((h) => (
-                                    <th className="border-2 border-black" key={h.id}>
+                                    <th
+                                        className="border-2 border-black"
+                                        key={h.id}
+                                        style={{ width: `${h.getSize()}px` }}
+                                        onClick={h.column.getToggleSortingHandler()}
+                                    >
                                         {h.isPlaceholder
                                             ? null
                                             : flexRender(h.column.columnDef.header, h.getContext())}
+                                        {{ asc: ' ^', desc: ' v' }[
+                                            h.column.getIsSorted() as string
+                                        ] ?? null}
                                     </th>
                                 ))}
                             </tr>
