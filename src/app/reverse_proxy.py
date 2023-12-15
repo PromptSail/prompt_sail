@@ -14,7 +14,7 @@ from .app import app
 
 
 async def iterate_stream(response, buffer):
-    async for chunk in response.aiter_raw():
+    async for chunk in response.aiter_text():
         buffer.append(chunk)
         yield chunk
 
@@ -67,7 +67,7 @@ async def reverse_proxy(
         timeout=timeout,
     )
     rp_resp = await client.send(rp_req, stream=True)
-    
+
     if rp_resp.status_code < 300: 
         buffer = []
         return StreamingResponse(
@@ -80,4 +80,3 @@ async def reverse_proxy(
         )
     else:
         raise NotImplementedError()
-    

@@ -31,19 +31,22 @@ def store_transaction(
     # tags,
     transaction_repository: TransactionRepository
 ):
-    encoding = str(response.headers.get("content-encoding")).split(',')
-    if encoding[0] == "gzip":
-        response_content = gzip.decompress(buffer[0]).decode()
-        response_content = json.loads(response_content)
-    elif encoding[0] == "br":
-        response_content = brotli.decompress(buffer[0]).decode()
-        response_content = json.loads(response_content)
-    elif encoding[0] == "deflate":
-        response_content = zlib.decompress(buffer[0]).decode()
-        response_content = json.loads(response_content)
-    else:
-        chunks = [chunk.decode() for chunk in buffer]
-        response_content = [json.loads(chunk.split("data:")) for chunk in chunks if len(chunk) > 0]
+    response_content = ''.join(buffer)
+    response_content = json.loads(response_content)
+    
+    # encoding = str(response.headers.get("content-encoding")).split(',')
+    # if encoding[0] == "gzip":
+    #     response_content = gzip.decompress(buffer[0]).decode()
+    #     response_content = json.loads(response_content)
+    # elif encoding[0] == "br":
+    #     response_content = brotli.decompress(buffer[0]).decode()
+    #     response_content = json.loads(response_content)
+    # elif encoding[0] == "deflate":
+    #     response_content = zlib.decompress(buffer[0]).decode()
+    #     response_content = json.loads(response_content)
+    # else:
+    #     chunks = [chunk.decode() for chunk in buffer]
+    #     response_content = [json.loads(chunk.split("data:")) for chunk in chunks if len(chunk) > 0]
 
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response

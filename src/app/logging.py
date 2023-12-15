@@ -28,7 +28,8 @@ class ContextFilter(logging.Filter):
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)-15s %(name)-5s %(levelname)-8s %(correlation_id)s %(message)s",
+    # format="%(asctime)-15s %(name)-5s %(levelname)-8s %(correlation_id)s %(message)s",
+    format="%(asctime)-15s %(name)-5s %(levelname)-8s %(message)s",
 )
 
 context_filter = ContextFilter()
