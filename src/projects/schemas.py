@@ -39,4 +39,3 @@ class GetProjectSchema(BaseModel):
 
 class GetProjectWithTransactionsSchema(GetProjectSchema):
     transactions: list[GetTransactionSchema] = []
-    

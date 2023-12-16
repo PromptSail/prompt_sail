@@ -1,5 +1,5 @@
 from projects.models import Project
-from seedwork.exceptions import NotFoundException, AlreadyExistsException
+from seedwork.exceptions import AlreadyExistsException, NotFoundException
 from seedwork.repositories import MongoRepository
 from utils import deserialize_data
 
@@ -29,10 +29,10 @@ class ProjectRepository(MongoRepository):
             raise ProjectNotFoundException(f"Project not found: {doc.id}")
         result = super().update(doc)
         return result
-    
+
     def get(self, doc_id: str) -> Project:
         project = super().get(doc_id)
         return Project(**project.model_dump())
-    
+
     def get_by_slug(self, slug: str) -> Project:
         return self.find_one({"slug": slug})

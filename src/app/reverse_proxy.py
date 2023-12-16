@@ -14,7 +14,7 @@ from .app import app
 
 
 async def iterate_stream(response, buffer):
-    async for chunk in response.aiter_raw():
+    async for chunk in response.aiter_text():
         buffer.append(chunk)
         yield chunk
 
@@ -41,7 +41,7 @@ async def reverse_proxy(
 
     if not request.state.is_handled_by_proxy:
         return RedirectResponse("/ui")
-    
+
     project = ctx.call(get_project_by_slug, slug=request.state.slug)
 
     logger.debug(f"got projects for {project}")
@@ -70,17 +70,16 @@ async def reverse_proxy(
         timeout=timeout,
     )
     rp_resp = await client.send(rp_req, stream=True)
-    
-    if rp_resp.status_code < 300: 
+
+    if rp_resp.status_code < 300:
         buffer = []
         return StreamingResponse(
             iterate_stream(rp_resp, buffer),
             status_code=rp_resp.status_code,
             headers=rp_resp.headers,
             background=BackgroundTask(
-                close_stream, ctx['app'], project.id, rp_req, rp_resp, buffer
+                close_stream, ctx["app"], project.id, rp_req, rp_resp, buffer
             ),
         )
     else:
         raise NotImplementedError()
-    

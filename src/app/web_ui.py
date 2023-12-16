@@ -3,11 +3,21 @@ from fastapi.responses import HTMLResponse
 
 from app.dependencies import get_transaction_context
 from config import config
-from projects.schemas import CreateProjectSchema, GetProjectSchema, ProjectAIProviderSchema
+from projects.schemas import (
+    CreateProjectSchema,
+    GetProjectSchema,
+    ProjectAIProviderSchema,
+)
+from projects.use_cases import (
+    add_project,
+    delete_project,
+    get_all_projects,
+    get_project,
+    update_project,
+)
+from transactions.use_cases import get_transaction, get_transactions_for_project
 
 from .app import app, templates
-from projects.use_cases import add_project, get_project, get_all_projects, delete_project, update_project
-from transactions.use_cases import get_transactions_for_project, get_transaction
 
 
 @app.get("/ui", response_class=HTMLResponse)
@@ -26,7 +36,15 @@ async def dashboard(request: Request):
 
 @app.get("/ui/project/add", response_class=HTMLResponse)
 async def get_project_form(request: Request):
-    provider_names = ["OpenAI", "Azure OpenAI", "Google Palm", "Anthropic Cloud", "Meta LLama", "HuggingFace", "Custom"]
+    provider_names = [
+        "OpenAI",
+        "Azure OpenAI",
+        "Google Palm",
+        "Anthropic Cloud",
+        "Meta LLama",
+        "HuggingFace",
+        "Custom",
+    ]
     return templates.TemplateResponse(
         "project-form.html",
         {
@@ -59,11 +77,11 @@ async def add_project_via_ui(
             ProjectAIProviderSchema(
                 api_base=api_base,
                 provider_name=provider_name,
-                ai_model_name=ai_model_name
+                ai_model_name=ai_model_name,
             )
         ],
         tags=tags,
-        org_id=org_id
+        org_id=org_id,
     )
     project = ctx.call(add_project, data)
 
@@ -92,7 +110,7 @@ async def delete_project_via_ui(request: Request, project_id: str = Form(...)):
     ctx = get_transaction_context(request)
     projects = ctx.call(get_all_projects)
     deleted = ctx.call(delete_project, project_id=project_id)
-    
+
     if deleted:
         projects = ctx.call(get_all_projects)
         return templates.TemplateResponse(
@@ -138,7 +156,15 @@ async def read_item(request: Request, project_id: str):
 async def get_project_update_form(request: Request, project_id: str):
     ctx = get_transaction_context(request)
     project = ctx.call(get_project, project_id=project_id)
-    provider_names = ["OpenAI", "Azure OpenAI", "Google Palm", "Anthropic Cloud", "Meta LLama", "HuggingFace", "Custom"]
+    provider_names = [
+        "OpenAI",
+        "Azure OpenAI",
+        "Google Palm",
+        "Anthropic Cloud",
+        "Meta LLama",
+        "HuggingFace",
+        "Custom",
+    ]
     return templates.TemplateResponse(
         "project-update-form.html",
         {
@@ -166,8 +192,10 @@ async def update_project_via_ui(
     ctx = get_transaction_context(request)
 
     tags = tags.replace(" ", "").split(",")
-    
-    tags = tags[0:len(tags)-2] if tags[len(tags)-1] == " " else tags  # remove empty tag if exists
+
+    tags = (
+        tags[0 : len(tags) - 2] if tags[len(tags) - 1] == " " else tags
+    )  # remove empty tag if exists
     data = GetProjectSchema(
         id=proj_id,
         name=name,
@@ -177,11 +205,11 @@ async def update_project_via_ui(
             ProjectAIProviderSchema(
                 api_base=api_base,
                 provider_name=provider_name,
-                ai_model_name=ai_model_name
+                ai_model_name=ai_model_name,
             )
         ],
         tags=tags,
-        org_id=org_id
+        org_id=org_id,
     )
     updated = ctx.call(update_project, data=data)
     if updated:

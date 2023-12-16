@@ -1,61 +1,76 @@
-{% extends 'base.html' %}
-{% block styles %}
-    <style>
-        thead th, tbody td {
-            padding: 10px;
-            text-align: center;
-        }
-        tr{
-            border-bottom: 1px solid #EEE;
-        }
-        tr:hover {
-            background: #F5F5F5
-        }
-        #error {
-            color: red;
-        }
-        #success {
-            color: green;
-        }
-    </style>
-{% endblock %}
-{% block  title%} Project form {% endblock%}
-{% block main %}
-    {% if error %}
-        <h1 id="error">{{error}}</h1>
-    {% endif %}
-    
-    {% if success %}
-        <h1 id="success">{{success}}</h1>
-    {% endif %}
+{% extends 'base.html' %} {% block styles %}
+<style>
+    thead th,
+    tbody td {
+        padding: 10px;
+        text-align: center;
+    }
+    tr {
+        border-bottom: 1px solid #eee;
+    }
+    tr:hover {
+        background: #f5f5f5;
+    }
+    #error {
+        color: red;
+    }
+    #success {
+        color: green;
+    }
+</style>
+{% endblock %} {% block title%} Project form {% endblock%} {% block main %} {%
+if error %}
+<h1 id="error">{{error}}</h1>
+{% endif %} {% if success %}
+<h1 id="success">{{success}}</h1>
+{% endif %}
 
-    <form method="post" action="/ui/project/update">
-        <input type="hidden" name="proj_id" value="{{project.id}}" required><br>
-        <label for="name">Name:</label>
-        <input type="text" name="name" value="{{project.name}}" required><br>
-        <label for="slug">Slug:</label>
-        <input type="text" name="slug" value="{{project.slug}}" required><br>
-        <label for="description">Description:</label>
-        <textarea id="description" name="description" rows="4" cols="50" maxlength="280" required>{{project.description}}</textarea><br>
-        <label for="api_base">API Base URL:</label>
-        <input type="url" name="api_base" value="{{project.ai_providers.0.api_base}}" required><br>
-        <label for="provider_name">Provider name:</label>
-        <select id="provider_name" name="provider_name">
-            {% for pn in provider_names %}
-                {% if pn == project.ai_providers.0.provider_name %}
-                <option value="{{pn}}" selected>{{pn}}</option>
-                {% else %}
-                    <option value="{{pn}}">{{pn}}</option>
-                {% endif %}
-            {% endfor %}
-        </select><br>
-        <label for="ai_model_name">Model name:</label>
-        <input type="text" name="ai_model_name" value="{{project.ai_providers.0.ai_model_name}}" required><br>
-        <label for="tags">Tags:</label>
-        <textarea id="tags" name="tags" 
-                  rows="4" cols="50" required>{% for tag in project.tags %}{{tag}}, {% endfor %}</textarea><br>
-        <label for="org_id">Organization:</label>
-        <input type="text" name="org_id" value="{{project.org_id}}"><br>
-        <button type="submit">Update Project</button>
-    </form>
+<form method="post" action="/ui/project/update">
+    <input type="hidden" name="proj_id" value="{{project.id}}" required /><br />
+    <label for="name">Name:</label>
+    <input type="text" name="name" value="{{project.name}}" required /><br />
+    <label for="slug">Slug:</label>
+    <input type="text" name="slug" value="{{project.slug}}" required /><br />
+    <label for="description">Description:</label>
+    <textarea
+        id="description"
+        name="description"
+        rows="4"
+        cols="50"
+        maxlength="280"
+        required
+    >
+{{project.description}}</textarea
+    ><br />
+    <label for="api_base">API Base URL:</label>
+    <input
+        type="url"
+        name="api_base"
+        value="{{project.ai_providers.0.api_base}}"
+        required
+    /><br />
+    <label for="provider_name">Provider name:</label>
+    <select id="provider_name" name="provider_name">
+        {% for pn in provider_names %} {% if pn ==
+        project.ai_providers.0.provider_name %}
+        <option value="{{pn}}" selected>{{pn}}</option>
+        {% else %}
+        <option value="{{pn}}">{{pn}}</option>
+        {% endif %} {% endfor %}</select
+    ><br />
+    <label for="ai_model_name">Model name:</label>
+    <input
+        type="text"
+        name="ai_model_name"
+        value="{{project.ai_providers.0.ai_model_name}}"
+        required
+    /><br />
+    <label for="tags">Tags:</label>
+    <textarea id="tags" name="tags" rows="4" cols="50" required>
+{% for tag in project.tags %}{{tag}}, {% endfor %}</textarea
+    ><br />
+    <label for="org_id">Organization:</label>
+    <input type="text" name="org_id" value="{{project.org_id}}" /><br />
+    <button type="submit">Update Project</button>
+</form>
 {% endblock %}

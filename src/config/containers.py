@@ -115,7 +115,7 @@ def create_application(container, **kwargs):
             correlation_id=correlation_id,
             logger=logger,
             db_client=container.db_client,
-            app=application
+            app=application,
         )
         transaction_level_provider = ContainerProvider(transaction_level_container)
         return TransactionContext(dependency_provider=transaction_level_provider)

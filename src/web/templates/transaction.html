@@ -1,45 +1,53 @@
 <html>
-<head>
-    <title>Transaction {{transaction.id}} - details</title>
-    <style>
-        table {
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid dimgrey;
-            padding: 4px;
-        }
-        pre {
-            background: aliceblue;
-            padding: 16px;
-        }
-        code {
-            background: aliceblue;
-        }
-    </style>
-</head>
-<body>
-    <h1>Transaction details - {{transaction.id}} in {{project.name}}</h1>
-    
-    <p><code>{{project_url}}</code> &rarr; <code>{{project.api_base}}</code></p>
+    <head>
+        <title>Transaction {{transaction.id}} - details</title>
+        <style>
+            table {
+                border-collapse: collapse;
+            }
+            table,
+            th,
+            td {
+                border: 1px solid dimgrey;
+                padding: 4px;
+            }
+            pre {
+                background: aliceblue;
+                padding: 16px;
+            }
+            code {
+                background: aliceblue;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Transaction details - {{transaction.id}} in {{project.name}}</h1>
 
-    <h2>Request</h2>
-    <pre id="request">
+        <p>
+            <code>{{project_url}}</code> &rarr;
+            <code>{{project.api_base}}</code>
+        </p>
+
+        <h2>Request</h2>
+        <pre id="request">
         {{transaction.request | tojson(indent=4) }}
-    </pre>
+    </pre
+        >
 
-    <h3>Response</h3>
-    <pre id="response">
+        <h3>Response</h3>
+        <pre id="response">
         {{transaction.response | tojson(indent=4) }}
-    </pre>
-        
-    <h3>Other</h3>
-    <pre id="other">
+    </pre
+        >
+
+        <h3>Other</h3>
+        <pre id="other">
         {
             "timestamp": "{{transaction.timestamp}}",
             "status_code": "{{transaction.response.status_code}}",
             "processing_time": "{{transaction.response.elapsed}}"
         }
-    </pre>
-</body>
+    </pre
+        >
+    </body>
 </html>

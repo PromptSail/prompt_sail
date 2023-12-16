@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 
 def serialize_data(obj):
@@ -16,17 +16,17 @@ def deserialize_data(obj):
 
 def extract_tags_from_url(url_str: str) -> tuple[str, dict[str, str]]:
     """
-    
+
     :param url_str: string (url) with tags in query params, for example: http://dom.com/?experiment=2&tags=3,4
     :return: tuple[str, dict[str, str]]: tuple of url without tags and dict of tags
     """
     parsed_url = urlparse(url_str)
     query_params = parse_qs(parsed_url.query)
-    model = str(query_params.get('model', [''])[0])
-    experiment = str(query_params.get('experiment', [''])[0])
-    tags = query_params.get('tags', [''])
-    tags = tags[0].split(',') if tags else []
-    result_dict = {'model': model, 'experiment': experiment, 'tags': tags}
+    model = str(query_params.get("model", [""])[0])
+    experiment = str(query_params.get("experiment", [""])[0])
+    tags = query_params.get("tags", [""])
+    tags = tags[0].split(",") if tags else []
+    result_dict = {"model": model, "experiment": experiment, "tags": tags}
     return parsed_url.scheme + "://" + parsed_url.netloc, result_dict
 
 

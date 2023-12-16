@@ -10,7 +10,7 @@ from .app import app, templates
 @app.exception_handler(ProjectNotFoundException)
 async def not_found_exception_handler(request: Request, exc: NotFoundException):
     message = exc.message
-    if request.__dict__['scope']['state'].get('is_web', False):
+    if request.__dict__["scope"]["state"].get("is_web", False):
         return templates.TemplateResponse(
             "404.html", {"request": request, "message": message}
         )
@@ -22,9 +22,11 @@ async def not_found_exception_handler(request: Request, exc: NotFoundException):
 
 
 @app.exception_handler(SlugAlreadyExistsException)
-async def slug_already_exists_exception_handler(request: Request, exc: SlugAlreadyExistsException):
+async def slug_already_exists_exception_handler(
+    request: Request, exc: SlugAlreadyExistsException
+):
     message = exc.message
-    if request.__dict__['scope']['state'].get('is_web', False):
+    if request.__dict__["scope"]["state"].get("is_web", False):
         return templates.TemplateResponse(
             "400.html", {"request": request, "message": message}
         )

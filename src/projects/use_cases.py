@@ -19,9 +19,7 @@ def get_project_by_slug(
     return project
 
 
-def get_all_projects(
-    project_repository: ProjectRepository
-) -> list[Project]:
+def get_all_projects(project_repository: ProjectRepository) -> list[Project]:
     projects = project_repository.get_all()
     return projects
 
@@ -35,9 +33,7 @@ def add_project(
 
 
 def update_project(
-    project_repository: ProjectRepository,
-    project_id: str,
-    fields_to_update: dict
+    project_repository: ProjectRepository, project_id: str, fields_to_update: dict
 ) -> Project:
     project = project_repository.get(project_id)
     project.__dict__.update(**fields_to_update)
