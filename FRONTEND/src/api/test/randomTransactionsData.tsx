@@ -3,7 +3,11 @@ type transaction = {
     prompt: string;
     response: string;
     model: string;
-    usage: string;
+    usage: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+    };
     more: JSX.Element;
 };
 export const randomTransactionData = (length: number) => {
@@ -11,14 +15,19 @@ export const randomTransactionData = (length: number) => {
     for (let i = 0; i <= length; i++) {
         const random = Math.random() * 1699999999999;
         test_data[i] = {
-            timestamp: (() => {
-                const d = new Date(random);
-                return `${d.toLocaleDateString()}\n${d.getHours()}:${d.getMinutes()}`;
-            })(),
+            timestamp: new Date(random).toString(),
             prompt: makeStr(Math.random() * 20),
             response: makeStr(Math.random() * 20),
             model: makeStr(Math.random() * 10),
-            usage: `${(Math.random() * 20).toFixed(0)}+\n${(Math.random() * 20).toFixed(0)}`,
+            usage: (() => {
+                const a = Math.round(Math.random() * 20);
+                const b = Math.round(Math.random() * 20);
+                return {
+                    prompt_tokens: a,
+                    completion_tokens: b,
+                    total_tokens: a + b
+                };
+            })(),
             more: <span>Details</span>
         };
     }
