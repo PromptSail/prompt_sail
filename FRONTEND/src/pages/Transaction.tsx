@@ -35,9 +35,51 @@ const Transaction: React.FC = () => {
         const data = transaction.data.data;
         return (
             <>
-                <h1 className="text-4xl font-semibold">
-                    Transaction details - {data.id} in {project.name}
-                </h1>
+                <div className="p-5 px-20 pt-[100px]">
+                    <h1 className="text-4xl font-semibold">
+                        Transaction details - {data.id} in {project.name}
+                    </h1>
+                    <div className="border-4">
+                        <div className="border-b-4 p-3 flex flex-row gap-16">
+                            <span>Model {data.request.content.model}</span>
+                            <span>Cost $ 0.05</span>
+                            <span>
+                                Rate: [{data.response.content.usage.prompt_tokens}+] [
+                                {data.response.content.usage.completion_tokens}]
+                            </span>
+                        </div>
+                        <div className="border-b-4 p-3 flex flex-row gap-16">
+                            <span>{data.request.url}</span>
+                            <span>Response status: {data.response.status_code}</span>
+                        </div>
+                        <div className="border-b-4 p-3 flex flex-row gap-16">
+                            <span>Timestamp: {data.timestamp}</span>
+                            <span>
+                                Created by{' '}
+                                {data.request.content.messages?.map((el, id) => (
+                                    <span key={id}>{id > 0 ? `, ${el.role}` : `${el.role}`}</span>
+                                ))}
+                            </span>
+                            <span>Tags: </span>
+                        </div>
+                        <div className="border-b-4 w-full flex flex-row">
+                            <div className="border-e-4 p-2">Input</div>
+                            <div className="p-2">
+                                {data.request.content.messages?.map((el, id) => (
+                                    <span key={id}>[{el.content}]</span>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="w-full flex flex-row">
+                            <div className="p-2 m-auto">Output</div>
+                            <div className="border-s-4 p-2">
+                                {data.response.content.choices.map((el, id) => (
+                                    <span key={id}>[{el.message.content}]</span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div className="my-5">
                     <SyntaxHighlighter
                         language="python"

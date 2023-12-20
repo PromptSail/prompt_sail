@@ -56,6 +56,7 @@ export interface TransactionResponse {
     request: {
         url: string;
         content: {
+            model: string;
             messages?: [
                 {
                     role: string;
