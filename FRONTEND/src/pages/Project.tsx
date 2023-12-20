@@ -24,9 +24,9 @@ const Project: React.FC = () => {
                     navigate(`/transaction/${state}`, {
                         state: {
                             project: {
-                                id: data.id,
                                 name: data.name,
-                                api_base: data.ai_providers[0].api_base
+                                api_base: data.ai_providers[0].api_base,
+                                slug: data.slug
                             }
                         }
                     });
@@ -96,9 +96,9 @@ const Project: React.FC = () => {
                         <TransactionsTable
                             transactions={data.transactions}
                             project={{
-                                id: data.id,
                                 name: data.name,
-                                api_base: data.ai_providers[0].api_base
+                                api_base: data.ai_providers[0].api_base,
+                                slug: data.slug
                             }}
                         />
                     </div>

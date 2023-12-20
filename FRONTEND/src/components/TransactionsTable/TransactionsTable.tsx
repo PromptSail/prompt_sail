@@ -24,9 +24,9 @@ declare global {
 interface Props {
     transactions: TransactionResponse[];
     project: {
-        id: string;
         name: string;
         api_base: string;
+        slug: string;
     };
 }
 
@@ -141,9 +141,9 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
                     to={`/transaction/${tr.id}`}
                     state={{
                         project: {
-                            id: project.id,
                             name: project.name,
-                            api_base: project.api_base
+                            api_base: project.api_base,
+                            slug: project.slug
                         }
                     }}
                 >
