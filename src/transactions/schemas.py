@@ -14,7 +14,7 @@ class GetTransactionSchema(BaseModel):
 class GetTransactionWithProjectSlugSchema(BaseModel):
     id: str
     project_id: str
-    project_slug: str | None
+    project_name: str
     request: dict[str, Any]
     response: dict[str, Any]
     timestamp: datetime

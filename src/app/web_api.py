@@ -84,8 +84,8 @@ async def get_transactions(
 ) -> list[GetTransactionWithProjectSlugSchema]:
     transactions = ctx.call(get_all_transactions)
     projects = ctx.call(get_all_projects)
-    project_id_slug_map = {project.id: project.slug for project in projects}
+    project_id_name_map = {project.id: project.name for project in projects}
     transactions = [GetTransactionWithProjectSlugSchema(
-        **transaction.model_dump(), project_slug=project_id_slug_map.get(transaction.project_id, None)) 
+        **transaction.model_dump(), project_name=project_id_name_map.get(transaction.project_id, None)) 
         for transaction in transactions]
     return transactions
