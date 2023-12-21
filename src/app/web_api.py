@@ -9,8 +9,8 @@ from projects.schemas import CreateProjectSchema, UpdateProjectSchema, GetProjec
     GetProjectWithTransactionsSchema
 from projects.use_cases import get_all_projects, add_project, update_project, delete_project, get_project
 from transactions.models import generate_uuid
-from transactions.schemas import GetTransactionSchema
-from transactions.use_cases import get_transactions_for_project, get_transaction
+from transactions.schemas import GetTransactionSchema, GetTransactionWithProjectSlugSchema
+from transactions.use_cases import get_transactions_for_project, get_transaction, get_all_transactions
 from lato import TransactionContext
 from .app import app
 
@@ -76,3 +76,16 @@ async def get_transaction_details(
     transaction = ctx.call(get_transaction, transaction_id=transaction_id)
     transaction = GetTransactionSchema(**transaction.model_dump())
     return transaction
+
+
+@app.get("/api/transactions", response_class=JSONResponse, status_code=200)
+async def get_transactions(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> list[GetTransactionWithProjectSlugSchema]:
+    transactions = ctx.call(get_all_transactions)
+    projects = ctx.call(get_all_projects)
+    project_id_slug_map = {project.id: project.slug for project in projects}
+    transactions = [GetTransactionWithProjectSlugSchema(
+        **transaction.model_dump(), project_slug=project_id_slug_map.get(transaction.project_id, None)) 
+        for transaction in transactions]
+    return transactions
