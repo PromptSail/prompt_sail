@@ -138,7 +138,7 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
             more: (
                 <Link
                     id={tr.id}
-                    to={`/transaction/${tr.id}`}
+                    to={`/transactions/${tr.id}`}
                     state={{
                         project: {
                             name: project.name,
@@ -165,10 +165,7 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
     });
     return (
         <>
-            <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">LLM Transactions</h4>
-            <div className="flex flex-row">
-                <span>dsa</span>
-            </div>
+            <div className="flex flex-row"></div>
             <div className="overflow-x-auto p-3">
                 <Form.Control
                     value={search ?? ''}

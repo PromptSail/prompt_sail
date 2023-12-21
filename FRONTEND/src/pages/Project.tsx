@@ -7,7 +7,7 @@ import { UseQueryResult } from 'react-query';
 import UpdateProject from '../components/ProjectForms/UpdateProject';
 import ProjectInstall from '../components/ProjectInstall/ProjectInstall';
 import DeleteProject from '../components/ProjectForms/DeleteProject';
-import TransactionsTable from '../components/TransactionsTable/TransactionsTable';
+import LatestTransactions from '../components/tables/LatestTransactions';
 const Project: React.FC = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
@@ -21,7 +21,7 @@ const Project: React.FC = () => {
             if (state !== null) {
                 const transactionData = data.transactions.filter((el) => el.id == state);
                 if (transactionData.length > 0) {
-                    navigate(`/transaction/${state}`, {
+                    navigate(`/transactions/${state}`, {
                         state: {
                             project: {
                                 name: data.name,
@@ -93,7 +93,10 @@ const Project: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <TransactionsTable
+                        <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">
+                            LLM Transactions
+                        </h4>
+                        <LatestTransactions
                             transactions={data.transactions}
                             project={{
                                 name: data.name,
