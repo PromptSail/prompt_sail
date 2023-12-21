@@ -21,6 +21,13 @@ def get_transaction(
     return transaction
 
 
+def get_all_transactions(
+    transaction_repository: TransactionRepository
+) -> list[Transaction]:
+    transactions = transaction_repository.get_all()
+    return transactions
+
+
 def store_transaction(
     request, 
     response, 

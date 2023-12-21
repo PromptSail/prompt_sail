@@ -10,3 +10,11 @@ class GetTransactionSchema(BaseModel):
     response: dict[str, Any]
     timestamp: datetime
     
+    
+class GetTransactionWithProjectSlugSchema(BaseModel):
+    id: str
+    project_id: str
+    project_slug: str | None
+    request: dict[str, Any]
+    response: dict[str, Any]
+    timestamp: datetime

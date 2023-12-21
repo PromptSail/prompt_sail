@@ -51,7 +51,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
-
+    depends_on:
+        mongodb:
+            condition: service_started
+        app:
+            condition: service_started
 networks:
   internal-network:
     internal: true
