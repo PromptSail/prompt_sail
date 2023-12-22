@@ -8,6 +8,7 @@ category: Project Updates
 Because we can :)
 
 We're thrilled to introduce Prompt Sail, our open-source LLM API proxy! Our journey to build Prompt Sail was driven by the challenges we faced and the opportunities we saw in our daily work with language model APIs.
+<!--more-->
 
 As developers and researchers, we constantly experiment with different prompts in LLMs. However, we found a significant gap in the tools available for observability and monitoring during these experiments. This became even more evident when we tried to deploy our models in production-ready environments, where governance is crucial.
 
