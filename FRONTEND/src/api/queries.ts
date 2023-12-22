@@ -59,6 +59,24 @@ export const useGetTransaction = (
     );
 };
 
+export const useGetAllTransactions = (): UseQueryResult<
+    AxiosResponse<TransactionResponse[]>,
+    AxiosError
+> => {
+    return useQuery(
+        'transactions',
+        async () => {
+            return await api.getTransactions();
+        },
+        {
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
+        }
+    );
+};
+
 export const useAddProject = (): UseMutationResult<
     AxiosResponse,
     AxiosError,
