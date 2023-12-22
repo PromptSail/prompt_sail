@@ -6,8 +6,8 @@ main:
     url: /about/
   - title: "Sample Posts"
     url: /year-archive/
-  - title: "Sample Collections"
-    url: /collection-archive/
+  # - title: "Sample Collections"
+  #   url: /collection-archive/
   - title: "Terms &amp; Privacy Policy"
     url: /terms/
 
@@ -18,38 +18,39 @@ docs:
     children:
       - title: "Quick-Start Guide"
         url: /docs/quick-start-guide/
-      - title: "Structure"
-        url: /docs/structure/
       - title: "Installation"
         url: /docs/installation/
       - title: "Upgrading"
         url: /docs/upgrading/
-  - title: Customization
+  - title: LLM proxy setup
     children:
-      - title: "Configuration"
-        url: /docs/configuration/
-      - title: "Overriding Theme Defaults"
-        url: /docs/overriding-theme-defaults/
-      - title: "Navigation"
+      - title: "Input/output capturing"
+        url: /docs/in-out-capture/
+      - title: "Working with projects"
+        url: /docs/projects/
+      - title: "Working with tags"
         url: /docs/navigation/
-      - title: "UI Text"
-        url: /docs/ui-text/
-      - title: "Authors"
-        url: /docs/authors/
-      - title: "Layouts"
-        url: /docs/layouts/
-  - title: Content
+      - title: "Working with experiments"
+  - title: "User UI Guide"
     children:
-      - title: "Working with Posts"
+      - title: "Organization Dashboard"
+        url: /docs/organization-view/
+      - title: "Project Dashboard"
+        url: /docs/buttons/
+      - title: "Transactions View"
+        url: /docs/forms/
+      - title: "Cost Analysis View"
+        url: /docs/forms/
+  - title: Project Development
+    children:
+      - title: "Repository Structure"
         url: /docs/posts/
-      - title: "Working with Pages"
+      - title: "Dependency injection"
         url: /docs/pages/
-      - title: "Working with Collections"
+      - title: "How revers proxies work"
         url: /docs/collections/
-      - title: "Helpers"
+      - title: "Data models"
         url: /docs/helpers/
-      - title: "Utility Classes"
-        url: /docs/utility-classes/
   - title: Extras
     children:
       - title: "Stylesheets"

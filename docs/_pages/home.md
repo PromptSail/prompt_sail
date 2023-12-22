@@ -4,13 +4,16 @@ permalink: /
 hidden: true
 header:
   overlay_color: "#2474AB"
+  overlay_filter: "0.5"
   overlay_image: /assets/images/home-page-feature-bckg.png
   actions:
-    - label: "<i class='fas fa-download'></i> Install now"
+    - label: "<i class='fas fa-download'></i> Pull now"
       url: "/docs/quick-start-guide/"
 excerpt: >
   LLM's proxy for prompt and response governance, monitoring, and analysis.<br />
   <small><a href="https://github.com/PromptSail/prompt_sail/releases/tag/0.1">Latest release v0.1.0</a></small>
+intro: 
+  - excerpt: 'Nullam suscipit et nam, tellus velit pellentesque at malesuada, enim eaque. Quis nulla, netus tempor in diam gravida tincidunt, *proin faucibus* voluptate felis id sollicitudin. Centered with `type="center"`'
 feature_row:
   - image_path: /assets/images/mm-customizable-feature.png
     alt: "customizable"
