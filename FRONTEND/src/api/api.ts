@@ -18,6 +18,9 @@ const api = {
     getTransaction: (id: string): Promise<AxiosResponse<TransactionResponse>> => {
         return client.get(`/api/transactions/${id}`);
     },
+    getTransactions: (): Promise<AxiosResponse<TransactionResponse[]>> => {
+        return client.get(`/api/transactions`);
+    },
     addProject: (data: addProjectRequest): Promise<AxiosResponse<any>> => {
         return client.post('/api/projects', data);
     },

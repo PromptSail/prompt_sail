@@ -15,6 +15,13 @@ const Sidebar: React.FC<Props> = ({ children, classes }) => {
                 <Button variant="primary" className="w-full" onClick={() => navigate('/')}>
                     Projects
                 </Button>
+                <Button
+                    variant="primary"
+                    className="w-full"
+                    onClick={() => navigate('/transactions')}
+                >
+                    Transactions
+                </Button>
                 {children}
             </div>
         </>
