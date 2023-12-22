@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { TransactionResponse } from '../../api/interfaces';
 import {
+    ColumnFiltersState,
     SortingState,
     createColumnHelper,
     flexRender,
@@ -60,6 +61,12 @@ const columns = [
             else if (dateA == dateB) return 0;
             else return -1;
         },
+        filterFn: (row, id, value) => {
+            const rowV = new Date(row.getValue(id)).getTime();
+            const start = new Date(value[0]).getTime() || rowV;
+            const end = new Date(value[1]).getTime() || rowV;
+            return rowV >= start && rowV <= end;
+        },
         size: 100
     }),
     columnHelper.accessor('prompt', {
@@ -113,6 +120,7 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
     };
     const [search, setSearch] = useState('');
     const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [data, setData] = useState<transaction[]>(
         transactions.map((tr) => ({
             timestamp: tr.timestamp,
@@ -155,8 +163,9 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
     const table = useReactTable({
         data,
         columns,
-        state: { sorting, globalFilter: search },
+        state: { sorting, globalFilter: search, columnFilters },
         onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
         onGlobalFilterChange: setSearch,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -165,12 +174,32 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
     });
     return (
         <>
-            <div className="flex flex-row"></div>
+            <div className="flex flex-row">
+                <Form.Control
+                    type="date"
+                    onChange={(v) => {
+                        const value = v.currentTarget.value;
+                        table.getColumn('timestamp')?.setFilterValue((old: [string, string]) => {
+                            console.log(old);
+                            return [value, old?.[1]];
+                        });
+                    }}
+                />
+                <Form.Control
+                    type="date"
+                    onChange={(v) => {
+                        const value = v.currentTarget.value;
+                        table.getColumn('timestamp')?.setFilterValue((old: [string, string]) => {
+                            console.log(old);
+                            return [old?.[0], value];
+                        });
+                    }}
+                />
+            </div>
             <div className="overflow-x-auto p-3">
                 <Form.Control
                     value={search ?? ''}
                     onChange={(obj) => {
-                        console.log(obj.target.value);
                         setSearch(obj.target.value);
                     }}
                     placeholder="Search all columns"

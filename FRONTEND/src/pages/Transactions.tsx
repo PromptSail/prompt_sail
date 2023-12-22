@@ -19,7 +19,6 @@ const Transactions: React.FC = () => {
         );
     if (transactions.isSuccess) {
         const data = transactions.data.data;
-        console.log(data);
         return (
             <>
                 <div className="p-5 px-20 pt-[100px] flex flex-col gap-5">
