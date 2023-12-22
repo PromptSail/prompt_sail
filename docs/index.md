@@ -1,4 +1,4 @@
-# Prompt Sail Developer Documentaion
+# Developer Documentaion
 
 ## What is Prompt Sail?
 
