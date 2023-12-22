@@ -26,13 +26,15 @@ class ContextFilter(logging.Filter):
         return True
 
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)-15s %(name)-5s %(levelname)-8s %(correlation_id)s %(message)s",
+formatter = logging.Formatter(
+    "%(asctime)-15s %(name)-5s %(levelname)-8s %(correlation_id)s %(message)s"
 )
-
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
 context_filter = ContextFilter()
 logger = logging.getLogger("app")
 logger.addFilter(context_filter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 logger.info("Hello World!")
