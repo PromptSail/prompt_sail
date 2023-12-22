@@ -31,19 +31,26 @@ async def close_stream(app: Application, project_id, request, response, buffer):
         )
 
 
-@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+@app.api_route("/{project_slug}/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 async def reverse_proxy(
+    project_slug: str,
     path: str,
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ):
     logger = get_logger(request)
 
-    if not request.state.is_handled_by_proxy:
-        return RedirectResponse("/ui")
+    # if not request.state.is_handled_by_proxy:
+    #     return RedirectResponse("/ui")
 
-    project = ctx.call(get_project_by_slug, slug=request.state.slug)
+    # project = ctx.call(get_project_by_slug, slug=request.state.slug)
 
+    project = ctx.call(get_project_by_slug, slug=project_slug)
+
+    # TO MA PRAWO DZIAŁAĆ! W MIDDLEWARE ZŁAPAĆ TAGI I WRZUCIĆ DO request.state!
+    # if path == '':
+    #     path = '/'.join(request.query_params.__dict__['_list'][::-1][0][1].split('/')[1:])
+    
     logger.debug(f"got projects for {project}")
 
     # Get the body as bytes for non-GET requests
