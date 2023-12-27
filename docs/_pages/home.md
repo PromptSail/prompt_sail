@@ -11,7 +11,7 @@ header:
       url: "/docs/quick-start-guide/"
 excerpt: >
   LLM's proxy for prompt and response governance, monitoring, and analysis.<br />
-  <small><a href="https://github.com/PromptSail/prompt_sail/releases/tag/0.1">Latest release v0.1.0</a></small>
+  <small><a href="https://github.com/PromptSail/prompt_sail/releases/">Latest release</a></small>
 intro: 
   - excerpt: "Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with LLM APIs such as OpenAI, Cohere, and others. It integrates with OpenAI, langchain, and other LLM frameworks and libraries." 
 feature_row:

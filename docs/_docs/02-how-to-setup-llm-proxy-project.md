@@ -16,34 +16,21 @@ Prompt Sail works as a docker container that sits between your LLM API and your 
 There are two options to run the Prompt Sail docker container:
 
 Pull and run the Docker image from Docker Hub. 
-(todo:)
 
-
-**Warning Notice:** Lorem ipsum dolor sit amet, consectetur adipiscing elit. [Integer nec odio](#). Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
+**Notice:** Currently, the docker image is not available on Docker Hub. Command below will not work yet.
 {: .notice--warning}
 
-
-
-**Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.
-{: .notice--warning}
 ```bash
 docker run prompt-sail
 ``` 
 
+Recommmened way is to build the Docker image from the source code.
+{: .notice--success}
 
-<div class="notice--warning" markdown="1">
-**Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.
-
-```bash
-docker run prompt-sail
-```
-</div>
-
-
-Build the Docker image from the source code.
+To build the Docker images from the source code, run the following command. It will build the images for proxy and UI.
 
 ```bash
-docker-docker-compose up --build
+docker-compose up --build
 ```
 
 
