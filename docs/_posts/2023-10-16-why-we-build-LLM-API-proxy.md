@@ -1,8 +1,15 @@
 ---
-layout: post
 title:  "Welcome to Prompt Sail! Why we decided to build LLM API proxy"
-tags: "why" "prompt-sail" "llm-api-proxy"
-category: Project Updates
+last_modified_at: 2023-12-20T16:00:58
+tags: 
+    - "why"
+    - "prompt-sail" 
+    - "llm-api-proxy"
+category: 
+    - Project Updates
+toc: true
+toc_label: "Unique Title"
+toc_icon: "heart"
 ---
 
 Because we can :)
