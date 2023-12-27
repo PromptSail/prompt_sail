@@ -24,7 +24,7 @@ feature_row:
     btn_label: "Learn more"
   - image_path: #/assets/images/mm-responsive-feature.png
     alt: "fully responsive"
-    title: "Governance, Monitoring, and Analysis"
+    title: "Monitoring, and Analysis"
     excerpt: "Build for monitoring your prompts and responses, and analyzing them for better performance and cost control."
     url: "/docs/layouts/"
     btn_class: "btn--primary"

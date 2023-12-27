@@ -13,13 +13,13 @@ main:
 
 # documentation links
 docs:
-  - title: Getting Started
+  - title: 0- Getting Started
     children:
       - title: "Quick-Start Guide"
         url: /docs/quick-start-guide/
       - title: "Project Setup"
         url: /docs/how-to-setup-llm-proxy-project/
-  - title: LLM proxy setup
+  - title: 1- LLM proxy setup
     children:
       - title: "LLM frameworks integration"
         url: /docs/todo/
@@ -29,7 +29,7 @@ docs:
         url: /docs/todo/
       - title: "Working with experiments"
         url: /docs/todo/
-  - title: "User UI Guide"
+  - title: 2 - User UI Guide
     children:
       - title: "Organization Dashboard"
         url: /docs/todo/
@@ -39,7 +39,7 @@ docs:
         url: /docs/todo/
       - title: "Cost Analysis View"
         url: /docs/todo/
-  - title: "Contributing"
+  - title: 3 - Contributing
     children:
       - title: "Documentation"
         url: /docs/how-to-write-documentation/
@@ -51,7 +51,7 @@ docs:
         url: /docs/todo/
 
       
-  - title: About the project
+  - title: 4 - About the project
     children:
       - title: "History"
         url: /docs/history/
