@@ -18,6 +18,19 @@ There are two options to run the Prompt Sail docker container:
 Pull and run the Docker image from Docker Hub. 
 (todo:)
 
+
+**Warning Notice:** Lorem ipsum dolor sit amet, consectetur adipiscing elit. [Integer nec odio](#). Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
+{: .notice--warning}
+
+
+
+*Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.{: .notice--warning}
+```bash
+docker run prompt-sail
+``` 
+
+
+
 *Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.
 ```bash
 docker run prompt-sail
@@ -25,6 +38,13 @@ docker run prompt-sail
 {: .notice--warning}
 
 
+<div class="notice--primary" markdown="1">
+**Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.
+
+```bash
+docker run prompt-sail
+```
+</div>
 
 
 Build the Docker image from the source code.
