@@ -24,21 +24,14 @@ Pull and run the Docker image from Docker Hub.
 
 
 
-*Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.{: .notice--warning}
-```bash
-docker run prompt-sail
-``` 
-
-
-
-*Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.
-```bash
-docker run prompt-sail
-``` 
+**Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.
 {: .notice--warning}
+```bash
+docker run prompt-sail
+``` 
 
 
-<div class="notice--primary" markdown="1">
+<div class="notice--warning" markdown="1">
 **Notice:** We do not share the docker image on Docker Hub yet. Please build the docker image from the source code.
 
 ```bash
