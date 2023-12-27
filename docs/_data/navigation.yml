@@ -8,8 +8,7 @@ main:
     url: /year-archive/
   # - title: "Sample Collections"
   #   url: /collection-archive/
-  - title: "Terms &amp; Privacy Policy"
-    url: /terms/
+
 
 
 # documentation links
@@ -22,47 +21,42 @@ docs:
         url: /docs/how-to-setup-llm-proxy-project/
   - title: LLM proxy setup
     children:
+      - title: "LLM frameworks integration"
+        url: /docs/todo/
       - title: "Input/output capturing"
-        url: /docs/in-out-capture/
-      - title: "Working with projects"
-        url: /docs/projects/
+        url: /docs/todo/
       - title: "Working with tags"
-        url: /docs/navigation/
+        url: /docs/todo/
       - title: "Working with experiments"
+        url: /docs/todo/
   - title: "User UI Guide"
     children:
       - title: "Organization Dashboard"
-        url: /docs/organization-view/
+        url: /docs/todo/
       - title: "Project Dashboard"
-        url: /docs/buttons/
+        url: /docs/todo/
       - title: "Transactions View"
-        url: /docs/forms/
+        url: /docs/todo/
       - title: "Cost Analysis View"
-        url: /docs/forms/
-  - title: Project Development
+        url: /docs/todo/
+  - title: "Contributing"
     children:
+      - title: "Documentation"
+        url: /docs/how-to-write-documentation/
       - title: "Repository Structure"
-        url: /docs/posts/
+        url: /docs/todo/
       - title: "Dependency injection"
-        url: /docs/pages/
+        url: /docs/todo/
       - title: "How revers proxies work"
-        url: /docs/collections/
-      - title: "Data models"
-        url: /docs/helpers/
-  - title: Extras
-    children:
-      - title: "Stylesheets"
-        url: /docs/stylesheets/
-      - title: "JavaScript"
-        url: /docs/javascript/
-  - title: Meta
+        url: /docs/todo/
+
+      
+  - title: About the project
     children:
       - title: "History"
         url: /docs/history/
       - title: "Contributing"
         url: /docs/contributing/
-      - title: "Old 2.2 Docs"
-        url: /docs/docs-2-2/
       - title: "License"
         url: /docs/license/
       - title: "Terms &amp; Privacy Policy"

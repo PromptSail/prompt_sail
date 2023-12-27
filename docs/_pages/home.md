@@ -13,24 +13,24 @@ excerpt: >
   LLM's proxy for prompt and response governance, monitoring, and analysis.<br />
   <small><a href="https://github.com/PromptSail/prompt_sail/releases/tag/0.1">Latest release v0.1.0</a></small>
 intro: 
-  - excerpt: 'Nullam suscipit et nam, tellus velit pellentesque at malesuada, enim eaque. Quis nulla, netus tempor in diam gravida tincidunt, *proin faucibus* voluptate felis id sollicitudin. Centered with `type="center"`'
+  - excerpt: "Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with LLM APIs such as OpenAI, Cohere, and others. It integrates with OpenAI, langchain, and other LLM frameworks and libraries." 
 feature_row:
-  - image_path: /assets/images/mm-customizable-feature.png
-    alt: "customizable"
-    title: "Super customizable"
-    excerpt: "Everything from the menus, sidebars, comments, and more can be configured or set with YAML Front Matter."
-    url: "/docs/configuration/"
+  - image_path: #/assets/images/mm-customizable-feature.png
+    alt: "Easy Integration"
+    title: "Easy Integration"
+    excerpt: "Designed to be easily integrated into your existing workflow, whatever LLM framework or library you use."
+    url: "/docs/quick-start-guide/"
     btn_class: "btn--primary"
     btn_label: "Learn more"
-  - image_path: /assets/images/mm-responsive-feature.png
+  - image_path: #/assets/images/mm-responsive-feature.png
     alt: "fully responsive"
-    title: "Responsive layouts"
-    excerpt: "Built with HTML5 + CSS3. All layouts are fully responsive with helpers to augment your content."
+    title: "Governance, Monitoring, and Analysis"
+    excerpt: "Build for monitoring your prompts and responses, and analyzing them for better performance and cost control."
     url: "/docs/layouts/"
     btn_class: "btn--primary"
     btn_label: "Learn more"
-  - image_path: /assets/images/mm-free-feature.png
-    alt: "100% free"
+  - image_path: #/assets/images/mm-free-feature.png
+    alt: "100% free and MIT licensed"
     title: "100% free"
     excerpt: "Free to use however you want under the MIT License. Clone it, fork it, customize it... whatever!"
     url: "/docs/license/"
