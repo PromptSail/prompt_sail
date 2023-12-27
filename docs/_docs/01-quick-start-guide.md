@@ -9,8 +9,6 @@ toc: true
 ---
 
 
-# Developer Documentaion
-
 ## What is Prompt Sail?
 
 Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with LLM APIs such as OpenAI, Cohere, and others. 
@@ -75,5 +73,3 @@ http://localhost:8000/<project_slug>/chat/completions?experiment_id=welcome_mess
 Once the setup is complete, you can begin using Prompt Sail. It will automatically capture and log all prompts and responses. You can then view and analyze this data through the intuitive user interface. UI is available at [http://localhost:80/](http://localhost:80/)
 
 Prompt Sail is designed to integrate smoothly into your workflow, offering valuable insights without causing any disruption to your development process.
-
-
