@@ -9,9 +9,9 @@ def generate_uuid() -> str:
     return str(uuid4())
 
 
-class Tags(BaseModel):
-    model: str
-    experiment: str
+class QueryParams(BaseModel):
+    model: str | None
+    experiment: str | None
     tags: list[str]
 
 
@@ -20,4 +20,5 @@ class Transaction(BaseModel):
     project_id: str
     request: dict[str, Any]
     response: dict[str, Any]
+    query_params: QueryParams
     timestamp: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))

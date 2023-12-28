@@ -1,6 +1,6 @@
 import json
 
-# from transactions.models import Tags
+from transactions.models import QueryParams
 from transactions.repositories import Transaction, TransactionRepository
 
 
@@ -30,7 +30,7 @@ def store_transaction(
     response,
     buffer,
     project_id,
-    # tags,
+    query_params,
     transaction_repository: TransactionRepository,
 ):
     response_content = "".join(buffer)
@@ -60,11 +60,11 @@ def store_transaction(
             elapsed=response.elapsed.total_seconds(),
             encoding=response.encoding,
         ),
-        # tags=Tags(
-        #     model=tags.model,
-        #     experiment=tags.experiment,
-        #     tags=tags.tags
-        # )
+        query_params=QueryParams(
+            model=query_params['model'] if 'model' in query_params.keys() else None,
+            experiment=query_params['experiment'] if 'experiment' in query_params.keys() else None,
+            tags=query_params['tags'] if 'tags' in query_params.keys() else []
+        )
     )
 
     transaction_repository.add(transaction)

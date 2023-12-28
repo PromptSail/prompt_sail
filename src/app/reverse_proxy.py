@@ -19,7 +19,7 @@ async def iterate_stream(response, buffer):
         yield chunk
 
 
-async def close_stream(app: Application, project_id, request, response, buffer):
+async def close_stream(app: Application, project_id, request, response, buffer, query_params):
     await response.aclose()
     with app.transaction_context() as ctx:
         ctx.call(
@@ -28,6 +28,7 @@ async def close_stream(app: Application, project_id, request, response, buffer):
             request=request,
             response=response,
             buffer=buffer,
+            query_params=query_params
         )
 
 
@@ -42,14 +43,15 @@ async def reverse_proxy(
 
     # if not request.state.is_handled_by_proxy:
     #     return RedirectResponse("/ui")
-
     # project = ctx.call(get_project_by_slug, slug=request.state.slug)
-
+    
+    query_params = request.query_params.__dict__['_dict']
+    if 'tags' in query_params:
+        query_params['tags'] = query_params['tags'].split(',')
     project = ctx.call(get_project_by_slug, slug=project_slug)
 
-    # TO MA PRAWO DZIAŁAĆ! W MIDDLEWARE ZŁAPAĆ TAGI I WRZUCIĆ DO request.state!
-    # if path == '':
-    #     path = '/'.join(request.query_params.__dict__['_list'][::-1][0][1].split('/')[1:])
+    if path == '':
+        path = query_params['target_path'] if 'target_path' in query_params else ''
     
     logger.debug(f"got projects for {project}")
 
@@ -82,7 +84,7 @@ async def reverse_proxy(
             status_code=rp_resp.status_code,
             headers=rp_resp.headers,
             background=BackgroundTask(
-                close_stream, ctx["app"], project.id, rp_req, rp_resp, buffer
+                close_stream, ctx["app"], project.id, rp_req, rp_resp, buffer, query_params
             ),
         )
     else:
