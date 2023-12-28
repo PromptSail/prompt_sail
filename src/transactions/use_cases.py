@@ -19,7 +19,7 @@ def get_transaction(
 
 
 def get_all_transactions(
-    transaction_repository: TransactionRepository
+    transaction_repository: TransactionRepository,
 ) -> list[Transaction]:
     transactions = transaction_repository.get_all()
     return transactions
@@ -61,10 +61,12 @@ def store_transaction(
             encoding=response.encoding,
         ),
         query_params=QueryParams(
-            model=query_params['model'] if 'model' in query_params.keys() else None,
-            experiment=query_params['experiment'] if 'experiment' in query_params.keys() else None,
-            tags=query_params['tags'] if 'tags' in query_params.keys() else []
-        )
+            model=query_params["model"] if "model" in query_params.keys() else None,
+            experiment=query_params["experiment"]
+            if "experiment" in query_params.keys()
+            else None,
+            tags=query_params["tags"] if "tags" in query_params.keys() else [],
+        ),
     )
 
     transaction_repository.add(transaction)

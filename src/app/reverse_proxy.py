@@ -2,7 +2,7 @@ from typing import Annotated
 
 import httpx
 from fastapi import Depends, Request
-from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from lato import Application, TransactionContext
 from starlette.background import BackgroundTask
 
@@ -19,7 +19,9 @@ async def iterate_stream(response, buffer):
         yield chunk
 
 
-async def close_stream(app: Application, project_id, request, response, buffer, query_params):
+async def close_stream(
+    app: Application, project_id, request, response, buffer, query_params
+):
     await response.aclose()
     with app.transaction_context() as ctx:
         ctx.call(
@@ -28,11 +30,13 @@ async def close_stream(app: Application, project_id, request, response, buffer, 
             request=request,
             response=response,
             buffer=buffer,
-            query_params=query_params
+            query_params=query_params,
         )
 
 
-@app.api_route("/{project_slug}/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+@app.api_route(
+    "/{project_slug}/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"]
+)
 async def reverse_proxy(
     project_slug: str,
     path: str,
@@ -44,15 +48,15 @@ async def reverse_proxy(
     # if not request.state.is_handled_by_proxy:
     #     return RedirectResponse("/ui")
     # project = ctx.call(get_project_by_slug, slug=request.state.slug)
-    
-    query_params = request.query_params.__dict__['_dict']
-    if 'tags' in query_params:
-        query_params['tags'] = query_params['tags'].split(',')
+
+    query_params = request.query_params.__dict__["_dict"]
+    if "tags" in query_params:
+        query_params["tags"] = query_params["tags"].split(",")
     project = ctx.call(get_project_by_slug, slug=project_slug)
 
-    if path == '':
-        path = query_params['target_path'] if 'target_path' in query_params else ''
-    
+    if path == "":
+        path = query_params["target_path"] if "target_path" in query_params else ""
+
     logger.debug(f"got projects for {project}")
 
     # Get the body as bytes for non-GET requests
@@ -84,7 +88,13 @@ async def reverse_proxy(
             status_code=rp_resp.status_code,
             headers=rp_resp.headers,
             background=BackgroundTask(
-                close_stream, ctx["app"], project.id, rp_req, rp_resp, buffer, query_params
+                close_stream,
+                ctx["app"],
+                project.id,
+                rp_req,
+                rp_resp,
+                buffer,
+                query_params,
             ),
         )
     else:

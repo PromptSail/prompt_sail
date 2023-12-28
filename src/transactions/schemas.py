@@ -14,7 +14,7 @@ class GetTransactionSchema(BaseModel):
     timestamp: datetime
     query_params: QueryParams
 
-      
+
 class GetTransactionWithProjectSlugSchema(BaseModel):
     id: str
     project_id: str
@@ -23,4 +23,3 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     response: dict[str, Any]
     timestamp: datetime
     query_params: QueryParams
- 
