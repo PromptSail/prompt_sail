@@ -4,7 +4,7 @@ permalink: /
 hidden: true
 header:
   overlay_color: "#2474AB"
-  overlay_filter: "0.5"
+  overlay_filter: "0.3 0.1"
   overlay_image: /assets/images/home-page-feature-bckg.png
   actions:
     - label: "<i class='fas fa-download'></i> Pull now"

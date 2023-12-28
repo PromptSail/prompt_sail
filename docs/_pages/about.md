@@ -1,3 +1,11 @@
+---
+layout: single
+title: "Who we are?"
+excerpt: "Information about the Prompt Sail team and contact information."
+sitemap: false
+permalink: /about-us
+---
 
 
-# About page
+## The team behind Prompt Sail
+

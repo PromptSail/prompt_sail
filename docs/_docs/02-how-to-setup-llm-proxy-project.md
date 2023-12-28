@@ -1,5 +1,5 @@
 ---
-title: "Quick-Start Guide"
+title: "How to run the "
 permalink: /docs/how-to-setup-llm-proxy-project/
 excerpt: "How to quickly install and setup Prompt Sail project."
 last_modified_at: 2023-12-22T18:48:05+01:00
@@ -10,28 +10,6 @@ toc: true
 
 
 
-## How to incorporate Prompt Sail into your LLM workflow
-
-Prompt Sail works as a docker container that sits between your LLM API and your application. It captures and logs all prompts and responses. 
-There are two options to run the Prompt Sail docker container:
-
-Pull and run the Docker image from Docker Hub. 
-
-**Notice:** Currently, the docker image is not available on Docker Hub. Command below will not work yet.
-{: .notice--warning}
-
-```bash
-docker run prompt-sail
-``` 
-
-Recommmened way is to build the Docker image from the source code.
-{: .notice--success}
-
-To build the Docker images from the source code, run the following command. It will build the images for proxy and UI.
-
-```bash
-docker-compose up --build
-```
 
 
 **Configuration**
