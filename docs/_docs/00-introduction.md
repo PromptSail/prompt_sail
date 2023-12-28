@@ -12,27 +12,40 @@ toc: true
 
 ## What is Prompt Sail?
 
-Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with LLM APIs such as OpenAI, Cohere, and others. 
+
+Prompt Sail is a self-hosted application that captures and logs all interactions with LLM APIs such as OpenAI, Cohere, and others. It is a proxy between your framework of choice (LangChain, OpenAI etc) and LLM provider API. 
 
 For **developers**, it offers a way to analyze and optimize API prompts. 
 
-**Project managers** can gain insights into project and experiment costs. 
+For **Project managers** can gain insights into project and experiment costs. 
 
-**Business owners** can ensure compliance with regulations and maintain governance over prompts and responses.
+For **Business owners** can ensure compliance with regulations and maintain governance over prompts and responses.
 
-## Key Features of Prompt Sail
+## Key Features
 
-1. **Transparent Logging**: Prompt Sail captures and logs all interactions with General AI APIs, providing a comprehensive record of prompts and responses.
+1. **Transparent Logging** 
+It captures and logs all interactions with  LLM APIs, providing a comprehensive record of prompts and responses.
 
-2. **Optimization and Analysis**: With the ability to analyze and optimize API prompts, developers can fine-tune their applications for better performance and results.
+2. **Optimization and Analysis**
+By providing a concise and detailed view of all interactions, developers can analyze and refine their prompts.
 
-3. **Cost Insights**: Project managers can track and analyze the costs associated with each project and experiment, enabling better budget management.
+3. **Cost Insights** 
+Project managers can track and analyze the costs associated with each project and experiment, enabling better budget management.
 
-4. **Compliance and Governance**: Business owners can ensure that their use of AI APIs is compliant with relevant regulations, and maintain control over the prompts and responses used.
+4. **Compliance and Governance**
 
-5. **Easy Integration**: Prompt Sail is designed to be easily integrated into your existing workflow. Simply change the `base_url` when creating your AI API object to start using Prompt Sail.
+Empowers business owners to maintain control over instructions, chat messages, and other interactions with LLM APIs. This enables the implementation of standards and policies, identification of misuse, and detection of non-compliant content.
 
-6. **Searchable Database**: All prompts and responses are stored in a searchable database, making it easy to find and analyze specific interactions.
 
-7. **User-Friendly Interface**: Prompt Sail features a simple, intuitive UI that makes it easy to search and analyze prompts and responses.
+5. **Easy Integration** 
+
+Prompt Sail seamlessly integrates into your workflow and used libraries. Just modify the `base_url` parameter when creating your provider API object.
+
+6. **Searchable Database*
+
+All prompts and responses are stored in a searchable database, making finding and analyzing specific interactions easy. You can export the data for further analysis.
+
+7. **User-Friendly Interface**
+
+Simple and intuitive UI lets you easily view and filter your transactions (prompts and responses) by project, API provider, LLM model, or tags.
 

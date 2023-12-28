@@ -7,7 +7,7 @@ tags:
     - "llm-api-proxy"
 category: 
     - Project Updates
-toc: true
+toc: false
 toc_label: "Unique Title"
 toc_icon: "heart"
 ---
