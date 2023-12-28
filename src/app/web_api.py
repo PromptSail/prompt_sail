@@ -20,8 +20,15 @@ from projects.use_cases import (
     update_project,
 )
 from transactions.models import generate_uuid
-from transactions.schemas import GetTransactionSchema, GetTransactionWithProjectSlugSchema
-from transactions.use_cases import get_transactions_for_project, get_transaction, get_all_transactions
+from transactions.schemas import (
+    GetTransactionSchema,
+    GetTransactionWithProjectSlugSchema,
+)
+from transactions.use_cases import (
+    get_all_transactions,
+    get_transaction,
+    get_transactions_for_project,
+)
 
 from .app import app
 
@@ -105,7 +112,11 @@ async def get_transactions(
     transactions = ctx.call(get_all_transactions)
     projects = ctx.call(get_all_projects)
     project_id_name_map = {project.id: project.name for project in projects}
-    transactions = [GetTransactionWithProjectSlugSchema(
-        **transaction.model_dump(), project_name=project_id_name_map.get(transaction.project_id, None)) 
-        for transaction in transactions]
+    transactions = [
+        GetTransactionWithProjectSlugSchema(
+            **transaction.model_dump(),
+            project_name=project_id_name_map.get(transaction.project_id, None),
+        )
+        for transaction in transactions
+    ]
     return transactions

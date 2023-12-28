@@ -45,7 +45,12 @@
         {
             "timestamp": "{{transaction.timestamp}}",
             "status_code": "{{transaction.response.status_code}}",
-            "processing_time": "{{transaction.response.elapsed}}"
+            "processing_time": "{{transaction.response.elapsed}}",
+            "query_params": "{
+                "model": "{{transaction.query_params.model}}",
+                "experiment": "{{transaction.query_params.experiment}}",
+                "tags": "{{transaction.query_params.tags}}"
+            }"
         }
     </pre
         >

@@ -3,6 +3,8 @@ from typing import Any
 from _datetime import datetime
 from pydantic import BaseModel
 
+from transactions.models import QueryParams
+
 
 class GetTransactionSchema(BaseModel):
     id: str
@@ -10,8 +12,9 @@ class GetTransactionSchema(BaseModel):
     request: dict[str, Any]
     response: dict[str, Any]
     timestamp: datetime
+    query_params: QueryParams
 
-      
+
 class GetTransactionWithProjectSlugSchema(BaseModel):
     id: str
     project_id: str
@@ -19,4 +22,4 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     request: dict[str, Any]
     response: dict[str, Any]
     timestamp: datetime
- 
+    query_params: QueryParams
