@@ -1,7 +1,7 @@
 import json
 
-from transactions.models import QueryParams
-from transactions.repositories import Transaction, TransactionRepository
+from transactions.models import QueryParams, Transaction
+from transactions.repositories import TransactionRepository
 
 
 def get_transactions_for_project(
@@ -23,6 +23,19 @@ def get_all_transactions(
 ) -> list[Transaction]:
     transactions = transaction_repository.get_all()
     return transactions
+
+
+def get_all_paginated_transactions(
+    page: int,
+    page_size: int,
+    transaction_repository: TransactionRepository,
+) -> list[Transaction]:
+    transactions = transaction_repository.get_paginated(page, page_size)
+    return transactions
+
+
+def count_transactions(transaction_repository: TransactionRepository) -> int:
+    return transaction_repository.count()
 
 
 def store_transaction(

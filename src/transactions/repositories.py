@@ -19,3 +19,8 @@ class TransactionRepository(MongoRepository):
 
     def get_one_by_id(self, transaction_id: str) -> Transaction:
         return self.find_one({"_id": transaction_id})
+
+    def get_paginated(self, page: int, page_size: int) -> list[Transaction]:
+        return self.get_all()[
+            (page - 1) * page_size : (page - 1) * page_size + page_size
+        ]
