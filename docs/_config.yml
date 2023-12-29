@@ -1,9 +1,9 @@
-remote_theme: "mmistakes/minimal-mistakes@4.24.0"
-title : "Prompt Sail"
+remote_theme             : "mmistakes/minimal-mistakes@4.24.0"
+title                    : "Prompt Sail"
 title_separator          : "-"
 subtitle                 : "LLM Proxy"
-description: &description  "LLM's proxy for prompt and response governance, monitoring, and analysis"
-url: https://promptsail.github.io/prompt_sail/
+description              : &description  "LLM's proxy for prompt and response governance, monitoring, and analysis"
+url                      : https://promptsail.github.io/prompt_sail/
 baseurl                  : "/prompt_sail" # the subpath of your site, e.g. "/blog"
 repository               : "mmistakes/minimal-mistakes"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
@@ -21,14 +21,14 @@ footer:
       icon: "fas fa-fw fa-link"
       url: "https://promptsail.com"
     - label: "LinkedIn"
-      icon: "fab fa-fw fa-linkedin-square"
+      icon: "fab fa-fw fa-linkedin"
       url: "https://www.linkedin.com/company/prompt-sail"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/prompt_sail"
+      url: "https://github.com/PromptSail/prompt_sail"
 
 
-      # Site Author
+# Site Author
 # author:
 #   name             : "Your Name"
 #   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
@@ -135,7 +135,7 @@ defaults:
       type: pages
     values:
       layout: single
-      author_profile: true
+      author_profile: false
   # _docs
   - scope:
       path: ""
