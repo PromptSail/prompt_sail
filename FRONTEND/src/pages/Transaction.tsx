@@ -92,28 +92,35 @@ const Transaction: React.FC = () => {
                             <div className="border-b-4 p-3 flex flex-row gap-16">
                                 <span>Timestamp: {data.timestamp}</span>
                                 <span>
-                                    Created by{' '}
+                                    Created by{' {'}
                                     {data.request.content.messages?.map((el, id) => (
                                         <span key={id}>
-                                            {id > 0 ? `, ${el.role}` : `${el.role}`}
+                                            [{id > 0 ? `, ${el.role}` : `${el.role}`}]
                                         </span>
                                     ))}
+                                    {'}'}
                                 </span>
                                 <span>Tags: </span>
                             </div>
                             <div className="border-b-4 w-full flex flex-row">
                                 <div className="border-e-4 p-2">Input</div>
                                 <div className="p-2">
-                                    {data.request.content.messages?.map((el, id) => (
-                                        <span key={id}>[{el.content}]</span>
-                                    ))}
+                                    {data.request.content.messages
+                                        ? data.request.content.messages.map((el, id) => (
+                                              <span key={id}>[{el.content}]</span>
+                                          ))
+                                        : data.request.content.prompt.map((el, id) => (
+                                              <span key={id}>[{el}]</span>
+                                          ))}
                                 </div>
                             </div>
                             <div className="w-full flex flex-row">
                                 <div className="p-2 m-auto">Output</div>
                                 <div className="border-s-4 p-2">
                                     {data.response.content.choices.map((el, id) => (
-                                        <span key={id}>[{el.message.content}]</span>
+                                        <span key={id}>
+                                            [{el.message ? el.message.content : el.text}]
+                                        </span>
                                     ))}
                                 </div>
                             </div>
