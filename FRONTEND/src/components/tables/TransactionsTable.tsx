@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { TransactionResponse } from '../../api/interfaces';
+import { getAllTransactionResponse } from '../../api/interfaces';
 import {
     ColumnFiltersState,
     SortingState,
@@ -23,7 +23,7 @@ declare global {
 }
 
 interface Props {
-    transactions: TransactionResponse[];
+    transactions: getAllTransactionResponse;
     project: {
         name: string;
         api_base: string;
@@ -132,7 +132,7 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [data, setData] = useState<transaction[]>(
-        transactions.map((tr) => ({
+        transactions.items.map((tr) => ({
             timestamp: tr.timestamp,
             prompt: (() => {
                 let str = '';
