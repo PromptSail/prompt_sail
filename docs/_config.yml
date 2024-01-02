@@ -16,7 +16,7 @@ footer:
   links:
     - label: "Email"
       icon: "fas fa-fw fa-envelope-square"
-      #url: "mailto:contact@promptsail.com"
+      url: "mailto:contact@promptsail.com"
     - label: "Website"
       icon: "fas fa-fw fa-link"
       url: "https://promptsail.com"
