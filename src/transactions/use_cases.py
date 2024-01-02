@@ -46,7 +46,11 @@ def store_transaction(
     query_params,
     transaction_repository: TransactionRepository,
 ):
-    response_content = "".join(buffer)
+   
+    decoder = response._get_content_decoder()
+    buf = b"".join(buffer)
+    response_content = decoder.decode(buf)
+
     response_content = json.loads(response_content)
 
     if "usage" not in response_content:

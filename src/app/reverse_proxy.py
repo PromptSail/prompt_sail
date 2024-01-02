@@ -14,7 +14,7 @@ from .app import app
 
 
 async def iterate_stream(response, buffer):
-    async for chunk in response.aiter_text():
+    async for chunk in response.aiter_raw():
         buffer.append(chunk)
         yield chunk
 
@@ -68,8 +68,6 @@ async def reverse_proxy(
     # todo: copy timeout from request, temporary set to 100s
     timeout = httpx.Timeout(100.0, connect=50.0)
 
-    # todo: copy timeout from request, temporary set to 100s
-    timeout = httpx.Timeout(100.0, connect=50.0)
 
     rp_req = client.build_request(
         method=request.method,
