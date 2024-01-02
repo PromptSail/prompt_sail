@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
             port: parseInt(process.env.VITE_PORT),
             proxy: {
                 '/api': {
-                    target: 'http://api:8000',
+                    target: 'http://promptsail-backend:8000',
                     changeOrigin: true,
                     rewrite: (path) => path.replace(/^\/api/, '')
                 }

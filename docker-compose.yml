@@ -54,7 +54,7 @@ services:
     depends_on:
         mongodb:
             condition: service_started
-        app:
+        promptsail-backend:
             condition: service_started
 networks:
   internal-network:
