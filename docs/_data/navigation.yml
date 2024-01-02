@@ -7,7 +7,7 @@ main:
   - title: "About Us"
     url: /about-us
   - title: "Github"
-    url:https://github.com/PromptSail/prompt_sail
+    url: "https://github.com/PromptSail/prompt_sail"
     description: "Prompt Sail Github repository"
   # - title: "Sample Collections"
   #   url: /collection-archive/
