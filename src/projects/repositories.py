@@ -1,7 +1,6 @@
 from projects.models import Project
 from seedwork.exceptions import AlreadyExistsException, NotFoundException
 from seedwork.repositories import MongoRepository
-from utils import deserialize_data
 
 
 class ProjectNotFoundException(NotFoundException):
