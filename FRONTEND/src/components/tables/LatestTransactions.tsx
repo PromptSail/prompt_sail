@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { TransactionResponse } from '../../api/interfaces';
+import { getTransactionResponse } from '../../api/interfaces';
 import {
     SortingState,
     createColumnHelper,
@@ -19,7 +19,7 @@ declare global {
 }
 
 interface Props {
-    transactions: TransactionResponse[];
+    transactions: getTransactionResponse[];
     project: {
         name: string;
         api_base: string;

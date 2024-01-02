@@ -1,10 +1,11 @@
 import { AxiosResponse } from 'axios';
 import client from './client';
 import {
-    TransactionResponse,
     addProjectRequest,
     getAllProjects,
+    getAllTransactionResponse,
     getProjectResponse,
+    getTransactionResponse,
     updateProjectRequest
 } from './interfaces';
 
@@ -15,10 +16,10 @@ const api = {
     getProject: (id: string): Promise<AxiosResponse<getProjectResponse>> => {
         return client.get(`/api/projects/${id}`);
     },
-    getTransaction: (id: string): Promise<AxiosResponse<TransactionResponse>> => {
+    getTransaction: (id: string): Promise<AxiosResponse<getTransactionResponse>> => {
         return client.get(`/api/transactions/${id}`);
     },
-    getTransactions: (): Promise<AxiosResponse<TransactionResponse[]>> => {
+    getTransactions: (): Promise<AxiosResponse<getAllTransactionResponse>> => {
         return client.get(`/api/transactions`);
     },
     addProject: (data: addProjectRequest): Promise<AxiosResponse<any>> => {

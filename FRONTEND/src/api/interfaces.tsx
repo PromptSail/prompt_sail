@@ -46,10 +46,10 @@ export interface getAllProjects {
 }
 
 export interface getProjectResponse extends getAllProjects {
-    transactions: TransactionResponse[];
+    transactions: getTransactionResponse[];
 }
 
-export interface TransactionResponse {
+export interface getTransactionResponse {
     id: string;
     project_id: string;
     timestamp: string;
@@ -90,4 +90,12 @@ export interface TransactionResponse {
         };
         [key: string]: unknown;
     };
+}
+
+export interface getAllTransactionResponse {
+    items: getTransactionResponse[];
+    page_index: number;
+    page_size: number;
+    total_pages: number;
+    total_elements: number;
 }

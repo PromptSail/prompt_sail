@@ -4,11 +4,12 @@ import { AxiosError, AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import {
-    TransactionResponse,
+    getAllTransactionResponse,
     addProjectRequest,
     getAllProjects,
     getProjectResponse,
-    updateProjectRequest
+    updateProjectRequest,
+    getTransactionResponse
 } from './interfaces';
 
 export const useGetAllProjects = (): UseQueryResult<getAllProjects[], AxiosError> => {
@@ -44,7 +45,7 @@ export const useGetProject = (
 
 export const useGetTransaction = (
     id: string
-): UseQueryResult<AxiosResponse<TransactionResponse>, AxiosError> => {
+): UseQueryResult<AxiosResponse<getTransactionResponse>, AxiosError> => {
     return useQuery(
         'transaction',
         async () => {
@@ -60,7 +61,7 @@ export const useGetTransaction = (
 };
 
 export const useGetAllTransactions = (): UseQueryResult<
-    AxiosResponse<TransactionResponse[]>,
+    AxiosResponse<getAllTransactionResponse>,
     AxiosError
 > => {
     return useQuery(
