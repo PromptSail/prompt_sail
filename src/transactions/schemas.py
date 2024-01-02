@@ -23,3 +23,11 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     response: dict[str, Any]
     timestamp: datetime
     query_params: QueryParams
+
+
+class GetTransactionPageResponseSchema(BaseModel):
+    items: list[GetTransactionWithProjectSlugSchema]
+    page_index: int
+    page_size: int
+    total_pages: int
+    total_elements: int

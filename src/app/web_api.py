@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 
@@ -21,11 +21,13 @@ from projects.use_cases import (
 )
 from transactions.models import generate_uuid
 from transactions.schemas import (
+    GetTransactionPageResponseSchema,
     GetTransactionSchema,
     GetTransactionWithProjectSlugSchema,
 )
 from transactions.use_cases import (
-    get_all_transactions,
+    count_transactions,
+    get_all_paginated_transactions,
     get_transaction,
     get_transactions_for_project,
 )
@@ -106,10 +108,16 @@ async def get_transaction_details(
 
 
 @app.get("/api/transactions", response_class=JSONResponse, status_code=200)
-async def get_transactions(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
-) -> list[GetTransactionWithProjectSlugSchema]:
-    transactions = ctx.call(get_all_transactions)
+async def get_paginated_transactions(
+    request: Request,
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+) -> GetTransactionPageResponseSchema:
+    query_params = request.query_params.__dict__["_dict"]
+    transactions = ctx.call(
+        get_all_paginated_transactions,
+        page=int(query_params.get("page", 1)),
+        page_size=int(query_params.get("page_size", 20)),
+    )
     projects = ctx.call(get_all_projects)
     project_id_name_map = {project.id: project.name for project in projects}
     transactions = [
@@ -119,4 +127,12 @@ async def get_transactions(
         )
         for transaction in transactions
     ]
-    return transactions
+    count = ctx.call(count_transactions)
+    page_response = GetTransactionPageResponseSchema(
+        items=transactions,
+        page_index=int(query_params.get("page", 1)),
+        page_size=int(query_params.get("page_size", 20)),
+        total_elements=count,
+        total_pages=-(-count // int(query_params.get("page_size", 20))),
+    )
+    return page_response
