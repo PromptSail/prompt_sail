@@ -53,7 +53,7 @@ async def get_project_details(
     project = GetProjectWithTransactionsSchema(
         transactions=[
             GetTransactionSchema(**transaction.model_dump())
-            for transaction in transactions
+            for transaction in transactions[::-1]
         ],
         **project.model_dump(),
     )
