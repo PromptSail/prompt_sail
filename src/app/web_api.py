@@ -139,12 +139,11 @@ async def get_paginated_transactions(
         )
         for transaction in transactions
     ]
-    count = ctx.call(count_transactions)
     page_response = GetTransactionPageResponseSchema(
         items=transactions,
         page_index=page,
         page_size=page_size,
-        total_elements=count,
-        total_pages=-(-count // page_size),
+        total_elements=len(transactions),
+        total_pages=-(-len(transactions) // page_size),
     )
     return page_response
