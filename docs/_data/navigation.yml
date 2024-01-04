@@ -24,16 +24,12 @@ docs:
         url: /docs/quick-start-guide/
       - title: "Project Setup"
         url: /docs/how-to-setup-llm-proxy-project/
-  - title: 1- LLM proxy setup
+  - title: 1- LLM integrations
     children:
-      - title: "LLM frameworks integration"
-        url: /docs/todo/
       - title: "Input/output capturing"
-        url: /docs/todo/
-      - title: "Working with tags"
-        url: /docs/todo/
-      - title: "Working with experiments"
-        url: /docs/todo/
+        url: /docs/storing-transactions/
+      - title: "LLM frameworks integration"
+        url: /docs/llm-integrations/
   - title: 2 - User UI Guide
     children:
       - title: "Organization Dashboard"
