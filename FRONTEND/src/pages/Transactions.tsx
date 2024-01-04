@@ -1,8 +1,13 @@
 import { useGetAllTransactions } from '../api/queries';
+import { TransactionsFilters } from '../api/types';
 import TransactionsTable from '../components/tables/TransactionsTable';
 
 const Transactions: React.FC = () => {
-    const transactions = useGetAllTransactions();
+    const filters: TransactionsFilters = {
+        // page: 1
+        // page_size: 5
+    };
+    const transactions = useGetAllTransactions(filters);
     if (transactions.isLoading)
         return (
             <>

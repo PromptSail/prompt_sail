@@ -20,7 +20,7 @@ async def iterate_stream(response, buffer):
 
 
 async def close_stream(
-    app: Application, project_id, request, response, buffer, query_params
+    app: Application, project_id, request, response, buffer, tags
 ):
     await response.aclose()
     with app.transaction_context() as ctx:
@@ -30,7 +30,7 @@ async def close_stream(
             request=request,
             response=response,
             buffer=buffer,
-            query_params=query_params,
+            tags=tags,
         )
 
 
@@ -42,6 +42,8 @@ async def reverse_proxy(
     path: str,
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    tags: str | None = None,
+    target_path: str | None = None,
 ):
     logger = get_logger(request)
 
@@ -49,13 +51,12 @@ async def reverse_proxy(
     #     return RedirectResponse("/ui")
     # project = ctx.call(get_project_by_slug, slug=request.state.slug)
 
-    query_params = request.query_params.__dict__["_dict"]
-    if "tags" in query_params:
-        query_params["tags"] = query_params["tags"].split(",")
+    tags = tags.split(",") if tags is not None else []
+        
     project = ctx.call(get_project_by_slug, slug=project_slug)
 
     if path == "":
-        path = query_params["target_path"] if "target_path" in query_params else ""
+        path = target_path if target_path is not None else ""
 
     logger.debug(f"got projects for {project}")
 
@@ -67,7 +68,6 @@ async def reverse_proxy(
     client = httpx.AsyncClient()
     # todo: copy timeout from request, temporary set to 100s
     timeout = httpx.Timeout(100.0, connect=50.0)
-
 
     rp_req = client.build_request(
         method=request.method,
@@ -82,21 +82,19 @@ async def reverse_proxy(
     )
     rp_resp = await client.send(rp_req, stream=True)
 
-    if rp_resp.status_code < 300:
-        buffer = []
-        return StreamingResponse(
-            iterate_stream(rp_resp, buffer),
-            status_code=rp_resp.status_code,
-            headers=rp_resp.headers,
-            background=BackgroundTask(
-                close_stream,
-                ctx["app"],
-                project.id,
-                rp_req,
-                rp_resp,
-                buffer,
-                query_params,
-            ),
-        )
-    else:
-        raise NotImplementedError()
+    buffer = []
+    return StreamingResponse(
+        iterate_stream(rp_resp, buffer),
+        status_code=rp_resp.status_code,
+        headers=rp_resp.headers,
+        background=BackgroundTask(
+            close_stream,
+            ctx["app"],
+            project.id,
+            rp_req,
+            rp_resp,
+            buffer,
+            tags,
+        ),
+    )
+

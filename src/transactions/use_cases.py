@@ -1,6 +1,7 @@
+from datetime import datetime
 import json
 
-from transactions.models import QueryParams, Transaction
+from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 
 
@@ -25,12 +26,32 @@ def get_all_transactions(
     return transactions
 
 
-def get_all_paginated_transactions(
+def get_all_filtered_and_paginated_transactions(
+    transaction_repository: TransactionRepository,
     page: int,
     page_size: int,
-    transaction_repository: TransactionRepository,
+    tags: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None
 ) -> list[Transaction]:
-    transactions = transaction_repository.get_paginated(page, page_size)
+    query = {}
+    if project_id is not None:
+        query["project_id"] = project_id
+    if tags is not None:
+        query["tags"] = {"$all": tags}
+    if date_from is not None and date_to is None:
+        query["timestamp"] = {"$gt": date_from}
+    elif date_to is not None and date_from is None:
+        query["timestamp"] = {"$lt": date_to}
+    elif date_from is not None and date_to is None:
+        query["timestamp"] = {"$gte": date_from, "$lte": date_to}
+
+    transactions = transaction_repository.get_paginated_and_filtered(
+        page, 
+        page_size, 
+        query
+    )
     return transactions
 
 
@@ -43,10 +64,9 @@ def store_transaction(
     response,
     buffer,
     project_id,
-    query_params,
+    tags,
     transaction_repository: TransactionRepository,
 ):
-   
     decoder = response._get_content_decoder()
     buf = b"".join(buffer)
     response_content = decoder.decode(buf)
@@ -77,13 +97,7 @@ def store_transaction(
             elapsed=response.elapsed.total_seconds(),
             encoding=response.encoding,
         ),
-        query_params=QueryParams(
-            model=query_params["model"] if "model" in query_params.keys() else None,
-            experiment=query_params["experiment"]
-            if "experiment" in query_params.keys()
-            else None,
-            tags=query_params["tags"] if "tags" in query_params.keys() else [],
-        ),
+        tags=tags,
     )
 
     transaction_repository.add(transaction)
