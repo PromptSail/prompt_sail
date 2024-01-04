@@ -27,6 +27,7 @@ brotli = "^1.1.0"
 ipykernel = "^6.25.2"
 langchain = "^0.0"
 openai = "^1"
+tiktoken = "^0.5.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
