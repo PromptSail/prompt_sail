@@ -1,6 +1,6 @@
 from typing import Annotated
 from datetime import datetime
-from fastapi import Depends, Request
+from fastapi import Depends
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 
@@ -9,7 +9,6 @@ from projects.models import Project
 from projects.schemas import (
     CreateProjectSchema,
     GetProjectSchema,
-    GetProjectWithTransactionsSchema,
     UpdateProjectSchema,
 )
 from projects.use_cases import (
@@ -26,10 +25,8 @@ from transactions.schemas import (
     GetTransactionWithProjectSlugSchema,
 )
 from transactions.use_cases import (
-    count_transactions,
     get_all_filtered_and_paginated_transactions,
     get_transaction,
-    get_transactions_for_project,
 )
 
 from .app import app
@@ -47,16 +44,9 @@ async def get_projects(
 async def get_project_details(
     project_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
-) -> GetProjectWithTransactionsSchema:
-    transactions = ctx.call(get_transactions_for_project, project_id=project_id)
+) -> GetProjectSchema:
     project = ctx.call(get_project, project_id=project_id)
-    project = GetProjectWithTransactionsSchema(
-        transactions=[
-            GetTransactionSchema(**transaction.model_dump())
-            for transaction in transactions
-        ],
-        **project.model_dump(),
-    )
+    project = GetProjectSchema(**project.model_dump())
     return project
 
 
