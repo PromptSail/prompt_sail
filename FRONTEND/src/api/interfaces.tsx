@@ -45,9 +45,7 @@ export interface getAllProjects {
     org_id: string | undefined;
 }
 
-export interface getProjectResponse extends getAllProjects {
-    transactions: getTransactionResponse[];
-}
+export interface getProjectResponse extends getAllProjects {}
 
 export interface getTransactionResponse {
     id: string;

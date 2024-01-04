@@ -7,7 +7,7 @@ import {
     getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
-import { useState } from 'react';
+import { SetStateAction, useState } from 'react';
 import { randomTransactionData } from '../../api/test/randomTransactionsData';
 import React from 'react';
 import { TransactionsFilters } from '../../api/types';
@@ -27,6 +27,7 @@ interface Props {
         api_base: string;
         slug: string;
     };
+    lengthTransactionRequest: (length: SetStateAction<string>) => void;
 }
 interface TableProps {
     tableData: getAllTransactionResponse['items'];
@@ -235,10 +236,10 @@ const Table: React.FC<TableProps> = ({ tableData, project }) => {
         </div>
     );
 };
-const LatestTransactions: React.FC<Props> = ({ project }) => {
+const LatestTransactions: React.FC<Props> = ({ project, lengthTransactionRequest }) => {
     const filters: TransactionsFilters = {
         // page: 1
-        page_size: 5,
+        page_size: 2,
         project_id: project.id
     };
     const transactions = useGetAllTransactions(filters);
@@ -258,6 +259,7 @@ const LatestTransactions: React.FC<Props> = ({ project }) => {
             </>
         );
     if (transactions.isSuccess) {
+        lengthTransactionRequest(`${transactions.data.data.total_elements}`);
         return <Table tableData={transactions.data.data.items} project={project} />;
     }
 };

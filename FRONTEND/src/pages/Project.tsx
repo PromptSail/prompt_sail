@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGetProject } from '../api/queries';
 import { getProjectResponse } from '../api/interfaces';
 import { AxiosResponse } from 'axios';
@@ -8,35 +7,14 @@ import UpdateProject from '../components/ProjectForms/UpdateProject';
 import ProjectInstall from '../components/ProjectInstall/ProjectInstall';
 import DeleteProject from '../components/ProjectForms/DeleteProject';
 import LatestTransactions from '../components/tables/LatestTransactions';
+import { useState } from 'react';
 const Project: React.FC = () => {
     const navigate = useNavigate();
-    const { state } = useLocation();
     const params = useParams();
+    const [transactionLength, setTransactionLength] = useState('loading');
     const project: UseQueryResult<AxiosResponse<getProjectResponse>> = useGetProject(
         params.projectId || ''
     );
-    useEffect(() => {
-        if (project.isSuccess) {
-            const data = project.data.data;
-            if (state !== null) {
-                const transactionData = data.transactions.filter((el) => el.id == state);
-                if (transactionData.length > 0) {
-                    navigate(`/transactions/${state}`, {
-                        state: {
-                            project: {
-                                name: data.name,
-                                id: data.id,
-                                api_base: data.ai_providers[0].api_base,
-                                slug: data.slug
-                            }
-                        }
-                    });
-                } else {
-                    navigate('/');
-                }
-            }
-        }
-    }, [project.isSuccess]);
     if (project.isLoading)
         return (
             <>
@@ -85,7 +63,7 @@ const Project: React.FC = () => {
                             <p className="text-xl font-semibold text-gray-400">
                                 <span>Total cost: $ {(Math.random() * 200 + 10).toFixed(2)}</span>
                                 <span> - </span>
-                                <span>{data.transactions.length} transactions</span>
+                                <span>{transactionLength} transactions</span>
                             </p>
                             <p>{data.description}</p>
                             <p className="text-2xl font-semibold">
@@ -104,6 +82,7 @@ const Project: React.FC = () => {
                                 api_base: data.ai_providers[0].api_base,
                                 slug: data.slug
                             }}
+                            lengthTransactionRequest={setTransactionLength}
                         />
                     </div>
                 </div>
