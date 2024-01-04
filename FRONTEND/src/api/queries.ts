@@ -11,6 +11,7 @@ import {
     updateProjectRequest,
     getTransactionResponse
 } from './interfaces';
+import { TransactionsFilters } from './types';
 
 export const useGetAllProjects = (): UseQueryResult<getAllProjects[], AxiosError> => {
     return useQuery(
@@ -60,14 +61,20 @@ export const useGetTransaction = (
     );
 };
 
-export const useGetAllTransactions = (): UseQueryResult<
-    AxiosResponse<getAllTransactionResponse>,
-    AxiosError
-> => {
+export const useGetAllTransactions = (
+    filters: TransactionsFilters
+): UseQueryResult<AxiosResponse<getAllTransactionResponse>, AxiosError> => {
+    let filters_str = '?';
+    Object.keys(filters).forEach((key) => {
+        const val = filters[key as keyof TransactionsFilters];
+        if (filters_str.length > 1) filters_str += '&';
+        filters_str += `${key}=${val}`;
+    });
+    console.log(filters_str);
     return useQuery(
         'transactions',
         async () => {
-            return await api.getTransactions();
+            return await api.getTransactions(filters_str);
         },
         {
             staleTime: Infinity,
