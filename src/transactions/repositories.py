@@ -30,4 +30,4 @@ class TransactionRepository(MongoRepository):
     ) -> list[Transaction]:
         return self.find(query)[
             (page - 1) * page_size : (page - 1) * page_size + page_size
-        ]
+        ][::-1]
