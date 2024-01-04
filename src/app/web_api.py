@@ -1,5 +1,5 @@
 from typing import Annotated
-
+from datetime import datetime
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
@@ -27,7 +27,7 @@ from transactions.schemas import (
 )
 from transactions.use_cases import (
     count_transactions,
-    get_all_paginated_transactions,
+    get_all_filtered_and_paginated_transactions,
     get_transaction,
     get_transactions_for_project,
 )
@@ -109,14 +109,26 @@ async def get_transaction_details(
 
 @app.get("/api/transactions", response_class=JSONResponse, status_code=200)
 async def get_paginated_transactions(
-    request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    page: int = 1,
+    page_size: int = 20,
+    tags: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None
 ) -> GetTransactionPageResponseSchema:
-    query_params = request.query_params.__dict__["_dict"]
+    
+    if tags is not None:
+        tags = tags.split(',')
+    
     transactions = ctx.call(
-        get_all_paginated_transactions,
-        page=int(query_params.get("page", 1)),
-        page_size=int(query_params.get("page_size", 20)),
+        get_all_filtered_and_paginated_transactions,
+        page=page,
+        page_size=page_size,
+        tags=tags if tags else None,
+        date_from=date_from if date_from else None,
+        date_to=date_to if date_to else None,
+        project_id=project_id if project_id else None
     )
     projects = ctx.call(get_all_projects)
     project_id_name_map = {project.id: project.name for project in projects}
@@ -130,9 +142,9 @@ async def get_paginated_transactions(
     count = ctx.call(count_transactions)
     page_response = GetTransactionPageResponseSchema(
         items=transactions,
-        page_index=int(query_params.get("page", 1)),
-        page_size=int(query_params.get("page_size", 20)),
+        page_index=page,
+        page_size=page_size,
         total_elements=count,
-        total_pages=-(-count // int(query_params.get("page_size", 20))),
+        total_pages=-(-count // page_size),
     )
     return page_response
