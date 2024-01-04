@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { getTransactionResponse } from '../../api/interfaces';
 import {
     SortingState,
     createColumnHelper,
@@ -11,6 +10,9 @@ import {
 import { useState } from 'react';
 import { randomTransactionData } from '../../api/test/randomTransactionsData';
 import React from 'react';
+import { TransactionsFilters } from '../../api/types';
+import { useGetAllTransactions } from '../../api/queries';
+import { getAllTransactionResponse } from '../../api/interfaces';
 
 declare global {
     interface Window {
@@ -19,9 +21,18 @@ declare global {
 }
 
 interface Props {
-    transactions: getTransactionResponse[];
     project: {
         name: string;
+        id: string;
+        api_base: string;
+        slug: string;
+    };
+}
+interface TableProps {
+    tableData: getAllTransactionResponse['items'];
+    project: {
+        name: string;
+        id: string;
         api_base: string;
         slug: string;
     };
@@ -39,6 +50,7 @@ type transaction = {
     // };
     more: JSX.Element;
 };
+
 const columnHelper = createColumnHelper<transaction>();
 const columns = [
     columnHelper.accessor('timestamp', {
@@ -113,13 +125,10 @@ const columns = [
         enableGlobalFilter: false
     })
 ];
-const LatestTransactions: React.FC<Props> = ({ transactions, project }) => {
-    window.test = (length: number) => {
-        setData(randomTransactionData(length || 5));
-    };
+const Table: React.FC<TableProps> = ({ tableData, project }) => {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [data, setData] = useState<transaction[]>(
-        transactions.map((tr) => ({
+        tableData.map((tr) => ({
             timestamp: tr.timestamp,
             prompt: (() => {
                 let str = '';
@@ -166,6 +175,9 @@ const LatestTransactions: React.FC<Props> = ({ transactions, project }) => {
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel()
     });
+    window.test = (length: number) => {
+        setData(randomTransactionData(length || 5));
+    };
     return (
         <div className="table__transactions">
             <table>
@@ -222,5 +234,31 @@ const LatestTransactions: React.FC<Props> = ({ transactions, project }) => {
             </table>
         </div>
     );
+};
+const LatestTransactions: React.FC<Props> = ({ project }) => {
+    const filters: TransactionsFilters = {
+        // page: 1
+        page_size: 5,
+        project_id: project.id
+    };
+    const transactions = useGetAllTransactions(filters);
+
+    if (transactions.isLoading)
+        return (
+            <>
+                <div>loading...</div>
+            </>
+        );
+    if (transactions.isError)
+        return (
+            <>
+                <div>An error has occurred</div>
+                {console.error(transactions.error)}
+                <span>{transactions.error.message}</span>
+            </>
+        );
+    if (transactions.isSuccess) {
+        return <Table tableData={transactions.data.data.items} project={project} />;
+    }
 };
 export default LatestTransactions;

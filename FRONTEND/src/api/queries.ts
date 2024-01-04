@@ -70,7 +70,6 @@ export const useGetAllTransactions = (
         if (filters_str.length > 1) filters_str += '&';
         filters_str += `${key}=${val}`;
     });
-    console.log(filters_str);
     return useQuery(
         'transactions',
         async () => {

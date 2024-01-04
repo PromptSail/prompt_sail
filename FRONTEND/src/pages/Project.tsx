@@ -25,6 +25,7 @@ const Project: React.FC = () => {
                         state: {
                             project: {
                                 name: data.name,
+                                id: data.id,
                                 api_base: data.ai_providers[0].api_base,
                                 slug: data.slug
                             }
@@ -97,9 +98,9 @@ const Project: React.FC = () => {
                             LLM Transactions
                         </h4>
                         <LatestTransactions
-                            transactions={data.transactions.slice(0, 5)}
                             project={{
                                 name: data.name,
+                                id: data.id,
                                 api_base: data.ai_providers[0].api_base,
                                 slug: data.slug
                             }}
