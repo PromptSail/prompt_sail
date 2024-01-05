@@ -26,6 +26,12 @@ def get_all_transactions(
     return transactions
 
 
+def count_transactions(
+    transaction_repository: TransactionRepository
+) -> int:
+    return transaction_repository.count()
+
+
 def get_all_filtered_and_paginated_transactions(
     transaction_repository: TransactionRepository,
     page: int,

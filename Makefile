@@ -4,10 +4,10 @@ run:
 	docker-compose up
 	
 run-dev:
-	cd src && uvicorn app:app --reload --proxy-headers --host 0.0.0.0
+	cd backend/src && uvicorn app:app --reload --proxy-headers --host 0.0.0.0
 	
 test: 
-	cd src && pytest ../tests
+	cd backend/src && pytest ../tests
 
 build:
 	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
