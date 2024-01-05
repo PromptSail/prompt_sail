@@ -72,7 +72,6 @@ const columns = [
         header: () => 'Prompt',
         cell: (v) => {
             const value = v.getValue();
-            console.log(value.length);
             if (value.length > 30) return value.substring(0, 27) + '...';
             return value;
         },
@@ -83,7 +82,6 @@ const columns = [
         header: () => <span>Response</span>,
         cell: (v) => {
             const value = v.getValue();
-            console.log(value.length);
             if (value.length > 30) return value.substring(0, 27) + '...';
             return value;
         },
@@ -138,15 +136,25 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
                 let str = '';
                 if (tr.request.content.messages)
                     tr.request.content.messages.map((m) => (str += `{${m.role}}: ${m.content}\n`));
-                else tr.request.content.prompt.map((p, id) => (str += `{prompt_${id}}: ${p}\n`));
+                else
+                    try {
+                        tr.request.content.prompt.map((p, id) => (str += `{prompt_${id}}: ${p}\n`));
+                    } catch (err) {
+                        str += `${err}`;
+                    }
                 return str;
             })(),
             response: (() => {
                 let str = '';
-                tr.response.content.choices.map((c) => {
-                    if (c.message) str += `{${c.message.role}}: ${c.message.content}\n`;
-                    else str += `{response_${c.index}}: ${c.text}\n`;
-                });
+                try {
+                    tr.response.content.choices.map((c) => {
+                        if (c.message) str += `{${c.message.role}}: ${c.message.content}\n`;
+                        else str += `{response_${c.index}}: ${c.text}\n`;
+                    });
+                } catch (err) {
+                    str = `${err}`;
+                }
+
                 return str;
             })(),
             model: (() => {
