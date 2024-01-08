@@ -1,6 +1,5 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-
 from projects.repositories import ProjectNotFoundException, SlugAlreadyExistsException
 from seedwork.exceptions import NotFoundException
 

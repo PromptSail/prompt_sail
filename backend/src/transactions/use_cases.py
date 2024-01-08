@@ -1,15 +1,21 @@
-from datetime import datetime
 import json
+from datetime import datetime
 
+from app.messages import GetProject
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 
+from transactions import transactions
 
+
+@transactions.handler(GetProject)
 def get_transactions_for_project(
-    project_id: str, transaction_repository: TransactionRepository
-) -> list[Transaction]:
-    transactions = transaction_repository.get_for_project(project_id)
-    return transactions
+    query: GetProject, transaction_repository: TransactionRepository
+) -> dict:
+    if query.include_transactions:
+        transactions = transaction_repository.get_for_project(query.project_id)
+        return dict(transactions=transactions)
+    return dict()
 
 
 def get_transaction(
@@ -26,9 +32,7 @@ def get_all_transactions(
     return transactions
 
 
-def count_transactions(
-    transaction_repository: TransactionRepository
-) -> int:
+def count_transactions(transaction_repository: TransactionRepository) -> int:
     return transaction_repository.count()
 
 
@@ -39,7 +43,7 @@ def get_all_filtered_and_paginated_transactions(
     tags: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-    project_id: str | None = None
+    project_id: str | None = None,
 ) -> list[Transaction]:
     query = {}
     if project_id is not None:
@@ -54,9 +58,7 @@ def get_all_filtered_and_paginated_transactions(
         query["timestamp"] = {"$gte": date_from, "$lte": date_to}
 
     transactions = transaction_repository.get_paginated_and_filtered(
-        page, 
-        page_size, 
-        query
+        page, page_size, query
     )
     return transactions
 

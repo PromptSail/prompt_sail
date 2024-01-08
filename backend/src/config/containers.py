@@ -7,15 +7,17 @@ from typing import Optional
 from uuid import UUID
 
 import pymongo
+from app.logging import logger, logging_context
 from dependency_injector import containers, providers
 from dependency_injector.containers import Container
 from dependency_injector.providers import Dependency, Factory, Provider, Singleton
 from dependency_injector.wiring import Provide, inject  # noqa
 from lato import Application, DependencyProvider, TransactionContext
-
-from app.logging import logger, logging_context
 from projects.repositories import ProjectRepository
 from transactions.repositories import TransactionRepository
+
+from projects import projects
+from transactions import transactions
 
 # logger = logging.getLogger("ps")
 # logger.setLevel(logging.DEBUG)
@@ -105,8 +107,8 @@ def create_application(container, **kwargs):
         dependency_provider=ContainerProvider(container),
         **kwargs,
     )
-    # application.include_module(...)
-    # application.include_module(...)
+    application.include_submodule(projects)
+    application.include_submodule(transactions)
 
     @application.on_create_transaction_context
     def on_create_transaction_context():

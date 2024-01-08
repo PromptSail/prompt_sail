@@ -1,24 +1,39 @@
+from app.messages import (
+    DeleteProject,
+    GetAllProjects,
+    GetProject,
+    GetProjectBySlug,
+    ProjectWasDeleted,
+)
+from lato import TransactionContext
 from projects.models import Project
 from projects.repositories import ProjectRepository
 
+from projects import projects
 
+
+@projects.handler(GetProject)
 def get_project(
-    project_id: str,
+    query: GetProject,
     project_repository: ProjectRepository,
-) -> Project:
-    project = project_repository.find_one({"_id": project_id})
-    return project
+) -> dict:
+    project = project_repository.find_one({"_id": query.project_id})
+    return project.model_dump()
 
 
+@projects.handler(GetProjectBySlug)
 def get_project_by_slug(
-    slug: str,
+    query: GetProjectBySlug,
     project_repository: ProjectRepository,
 ) -> Project:
-    project = project_repository.get_by_slug(slug)
+    project = project_repository.get_by_slug(query.slug)
     return project
 
 
-def get_all_projects(project_repository: ProjectRepository) -> list[Project]:
+@projects.handler(GetAllProjects)
+def get_all_projects(
+    query: GetAllProjects, project_repository: ProjectRepository
+) -> list[Project]:
     projects = project_repository.get_all()
     return projects
 
@@ -40,8 +55,11 @@ def update_project(
     return project
 
 
+@projects.handler(DeleteProject)
 def delete_project(
-    project_id: str,
+    command: DeleteProject,
     project_repository: ProjectRepository,
+    ctx: TransactionContext,
 ) -> None:
-    project_repository.delete(project_id)
+    project_repository.delete(command.project_id)
+    ctx.emit(ProjectWasDeleted(project_id=command.project_id))

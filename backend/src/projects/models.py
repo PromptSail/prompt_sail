@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-
 from transactions.models import generate_uuid
 
 

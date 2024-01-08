@@ -1,10 +1,9 @@
 from contextlib import asynccontextmanager
 
+from config.containers import TopLevelContainer
 from fastapi import FastAPI
 
 from config import config
-from config.containers import TopLevelContainer
-
 
 container = TopLevelContainer()
 container.config.override(config)

@@ -1,13 +1,13 @@
 from typing import Annotated
 
 import httpx
+from app.dependencies import get_logger, get_transaction_context
+from app.messages import GetProjectBySlug
 from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
 from lato import Application, TransactionContext
+from lato.compositon import compose
 from starlette.background import BackgroundTask
-
-from app.dependencies import get_logger, get_transaction_context
-from projects.use_cases import get_project_by_slug
 from transactions.use_cases import store_transaction
 
 from .app import app
@@ -19,9 +19,7 @@ async def iterate_stream(response, buffer):
         yield chunk
 
 
-async def close_stream(
-    app: Application, project_id, request, response, buffer, tags
-):
+async def close_stream(app: Application, project_id, request, response, buffer, tags):
     await response.aclose()
     with app.transaction_context() as ctx:
         ctx.call(
@@ -52,8 +50,11 @@ async def reverse_proxy(
     # project = ctx.call(get_project_by_slug, slug=request.state.slug)
 
     tags = tags.split(",") if tags is not None else []
-        
-    project = ctx.call(get_project_by_slug, slug=project_slug)
+
+    query_result = ctx.execute(
+        GetProjectBySlug(slug=project_slug, include_transactions=False)
+    )
+    project = compose(query_result)
 
     if path == "":
         path = target_path if target_path is not None else ""
@@ -97,4 +98,3 @@ async def reverse_proxy(
             tags,
         ),
     )
-

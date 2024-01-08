@@ -7,7 +7,7 @@ run-dev:
 	cd backend/src && uvicorn app:app --reload --proxy-headers --host 0.0.0.0
 	
 test: 
-	cd backend/src && pytest ../tests
+	export DATABASE_NAME=prompt_sail_test && cd backend/src && pytest ../tests
 	
 test-windows:
 	 @set DATABASE_NAME=prompt_sail_test&& cd backend\src && pytest ..\tests -vv

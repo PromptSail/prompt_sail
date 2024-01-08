@@ -1,7 +1,5 @@
 from pydantic import BaseModel
 
-from transactions.schemas import GetTransactionSchema
-
 
 class ProjectAIProviderSchema(BaseModel):
     api_base: str

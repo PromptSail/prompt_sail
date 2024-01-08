@@ -1,23 +1,15 @@
-from typing import Annotated
 from datetime import datetime
+from typing import Annotated
+
+from app.dependencies import get_application, get_transaction_context
+from app.messages import DeleteProject, GetAllProjects, GetProject
 from fastapi import Depends
 from fastapi.responses import JSONResponse
-from lato import TransactionContext
-
-from app.dependencies import get_transaction_context
+from lato import Application, TransactionContext
+from lato.compositon import compose
 from projects.models import Project
-from projects.schemas import (
-    CreateProjectSchema,
-    GetProjectSchema,
-    UpdateProjectSchema,
-)
-from projects.use_cases import (
-    add_project,
-    delete_project,
-    get_all_projects,
-    get_project,
-    update_project,
-)
+from projects.schemas import CreateProjectSchema, GetProjectSchema, UpdateProjectSchema
+from projects.use_cases import add_project, update_project
 from transactions.models import generate_uuid
 from transactions.schemas import (
     GetTransactionPageResponseSchema,
@@ -25,9 +17,9 @@ from transactions.schemas import (
     GetTransactionWithProjectSlugSchema,
 )
 from transactions.use_cases import (
+    count_transactions,
     get_all_filtered_and_paginated_transactions,
     get_transaction,
-    count_transactions
 )
 
 from .app import app
@@ -35,19 +27,19 @@ from .app import app
 
 @app.get("/api/projects")
 async def get_projects(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+    app: Annotated[Application, Depends(get_application)]
 ) -> list[GetProjectSchema]:
-    projects = ctx.call(get_all_projects)
+    projects = app.query(GetAllProjects())
     return projects
 
 
 @app.get("/api/projects/{project_id}", response_class=JSONResponse, status_code=200)
 async def get_project_details(
     project_id: str,
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    app: Annotated[Application, Depends(get_application)],
 ) -> GetProjectSchema:
-    project = ctx.call(get_project, project_id=project_id)
-    project = GetProjectSchema(**project.model_dump())
+    data = app.query(GetProject(project_id=project_id))
+    project = GetProjectSchema(**data)
     return project
 
 
@@ -62,8 +54,8 @@ async def create_project(
         **data.model_dump(),
     )
     ctx.call(add_project, project)
-    project = ctx.call(get_project, project_id)
-    response = GetProjectSchema(**project.model_dump())
+    data = compose(ctx.execute(GetProject(project_id=project_id)))
+    response = GetProjectSchema(**data)
     return response
 
 
@@ -81,9 +73,9 @@ async def update_existing_project(
 @app.delete("/api/projects/{project_id}", response_class=JSONResponse, status_code=204)
 async def delete_existing_project(
     project_id: str,
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    app: Annotated[Application, Depends(get_application)],
 ):
-    ctx.call(delete_project, project_id=project_id)
+    app.execute(DeleteProject(project_id=project_id))
 
 
 @app.get(
@@ -106,11 +98,11 @@ async def get_paginated_transactions(
     tags: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-    project_id: str | None = None
+    project_id: str | None = None,
 ) -> GetTransactionPageResponseSchema:
     if tags is not None:
-        tags = tags.split(',')
-    
+        tags = tags.split(",")
+
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
         page=page,
@@ -118,9 +110,9 @@ async def get_paginated_transactions(
         tags=tags if tags else None,
         date_from=date_from if date_from else None,
         date_to=date_to if date_to else None,
-        project_id=project_id if project_id else None
+        project_id=project_id if project_id else None,
     )
-    projects = ctx.call(get_all_projects)
+    projects = compose(ctx.execute(GetAllProjects()))
     project_id_name_map = {project.id: project.name for project in projects}
     transactions = [
         GetTransactionWithProjectSlugSchema(
