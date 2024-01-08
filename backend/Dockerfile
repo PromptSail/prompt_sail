@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 
 
 # Copy the Python dependency files into the image
-COPY pyproject.toml ./
-RUN poetry lock
+COPY pyproject.toml poetry.lock ./
+
 
 # Create the virtual environment and export the dependency lists
 RUN poetry config virtualenvs.create false \

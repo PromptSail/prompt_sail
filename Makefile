@@ -8,6 +8,9 @@ run-dev:
 	
 test: 
 	cd backend/src && pytest ../tests
+	
+test-windows:
+	 @set DATABASE_NAME=prompt_sail_test&& cd backend\src && pytest ..\tests -vv
 
 build:
 	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)

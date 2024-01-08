@@ -108,7 +108,6 @@ async def get_paginated_transactions(
     date_to: datetime | None = None,
     project_id: str | None = None
 ) -> GetTransactionPageResponseSchema:
-    
     if tags is not None:
         tags = tags.split(',')
     
