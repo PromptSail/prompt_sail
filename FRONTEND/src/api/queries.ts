@@ -67,15 +67,18 @@ export const useGetAllTransactions = (
     let filters_str = '?';
     Object.keys(filters).forEach((key) => {
         const val = filters[key as keyof TransactionsFilters];
-        if (filters_str.length > 1) filters_str += '&';
-        filters_str += `${key}=${val}`;
+        if (`${val}`.length > 0) {
+            if (filters_str.length > 1) filters_str += '&';
+            filters_str += `${key}=${val}`;
+        }
     });
     return useQuery(
-        'transactions',
+        ['transactions', filters],
         async () => {
             return await api.getTransactions(filters_str);
         },
         {
+            enabled: !!filters,
             staleTime: Infinity,
             retry: false,
             cacheTime: 0,

@@ -11,10 +11,13 @@ import {
     getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
-import { useState } from 'react';
+import { SetStateAction, useState } from 'react';
 import { randomTransactionData } from '../../api/test/randomTransactionsData';
 import { Button, Form } from 'react-bootstrap';
 import React from 'react';
+import { useGetAllTransactions } from '../../api/queries';
+import { TransactionsFilters } from '../../api/types';
+import DateRangePicker from 'rsuite/DateRangePicker';
 
 declare global {
     interface Window {
@@ -22,13 +25,8 @@ declare global {
     }
 }
 
-interface Props {
-    transactions: getAllTransactionResponse;
-    project: {
-        name: string;
-        api_base: string;
-        slug: string;
-    };
+interface TableProps {
+    tableData: getAllTransactionResponse['items'];
 }
 
 type transaction = {
@@ -122,15 +120,12 @@ const columns = [
         enableGlobalFilter: false
     })
 ];
-const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
-    window.test = (length: number) => {
-        setData(randomTransactionData(length || 5));
-    };
+const Table: React.FC<TableProps> = ({ tableData }) => {
     const [search, setSearch] = useState('');
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [data, setData] = useState<transaction[]>(
-        transactions.items.map((tr) => ({
+        tableData.map((tr) => ({
             timestamp: tr.timestamp,
             prompt: (() => {
                 let str = '';
@@ -162,23 +157,15 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
             })(),
             // usage: tr.response.content.usage,
             more: (
-                <Link
-                    className="underline"
-                    id={tr.id}
-                    to={`/transactions/${tr.id}`}
-                    state={{
-                        project: {
-                            name: project.name,
-                            api_base: project.api_base,
-                            slug: project.slug
-                        }
-                    }}
-                >
+                <Link className="underline" id={tr.id} to={`/transactions/${tr.id}`}>
                     Details
                 </Link>
             )
         }))
     );
+    window.test = (length: number) => {
+        setData(randomTransactionData(length || 5));
+    };
     const table = useReactTable({
         data,
         columns,
@@ -193,107 +180,139 @@ const TransactionsTable: React.FC<Props> = ({ transactions, project }) => {
     });
     return (
         <>
-            <div className="flex flex-row">
-                <Form.Control
-                    type="date"
-                    onChange={(v) => {
-                        const value = v.currentTarget.value;
-                        table.getColumn('timestamp')?.setFilterValue((old: [string, string]) => {
-                            console.log(old);
-                            return [value, old?.[1]];
-                        });
-                    }}
-                />
-                <Form.Control
-                    type="date"
-                    onChange={(v) => {
-                        const value = v.currentTarget.value;
-                        table.getColumn('timestamp')?.setFilterValue((old: [string, string]) => {
-                            console.log(old);
-                            return [old?.[0], value];
-                        });
-                    }}
-                />
-            </div>
-            <div className="overflow-x-auto p-3">
-                <Form.Control
-                    value={search ?? ''}
-                    onChange={(obj) => {
-                        setSearch(obj.target.value);
-                    }}
-                    placeholder="Search all columns"
-                />
-                <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-                    Prev page
-                </Button>
-                <Button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-                    Next page
-                </Button>
-                <span>
-                    {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
-                </span>
-                <div className="table__transactions">
-                    <table>
-                        <thead>
-                            {table.getHeaderGroups().map((hGroup) => (
-                                <tr key={hGroup.id}>
-                                    {hGroup.headers.map((h) => (
-                                        <th
-                                            key={h.id}
-                                            style={{ width: `${h.getSize()}px` }}
-                                            onClick={h.column.getToggleSortingHandler()}
+            <div className="table__transactions">
+                <table>
+                    <thead>
+                        {table.getHeaderGroups().map((hGroup) => (
+                            <tr key={hGroup.id}>
+                                {hGroup.headers.map((h) => (
+                                    <th
+                                        key={h.id}
+                                        style={{ width: `${h.getSize()}px` }}
+                                        onClick={h.column.getToggleSortingHandler()}
+                                    >
+                                        <div
+                                            className={`content ${
+                                                { asc: 'sort-asc', desc: 'sort-desc' }[
+                                                    h.column.getIsSorted() as string
+                                                ] ?? ''
+                                            }`}
                                         >
-                                            <div
-                                                className={`content ${
-                                                    { asc: 'sort-asc', desc: 'sort-desc' }[
-                                                        h.column.getIsSorted() as string
-                                                    ] ?? ''
-                                                }`}
-                                            >
-                                                {h.isPlaceholder
-                                                    ? null
-                                                    : flexRender(
-                                                          h.column.columnDef.header,
-                                                          h.getContext()
-                                                      )}
-                                            </div>
-                                        </th>
-                                    ))}
-                                </tr>
-                            ))}
-                        </thead>
+                                            {h.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                      h.column.columnDef.header,
+                                                      h.getContext()
+                                                  )}
+                                        </div>
+                                    </th>
+                                ))}
+                            </tr>
+                        ))}
+                    </thead>
 
-                        <tbody>
-                            {table.getRowModel().rows.map((row) => (
-                                <tr key={row.id}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </td>
+                    <tbody>
+                        {table.getRowModel().rows.map((row) => (
+                            <tr key={row.id}>
+                                {row.getVisibleCells().map((cell) => (
+                                    <td key={cell.id}>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                        {(() => {
+                            const rows = Array.from(
+                                { length: 10 - table.getRowModel().rows.length },
+                                () => Array.from({ length: 5 }, (_, i) => i)
+                            );
+                            return rows.map((r, i) => (
+                                <tr key={i}>
+                                    {r.map((_, j) => (
+                                        <td key={i + j}>&nbsp;</td>
                                     ))}
                                 </tr>
-                            ))}
-                            {(() => {
-                                const rows = Array.from(
-                                    { length: 10 - table.getRowModel().rows.length },
-                                    () => Array.from({ length: 5 }, (_, i) => i)
-                                );
-                                return rows.map((r, i) => (
-                                    <tr key={i}>
-                                        {r.map((_, j) => (
-                                            <td key={i + j}>&nbsp;</td>
-                                        ))}
-                                    </tr>
-                                ));
-                            })()}
-                        </tbody>
-                    </table>
-                </div>
+                            ));
+                        })()}
+                    </tbody>
+                </table>
             </div>
         </>
     );
+};
+const FiltersInputs: React.FC<{
+    setFilters: (length: SetStateAction<TransactionsFilters>) => void;
+}> = ({ setFilters }) => {
+    return (
+        <>
+            <div className="flex flex-row">
+                <DateRangePicker
+                    format="yyyy-MM-dd HH:mm:ss"
+                    onChange={(v) => {
+                        if (v != null) {
+                            setFilters((old) => ({
+                                ...old,
+                                date_from: v[0].toISOString(),
+                                date_to: v[1].toISOString()
+                            }));
+                        } else {
+                            setFilters((old) => ({ ...old, date_from: '', date_to: '' }));
+                        }
+                    }}
+                />
+            </div>
+            <div>
+                <Form.Control
+                    type="text"
+                    onBlur={(v) => {
+                        const project_id = v.currentTarget.value;
+                        console.log(project_id);
+                        setFilters((old) => ({
+                            ...old,
+                            project_id
+                        }));
+                    }}
+                    placeholder="project_id"
+                />
+                <Button onClick={() => console.log('next')}>Prev page</Button>
+                <Button onClick={() => console.log('prev')}>Next page</Button>
+                <span>page / total_page</span>
+            </div>
+        </>
+    );
+};
+const TransactionsTable: React.FC = () => {
+    const [filters, setFilters] = useState<TransactionsFilters>({});
+    const transactions = useGetAllTransactions(filters);
+
+    if (transactions.isLoading)
+        return (
+            <>
+                <FiltersInputs setFilters={setFilters} />
+                <div className="overflow-x-auto p-3">
+                    <div>loading...</div>
+                </div>
+            </>
+        );
+    if (transactions.isError)
+        return (
+            <>
+                <FiltersInputs setFilters={setFilters} />
+                <div className="overflow-x-auto p-3">
+                    <span>{transactions.error.message}</span>
+                </div>
+                {console.error(transactions.error)}
+            </>
+        );
+    if (transactions.isSuccess) {
+        return (
+            <>
+                <FiltersInputs setFilters={setFilters} />
+                <div className="overflow-x-auto p-3">
+                    <Table tableData={transactions.data.data.items} />
+                </div>
+            </>
+        );
+    }
 };
 export default TransactionsTable;
