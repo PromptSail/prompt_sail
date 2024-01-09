@@ -28,6 +28,6 @@ class TransactionRepository(MongoRepository):
         page_size: int, 
         query: dict[str, str | datetime | None] = None
     ) -> list[Transaction]:
-        return self.find(query)[
+        return self.find(query)[::-1][
             (page - 1) * page_size : (page - 1) * page_size + page_size
-        ][::-1]
+        ]
