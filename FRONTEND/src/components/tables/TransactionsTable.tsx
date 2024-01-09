@@ -87,15 +87,15 @@ const columns = [
         size: 300,
         sortingFn: 'text'
     }),
-    columnHelper.accessor('tags', {
-        header: 'Tags',
-        cell: (v) => `${v.getValue()}`
-    }),
     columnHelper.accessor('model', {
         header: 'Model',
         cell: (v) => v.getValue(),
         sortingFn: 'text',
         size: 200
+    }),
+    columnHelper.accessor('tags', {
+        header: 'Tags',
+        cell: (v) => `${v.getValue()}`
     }),
     // columnHelper.accessor('usage', {
     //     header: 'Usage',
@@ -279,6 +279,17 @@ const FiltersInputs: React.FC<{
                         }));
                     }}
                     placeholder="project_id"
+                />
+                <Form.Control
+                    type="text"
+                    onBlur={(v) => {
+                        const tags = v.currentTarget.value.replace(/ /g, '');
+                        setFilters((old) => ({
+                            ...old,
+                            tags
+                        }));
+                    }}
+                    placeholder="tags"
                 />
                 <Button onClick={() => console.log('next')}>Prev page</Button>
                 <Button onClick={() => console.log('prev')}>Next page</Button>
