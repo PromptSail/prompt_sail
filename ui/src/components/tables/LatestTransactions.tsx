@@ -239,7 +239,7 @@ const Table: React.FC<TableProps> = ({ tableData, project }) => {
 const LatestTransactions: React.FC<Props> = ({ project, lengthTransactionRequest }) => {
     const filters: TransactionsFilters = {
         // page: 1
-        page_size: 2,
+        page_size: 5,
         project_id: project.id
     };
     const transactions = useGetAllTransactions(filters);

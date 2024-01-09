@@ -117,11 +117,20 @@ const Transaction: React.FC = () => {
                             <div className="w-full flex flex-row">
                                 <div className="p-2 m-auto">Output</div>
                                 <div className="border-s-4 p-2">
-                                    {data.response.content.choices.map((el, id) => (
-                                        <span key={id}>
-                                            [{el.message ? el.message.content : el.text}]
-                                        </span>
-                                    ))}
+                                    {(() => {
+                                        try {
+                                            data.response.content.choices.map((el, id) => {
+                                                return (
+                                                    <span key={id}>
+                                                        [{el.message ? el.message.content : el.text}
+                                                        ]
+                                                    </span>
+                                                );
+                                            });
+                                        } catch (err) {
+                                            return <span>{`${err}`}</span>;
+                                        }
+                                    })()}
                                 </div>
                             </div>
                         </div>
