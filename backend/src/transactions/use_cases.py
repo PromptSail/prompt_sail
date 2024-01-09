@@ -3,6 +3,7 @@ import json
 
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
+from utils import create_transaction_query_from_filters
 
 
 def get_transactions_for_project(
@@ -27,9 +28,14 @@ def get_all_transactions(
 
 
 def count_transactions(
-    transaction_repository: TransactionRepository
+    transaction_repository: TransactionRepository,
+    tags: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None
 ) -> int:
-    return transaction_repository.count()
+    query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
+    return transaction_repository.count(query)
 
 
 def get_all_filtered_and_paginated_transactions(
@@ -41,18 +47,7 @@ def get_all_filtered_and_paginated_transactions(
     date_to: datetime | None = None,
     project_id: str | None = None
 ) -> list[Transaction]:
-    query = {}
-    if project_id is not None:
-        query["project_id"] = project_id
-    if tags is not None:
-        query["tags"] = {"$all": tags}
-    if date_from is not None and date_to is None:
-        query["timestamp"] = {"$gte": date_from}
-    elif date_to is not None and date_from is None:
-        query["timestamp"] = {"$lte": date_to}
-    elif date_from is not None and date_to is None:
-        query["timestamp"] = {"$gte": date_from, "$lte": date_to}
-
+    query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
     transactions = transaction_repository.get_paginated_and_filtered(
         page, 
         page_size, 

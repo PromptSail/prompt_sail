@@ -115,10 +115,10 @@ async def get_paginated_transactions(
         get_all_filtered_and_paginated_transactions,
         page=page,
         page_size=page_size,
-        tags=tags if tags else None,
-        date_from=date_from if date_from else None,
-        date_to=date_to if date_to else None,
-        project_id=project_id if project_id else None
+        tags=tags,
+        date_from=date_from,
+        date_to=date_to,
+        project_id=project_id
     )
     projects = ctx.call(get_all_projects)
     project_id_name_map = {project.id: project.name for project in projects}
@@ -129,12 +129,12 @@ async def get_paginated_transactions(
         )
         for transaction in transactions
     ]
-    count = ctx.call(count_transactions)
+    count = ctx.call(count_transactions, tags=tags, date_from=date_from, date_to=date_to, project_id=project_id)
     page_response = GetTransactionPageResponseSchema(
         items=transactions,
         page_index=page,
         page_size=page_size,
         total_elements=count,
-        total_pages=-(-len(transactions) // page_size),
+        total_pages=-(-count // page_size),
     )
     return page_response

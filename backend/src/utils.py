@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from datetime import datetime
 from urllib.parse import parse_qs, urlparse
 
 
@@ -44,6 +45,27 @@ def detect_subdomain(host, base_url) -> str | None:
         return subdomain or None
     return None
 
+
+def create_transaction_query_from_filters(
+    tags: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None
+) -> dict:
+    query = {}
+    if project_id is not None:
+        query["project_id"] = project_id
+    if tags is not None:
+        query["tags"] = {"$all": tags}
+    if date_from is not None and date_to is None:
+        query["timestamp"] = {"$gte": date_from}
+    elif date_to is not None and date_from is None:
+        query["timestamp"] = {"$lte": date_to}
+    elif date_from is not None and date_to is None:
+        query["timestamp"] = {"$gte": date_from, "$lte": date_to}
+    return query
+    
+    
 
 class OrderedSet(OrderedDict):
     def __init__(self, iterable=None):
