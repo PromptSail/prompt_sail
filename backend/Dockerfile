@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 # Copy the Python dependency files into the image
 COPY pyproject.toml poetry.lock ./
 
+
 # Create the virtual environment and export the dependency lists
 RUN poetry config virtualenvs.create false \
     && poetry install --no-dev --no-interaction --no-ansi \
@@ -33,8 +34,8 @@ RUN chown -R promptsail /src
 USER promptsail
 
 # Copy only the necessary files for running the application
-COPY --chown=promptsail src/ /src/
-COPY --chown=promptsail static/ /static/
+COPY --chown=promptsail src /src/
+COPY --chown=promptsail static /static/
 
 # Continue as new stage to minimize production image size
 FROM base as production
@@ -46,7 +47,7 @@ ARG BUILD_SHA
 ENV BUILD_SHA=${BUILD_SHA}
 
 # Copy the production requirements and install them
-COPY --from=base --chown=promptsail /src/production.txt ./
+COPY --from=base --chown=promptsail src/production.txt ./
 RUN pip install --no-cache-dir -r production.txt
 
 # Expose the port the app runs on

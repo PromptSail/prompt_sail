@@ -1,12 +1,10 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.templating import Jinja2Templates
 
 from config import config
 from config.containers import TopLevelContainer
 
-templates = Jinja2Templates(directory=config.TEMPLATES_DIRECTORY)
 
 container = TopLevelContainer()
 container.config.override(config)

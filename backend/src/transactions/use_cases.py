@@ -26,6 +26,12 @@ def get_all_transactions(
     return transactions
 
 
+def count_transactions(
+    transaction_repository: TransactionRepository
+) -> int:
+    return transaction_repository.count()
+
+
 def get_all_filtered_and_paginated_transactions(
     transaction_repository: TransactionRepository,
     page: int,
@@ -41,9 +47,9 @@ def get_all_filtered_and_paginated_transactions(
     if tags is not None:
         query["tags"] = {"$all": tags}
     if date_from is not None and date_to is None:
-        query["timestamp"] = {"$gt": date_from}
+        query["timestamp"] = {"$gte": date_from}
     elif date_to is not None and date_from is None:
-        query["timestamp"] = {"$lt": date_to}
+        query["timestamp"] = {"$lte": date_to}
     elif date_from is not None and date_to is None:
         query["timestamp"] = {"$gte": date_from, "$lte": date_to}
 

@@ -70,7 +70,7 @@ def test_get_project_happy_path(client, application):
 
     # assert
     assert response.status_code == 200
-    assert response.json() == dict(id="project1", transactions=[], **test_obj)
+    assert response.json() == dict(id="project1", **test_obj)
 
 
 def test_update_project(client, application):

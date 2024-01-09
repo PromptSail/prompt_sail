@@ -27,6 +27,7 @@ from transactions.schemas import (
 from transactions.use_cases import (
     get_all_filtered_and_paginated_transactions,
     get_transaction,
+    count_transactions
 )
 
 from .app import app
@@ -107,7 +108,6 @@ async def get_paginated_transactions(
     date_to: datetime | None = None,
     project_id: str | None = None
 ) -> GetTransactionPageResponseSchema:
-    
     if tags is not None:
         tags = tags.split(',')
     
@@ -129,11 +129,12 @@ async def get_paginated_transactions(
         )
         for transaction in transactions
     ]
+    count = ctx.call(count_transactions)
     page_response = GetTransactionPageResponseSchema(
         items=transactions,
         page_index=page,
         page_size=page_size,
-        total_elements=len(transactions),
+        total_elements=count,
         total_pages=-(-len(transactions) // page_size),
     )
     return page_response
