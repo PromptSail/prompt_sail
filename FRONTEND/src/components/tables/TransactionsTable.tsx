@@ -33,6 +33,7 @@ type transaction = {
     timestamp: string;
     prompt: string;
     response: string;
+    tags: string[];
     model: string;
     // usage: {
     //     prompt_tokens: number;
@@ -86,6 +87,10 @@ const columns = [
         size: 300,
         sortingFn: 'text'
     }),
+    columnHelper.accessor('tags', {
+        header: 'Tags',
+        cell: (v) => `${v.getValue()}`
+    }),
     columnHelper.accessor('model', {
         header: 'Model',
         cell: (v) => v.getValue(),
@@ -127,6 +132,7 @@ const Table: React.FC<TableProps> = ({ tableData }) => {
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
             timestamp: tr.timestamp,
+            tags: tr.tags,
             prompt: (() => {
                 let str = '';
                 if (tr.request.content.messages)
@@ -224,7 +230,7 @@ const Table: React.FC<TableProps> = ({ tableData }) => {
                         {(() => {
                             const rows = Array.from(
                                 { length: 10 - table.getRowModel().rows.length },
-                                () => Array.from({ length: 5 }, (_, i) => i)
+                                () => Array.from({ length: 6 }, (_, i) => i)
                             );
                             return rows.map((r, i) => (
                                 <tr key={i}>

@@ -44,6 +44,7 @@ type transaction = {
     prompt: string;
     response: string;
     model: string;
+    tags: string[];
     // usage: {
     //     prompt_tokens: number;
     //     completion_tokens: number;
@@ -75,7 +76,6 @@ const columns = [
         header: () => 'Prompt',
         cell: (v) => {
             const value = v.getValue();
-            console.log(value.length);
             if (value.length > 30) return value.substring(0, 27) + '...';
             return value;
         },
@@ -97,6 +97,10 @@ const columns = [
         cell: (v) => v.getValue(),
         sortingFn: 'text',
         size: 200
+    }),
+    columnHelper.accessor('tags', {
+        header: 'Tags',
+        cell: (v) => `${v.getValue()}`
     }),
     // columnHelper.accessor('usage', {
     //     header: 'Usage',
@@ -131,19 +135,30 @@ const Table: React.FC<TableProps> = ({ tableData, project }) => {
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
             timestamp: tr.timestamp,
+            tags: tr.tags,
             prompt: (() => {
                 let str = '';
                 if (tr.request.content.messages)
                     tr.request.content.messages.map((m) => (str += `{${m.role}}: ${m.content}\n`));
-                else tr.request.content.prompt.map((p, id) => (str += `{prompt_${id}}: ${p}\n`));
+                else
+                    try {
+                        tr.request.content.prompt.map((p, id) => (str += `{prompt_${id}}: ${p}\n`));
+                    } catch (err) {
+                        str += `${err}`;
+                    }
                 return str;
             })(),
             response: (() => {
                 let str = '';
-                tr.response.content.choices.map((c) => {
-                    if (c.message) str += `{${c.message.role}}: ${c.message.content}\n`;
-                    else str += `{response_${c.index}}: ${c.text}\n`;
-                });
+                try {
+                    tr.response.content.choices.map((c) => {
+                        if (c.message) str += `{${c.message.role}}: ${c.message.content}\n`;
+                        else str += `{response_${c.index}}: ${c.text}\n`;
+                    });
+                } catch (err) {
+                    str = `${err}`;
+                }
+
                 return str;
             })(),
             model: (() => {
@@ -221,7 +236,7 @@ const Table: React.FC<TableProps> = ({ tableData, project }) => {
                     {(() => {
                         const rows = Array.from(
                             { length: 5 - table.getRowModel().rows.length },
-                            () => Array.from({ length: 5 }, (_, i) => i)
+                            () => Array.from({ length: 6 }, (_, i) => i)
                         );
                         return rows.map((r, i) => (
                             <tr key={i}>
