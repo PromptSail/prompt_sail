@@ -27,6 +27,7 @@ declare global {
 
 interface TableProps {
     tableData: getAllTransactionResponse['items'];
+    pageSize: number | undefined;
 }
 interface ProjectSelect {
     id: string;
@@ -129,7 +130,7 @@ const columns = [
         enableGlobalFilter: false
     })
 ];
-const Table: React.FC<TableProps> = ({ tableData }) => {
+const Table: React.FC<TableProps> = ({ tableData, pageSize }) => {
     const [search, setSearch] = useState('');
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -233,7 +234,11 @@ const Table: React.FC<TableProps> = ({ tableData }) => {
                         ))}
                         {(() => {
                             const rows = Array.from(
-                                { length: 10 - table.getRowModel().rows.length },
+                                {
+                                    length:
+                                        (pageSize === undefined ? 20 : pageSize) -
+                                        table.getRowModel().rows.length
+                                },
                                 () => Array.from({ length: 6 }, (_, i) => i)
                             );
                             return rows.map((r, i) => (
@@ -254,8 +259,15 @@ const FiltersInputs: React.FC<{
     setFilters: (length: SetStateAction<TransactionsFilters>) => void;
     page: number;
     totalPages: number;
+    totalElements: number;
     projectNames: ProjectSelect[];
-}> = ({ page, totalPages, setFilters, projectNames }) => {
+}> = ({ page, totalPages, totalElements, setFilters, projectNames }) => {
+    const setPage = (val: number) => {
+        setFilters((old) => ({
+            ...old,
+            page: `${val}`
+        }));
+    };
     return (
         <div className="table__filters">
             <div className="inputs">
@@ -324,10 +336,26 @@ const FiltersInputs: React.FC<{
             </div>
             <div className="page">
                 <div className="row">
-                    <Button size="sm" onClick={() => console.log('toFirst')}>{`<<`}</Button>
-                    <Button size="sm" onClick={() => console.log('prev')}>{`<`}</Button>
-                    <Button size="sm" onClick={() => console.log('next')}>{`>`}</Button>
-                    <Button size="sm" onClick={() => console.log('toLast')}>{`>>`}</Button>
+                    <Button
+                        size="sm"
+                        onClick={() => setPage(1)}
+                        disabled={page == 1}
+                    >{`<<`}</Button>
+                    <Button
+                        size="sm"
+                        onClick={() => setPage(page - 1)}
+                        disabled={page == 1}
+                    >{`<`}</Button>
+                    <Button
+                        size="sm"
+                        onClick={() => setPage(page + 1)}
+                        disabled={page == totalPages}
+                    >{`>`}</Button>
+                    <Button
+                        size="sm"
+                        onClick={() => setPage(totalPages)}
+                        disabled={page == totalPages}
+                    >{`>>`}</Button>
                 </div>
                 <div className="row">
                     <span>{page < 0 ? 'Loading...' : `${page} of ${totalPages}`}</span>
@@ -345,10 +373,13 @@ const FiltersInputs: React.FC<{
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
                             <option value="20">20</option>
                             <option value="30">30</option>
                         </select>
                     </div>
+                    <span>{page < 0 ? 'Loading...' : `${totalElements} rows`}</span>
                 </div>
             </div>
         </div>
@@ -360,11 +391,11 @@ const TransactionsTable: React.FC = () => {
     const transactions = useGetAllTransactions(filters);
     const [pagesInfo, setPagesInfo] = useState({
         page: -1,
-        total_pages: -1
+        total_pages: -1,
+        total_elements: -1
     });
     const projects = useGetAllProjects();
     useEffect(() => {
-        console.log(transactions.isSuccess);
         if (projects.isSuccess) {
             setProjectsNames(projects.data.map((el) => ({ id: el.id, name: el.name })));
         } else if (projectsNames.length != 0) {
@@ -373,7 +404,8 @@ const TransactionsTable: React.FC = () => {
         if (transactions.isSuccess) {
             setPagesInfo({
                 page: transactions.data.data.page_index,
-                total_pages: transactions.data.data.total_pages
+                total_pages: transactions.data.data.total_pages,
+                total_elements: transactions.data.data.total_elements
             });
         }
     }, [projects.status, transactions.status]);
@@ -382,6 +414,7 @@ const TransactionsTable: React.FC = () => {
             <FiltersInputs
                 page={pagesInfo.page}
                 totalPages={pagesInfo.total_pages}
+                totalElements={pagesInfo.total_elements}
                 projectNames={projectsNames}
                 setFilters={setFilters}
             />
@@ -400,7 +433,10 @@ const TransactionsTable: React.FC = () => {
             )}
             {transactions.isSuccess && (
                 <div className="overflow-x-auto">
-                    <Table tableData={transactions.data.data.items} />
+                    <Table
+                        pageSize={Number(filters.page_size)}
+                        tableData={transactions.data.data.items}
+                    />
                 </div>
             )}
         </div>
