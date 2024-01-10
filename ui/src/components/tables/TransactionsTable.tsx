@@ -254,7 +254,6 @@ const FiltersInputs: React.FC<{
     setFilters: (length: SetStateAction<TransactionsFilters>) => void;
     projectNames: ProjectSelect[];
 }> = ({ setFilters, projectNames }) => {
-    console.log(projectNames);
     return (
         <>
             <div className="flex flex-row">

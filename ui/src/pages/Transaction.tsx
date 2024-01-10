@@ -100,7 +100,7 @@ const Transaction: React.FC = () => {
                                     ))}
                                     {'}'}
                                 </span>
-                                <span>Tags: </span>
+                                <span>Tags: {`${data.tags}`}</span>
                             </div>
                             <div className="border-b-4 w-full flex flex-row">
                                 <div className="border-e-4 p-2">Input</div>
