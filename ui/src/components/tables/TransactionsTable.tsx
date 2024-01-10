@@ -11,9 +11,9 @@ import {
     getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
-import { SetStateAction, useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useRef, useState } from 'react';
 import { randomTransactionData } from '../../api/test/randomTransactionsData';
-import { Button, Form } from 'react-bootstrap';
+import { Button, Form, InputGroup } from 'react-bootstrap';
 import React from 'react';
 import { useGetAllProjects, useGetAllTransactions } from '../../api/queries';
 import { TransactionsFilters } from '../../api/types';
@@ -268,6 +268,7 @@ const FiltersInputs: React.FC<{
             page: `${val}`
         }));
     };
+    const tagsInput = useRef(null);
     return (
         <div className="table__filters">
             <div className="inputs">
@@ -302,18 +303,29 @@ const FiltersInputs: React.FC<{
                         </Form.Select>
                     </div>
                     <div className="tags">
-                        <Form.Control
-                            type="text"
-                            size="sm"
-                            onBlur={(v) => {
-                                const tags = v.currentTarget.value.replace(/ /g, '');
-                                setFilters((old) => ({
-                                    ...old,
-                                    tags
-                                }));
-                            }}
-                            placeholder="tags"
-                        />
+                        <InputGroup size="sm">
+                            <Form.Control
+                                placeholder="tags"
+                                aria-label="tags"
+                                aria-describedby="basic-addon2"
+                                ref={tagsInput}
+                            />
+                            <Button
+                                variant="primary"
+                                id="tagsSelect"
+                                onClick={() => {
+                                    const tags = (
+                                        tagsInput.current as unknown as HTMLInputElement
+                                    ).value.replace(/ /g, '');
+                                    setFilters((old) => ({
+                                        ...old,
+                                        tags
+                                    }));
+                                }}
+                            >
+                                Search
+                            </Button>
+                        </InputGroup>
                     </div>
                 </div>
                 <div className="row">
