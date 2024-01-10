@@ -195,7 +195,7 @@ const Table: React.FC<TableProps> = ({ tableData, project }) => {
         setData(randomTransactionData(length || 5));
     };
     return (
-        <div className="table__transactions">
+        <div className="table__LatestTransactions">
             <table>
                 <thead>
                     {table.getHeaderGroups().map((hGroup) => (

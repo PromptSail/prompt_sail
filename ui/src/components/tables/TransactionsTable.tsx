@@ -190,7 +190,7 @@ const Table: React.FC<TableProps> = ({ tableData }) => {
     });
     return (
         <>
-            <div className="table__transactions">
+            <div className="table__AllTransactions">
                 <table>
                     <thead>
                         {table.getHeaderGroups().map((hGroup) => (
@@ -252,112 +252,158 @@ const Table: React.FC<TableProps> = ({ tableData }) => {
 };
 const FiltersInputs: React.FC<{
     setFilters: (length: SetStateAction<TransactionsFilters>) => void;
+    page: number;
+    totalPages: number;
     projectNames: ProjectSelect[];
-}> = ({ setFilters, projectNames }) => {
+}> = ({ page, totalPages, setFilters, projectNames }) => {
     return (
-        <>
-            <div className="flex flex-row">
-                <DateRangePicker
-                    format="yyyy-MM-dd HH:mm:ss"
-                    onChange={(v) => {
-                        if (v != null) {
-                            setFilters((old) => ({
-                                ...old,
-                                date_from: v[0].toISOString(),
-                                date_to: v[1].toISOString()
-                            }));
-                        } else {
-                            setFilters((old) => ({ ...old, date_from: '', date_to: '' }));
-                        }
-                    }}
-                />
+        <div className="table__filters">
+            <div className="inputs">
+                <div className="row">
+                    <div className="project_select">
+                        <Form.Select
+                            size="sm"
+                            aria-label="Select project"
+                            onChange={(v) => {
+                                const project_id = v.currentTarget.value;
+                                setFilters((old) => ({
+                                    ...old,
+                                    project_id
+                                }));
+                            }}
+                        >
+                            {projectNames.length > 0 && (
+                                <>
+                                    <option value="">Select project</option>
+                                    {projectNames.map((el) => (
+                                        <option key={el.id} value={el.id}>
+                                            {el.name}
+                                        </option>
+                                    ))}
+                                </>
+                            )}
+                            {projectNames.length == 0 && (
+                                <>
+                                    <option value="">No projects found</option>
+                                </>
+                            )}
+                        </Form.Select>
+                    </div>
+                    <div className="tags">
+                        <Form.Control
+                            type="text"
+                            size="sm"
+                            onBlur={(v) => {
+                                const tags = v.currentTarget.value.replace(/ /g, '');
+                                setFilters((old) => ({
+                                    ...old,
+                                    tags
+                                }));
+                            }}
+                            placeholder="tags"
+                        />
+                    </div>
+                </div>
+                <div className="row">
+                    <DateRangePicker
+                        format="yyyy-MM-dd HH:mm:ss"
+                        placeholder="Select date range"
+                        onChange={(v) => {
+                            if (v != null) {
+                                setFilters((old) => ({
+                                    ...old,
+                                    date_from: v[0].toISOString(),
+                                    date_to: v[1].toISOString()
+                                }));
+                            } else {
+                                setFilters((old) => ({ ...old, date_from: '', date_to: '' }));
+                            }
+                        }}
+                    />
+                </div>
             </div>
-            <div>
-                <Form.Control
-                    type="text"
-                    onBlur={(v) => {
-                        const tags = v.currentTarget.value.replace(/ /g, '');
-                        setFilters((old) => ({
-                            ...old,
-                            tags
-                        }));
-                    }}
-                    placeholder="tags"
-                />
-                <Button onClick={() => console.log('next')}>Prev page</Button>
-                <Button onClick={() => console.log('prev')}>Next page</Button>
-                <span>page / total_page</span>
-                <Form.Select
-                    aria-label="Select project"
-                    onChange={(v) => {
-                        const project_id = v.currentTarget.value;
-                        setFilters((old) => ({
-                            ...old,
-                            project_id
-                        }));
-                    }}
-                >
-                    {projectNames.length > 0 && (
-                        <>
-                            <option value="">Select project</option>
-                            {projectNames.map((el) => (
-                                <option key={el.id} value={el.id}>
-                                    {el.name}
-                                </option>
-                            ))}
-                        </>
-                    )}
-                    {projectNames.length == 0 && (
-                        <>
-                            <option value="">No projects found</option>
-                        </>
-                    )}
-                </Form.Select>
+            <div className="page">
+                <div className="row">
+                    <Button size="sm" onClick={() => console.log('toFirst')}>{`<<`}</Button>
+                    <Button size="sm" onClick={() => console.log('prev')}>{`<`}</Button>
+                    <Button size="sm" onClick={() => console.log('next')}>{`>`}</Button>
+                    <Button size="sm" onClick={() => console.log('toLast')}>{`>>`}</Button>
+                </div>
+                <div className="row">
+                    <span>{page < 0 ? 'Loading...' : `${page} of ${totalPages}`}</span>
+                    <div className="page_size">
+                        <select
+                            onChange={(v) => {
+                                const page_size = v.currentTarget.value;
+                                setFilters((old) => ({
+                                    ...old,
+                                    page_size
+                                }));
+                            }}
+                            defaultValue={20}
+                        >
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="5">5</option>
+                            <option value="20">20</option>
+                            <option value="30">30</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-        </>
+        </div>
     );
 };
 const TransactionsTable: React.FC = () => {
     const [filters, setFilters] = useState<TransactionsFilters>({});
     const [projectsNames, setProjectsNames] = useState<ProjectSelect[]>([]);
     const transactions = useGetAllTransactions(filters);
+    const [pagesInfo, setPagesInfo] = useState({
+        page: -1,
+        total_pages: -1
+    });
     const projects = useGetAllProjects();
     useEffect(() => {
+        console.log(transactions.isSuccess);
         if (projects.isSuccess) {
             setProjectsNames(projects.data.map((el) => ({ id: el.id, name: el.name })));
         } else if (projectsNames.length != 0) {
             setProjectsNames([]);
         }
-    }, [projects.status]);
-
-    if (transactions.isLoading)
-        return (
-            <>
-                <FiltersInputs projectNames={projectsNames} setFilters={setFilters} />
+        if (transactions.isSuccess) {
+            setPagesInfo({
+                page: transactions.data.data.page_index,
+                total_pages: transactions.data.data.total_pages
+            });
+        }
+    }, [projects.status, transactions.status]);
+    return (
+        <div>
+            <FiltersInputs
+                page={pagesInfo.page}
+                totalPages={pagesInfo.total_pages}
+                projectNames={projectsNames}
+                setFilters={setFilters}
+            />
+            {transactions.isLoading && (
                 <div className="overflow-x-auto p-3">
                     <div>loading...</div>
                 </div>
-            </>
-        );
-    if (transactions.isError)
-        return (
-            <>
-                <FiltersInputs projectNames={projectsNames} setFilters={setFilters} />
-                <div className="overflow-x-auto p-3">
-                    <span>{transactions.error.message}</span>
-                </div>
-                {console.error(transactions.error)}
-            </>
-        );
-    if (transactions.isSuccess) {
-        return (
-            <>
-                <FiltersInputs projectNames={projectsNames} setFilters={setFilters} />
-                <div className="overflow-x-auto p-3">
+            )}
+            {transactions.isError && (
+                <>
+                    {console.error(transactions.error)}
+                    <div className="overflow-x-auto p-3">
+                        <span>{transactions.error.message}</span>
+                    </div>
+                </>
+            )}
+            {transactions.isSuccess && (
+                <div className="overflow-x-auto">
                     <Table tableData={transactions.data.data.items} />
                 </div>
-            </>
-        );
-    }
+            )}
+        </div>
+    );
 };
 export default TransactionsTable;
