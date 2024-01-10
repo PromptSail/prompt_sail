@@ -15,4 +15,5 @@ class Transaction(BaseModel):
     request: dict[str, Any]
     response: dict[str, Any]
     tags: list[str]
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    request_time: datetime
+    response_time: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))

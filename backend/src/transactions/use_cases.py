@@ -62,6 +62,7 @@ def store_transaction(
     buffer,
     project_id,
     tags,
+    request_time,
     transaction_repository: TransactionRepository,
 ):
     decoder = response._get_content_decoder()
@@ -95,6 +96,7 @@ def store_transaction(
             encoding=response.encoding,
         ),
         tags=tags,
+        request_time=request_time
     )
 
     transaction_repository.add(transaction)

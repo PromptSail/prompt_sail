@@ -1,3 +1,4 @@
+from _datetime import datetime, timezone
 from typing import Annotated
 
 import httpx
@@ -20,7 +21,7 @@ async def iterate_stream(response, buffer):
 
 
 async def close_stream(
-    app: Application, project_id, request, response, buffer, tags
+    app: Application, project_id, request, response, buffer, tags, request_time
 ):
     await response.aclose()
     with app.transaction_context() as ctx:
@@ -31,6 +32,7 @@ async def close_stream(
             response=response,
             buffer=buffer,
             tags=tags,
+            request_time=request_time
         )
 
 
@@ -68,7 +70,8 @@ async def reverse_proxy(
     client = httpx.AsyncClient()
     # todo: copy timeout from request, temporary set to 100s
     timeout = httpx.Timeout(100.0, connect=50.0)
-
+    
+    request_time = datetime.now(tz=timezone.utc)
     rp_req = client.build_request(
         method=request.method,
         url=f"{api_base}/{path}",
@@ -95,6 +98,7 @@ async def reverse_proxy(
             rp_resp,
             buffer,
             tags,
+            request_time
         ),
     )
 
