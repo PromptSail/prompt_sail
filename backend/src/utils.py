@@ -57,14 +57,13 @@ def create_transaction_query_from_filters(
         query["project_id"] = project_id
     if tags is not None:
         query["tags"] = {"$all": tags}
-    if date_from is not None and date_to is None:
-        query["timestamp"] = {"$gte": date_from}
-    elif date_to is not None and date_from is None:
-        query["timestamp"] = {"$lte": date_to}
-    elif date_from is not None and date_to is None:
-        query["timestamp"] = {"$gte": date_from, "$lte": date_to}
+    if date_from is not None or date_to is not None:
+        query["timestamp"] = {}
+    if date_from is not None:
+        query["timestamp"]["$gte"] = date_from
+    if date_to is not None:
+        query["timestamp"]["$lte"] = date_to
     return query
-    
     
 
 class OrderedSet(OrderedDict):
