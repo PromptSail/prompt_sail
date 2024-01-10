@@ -27,7 +27,7 @@ declare global {
 
 interface TableProps {
     tableData: getAllTransactionResponse['items'];
-    pageSize: number | undefined;
+    pageSize: number;
 }
 interface ProjectSelect {
     id: string;
@@ -236,11 +236,12 @@ const Table: React.FC<TableProps> = ({ tableData, pageSize }) => {
                             const rows = Array.from(
                                 {
                                     length:
-                                        (pageSize === undefined ? 20 : pageSize) -
+                                        (pageSize < 0 ? 20 : pageSize) -
                                         table.getRowModel().rows.length
                                 },
                                 () => Array.from({ length: 6 }, (_, i) => i)
                             );
+                            console.log(pageSize);
                             return rows.map((r, i) => (
                                 <tr key={i}>
                                     {r.map((_, j) => (
@@ -446,7 +447,7 @@ const TransactionsTable: React.FC = () => {
             {transactions.isSuccess && (
                 <div className="overflow-x-auto">
                     <Table
-                        pageSize={Number(filters.page_size)}
+                        pageSize={Number(filters.page_size) || -1}
                         tableData={transactions.data.data.items}
                     />
                 </div>
