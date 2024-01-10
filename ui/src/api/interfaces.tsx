@@ -51,6 +51,7 @@ export interface getTransactionResponse {
     id: string;
     project_id: string;
     timestamp: string;
+    tags: string[];
     request: {
         url: string;
         content: {

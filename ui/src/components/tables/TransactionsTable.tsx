@@ -11,11 +11,11 @@ import {
     getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
-import { SetStateAction, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import { randomTransactionData } from '../../api/test/randomTransactionsData';
 import { Button, Form } from 'react-bootstrap';
 import React from 'react';
-import { useGetAllTransactions } from '../../api/queries';
+import { useGetAllProjects, useGetAllTransactions } from '../../api/queries';
 import { TransactionsFilters } from '../../api/types';
 import DateRangePicker from 'rsuite/DateRangePicker';
 
@@ -28,11 +28,16 @@ declare global {
 interface TableProps {
     tableData: getAllTransactionResponse['items'];
 }
+interface ProjectSelect {
+    id: string;
+    name: string;
+}
 
 type transaction = {
     timestamp: string;
     prompt: string;
     response: string;
+    tags: string[];
     model: string;
     // usage: {
     //     prompt_tokens: number;
@@ -92,6 +97,10 @@ const columns = [
         sortingFn: 'text',
         size: 200
     }),
+    columnHelper.accessor('tags', {
+        header: 'Tags',
+        cell: (v) => `${v.getValue()}`
+    }),
     // columnHelper.accessor('usage', {
     //     header: 'Usage',
     //     cell: (v) => {
@@ -127,6 +136,7 @@ const Table: React.FC<TableProps> = ({ tableData }) => {
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
             timestamp: tr.timestamp,
+            tags: tr.tags,
             prompt: (() => {
                 let str = '';
                 if (tr.request.content.messages)
@@ -224,7 +234,7 @@ const Table: React.FC<TableProps> = ({ tableData }) => {
                         {(() => {
                             const rows = Array.from(
                                 { length: 10 - table.getRowModel().rows.length },
-                                () => Array.from({ length: 5 }, (_, i) => i)
+                                () => Array.from({ length: 6 }, (_, i) => i)
                             );
                             return rows.map((r, i) => (
                                 <tr key={i}>
@@ -242,7 +252,9 @@ const Table: React.FC<TableProps> = ({ tableData }) => {
 };
 const FiltersInputs: React.FC<{
     setFilters: (length: SetStateAction<TransactionsFilters>) => void;
-}> = ({ setFilters }) => {
+    projectNames: ProjectSelect[];
+}> = ({ setFilters, projectNames }) => {
+    console.log(projectNames);
     return (
         <>
             <div className="flex flex-row">
@@ -265,30 +277,64 @@ const FiltersInputs: React.FC<{
                 <Form.Control
                     type="text"
                     onBlur={(v) => {
+                        const tags = v.currentTarget.value.replace(/ /g, '');
+                        setFilters((old) => ({
+                            ...old,
+                            tags
+                        }));
+                    }}
+                    placeholder="tags"
+                />
+                <Button onClick={() => console.log('next')}>Prev page</Button>
+                <Button onClick={() => console.log('prev')}>Next page</Button>
+                <span>page / total_page</span>
+                <Form.Select
+                    aria-label="Select project"
+                    onChange={(v) => {
                         const project_id = v.currentTarget.value;
-                        console.log(project_id);
                         setFilters((old) => ({
                             ...old,
                             project_id
                         }));
                     }}
-                    placeholder="project_id"
-                />
-                <Button onClick={() => console.log('next')}>Prev page</Button>
-                <Button onClick={() => console.log('prev')}>Next page</Button>
-                <span>page / total_page</span>
+                >
+                    {projectNames.length > 0 && (
+                        <>
+                            <option value="">Select project</option>
+                            {projectNames.map((el) => (
+                                <option key={el.id} value={el.id}>
+                                    {el.name}
+                                </option>
+                            ))}
+                        </>
+                    )}
+                    {projectNames.length == 0 && (
+                        <>
+                            <option value="">No projects found</option>
+                        </>
+                    )}
+                </Form.Select>
             </div>
         </>
     );
 };
 const TransactionsTable: React.FC = () => {
     const [filters, setFilters] = useState<TransactionsFilters>({});
+    const [projectsNames, setProjectsNames] = useState<ProjectSelect[]>([]);
     const transactions = useGetAllTransactions(filters);
+    const projects = useGetAllProjects();
+    useEffect(() => {
+        if (projects.isSuccess) {
+            setProjectsNames(projects.data.map((el) => ({ id: el.id, name: el.name })));
+        } else if (projectsNames.length != 0) {
+            setProjectsNames([]);
+        }
+    }, [projects.status]);
 
     if (transactions.isLoading)
         return (
             <>
-                <FiltersInputs setFilters={setFilters} />
+                <FiltersInputs projectNames={projectsNames} setFilters={setFilters} />
                 <div className="overflow-x-auto p-3">
                     <div>loading...</div>
                 </div>
@@ -297,7 +343,7 @@ const TransactionsTable: React.FC = () => {
     if (transactions.isError)
         return (
             <>
-                <FiltersInputs setFilters={setFilters} />
+                <FiltersInputs projectNames={projectsNames} setFilters={setFilters} />
                 <div className="overflow-x-auto p-3">
                     <span>{transactions.error.message}</span>
                 </div>
@@ -307,7 +353,7 @@ const TransactionsTable: React.FC = () => {
     if (transactions.isSuccess) {
         return (
             <>
-                <FiltersInputs setFilters={setFilters} />
+                <FiltersInputs projectNames={projectsNames} setFilters={setFilters} />
                 <div className="overflow-x-auto p-3">
                     <Table tableData={transactions.data.data.items} />
                 </div>

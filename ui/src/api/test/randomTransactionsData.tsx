@@ -1,5 +1,6 @@
 type transaction = {
     timestamp: string;
+    tags: string[];
     prompt: string;
     response: string;
     model: string;
@@ -16,6 +17,7 @@ export const randomTransactionData = (length: number) => {
         const random = Math.random() * 1699999999999;
         test_data[i] = {
             timestamp: new Date(random).toString(),
+            tags: ['a', 'b', 'c'],
             prompt: makeStr(Math.random() * 20),
             response: makeStr(Math.random() * 20),
             model: makeStr(Math.random() * 10),
