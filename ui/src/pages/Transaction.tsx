@@ -73,6 +73,12 @@ const Transaction: React.FC = () => {
                     </div>
                 ) : (
                     <div className="p-5 px-20 pt-[100px]">
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                navigate(`/projects/${data.project_id}`);
+                            }}
+                        >{`<`}</Button>
                         <h1 className="text-4xl font-semibold">
                             Transaction details - {data.id} in {project.name}
                         </h1>
