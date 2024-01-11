@@ -279,7 +279,8 @@ const FiltersInputs: React.FC<{
                                 const project_id = v.currentTarget.value;
                                 setFilters((old) => ({
                                     ...old,
-                                    project_id
+                                    project_id,
+                                    page: '1'
                                 }));
                             }}
                         >
@@ -317,7 +318,8 @@ const FiltersInputs: React.FC<{
                                     ).value.replace(/ /g, '');
                                     setFilters((old) => ({
                                         ...old,
-                                        tags
+                                        tags,
+                                        page: '1'
                                     }));
                                 }}
                             >
@@ -335,7 +337,8 @@ const FiltersInputs: React.FC<{
                                 setFilters((old) => ({
                                     ...old,
                                     date_from: v[0].toISOString(),
-                                    date_to: v[1].toISOString()
+                                    date_to: v[1].toISOString(),
+                                    page: '1'
                                 }));
                             } else {
                                 setFilters((old) => ({ ...old, date_from: '', date_to: '' }));
@@ -359,12 +362,12 @@ const FiltersInputs: React.FC<{
                     <Button
                         size="sm"
                         onClick={() => setPage(page + 1)}
-                        disabled={page == totalPages}
+                        disabled={page >= totalPages}
                     >{`>`}</Button>
                     <Button
                         size="sm"
                         onClick={() => setPage(totalPages)}
-                        disabled={page == totalPages}
+                        disabled={page >= totalPages}
                     >{`>>`}</Button>
                 </div>
                 <div className="row">
@@ -375,7 +378,8 @@ const FiltersInputs: React.FC<{
                                 const page_size = v.currentTarget.value;
                                 setFilters((old) => ({
                                     ...old,
-                                    page_size
+                                    page_size,
+                                    page: '1'
                                 }));
                             }}
                             defaultValue={20}
