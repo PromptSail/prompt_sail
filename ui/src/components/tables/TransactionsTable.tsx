@@ -168,7 +168,14 @@ const Table: React.FC<TableProps> = ({ tableData, pageSize }) => {
             })(),
             // usage: tr.response.content.usage,
             more: (
-                <Link className="underline" id={tr.id} to={`/transactions/${tr.id}`}>
+                <Link
+                    className="underline"
+                    id={tr.id}
+                    to={`/transactions/${tr.id}`}
+                    state={{
+                        project: {}
+                    }}
+                >
                     Details
                 </Link>
             )
@@ -241,7 +248,6 @@ const Table: React.FC<TableProps> = ({ tableData, pageSize }) => {
                                 },
                                 () => Array.from({ length: 6 }, (_, i) => i)
                             );
-                            console.log(pageSize);
                             return rows.map((r, i) => (
                                 <tr key={i}>
                                     {r.map((_, j) => (
