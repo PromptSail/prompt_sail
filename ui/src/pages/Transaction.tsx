@@ -65,7 +65,8 @@ const Transaction: React.FC = () => {
                             {JSON.stringify(data.response, null, 4)}
                         </SyntaxHighlighter>
                         <SyntaxHighlighter language="python" style={styles.atomOneDark}>
-                            {`timestamp: ${JSON.stringify(data.timestamp, null, 4)},
+                            {`request_time: ${JSON.stringify(data.request_time, null, 4)},
+                response_time: ${JSON.stringify(data.response_time, null, 4)},
                 status_code: ${JSON.stringify(data.response.status_code, null, 4)},
                 processing_time: ${JSON.stringify(data.response.elapsed, null, 4)}
                                 `}
@@ -96,7 +97,8 @@ const Transaction: React.FC = () => {
                                 <span>Response status: {data.response.status_code}</span>
                             </div>
                             <div className="border-b-4 p-3 flex flex-row gap-16">
-                                <span>Timestamp: {data.timestamp}</span>
+                                <span>request_time: {data.request_time}</span>
+                                <span>response_time: {data.response_time}</span>
                                 <span>
                                     Created by{' {'}
                                     {data.request.content.messages?.map((el, id) => (

@@ -50,7 +50,8 @@ export interface getProjectResponse extends getAllProjects {}
 export interface getTransactionResponse {
     id: string;
     project_id: string;
-    timestamp: string;
+    request_time: string;
+    response_time: string;
     tags: string[];
     request: {
         url: string;

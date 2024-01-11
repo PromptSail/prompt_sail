@@ -40,7 +40,7 @@ interface TableProps {
 }
 
 type transaction = {
-    timestamp: string;
+    time: string;
     prompt: string;
     response: string;
     model: string;
@@ -55,8 +55,8 @@ type transaction = {
 
 const columnHelper = createColumnHelper<transaction>();
 const columns = [
-    columnHelper.accessor('timestamp', {
-        header: 'timestamp',
+    columnHelper.accessor('time', {
+        header: 'time',
         cell: (v) => {
             const d = new Date(v.getValue());
             return `${d.toLocaleDateString()}\n${d.getHours()}:${String(d.getMinutes()).padStart(
@@ -134,7 +134,7 @@ const Table: React.FC<TableProps> = ({ tableData, project }) => {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
-            timestamp: tr.timestamp,
+            time: tr.request_time,
             tags: tr.tags,
             prompt: (() => {
                 let str = '';
