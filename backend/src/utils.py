@@ -58,11 +58,11 @@ def create_transaction_query_from_filters(
     if tags is not None:
         query["tags"] = {"$all": tags}
     if date_from is not None or date_to is not None:
-        query["timestamp"] = {}
+        query["response_time"] = {}
     if date_from is not None:
-        query["timestamp"]["$gte"] = date_from
+        query["response_time"]["$gte"] = date_from
     if date_to is not None:
-        query["timestamp"]["$lte"] = date_to
+        query["response_time"]["$lte"] = date_to
     return query
     
 
