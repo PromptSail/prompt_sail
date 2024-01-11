@@ -9,7 +9,8 @@ class GetTransactionSchema(BaseModel):
     project_id: str
     request: dict[str, Any]
     response: dict[str, Any]
-    timestamp: datetime
+    request_time: datetime
+    response_time: datetime
     tags: list[str]
 
 
@@ -19,7 +20,8 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     project_name: str
     request: dict[str, Any]
     response: dict[str, Any]
-    timestamp: datetime
+    request_time: datetime
+    response_time: datetime
     tags: list[str]
 
 
