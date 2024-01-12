@@ -6,7 +6,7 @@ import { UseQueryResult } from 'react-query';
 import UpdateProject from '../components/ProjectForms/UpdateProject';
 import ProjectInstall from '../components/ProjectInstall/ProjectInstall';
 import DeleteProject from '../components/ProjectForms/DeleteProject';
-import LatestTransactions from '../components/tables/LatestTransactions';
+import LatestTransactions from '../components/tables/LatestTransactions/LatestTransactions';
 import { useState } from 'react';
 const Project: React.FC = () => {
     const navigate = useNavigate();

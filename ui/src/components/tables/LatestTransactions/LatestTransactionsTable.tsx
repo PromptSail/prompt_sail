@@ -1,35 +1,18 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { transaction } from '../types';
 import {
     SortingState,
-    createColumnHelper,
     flexRender,
     getCoreRowModel,
     getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
-import { SetStateAction, useState } from 'react';
-import { randomTransactionData } from '../../api/test/randomTransactionsData';
-import React from 'react';
-import { TransactionsFilters } from '../../api/types';
-import { useGetAllTransactions } from '../../api/queries';
-import { getAllTransactionResponse } from '../../api/interfaces';
-
-declare global {
-    interface Window {
-        test(length: number): void;
-    }
-}
+import { getAllTransactionResponse } from '../../../api/interfaces';
+import { Link } from 'react-router-dom';
+import { columns } from '../columns';
+import { randomTransactionData } from '../../../api/test/randomTransactionsData';
 
 interface Props {
-    project: {
-        name: string;
-        id: string;
-        api_base: string;
-        slug: string;
-    };
-    lengthTransactionRequest: (length: SetStateAction<string>) => void;
-}
-interface TableProps {
     tableData: getAllTransactionResponse['items'];
     project: {
         name: string;
@@ -39,98 +22,7 @@ interface TableProps {
     };
 }
 
-type transaction = {
-    time: string;
-    prompt: string;
-    response: string;
-    model: string;
-    tags: string[];
-    // usage: {
-    //     prompt_tokens: number;
-    //     completion_tokens: number;
-    //     total_tokens: number;
-    // };
-    more: JSX.Element;
-};
-
-const columnHelper = createColumnHelper<transaction>();
-const columns = [
-    columnHelper.accessor('time', {
-        header: 'time',
-        cell: (v) => {
-            const d = new Date(v.getValue());
-            return `${d.toLocaleDateString()}\n${d.getHours()}:${String(d.getMinutes()).padStart(
-                2,
-                '0'
-            )}`;
-        },
-        sortingFn: (a, b, id) => {
-            const dateA = new Date(a.getValue(id));
-            const dateB = new Date(b.getValue(id));
-            if (dateA > dateB) return 1;
-            else if (dateA == dateB) return 0;
-            else return -1;
-        }
-    }),
-    columnHelper.accessor('prompt', {
-        header: () => 'Prompt',
-        cell: (v) => {
-            const value = v.getValue();
-            if (value.length > 30) return value.substring(0, 27) + '...';
-            return value;
-        },
-        size: 300,
-        sortingFn: 'text'
-    }),
-    columnHelper.accessor('response', {
-        header: () => <span>Response</span>,
-        cell: (v) => {
-            const value = v.getValue();
-            if (value.length > 25) return value.substring(0, 22) + '...';
-            return value;
-        },
-        size: 300,
-        sortingFn: 'text'
-    }),
-    columnHelper.accessor('model', {
-        header: 'Model',
-        cell: (v) => v.getValue(),
-        sortingFn: 'text',
-        size: 200
-    }),
-    columnHelper.accessor('tags', {
-        header: 'Tags',
-        cell: (v) => `${v.getValue()}`
-    }),
-    // columnHelper.accessor('usage', {
-    //     header: 'Usage',
-    //     cell: (v) => {
-    //         const { prompt_tokens, completion_tokens } = v.getValue();
-    //         return (
-    //             <div>
-    //                 <p>{prompt_tokens}+</p>
-    //                 <p>{completion_tokens}</p>
-    //             </div>
-    //         );
-    //     },
-    //     sortingFn: (a, b, id) => {
-    //         const t1 = (a.getValue(id) as transaction['usage']).total_tokens;
-    //         const t2 = (b.getValue(id) as transaction['usage']).total_tokens;
-    //         if (t1 > t2) return 1;
-    //         else if (t1 == t2) return 0;
-    //         else return -1;
-    //     },
-    //     size: 50
-    // }),
-    columnHelper.accessor('more', {
-        header: 'More',
-        cell: (v) => v.getValue(),
-        size: 50,
-        enableSorting: false,
-        enableGlobalFilter: false
-    })
-];
-const Table: React.FC<TableProps> = ({ tableData, project }) => {
+const LatestTransactionsTable: React.FC<Props> = ({ tableData, project }) => {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
@@ -251,31 +143,5 @@ const Table: React.FC<TableProps> = ({ tableData, project }) => {
         </div>
     );
 };
-const LatestTransactions: React.FC<Props> = ({ project, lengthTransactionRequest }) => {
-    const filters: TransactionsFilters = {
-        // page: 1
-        page_size: '5',
-        project_id: project.id
-    };
-    const transactions = useGetAllTransactions(filters);
 
-    if (transactions.isLoading)
-        return (
-            <>
-                <div>loading...</div>
-            </>
-        );
-    if (transactions.isError)
-        return (
-            <>
-                <div>An error has occurred</div>
-                {console.error(transactions.error)}
-                <span>{transactions.error.message}</span>
-            </>
-        );
-    if (transactions.isSuccess) {
-        lengthTransactionRequest(`${transactions.data.data.total_elements}`);
-        return <Table tableData={transactions.data.data.items} project={project} />;
-    }
-};
-export default LatestTransactions;
+export default LatestTransactionsTable;

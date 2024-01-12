@@ -5,7 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Transaction from './pages/Transaction';
 import Sidebar from './components/SIdebar/Sidebar';
-import Transactions from './pages/Transactions';
+import AllTransactions from './pages/AllTransactions';
 
 const App = () => {
     return (
@@ -16,7 +16,7 @@ const App = () => {
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/projects/:projectId" element={<Project />} />
-                        <Route path="/transactions" element={<Transactions />} />
+                        <Route path="/transactions" element={<AllTransactions />} />
                         <Route path="/transactions/:transactionId" element={<Transaction />} />
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
