@@ -37,10 +37,11 @@ async def close_stream(
 
 
 @app.api_route(
-    "/{project_slug}/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"]
+    "/{project_slug}/{deployment_name}/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"]
 )
 async def reverse_proxy(
     project_slug: str,
+    deployment_name: str,
     path: str,
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
@@ -66,7 +67,7 @@ async def reverse_proxy(
     body = await request.body() if request.method != "GET" else None
 
     # Make the request to the upstream server
-    api_base = project.ai_providers[0].api_base
+    api_base = [prov.api_base for prov in project.ai_providers if prov.deployment_name == deployment_name][0]
     client = httpx.AsyncClient()
     # todo: copy timeout from request, temporary set to 100s
     timeout = httpx.Timeout(100.0, connect=50.0)
