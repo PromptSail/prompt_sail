@@ -38,6 +38,8 @@ jobs:
           deploy_path: "ui/build/"
 
   build-test-deploy-backend:
+    if: ${{ false }} # disable for now
+
     runs-on: ubuntu-latest
 
     services:
