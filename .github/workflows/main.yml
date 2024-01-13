@@ -22,6 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd ui
+          npm --version
           npm install
 
       - name: Build app
