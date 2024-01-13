@@ -46,7 +46,7 @@ jobs:
       - name: Release to Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:release web -a promptsail
+        run: heroku container:release web -a promptsail_ui
 
   build-test-deploy-backend:
     if: ${{ false }} # disable for now
