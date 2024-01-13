@@ -26,7 +26,7 @@ jobs:
           npm install
 
       - name: Build the Docker image
-        run: make build
+        run: make build-ui
         env:
           BUILD_SHA: ${{ github.sha }}
 
