@@ -36,6 +36,7 @@ jobs:
           heroku_app_name: "promptsail-ui"
           heroku_email: "przemyslaw.gorecki@gmail.com"
           deploy_path: "ui/build/"
+          flags: "--force"
 
   build-test-deploy-backend:
     if: ${{ false }} # disable for now
