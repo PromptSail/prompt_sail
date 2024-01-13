@@ -1,0 +1,1 @@
+web: ls l-la && bin/start-nginx-static
