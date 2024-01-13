@@ -33,7 +33,7 @@ jobs:
       - name: Deploy to Heroku
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
-          app-dir: "ui"
+          appdir: "ui"
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "promptsail-ui"
           heroku_email: "przemyslaw.gorecki@gmail.com"
