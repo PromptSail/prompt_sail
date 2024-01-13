@@ -30,6 +30,11 @@ jobs:
         env:
           BUILD_SHA: ${{ github.sha }}
 
+      - name: Log in to Heroku Container Registry
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:login
+
       - name: Push Docker image to Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
