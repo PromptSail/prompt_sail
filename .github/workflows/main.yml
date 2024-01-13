@@ -35,7 +35,7 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           docker images
-          docker tag prompt_sail_ui:latest registry.heroku.com/promptsail-ui/web
+          docker tag prompt_sail_promptsail-ui:latest registry.heroku.com/promptsail-ui/web
           docker push registry.heroku.com/promptsail-ui/web
 
       - name: Release to Heroku
