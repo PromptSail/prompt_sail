@@ -85,10 +85,7 @@ jobs:
       - name: Run tests
         run: |
           cd backend
-          poetry shell
-          cd ..
-          export MONGO_URL=mongodb://root:password@localhost:27017 
-          make test
+          poetry run bash -c "cd .. && MONGO_URL=mongodb://root:password@localhost:27017 make test"
 
       - name: Build the Docker image
         run: make build
