@@ -45,7 +45,7 @@ jobs:
     steps:
 
       - name: set datetime  env
-        run: echo "NOW=$(date +'%Y.%m.%d.T%H%M%S')" >> $GITHUB_ENV
+        run: echo "NOW=$(date +'%Y.%m.%d.%H%M%S')" >> $GITHUB_ENV
 
       - name: Checkout repository
         uses: actions/checkout@v3
