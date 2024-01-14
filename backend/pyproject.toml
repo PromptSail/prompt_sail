@@ -18,7 +18,7 @@ lato = "0.7.0"
 
 
 [tool.poetry.group.dev]
-description = "Development and testing dependencies"
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
@@ -27,7 +27,6 @@ requests-mock = "^1.11.0"
 
 
 [tool.poetry.group.examples]
-description = "Example dependencies"
 optional = true
 
 [tool.poetry.group.examples.dependencies]
