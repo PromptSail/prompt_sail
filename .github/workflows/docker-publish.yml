@@ -72,8 +72,8 @@ jobs:
         run: |
           cd backend
           poetry shell
-          export MONGO_URL=mongodb://root:password@localhost:27017 
-          pytests ./tests
+          MONGO_URL=mongodb://root:password@localhost:27017 make test
+          
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
