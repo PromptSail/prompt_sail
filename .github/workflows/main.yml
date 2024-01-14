@@ -76,7 +76,7 @@ jobs:
       - name: Configure Poetry
         run: |
           cd backend
-          poetry config virtualenvs.create false
+          poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
 
       - name: Install backend dependencies
