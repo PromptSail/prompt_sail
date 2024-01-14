@@ -71,8 +71,7 @@ jobs:
       - name: Run tests
         run: |
           cd backend
-          poetry shell
-          MONGO_URL=mongodb://root:password@localhost:27017 make test
+          poetry run bash -c "cd .. && MONGO_URL=mongodb://root:password@localhost:27017 make test"
           
 
       # Install the cosign tool except on PR
