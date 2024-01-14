@@ -4,11 +4,11 @@ WORKDIR /app
 
 RUN apk --no-cache add curl
 
-COPY package*.json .
+COPY . ./
 
 RUN npm install
 
-COPY . .
+COPY . ./
 
 RUN npm run build
 

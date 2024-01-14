@@ -14,6 +14,12 @@ test-windows:
 
 build:
 	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
+
+build-ui:
+	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA) promptsail-ui
+
+build-backend:
+	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA) promptsail-backend
 	
 format:
 	pre-commit run --all-files
