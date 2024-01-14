@@ -7,7 +7,7 @@ on:
       - deployment
 
 jobs:
-  deploy-ui:
+  build-test-deploy-ui:
     runs-on: ubuntu-latest
 
     steps:
@@ -82,7 +82,12 @@ jobs:
         run: cd backend && poetry install
 
       - name: Run tests
-        run: MONGO_URL=mongodb://root:password@localhost:27017 poetry run make test
+        run: |
+          cd backend
+          poetry shell
+          cd ..
+          export MONGO_URL=mongodb://root:password@localhost:27017 
+          make test
 
       - name: Build the Docker image
         run: make build
