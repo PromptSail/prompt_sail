@@ -40,17 +40,15 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           docker images
-          docker tag prompt_sail_promptsail-ui:latest registry.heroku.com/promptsail-ui/web
-          docker push registry.heroku.com/promptsail-ui/web
+          docker tag prompt_sail_promptsail-ui:latest registry.heroku.com/promptsail/web
+          docker push registry.heroku.com/promptsail/web
 
       - name: Release to Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:release web -a promptsail-ui
+        run: heroku container:release web -a promptsail
 
   build-test-deploy-backend:
-    if: ${{ false }} # disable for now
-
     runs-on: ubuntu-latest
 
     services:
@@ -101,10 +99,10 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           docker images
-          docker tag prompt_sail_app:latest registry.heroku.com/promptsail/web
-          docker push registry.heroku.com/promptsail/web
+          docker tag prompt_sail_app-backend:latest registry.heroku.com/promptsail-backend/web
+          docker push registry.heroku.com/promptsail-backend/web
 
       - name: Release to Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:release web -a promptsail
+        run: heroku container:release web -a promptsail-backend
