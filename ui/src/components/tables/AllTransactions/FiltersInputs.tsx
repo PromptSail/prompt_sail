@@ -3,6 +3,7 @@ import { TransactionsFilters } from '../../../api/types';
 import { ProjectSelect } from '../types';
 import { Button, Form, InputGroup } from 'react-bootstrap';
 import DateRangePicker from 'rsuite/esm/DateRangePicker';
+import { useSearchParams } from 'react-router-dom';
 
 export const FiltersInputs: React.FC<{
     setFilters: (length: SetStateAction<TransactionsFilters>) => void;
@@ -11,11 +12,21 @@ export const FiltersInputs: React.FC<{
     totalElements: number;
     projectNames: ProjectSelect[];
 }> = ({ page, totalPages, totalElements, setFilters, projectNames }) => {
+    const [params, setParams] = useSearchParams();
     const setPage = (val: number) => {
         setFilters((old) => ({
             ...old,
             page: `${val}`
         }));
+    };
+    const setNewParam = (param: { [key: string]: string }) => {
+        const newParam = new URLSearchParams(params);
+        for (const key in param) {
+            if (Object.prototype.hasOwnProperty.call(param, key)) {
+                param[key].length > 0 ? newParam.set(key, param[key]) : newParam.delete(key);
+            }
+        }
+        setParams(newParam);
     };
     const tagsInput = useRef(null);
     return (
@@ -33,6 +44,7 @@ export const FiltersInputs: React.FC<{
                                     project_id,
                                     page: '1'
                                 }));
+                                setNewParam({ project_id });
                             }}
                         >
                             {projectNames.length > 0 && (
@@ -72,6 +84,7 @@ export const FiltersInputs: React.FC<{
                                         tags,
                                         page: '1'
                                     }));
+                                    setNewParam({ tags });
                                 }}
                             >
                                 Search
@@ -91,9 +104,18 @@ export const FiltersInputs: React.FC<{
                                     date_to: v[1].toISOString(),
                                     page: '1'
                                 }));
+                                setNewParam({
+                                    date_from: v[0].toISOString(),
+                                    date_to: v[1].toISOString()
+                                });
                             } else {
                                 setFilters((old) => ({ ...old, date_from: '', date_to: '' }));
+                                const deleteDates = new URLSearchParams(params);
+                                deleteDates.delete('date_from');
+                                deleteDates.delete('date_to');
+                                setParams(deleteDates);
                             }
+                            console.log(params);
                         }}
                     />
                 </div>
@@ -132,6 +154,7 @@ export const FiltersInputs: React.FC<{
                                     page_size,
                                     page: '1'
                                 }));
+                                setNewParam({ page_size });
                             }}
                             defaultValue={20}
                         >
