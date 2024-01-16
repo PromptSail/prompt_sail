@@ -110,7 +110,6 @@ export const FiltersInputs: React.FC<{
                         format="yyyy-MM-dd HH:mm:ss"
                         placeholder="Select date range"
                         defaultValue={(() => {
-                            console.log(params.get('date_from'));
                             if (params.get('date_from') && params.get('date_from')) {
                                 const from = new Date(`${params.get('date_from')}`);
                                 const to = new Date(`${params.get('date_to')}`);
@@ -136,7 +135,6 @@ export const FiltersInputs: React.FC<{
                                 deleteDates.delete('date_to');
                                 setParams(deleteDates);
                             }
-                            console.log(params);
                         }}
                     />
                 </div>
