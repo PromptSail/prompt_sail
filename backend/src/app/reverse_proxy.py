@@ -10,6 +10,7 @@ from starlette.background import BackgroundTask
 from app.dependencies import get_logger, get_transaction_context
 from projects.use_cases import get_project_by_slug
 from transactions.use_cases import store_transaction
+from utils import ApiURLParser
 
 from .app import app
 
@@ -49,17 +50,14 @@ async def reverse_proxy(
     target_path: str | None = None,
 ):
     logger = get_logger(request)
-
+    
     # if not request.state.is_handled_by_proxy:
     #     return RedirectResponse("/ui")
     # project = ctx.call(get_project_by_slug, slug=request.state.slug)
 
     tags = tags.split(",") if tags is not None else []
-        
     project = ctx.call(get_project_by_slug, slug=project_slug)
-
-    if path == "":
-        path = target_path if target_path is not None else ""
+    url = ApiURLParser.parse(project, deployment_name, path, target_path)
 
     logger.debug(f"got projects for {project}")
 
@@ -67,7 +65,6 @@ async def reverse_proxy(
     body = await request.body() if request.method != "GET" else None
 
     # Make the request to the upstream server
-    api_base = [prov.api_base for prov in project.ai_providers if prov.deployment_name == deployment_name][0]
     client = httpx.AsyncClient()
     # todo: copy timeout from request, temporary set to 100s
     timeout = httpx.Timeout(100.0, connect=50.0)
@@ -75,7 +72,7 @@ async def reverse_proxy(
     request_time = datetime.now(tz=timezone.utc)
     rp_req = client.build_request(
         method=request.method,
-        url=f"{api_base}/{path}",
+        url=url,
         # headers=request.headers.raw,
         headers={
             k: v for k, v in request.headers.items() if k.lower() not in ("host",)
@@ -84,6 +81,7 @@ async def reverse_proxy(
         content=body,
         timeout=timeout,
     )
+    logger.debug(f"Requesting on: {url}")
     rp_resp = await client.send(rp_req, stream=True)
 
     buffer = []

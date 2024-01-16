@@ -65,6 +65,16 @@ def create_transaction_query_from_filters(
         query["response_time"]["$lte"] = date_to
     return query
     
+    
+class ApiURLParser:
+
+    @staticmethod
+    def parse(project, deployment_name: str, path: str, target_path: str) -> str:
+        api_base = [prov.api_base for prov in project.ai_providers if prov.deployment_name == deployment_name][0]
+        if path == "":
+            path = target_path if target_path is not None else ""
+        return f'{api_base}/{path}'
+    
 
 class OrderedSet(OrderedDict):
     def __init__(self, iterable=None):
