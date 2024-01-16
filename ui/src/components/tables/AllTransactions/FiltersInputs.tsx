@@ -1,4 +1,4 @@
-import { SetStateAction, useRef } from 'react';
+import { SetStateAction, useEffect, useRef } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { ProjectSelect } from '../types';
 import { Button, Form, InputGroup } from 'react-bootstrap';
@@ -7,12 +7,23 @@ import { useSearchParams } from 'react-router-dom';
 
 export const FiltersInputs: React.FC<{
     setFilters: (length: SetStateAction<TransactionsFilters>) => void;
+    filters: TransactionsFilters;
     page: number;
     totalPages: number;
     totalElements: number;
     projectNames: ProjectSelect[];
-}> = ({ page, totalPages, totalElements, setFilters, projectNames }) => {
+}> = ({ page, totalPages, totalElements, filters, setFilters, projectNames }) => {
     const [params, setParams] = useSearchParams();
+    useEffect(() => {
+        setFilters((old) => ({
+            ...old,
+            project_id: params.get('project_id') || '',
+            tags: params.get('tags') || '',
+            date_from: params.get('date_from') || '',
+            date_to: params.get('date_to') || '',
+            page_size: params.get('page_size') || '20'
+        }));
+    }, []);
     const setPage = (val: number) => {
         setFilters((old) => ({
             ...old,
@@ -37,6 +48,7 @@ export const FiltersInputs: React.FC<{
                         <Form.Select
                             size="sm"
                             aria-label="Select project"
+                            value={filters.project_id}
                             onChange={(v) => {
                                 const project_id = v.currentTarget.value;
                                 setFilters((old) => ({
@@ -71,6 +83,7 @@ export const FiltersInputs: React.FC<{
                                 aria-label="tags"
                                 aria-describedby="basic-addon2"
                                 ref={tagsInput}
+                                defaultValue={filters.tags}
                             />
                             <Button
                                 variant="primary"
@@ -96,6 +109,14 @@ export const FiltersInputs: React.FC<{
                     <DateRangePicker
                         format="yyyy-MM-dd HH:mm:ss"
                         placeholder="Select date range"
+                        defaultValue={(() => {
+                            console.log(params.get('date_from'));
+                            if (params.get('date_from') && params.get('date_from')) {
+                                const from = new Date(`${params.get('date_from')}`);
+                                const to = new Date(`${params.get('date_to')}`);
+                                return [new Date(from.getTime()), new Date(to.getTime())];
+                            } else return null;
+                        })()}
                         onChange={(v) => {
                             if (v != null) {
                                 setFilters((old) => ({
@@ -147,6 +168,7 @@ export const FiltersInputs: React.FC<{
                     <span>{page < 0 ? 'Loading...' : `${page} of ${totalPages}`}</span>
                     <div className="page_size">
                         <select
+                            value={filters.page_size}
                             onChange={(v) => {
                                 const page_size = v.currentTarget.value;
                                 setFilters((old) => ({

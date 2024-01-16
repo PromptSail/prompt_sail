@@ -44,6 +44,7 @@ const AllTransactions: React.FC = () => {
                     totalPages={pagesInfo.total_pages}
                     totalElements={pagesInfo.total_elements}
                     projectNames={projectsNames}
+                    filters={filters}
                     setFilters={setFilters}
                 />
                 {transactions.isLoading && (
