@@ -1,30 +1,26 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import dotenv from 'dotenv';
 
-// https://vitejs.dev/config/
+const createProxy = (url: string) => ({
+    '/api': {
+        target: url,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+    }
+});
+
 export default defineConfig(({ mode }) => {
-    process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
+    const env = dotenv.config({ path: `.env.${mode}` }).parsed;
     return {
         plugins: [react()],
         server: {
-            port: parseInt(process.env.VITE_PORT),
-            proxy: {
-                '/api': {
-                    target: 'http://promptsail.local:8000',
-                    changeOrigin: true,
-                    rewrite: (path) => path.replace(/^\/api/, '')
-                }
-            }
+            port: parseInt(env.PORT),
+            proxy: createProxy(env.BACKEND_URL)
         },
         preview: {
-            port: parseInt(process.env.VITE_PORT),
-            proxy: {
-                '/api': {
-                    target: 'http://promptsail-backend:8000',
-                    changeOrigin: true,
-                    rewrite: (path) => path.replace(/^\/api/, '')
-                }
-            }
+            port: parseInt(env.PORT),
+            proxy: createProxy(env.BACKEND_URL)
         }
     };
 });
