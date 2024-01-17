@@ -60,7 +60,7 @@
                 tr
                     th
                         border-radius: 0 !important
-    &__filters
+    &__filters, &__filters_footer
         display: flex
         flex-direction: row
         background: #0d6efd
@@ -70,6 +70,10 @@
         justify-content: space-between
         color: #b8d4ff !important
         font-weight: bold
+        &_footer
+            flex-direction: row
+            justify-content: end
+            border-radius: 0 0 10px 10px
         .inputs, .page
             display: flex
             flex-direction: column
@@ -110,14 +114,14 @@
                         font-weight: bold
                         &:active
                             color: #b8d4ff !important
-                .page_size
-                    color: #b8d4ff
-                    font-weight: bold
-                    margin: auto 0
-                    select
-                        background: #0d6efd
-                        border: 1px solid white
-                        border-radius: 7px
+        .page_size
+            color: #b8d4ff
+            font-weight: bold
+            margin: auto 0
+            select
+                background: #0d6efd
+                border: 1px solid white
+                border-radius: 7px
         .page
             .row
                 justify-content: space-around
