@@ -10,18 +10,13 @@ declare global {
     }
 }
 interface Props {
-    project: {
-        name: string;
-        id: string;
-        api_base: string;
-        slug: string;
-    };
+    projectId: string;
     lengthTransactionRequest: (length: SetStateAction<string>) => void;
 }
-const LatestTransactions: React.FC<Props> = ({ project, lengthTransactionRequest }) => {
+const LatestTransactions: React.FC<Props> = ({ projectId, lengthTransactionRequest }) => {
     const filters: TransactionsFilters = {
         page_size: '5',
-        project_id: project.id
+        project_id: projectId
     };
     const transactions = useGetAllTransactions(filters);
     useEffect(() => {
