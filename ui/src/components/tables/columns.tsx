@@ -79,7 +79,7 @@ export const columns = [
     columnHelper.accessor('more', {
         header: 'More',
         cell: (v) => v.getValue(),
-        size: 50,
+        size: 100,
         enableSorting: false,
         enableGlobalFilter: false
     })
