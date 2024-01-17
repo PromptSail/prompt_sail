@@ -44,9 +44,7 @@ const LatestTransactions: React.FC<Props> = ({ project, lengthTransactionRequest
             </>
         );
     if (transactions.isSuccess) {
-        return (
-            <LatestTransactionsTable tableData={transactions.data.data.items} project={project} />
-        );
+        return <LatestTransactionsTable tableData={transactions.data.data.items} />;
     }
 };
 export default LatestTransactions;
