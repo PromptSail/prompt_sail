@@ -1,14 +1,13 @@
-from _datetime import datetime, timezone
 from typing import Annotated
 
 import httpx
+from _datetime import datetime, timezone
+from app.dependencies import get_logger, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
 from lato import Application, TransactionContext
-from starlette.background import BackgroundTask
-
-from app.dependencies import get_logger, get_transaction_context
 from projects.use_cases import get_project_by_slug
+from starlette.background import BackgroundTask
 from transactions.use_cases import store_transaction
 from utils import ApiURLBuilder
 
@@ -33,12 +32,13 @@ async def close_stream(
             response=response,
             buffer=buffer,
             tags=tags,
-            request_time=request_time
+            request_time=request_time,
         )
 
 
 @app.api_route(
-    "/{project_slug}/{deployment_name}/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"]
+    "/{project_slug}/{deployment_name}/{path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
 )
 async def reverse_proxy(
     project_slug: str,
@@ -50,7 +50,7 @@ async def reverse_proxy(
     target_path: str | None = None,
 ):
     logger = get_logger(request)
-    
+
     # if not request.state.is_handled_by_proxy:
     #     return RedirectResponse("/ui")
     # project = ctx.call(get_project_by_slug, slug=request.state.slug)
@@ -68,7 +68,7 @@ async def reverse_proxy(
     client = httpx.AsyncClient()
     # todo: copy timeout from request, temporary set to 100s
     timeout = httpx.Timeout(100.0, connect=50.0)
-    
+
     request_time = datetime.now(tz=timezone.utc)
     rp_req = client.build_request(
         method=request.method,
@@ -97,7 +97,6 @@ async def reverse_proxy(
             rp_resp,
             buffer,
             tags,
-            request_time
+            request_time,
         ),
     )
-

@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-
 from seedwork.exceptions import NotFoundException
 from utils import deserialize_data, serialize_data
 

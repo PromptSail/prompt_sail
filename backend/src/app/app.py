@@ -1,10 +1,8 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-
 from config import config
 from config.containers import TopLevelContainer
-
+from fastapi import FastAPI
 
 container = TopLevelContainer()
 container.config.override(config)
@@ -25,13 +23,13 @@ async def fastapi_lifespan(app: FastAPI):
                 description="Project 1 description",
                 ai_providers=[
                     AIProvider(
-                        deployment_name='openai',
+                        deployment_name="openai",
                         api_base="https://api.openai.com/v1",
                         description="",
                         provider_name="OpenAI",
                     ),
                     AIProvider(
-                        deployment_name='azure_openai',
+                        deployment_name="azure_openai",
                         api_base="https://openai-prompt-sail.openai.azure.com",
                         description="",
                         provider_name="Azure OpenAI",
@@ -46,13 +44,13 @@ async def fastapi_lifespan(app: FastAPI):
                 description="Project 2 description",
                 ai_providers=[
                     AIProvider(
-                        deployment_name='openai',
+                        deployment_name="openai",
                         api_base="https://openai-prompt-sail.openai.azure.com",
                         description="",
                         provider_name="OpenAI",
                     ),
                     AIProvider(
-                        deployment_name='azure_openai',
+                        deployment_name="azure_openai",
                         api_base="hhttps://my-azure-experiments.oai.azure.com",
                         description="",
                         provider_name="Azure OpenAI",
