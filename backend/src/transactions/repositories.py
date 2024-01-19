@@ -23,10 +23,7 @@ class TransactionRepository(MongoRepository):
         return self.find_one({"_id": transaction_id})
 
     def get_paginated_and_filtered(
-        self, 
-        page: int, 
-        page_size: int, 
-        query: dict[str, str | datetime | None] = None
+        self, page: int, page_size: int, query: dict[str, str | datetime | None] = None
     ) -> list[Transaction]:
         return self.find(query)[::-1][
             (page - 1) * page_size : (page - 1) * page_size + page_size

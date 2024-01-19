@@ -1,8 +1,7 @@
 import importlib
 
-from fastapi.staticfiles import StaticFiles
-
 from config import config
+from fastapi.staticfiles import StaticFiles
 
 from .app import app
 
