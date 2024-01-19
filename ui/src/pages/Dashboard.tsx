@@ -33,7 +33,7 @@ const Dashboard = () => {
     if (projects.isSuccess) {
         return (
             <>
-                <div className="w-5/6 m-auto">
+                <div>
                     <div className="flex flex-row justify-between">
                         <div className="flex flex-col">
                             <h2 className="text-3xl font-semibold text-left">Projects</h2>

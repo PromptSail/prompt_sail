@@ -102,17 +102,8 @@ export const TableWrapper: React.FC<{
             </div>
             {children}
             <div className="table__filters_footer">
-                <span className="my-auto">
-                    {page < 0 ? 'Loading...' : `${page} of ${totalPages}`}
-                </span>
-                <FilterPageSize
-                    pageSize={filters.page_size}
-                    setFilters={setFilters}
-                    setNewParam={setNewParam}
-                />
-                <span className="my-auto">{page < 0 ? 'Loading...' : `${totalElements} rows`}</span>
-                <div className="row">
-                    <div>
+                <div className="page_footer">
+                    <div className="row">
                         <Button
                             size="sm"
                             onClick={() => setPage(1)}
@@ -133,6 +124,19 @@ export const TableWrapper: React.FC<{
                             onClick={() => setPage(totalPages)}
                             disabled={page >= totalPages}
                         >{`>>`}</Button>
+                    </div>
+                    <div className="row">
+                        <span className="my-auto">
+                            {page < 0 ? 'Loading...' : `${page} of ${totalPages}`}
+                        </span>
+                        <FilterPageSize
+                            pageSize={filters.page_size}
+                            setFilters={setFilters}
+                            setNewParam={setNewParam}
+                        />
+                        <span className="my-auto">
+                            {page < 0 ? 'Loading...' : `${totalElements} rows`}
+                        </span>
                     </div>
                 </div>
             </div>

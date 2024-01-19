@@ -4,15 +4,21 @@ import Project from './pages/Project';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Transaction from './pages/Transaction';
-import Sidebar from './components/SIdebar/Sidebar';
+import Sidebar from './components/Sidebar/Sidebar';
 import AllTransactions from './pages/AllTransactions';
+import { useRef } from 'react';
 
 const App = () => {
+    const page = useRef(null);
     return (
         <>
-            <div className="flex flex-row h-screen overflow-hidden">
-                <Sidebar classes="h-full w-full flex-1 bg-zinc-800 p-5 text-light flex flex-col gap-2"></Sidebar>
-                <div className="flex-[4] overflow-y-auto">
+            <div className="h-screen">
+                <Sidebar pageRef={page}></Sidebar>
+                <div
+                    ref={page}
+                    style={{ marginLeft: '350px' }}
+                    className="overflow-y-auto mx-[100px]"
+                >
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/projects/:projectId" element={<Project />} />
