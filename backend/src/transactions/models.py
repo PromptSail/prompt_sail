@@ -16,7 +16,7 @@ class Transaction(BaseModel):
     response: dict[str, Any]
     tags: list[str]
     model: str
-    model_type: str
+    type: str
     os: str | None
     token_usage: int
     library: str

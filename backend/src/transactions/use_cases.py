@@ -97,7 +97,7 @@ def store_transaction(
         ),
         tags=tags,
         model=params["model"],
-        model_type=params["model_type"],
+        type=params["type"],
         os=params["os"],
         token_usage=params["token_usage"],
         library=params["library"],

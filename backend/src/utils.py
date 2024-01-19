@@ -90,7 +90,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     url = str(request.__dict__["url"])
 
     if "openai.azure.com" in url and "embeddings" in url:
-        transaction_params["model_type"] = "embedding"
+        transaction_params["type"] = "embedding"
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["message"] = None
@@ -110,7 +110,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["error_message"] = None
 
     if "openai.azure.com" in url and "completions" in url:
-        transaction_params["model_type"] = "chat"
+        transaction_params["type"] = "chat"
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["message"]
             transaction_params["message"] = None
@@ -125,7 +125,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["error_message"] = None
 
     if "api.openai.com" in url and "completions" in url:
-        transaction_params["model_type"] = "chat"
+        transaction_params["type"] = "chat"
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["message"] = None
