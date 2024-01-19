@@ -3,7 +3,7 @@ import json
 
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
-from utils import create_transaction_query_from_filters
+from utils import create_transaction_query_from_filters, req_resp_to_transaction_parser
 
 
 def get_transactions_for_project(
@@ -70,7 +70,9 @@ def store_transaction(
     response_content = decoder.decode(buf)
 
     response_content = json.loads(response_content)
-
+    
+    params = req_resp_to_transaction_parser(request, response, response_content)
+    
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response
         response_content["usage"] = dict(prompt_tokens=0, completion_tokens=0)
@@ -96,6 +98,14 @@ def store_transaction(
             encoding=response.encoding,
         ),
         tags=tags,
+        model=params['model'],
+        model_type=params['model_type'],
+        os=params['os'],
+        token_usage=params['token_usage'],
+        library=params['library'],
+        status_code=params['status_code'],
+        message=params['message'],
+        error_message=params['error_message'],
         request_time=request_time
     )
 

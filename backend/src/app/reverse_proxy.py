@@ -10,7 +10,7 @@ from starlette.background import BackgroundTask
 from app.dependencies import get_logger, get_transaction_context
 from projects.use_cases import get_project_by_slug
 from transactions.use_cases import store_transaction
-from utils import ApiURLParser
+from utils import ApiURLBuilder
 
 from .app import app
 
@@ -57,7 +57,7 @@ async def reverse_proxy(
 
     tags = tags.split(",") if tags is not None else []
     project = ctx.call(get_project_by_slug, slug=project_slug)
-    url = ApiURLParser.parse(project, deployment_name, path, target_path)
+    url = ApiURLBuilder.build(project, deployment_name, path, target_path)
 
     logger.debug(f"got projects for {project}")
 
