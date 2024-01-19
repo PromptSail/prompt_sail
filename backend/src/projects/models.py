@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field
-
 from transactions.models import generate_uuid
 
 
 class AIProvider(BaseModel):
+    deployment_name: str
     api_base: str
+    description: str
     provider_name: str
-    ai_model_name: str
 
 
 class Project(BaseModel):
