@@ -45,7 +45,7 @@ async def fastapi_lifespan(app: FastAPI):
                 ai_providers=[
                     AIProvider(
                         deployment_name="openai",
-                        api_base="https://openai-prompt-sail.openai.azure.com",
+                        api_base="https://api.openai.com/v1",
                         description="",
                         provider_name="OpenAI",
                     ),
