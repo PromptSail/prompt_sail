@@ -8,6 +8,7 @@ import ProjectInstall from '../components/ProjectInstall/ProjectInstall';
 import DeleteProject from '../components/ProjectForms/DeleteProject';
 import LatestTransactions from '../components/tables/LatestTransactions/LatestTransactions';
 import { useState } from 'react';
+import { Button } from 'react-bootstrap';
 const Project: React.FC = () => {
     const navigate = useNavigate();
     const params = useParams();
@@ -72,16 +73,20 @@ const Project: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">
-                            LLM Transactions
-                        </h4>
+                        <div className="flex justify-between">
+                            <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">
+                                LLM Transactions
+                            </h4>
+                            <Button
+                                className="m-auto mx-0"
+                                variant="outline-secondary"
+                                onClick={() => navigate(`/transactions?project_id=${data.id}`)}
+                            >
+                                All Project Transactions
+                            </Button>
+                        </div>
                         <LatestTransactions
-                            project={{
-                                name: data.name,
-                                id: data.id,
-                                api_base: data.ai_providers[0].api_base,
-                                slug: data.slug
-                            }}
+                            projectId={data.id}
                             lengthTransactionRequest={setTransactionLength}
                         />
                     </div>

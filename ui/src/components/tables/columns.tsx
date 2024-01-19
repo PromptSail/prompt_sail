@@ -6,11 +6,11 @@ export const columns = [
     columnHelper.accessor('time', {
         header: 'time',
         cell: (v) => {
-            const d = new Date(v.getValue());
+            const d = new Date(v.getValue() + 'Z');
             return `${d.toLocaleDateString()}\n${d.getHours()}:${String(d.getMinutes()).padStart(
                 2,
                 '0'
-            )}`;
+            )}:${String(d.getSeconds()).padStart(2, '0')}`;
         },
         sortingFn: (a, b, id) => {
             const dateA = new Date(a.getValue(id));
@@ -79,7 +79,7 @@ export const columns = [
     columnHelper.accessor('more', {
         header: 'More',
         cell: (v) => v.getValue(),
-        size: 50,
+        size: 100,
         enableSorting: false,
         enableGlobalFilter: false
     })

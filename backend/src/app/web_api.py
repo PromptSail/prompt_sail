@@ -1,16 +1,12 @@
-from typing import Annotated
 from datetime import datetime
+from typing import Annotated
+
+from app.dependencies import get_transaction_context
 from fastapi import Depends
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
-
-from app.dependencies import get_transaction_context
 from projects.models import Project
-from projects.schemas import (
-    CreateProjectSchema,
-    GetProjectSchema,
-    UpdateProjectSchema,
-)
+from projects.schemas import CreateProjectSchema, GetProjectSchema, UpdateProjectSchema
 from projects.use_cases import (
     add_project,
     delete_project,
@@ -25,9 +21,9 @@ from transactions.schemas import (
     GetTransactionWithProjectSlugSchema,
 )
 from transactions.use_cases import (
+    count_transactions,
     get_all_filtered_and_paginated_transactions,
     get_transaction,
-    count_transactions
 )
 
 from .app import app
@@ -38,6 +34,10 @@ async def get_projects(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
 ) -> list[GetProjectSchema]:
     projects = ctx.call(get_all_projects)
+    transactions_count = {}
+    for project in projects:
+        transactions_count[project.id] = ctx.call(count_transactions, project_id=project.id)
+    projects = [GetProjectSchema(**project.model_dump(), total_transactions=transactions_count[project.id]) for project in projects]
     return projects
 
 
@@ -47,7 +47,8 @@ async def get_project_details(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> GetProjectSchema:
     project = ctx.call(get_project, project_id=project_id)
-    project = GetProjectSchema(**project.model_dump())
+    transaction_count = ctx.call(count_transactions, project_id=project_id)
+    project = GetProjectSchema(**project.model_dump(), total_transactions=transaction_count)
     return project
 
 
@@ -106,11 +107,11 @@ async def get_paginated_transactions(
     tags: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-    project_id: str | None = None
+    project_id: str | None = None,
 ) -> GetTransactionPageResponseSchema:
     if tags is not None:
-        tags = tags.split(',')
-    
+        tags = tags.split(",")
+
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
         page=page,
@@ -118,7 +119,7 @@ async def get_paginated_transactions(
         tags=tags,
         date_from=date_from,
         date_to=date_to,
-        project_id=project_id
+        project_id=project_id,
     )
     projects = ctx.call(get_all_projects)
     project_id_name_map = {project.id: project.name for project in projects}
@@ -129,7 +130,13 @@ async def get_paginated_transactions(
         )
         for transaction in transactions
     ]
-    count = ctx.call(count_transactions, tags=tags, date_from=date_from, date_to=date_to, project_id=project_id)
+    count = ctx.call(
+        count_transactions,
+        tags=tags,
+        date_from=date_from,
+        date_to=date_to,
+        project_id=project_id,
+    )
     page_response = GetTransactionPageResponseSchema(
         items=transactions,
         page_index=page,

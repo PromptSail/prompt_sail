@@ -11,18 +11,14 @@ import { getAllTransactionResponse } from '../../../api/interfaces';
 import { Link } from 'react-router-dom';
 import { columns } from '../columns';
 import { randomTransactionData } from '../../../api/test/randomTransactionsData';
+import iconSrc from '../../../assets/icons/box-arrow-up-right.svg';
+import { ReactSVG } from 'react-svg';
 
 interface Props {
     tableData: getAllTransactionResponse['items'];
-    project: {
-        name: string;
-        id: string;
-        api_base: string;
-        slug: string;
-    };
 }
 
-const LatestTransactionsTable: React.FC<Props> = ({ tableData, project }) => {
+const LatestTransactionsTable: React.FC<Props> = ({ tableData }) => {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
@@ -58,19 +54,9 @@ const LatestTransactionsTable: React.FC<Props> = ({ tableData, project }) => {
             })(),
             // usage: tr.response.content.usage,
             more: (
-                <Link
-                    className="underline"
-                    id={tr.id}
-                    to={`/transactions/${tr.id}`}
-                    state={{
-                        project: {
-                            name: project.name,
-                            api_base: project.api_base,
-                            slug: project.slug
-                        }
-                    }}
-                >
-                    Details
+                <Link className="link" target="_blank" id={tr.id} to={`/transactions/${tr.id}`}>
+                    <span>Details</span>&nbsp;
+                    <ReactSVG src={iconSrc} />
                 </Link>
             )
         }))

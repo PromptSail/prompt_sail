@@ -7,13 +7,12 @@ from typing import Optional
 from uuid import UUID
 
 import pymongo
+from app.logging import logger, logging_context
 from dependency_injector import containers, providers
 from dependency_injector.containers import Container
 from dependency_injector.providers import Dependency, Factory, Provider, Singleton
 from dependency_injector.wiring import Provide, inject  # noqa
 from lato import Application, DependencyProvider, TransactionContext
-
-from app.logging import logger, logging_context
 from projects.repositories import ProjectRepository
 from transactions.repositories import TransactionRepository
 

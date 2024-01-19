@@ -11,8 +11,3 @@ export type transaction = {
     // };
     more: JSX.Element;
 };
-
-export type ProjectSelect = {
-    id: string;
-    name: string;
-};

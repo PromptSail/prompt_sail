@@ -11,6 +11,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { randomTransactionData } from '../../../api/test/randomTransactionsData';
 import { columns } from '../columns';
+import iconSrc from '../../../assets/icons/box-arrow-up-right.svg';
+import { ReactSVG } from 'react-svg';
 
 interface Props {
     tableData: getAllTransactionResponse['items'];
@@ -53,15 +55,9 @@ const AllTransactionsTable: React.FC<Props> = ({ tableData, pageSize }) => {
             })(),
             // usage: tr.response.content.usage,
             more: (
-                <Link
-                    className="underline"
-                    id={tr.id}
-                    to={`/transactions/${tr.id}`}
-                    state={{
-                        project: {}
-                    }}
-                >
-                    Details
+                <Link className="link" target="_blank" id={tr.id} to={`/transactions/${tr.id}`}>
+                    <span>Details</span>&nbsp;
+                    <ReactSVG src={iconSrc} />
                 </Link>
             )
         }))
