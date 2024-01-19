@@ -1,4 +1,4 @@
-name: Docker
+name: Build and Publish Docker to ghcr
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -8,7 +8,7 @@ name: Docker
 on:
   push:
     branches: 
-        - build-actions
+        - dev
     # Publish semver tags as releases.
     #tags: [ 'v*.*.*' ]
   pull_request:
