@@ -63,33 +63,11 @@ const TransactionAndProjectDetails: React.FC<Params> = ({ transaction }) => {
                         </div>
                         <div className="border-b-4 w-full flex flex-row">
                             <div className="border-e-4 p-2">Input</div>
-                            <div className="p-2">
-                                {transaction.request.content.messages
-                                    ? transaction.request.content.messages.map((el, id) => (
-                                          <span key={id}>[{el.content}]</span>
-                                      ))
-                                    : transaction.request.content.prompt.map((el, id) => (
-                                          <span key={id}>[{el}]</span>
-                                      ))}
-                            </div>
+                            <div className="p-2">{transaction.prompt}</div>
                         </div>
                         <div className="w-full flex flex-row">
                             <div className="p-2 m-auto">Output</div>
-                            <div className="border-s-4 p-2">
-                                {(() => {
-                                    try {
-                                        transaction.response.content.choices.map((el, id) => {
-                                            return (
-                                                <span key={id}>
-                                                    [{el.message ? el.message.content : el.text}]
-                                                </span>
-                                            );
-                                        });
-                                    } catch (err) {
-                                        return <span>{`${err}`}</span>;
-                                    }
-                                })()}
-                            </div>
+                            <div className="border-s-4 p-2">{transaction.message}</div>
                         </div>
                     </div>
                 </div>

@@ -50,47 +50,66 @@ export interface getProjectResponse extends getAllProjects {}
 export interface getTransactionResponse {
     id: string;
     project_id: string;
+    project_name: string;
+    request: {
+        content: {
+            input?: string;
+            model?: string;
+            messages?: [
+                {
+                    content: string;
+                    role: string;
+                }
+            ];
+        };
+        extensions: {
+            timeout: {
+                connect: number;
+                pool: number;
+                read: number;
+                write: number;
+            };
+        };
+        headers: Headers;
+        host: string;
+        method: string;
+        url: string;
+        [key: string]: any;
+    };
+    response: {
+        [key: string]: any;
+    };
+    model: string;
+    type: string;
+    os: string | null;
+    token_usage: number;
+    library: string;
+    status_code: number;
+    message: string | null;
+    prompt: string;
+    error_message: string | null;
     request_time: string;
     response_time: string;
     tags: string[];
-    request: {
-        url: string;
-        content: {
-            model: string;
-            messages?: [
-                {
-                    role: string;
-                    content: string;
-                }
-            ];
-            prompt: string[];
-        };
-        [key: string]: unknown;
-    };
-    response: {
-        headers: { [key: string]: string };
-        status_code: string;
-        content: {
-            model: string;
-            usage: {
-                prompt_tokens: number;
-                completion_tokens: number;
-                total_tokens: number;
-            };
-            choices: [
-                {
-                    index: string;
-                    text: string;
-                    message: {
-                        role: string;
-                        content: string;
-                    };
-                }
-            ];
-        };
-        [key: string]: unknown;
-    };
 }
+
+// id: str
+// project_id: str
+// project_name: str
+// request: dict[str, Any]
+// response: dict[str, Any]
+// model: str
+// type: str
+// os: str | None
+// token_usage: int
+// library: str
+// status_code: int
+// message: str | None
+// prompt: str
+// error_message: str | None
+// request_time: datetime
+// response_time: datetime
+// tags: list[str]
 
 export interface getAllTransactionResponse {
     items: getTransactionResponse[];
