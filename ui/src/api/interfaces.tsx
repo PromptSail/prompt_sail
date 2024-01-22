@@ -92,25 +92,6 @@ export interface getTransactionResponse {
     response_time: string;
     tags: string[];
 }
-
-// id: str
-// project_id: str
-// project_name: str
-// request: dict[str, Any]
-// response: dict[str, Any]
-// model: str
-// type: str
-// os: str | None
-// token_usage: int
-// library: str
-// status_code: int
-// message: str | None
-// prompt: str
-// error_message: str | None
-// request_time: datetime
-// response_time: datetime
-// tags: list[str]
-
 export interface getAllTransactionResponse {
     items: getTransactionResponse[];
     page_index: number;
