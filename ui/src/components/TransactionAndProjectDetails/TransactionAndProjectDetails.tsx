@@ -11,6 +11,10 @@ interface Params {
 const TransactionAndProjectDetails: React.FC<Params> = ({ transaction }) => {
     const navigate = useNavigate();
     const project = useGetProject(transaction.project_id);
+    const toLocalDate = (date: string) => {
+        const local = new Date(date + 'Z');
+        return `${local.toLocaleDateString()} ${local.toLocaleTimeString()}`;
+    };
     if (project.isLoading)
         return (
             <>
@@ -50,8 +54,8 @@ const TransactionAndProjectDetails: React.FC<Params> = ({ transaction }) => {
                             <span>Response status: {transaction.response.status_code}</span>
                         </div>
                         <div className="border-b-4 p-3 flex flex-row gap-16">
-                            <span>request_time: {transaction.request_time}</span>
-                            <span>response_time: {transaction.response_time}</span>
+                            <span>request_time: {toLocalDate(transaction.request_time)}</span>
+                            <span>response_time: {toLocalDate(transaction.response_time)}</span>
                             <span>
                                 Created by{' {'}
                                 {transaction.request.content.messages?.map((el, id) => (
