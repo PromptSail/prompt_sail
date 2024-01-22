@@ -10,7 +10,7 @@ class GetTransactionSchema(BaseModel):
     request: dict[str, Any]
     response: dict[str, Any]
     model: str
-    model_type: str
+    type: str
     os: str | None
     token_usage: int
     library: str
