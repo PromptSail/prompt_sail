@@ -22,6 +22,7 @@ class Transaction(BaseModel):
     library: str
     status_code: int
     message: str | None
+    prompt: str
     error_message: str | None
     request_time: datetime
     response_time: datetime = Field(
