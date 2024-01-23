@@ -28,7 +28,7 @@ const AllTransactions: React.FC = () => {
         }
     }, [transactions.status]);
     return (
-        <div className="p-5 px-20 pt-[100px] flex flex-col gap-5">
+        <div className="p-5 px-20 pt-[100px] gap-5">
             <h2 className="text-2xl font-semibold mb-2 md:text-4xl">All Transactions</h2>
             <div>
                 <TableWrapper
@@ -52,12 +52,10 @@ const AllTransactions: React.FC = () => {
                         </>
                     )}
                     {transactions.isSuccess && (
-                        <div className="overflow-x-auto">
-                            <AllTransactionsTable
-                                pageSize={Number(filters.page_size) || -1}
-                                tableData={transactions.data.data.items}
-                            />
-                        </div>
+                        <AllTransactionsTable
+                            pageSize={Number(filters.page_size) || -1}
+                            tableData={transactions.data.data.items}
+                        />
                     )}
                 </TableWrapper>
             </div>
