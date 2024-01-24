@@ -19,7 +19,7 @@ const Sidebar: React.FC<Props> = ({ children, classes, pageRef, setLoginState })
         if (pageRef.current) {
             const page = pageRef.current as HTMLDivElement;
             page.style.setProperty('transition', 'margin 500ms ease');
-            page.style.setProperty('margin-left', isSidebarHide ? '100px' : '350px');
+            page.style.setProperty('margin-left', isSidebarHide ? '0' : '250px');
         }
     }, [isSidebarHide]);
 
