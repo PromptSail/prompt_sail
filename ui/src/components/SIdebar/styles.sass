@@ -10,6 +10,9 @@
         height: 100%
         width: 100%
         z-index: 2
+        display: flex
+        flex-direction: column
+        justify-content: space-between
     &:hover
         .sidebar__toggleButtonContainer
             right: -65px
@@ -29,6 +32,22 @@
         display: flex
         flex-direction: column
         gap: .5rem
+    .bottom-menu
+        border-top: 2px solid var(--bs-gray-600)
+        color: var(--bs-gray-600)
+        padding-top: 5px
+        button
+            width: 100%
+            border: none
+            display: flex
+            flex-direction: row
+            justify-content: center
+            align-items: center
+            gap: 10px
+            font-weight: bold
+            svg
+                height: 100%
+                width: 20px
 
 .animationSidebar
     transition: right 200ms ease

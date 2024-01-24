@@ -17,7 +17,7 @@ const App = () => {
         return (
             <>
                 <div className="h-screen">
-                    <Sidebar pageRef={page}></Sidebar>
+                    <Sidebar pageRef={page} setLoginState={setLoginState}></Sidebar>
                     <div
                         ref={page}
                         style={{ marginLeft: '350px' }}

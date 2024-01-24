@@ -1,14 +1,18 @@
-import { MutableRefObject, ReactNode, useEffect, useState } from 'react';
+import { MutableRefObject, ReactNode, SetStateAction, useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
+import { ReactSVG } from 'react-svg';
+import Icon from '../../assets/icons/box-arrow-left.svg';
+import { checkLogin } from '../../storage/login';
 
 interface Props {
     children?: ReactNode;
     classes?: string;
     pageRef: MutableRefObject<null>;
+    setLoginState: (arg: SetStateAction<boolean>) => void;
 }
 
-const Sidebar: React.FC<Props> = ({ children, classes, pageRef }) => {
+const Sidebar: React.FC<Props> = ({ children, classes, pageRef, setLoginState }) => {
     const navigate = useNavigate();
     const [isSidebarHide, toggleSidebar] = useState(false);
     useEffect(() => {
@@ -18,6 +22,7 @@ const Sidebar: React.FC<Props> = ({ children, classes, pageRef }) => {
             page.style.setProperty('margin-left', isSidebarHide ? '100px' : '350px');
         }
     }, [isSidebarHide]);
+
     return (
         <>
             <div
@@ -37,6 +42,22 @@ const Sidebar: React.FC<Props> = ({ children, classes, pageRef }) => {
                             Transactions
                         </Button>
                         {children}
+                    </div>
+                    <div className="bottom-menu">
+                        <Button
+                            size="sm"
+                            variant="outline-secondary"
+                            className="outline-none"
+                            onClick={() => {
+                                localStorage.removeItem('login');
+                                setLoginState(checkLogin());
+                            }}
+                        >
+                            <div>
+                                <ReactSVG src={Icon} />
+                            </div>
+                            <span>Log out</span>
+                        </Button>
                     </div>
                 </div>
                 <div
