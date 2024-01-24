@@ -21,8 +21,8 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
             <div className="signin">
                 <div className="formContainer">
                     <div className="form">
-                        <h1>Welcome to Ermlab</h1>
-                        <h4>Sign in to continue</h4>
+                        <h2>Welcome to Ermlab</h2>
+                        <h5>Sign in to continue</h5>
                         <form onSubmit={formik.handleSubmit}>
                             <div className="inputs">
                                 <FloatingLabel label="Email">
@@ -51,7 +51,7 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
                     </div>
                     <div>
                         <img src={Logo} />
-                        <h3>Prompt Sail</h3>
+                        <h4>Prompt Sail</h4>
                     </div>
                 </div>
             </div>

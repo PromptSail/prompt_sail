@@ -2,36 +2,49 @@
     width: 100vw
     height: 100vh
     background: rgb(39, 39, 42)
+    overflow: auto
+    display: flex
+    justify-content: center
     position: relative
     .formContainer
-        margin: auto
-        padding-top: 20vh
-        width: 400px
+        width: 350px
+        text-align: center
+        height: 100%
         display: flex
         flex-direction: column
-        gap: 80px
-        text-align: center
+        justify-content: center
+        gap: 40px
+        +maxH(520px)
+            justify-content: start
         .form
             display: flex
             flex-direction: column
-            gap: 40px
+            gap: 30px
             color: white
             form
                 margin: auto
                 width: 90%
                 display: flex
                 flex-direction: column
-                gap: 40px
+                gap: 30px
                 .inputs
-                    color: rgb(39, 39, 42)
                     display: flex
                     flex-direction: column
-                    gap: 20px
-        div
+                    gap: 15px
+                    color: var(--bs-gray-500)
+                    input
+                        background: rgb(39, 39, 42)
+                        border-color: var(--bs-gray-500)
+                        color: var(--bs-gray-400)
+                        &:focus + label
+                            color: var(--bs-gray-400)
+                            &::after
+                                background: rgb(39, 39, 42)
+        & > :not(.form)
             color: #532cbd
             img
                 margin: auto
-                width: 10vw
+                width: 100px
                 // mix-blend-mode: multiply
                 mix-blend-mode: color
                 filter: brightness(1.5)
