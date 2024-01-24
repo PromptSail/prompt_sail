@@ -34,7 +34,7 @@ const Project: React.FC = () => {
         const data = project.data.data;
         return (
             <>
-                <div className="p-5 px-20 pt-[100px] w-full w-5/6 h-full flex flex-col justify-between">
+                <div className="p-5 px-20 pt-[100px] w-full w-5/6 h-full flex flex-col gap-10 justify-between">
                     <div>
                         <div className="flex flex-row justify-end gap-3">
                             <DeleteProject name={data.name} projectId={params.projectId || ''} />
