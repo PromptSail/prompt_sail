@@ -28,11 +28,23 @@
             position: relative
             top: 20px
             transition: transform 500ms ease
-    .menu
-        display: flex
-        flex-direction: column
-        gap: .5rem
-    .bottom-menu
+    .sidebar-top
+        .user
+            margin-bottom: 10px
+            *
+                margin: 0
+            &__name
+                font-size: 1.1em
+                color: white
+                font-weight: bold
+            &__email
+                color: var(--bs-gray-500)
+
+        .menu
+            display: flex
+            flex-direction: column
+            gap: .5rem
+    .sidebar-bottom
         border-top: 2px solid var(--bs-gray-600)
         color: var(--bs-gray-600)
         padding-top: 5px

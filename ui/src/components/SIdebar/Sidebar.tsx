@@ -15,6 +15,10 @@ interface Props {
 const Sidebar: React.FC<Props> = ({ children, classes, pageRef, setLoginState }) => {
     const navigate = useNavigate();
     const [isSidebarHide, toggleSidebar] = useState(false);
+    const user = {
+        name: 'John Doe',
+        email: 'JohnDoe@gmail.com'
+    };
     useEffect(() => {
         if (pageRef.current) {
             const page = pageRef.current as HTMLDivElement;
@@ -30,20 +34,30 @@ const Sidebar: React.FC<Props> = ({ children, classes, pageRef, setLoginState })
                 className={`sidebar${classes ? ' ' + classes : ''}`}
             >
                 <div className="sidebar__container">
-                    <div className="menu">
-                        <Button variant="primary" className="w-full" onClick={() => navigate('/')}>
-                            Projects
-                        </Button>
-                        <Button
-                            variant="primary"
-                            className="w-full"
-                            onClick={() => navigate('/transactions')}
-                        >
-                            Transactions
-                        </Button>
-                        {children}
+                    <div className="sidebar-top">
+                        <div className="user">
+                            <p className="user__name">{user.name}</p>
+                            <p className="user__email">{user.email}</p>
+                        </div>
+                        <div className="menu">
+                            <Button
+                                variant="primary"
+                                className="w-full"
+                                onClick={() => navigate('/')}
+                            >
+                                Projects
+                            </Button>
+                            <Button
+                                variant="primary"
+                                className="w-full"
+                                onClick={() => navigate('/transactions')}
+                            >
+                                Transactions
+                            </Button>
+                            {children}
+                        </div>
                     </div>
-                    <div className="bottom-menu">
+                    <div className="sidebar-bottom">
                         <Button
                             size="sm"
                             variant="outline-secondary"
