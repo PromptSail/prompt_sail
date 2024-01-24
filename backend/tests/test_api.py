@@ -4,9 +4,10 @@ test_obj = {
     "description": "Project 1 description",
     "ai_providers": [
         {
+            "deployment_name": "openai",
             "api_base": "https://api.openai.com/v1",
+            "description": "New test project",
             "provider_name": "provider1",
-            "ai_model_name": "model1",
         }
     ],
     "tags": ["tag1", "tag2"],
@@ -20,11 +21,13 @@ def test_create_project_returns_201(client, application):
 
     # act
     response = client.post("/api/projects", json=test_obj)
-
+    print(response)
+    
     # assert
     assert response.status_code == 201
     assert_obj = test_obj.copy()
     assert_obj["id"] = response.json()["id"]
+    assert_obj["total_transactions"] = response.json()["total_transactions"]
     assert response.json() == assert_obj
 
 
@@ -70,7 +73,7 @@ def test_get_project_happy_path(client, application):
 
     # assert
     assert response.status_code == 200
-    assert response.json() == dict(id="project1", **test_obj)
+    assert response.json() == dict(id="project1", total_transactions=0, **test_obj)
 
 
 def test_update_project(client, application):
@@ -87,7 +90,7 @@ def test_update_project(client, application):
 
     # assert
     assert response.status_code == 200
-    assert response.json() == test_obj | dict(id=project_id, name="Autotest2")
+    assert response.json() == test_obj | dict(id=project_id, total_transactions=0, name="Autotest2")
 
 
 def test_delete_project(client, application):
@@ -131,4 +134,4 @@ def test_get_projects(client, application):
 
     # assert
     assert result.status_code == 200
-    assert result.json() == [dict(id=project_id, **test_obj)]
+    assert result.json() == [dict(id=project_id, total_transactions=0, **test_obj)]
