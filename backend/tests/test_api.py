@@ -21,8 +21,7 @@ def test_create_project_returns_201(client, application):
 
     # act
     response = client.post("/api/projects", json=test_obj)
-    print(response)
-    
+
     # assert
     assert response.status_code == 201
     assert_obj = test_obj.copy()
@@ -90,7 +89,9 @@ def test_update_project(client, application):
 
     # assert
     assert response.status_code == 200
-    assert response.json() == test_obj | dict(id=project_id, total_transactions=0, name="Autotest2")
+    assert response.json() == test_obj | dict(
+        id=project_id, total_transactions=0, name="Autotest2"
+    )
 
 
 def test_delete_project(client, application):
