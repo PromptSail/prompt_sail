@@ -1,6 +1,7 @@
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { Accordion, Button, Form, InputGroup } from 'react-bootstrap';
+import slugify from 'slugify';
 import * as yup from 'yup';
 
 const FormikValues = {
@@ -26,12 +27,16 @@ const ProjectForm: React.FC<Props> = ({ onSubmit, validationSchema }) => {
     const [aiProviders, setAiProviders] = useState<typeof FormikValues.ai_providers>([]);
     const [ProviderIndex, setProviderIndex] = useState(0);
     const [isProviderFormShowed, setProviderForm] = useState(true);
+    const [isSlugGenerated, setSlugGenerate] = useState(true);
     const formik = useFormik({
         initialValues: FormikValues,
         onSubmit: onSubmit,
         validationSchema,
         validateOnChange: false
     });
+    const toSlug = (text: string) => {
+        return slugify(text, { replacement: '_', lower: true });
+    };
     const addProvider = () => {
         formik.setStatus({ _form: '' });
         const id = ProviderIndex;
@@ -78,8 +83,17 @@ const ProjectForm: React.FC<Props> = ({ onSubmit, validationSchema }) => {
                 <Form.Control
                     type="text"
                     name="slug"
+                    onKeyDown={() => setSlugGenerate(false)}
+                    onBlur={(e) => {
+                        const val = e.currentTarget.value;
+                        if (val.length < 1) setSlugGenerate(true);
+                        e.currentTarget.value = toSlug(val);
+                    }}
                     onChange={formik.handleChange}
-                    value={formik.values.slug}
+                    value={(() => {
+                        if (isSlugGenerated) return toSlug(formik.values.name);
+                        else formik.values.slug;
+                    })()}
                     required
                     isInvalid={!!formik.errors.slug}
                 />
