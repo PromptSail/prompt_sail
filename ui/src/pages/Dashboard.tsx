@@ -4,7 +4,6 @@ import { getAllProjects } from '../api/interfaces';
 import { Link } from 'react-router-dom';
 import { Form } from 'react-bootstrap';
 import { useGetAllProjects } from '../api/queries';
-import AddProject from '../components/ProjectForms/AddProject';
 
 const Dashboard = () => {
     const projects = useGetAllProjects();
@@ -54,7 +53,6 @@ const Dashboard = () => {
                                     else if (filter != '') setFilter('');
                                 }}
                             />
-                            <AddProject queryToRefetch={projects} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 py-5 gap-3 md:grid-cols-2">

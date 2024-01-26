@@ -9,7 +9,8 @@ import DeleteProject from '../components/ProjectForms/DeleteProject';
 import LatestTransactions from '../components/tables/LatestTransactions/LatestTransactions';
 import { useState } from 'react';
 import { Button } from 'react-bootstrap';
-const Project: React.FC = () => {
+import AddProject from '../components/ProjectForms/AddProject';
+const Project: React.FC & { Add: React.FC<Any>; Update: React.FC } = () => {
     const navigate = useNavigate();
     const params = useParams();
     const [transactionLength, setTransactionLength] = useState('loading');
@@ -95,5 +96,6 @@ const Project: React.FC = () => {
         );
     }
 };
+Project.Add = AddProject;
 
 export default Project;
