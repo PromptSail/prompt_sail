@@ -83,7 +83,8 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     transaction_params = {
         "library": request_headers["user-agent"],
         "status_code": response.__dict__["status_code"],
-        "model": request_content["model"],
+        "model": request_content.get("model", None),
+        "token_usage": None,
         "os": request_headers.get("x-stainless-os", None),
     }
 
@@ -93,7 +94,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["type"] = "embedding"
         transaction_params["prompt"] = request_content["input"]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["error"]["message"]
+            transaction_params["error_message"] = response_content["message"]
             transaction_params["message"] = None
         else:
             transaction_params["model"] = response_content["model"]
