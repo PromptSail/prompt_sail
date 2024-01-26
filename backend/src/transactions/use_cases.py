@@ -54,6 +54,12 @@ def get_all_filtered_and_paginated_transactions(
     return transactions
 
 
+def delete_multiple_transactions(
+    transaction_repository: TransactionRepository, project_id: str
+) -> None:
+    transaction_repository.delete_cascade(project_id=project_id)
+
+
 def store_transaction(
     request,
     response,
