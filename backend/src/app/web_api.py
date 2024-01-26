@@ -36,8 +36,15 @@ async def get_projects(
     projects = ctx.call(get_all_projects)
     transactions_count = {}
     for project in projects:
-        transactions_count[project.id] = ctx.call(count_transactions, project_id=project.id)
-    projects = [GetProjectSchema(**project.model_dump(), total_transactions=transactions_count[project.id]) for project in projects]
+        transactions_count[project.id] = ctx.call(
+            count_transactions, project_id=project.id
+        )
+    projects = [
+        GetProjectSchema(
+            **project.model_dump(), total_transactions=transactions_count[project.id]
+        )
+        for project in projects
+    ]
     return projects
 
 
@@ -48,7 +55,9 @@ async def get_project_details(
 ) -> GetProjectSchema:
     project = ctx.call(get_project, project_id=project_id)
     transaction_count = ctx.call(count_transactions, project_id=project_id)
-    project = GetProjectSchema(**project.model_dump(), total_transactions=transaction_count)
+    project = GetProjectSchema(
+        **project.model_dump(), total_transactions=transaction_count
+    )
     return project
 
 
