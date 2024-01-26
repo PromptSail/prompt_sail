@@ -22,6 +22,7 @@ from transactions.schemas import (
 )
 from transactions.use_cases import (
     count_transactions,
+    delete_multiple_transactions,
     get_all_filtered_and_paginated_transactions,
     get_transaction,
 )
@@ -94,6 +95,7 @@ async def delete_existing_project(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ):
     ctx.call(delete_project, project_id=project_id)
+    ctx.call(delete_multiple_transactions, project_id=project_id)
 
 
 @app.get(

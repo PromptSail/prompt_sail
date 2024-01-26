@@ -28,3 +28,6 @@ class TransactionRepository(MongoRepository):
         return self.find(query)[::-1][
             (page - 1) * page_size : (page - 1) * page_size + page_size
         ]
+
+    def delete_cascade(self, project_id: str):
+        return self.delete_many(filter_by={"project_id": project_id})
