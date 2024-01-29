@@ -35,7 +35,10 @@ const ProjectForm: React.FC<Props> = ({ onSubmit, validationSchema }) => {
         validateOnChange: false
     });
     const toSlug = (text: string) => {
-        return slugify(text, { replacement: '_', lower: true });
+        return slugify(text, { replacement: '-', lower: true });
+    };
+    const makeUrl = (slug: string, name: string) => {
+        return `http://${slug || '<slug>'}/${toSlug(name) || '<name>'}`;
     };
     const addProvider = () => {
         formik.setStatus({ _form: '' });
@@ -74,6 +77,11 @@ const ProjectForm: React.FC<Props> = ({ onSubmit, validationSchema }) => {
                     name="name"
                     onChange={formik.handleChange}
                     value={formik.values.name}
+                    onKeyUp={(e) => {
+                        const val = e.currentTarget.value;
+                        if (isSlugGenerated)
+                            formik.setValues((old) => ({ ...old, slug: toSlug(val) }));
+                    }}
                     required
                     isInvalid={!!formik.errors.name}
                 />
@@ -90,10 +98,7 @@ const ProjectForm: React.FC<Props> = ({ onSubmit, validationSchema }) => {
                         e.currentTarget.value = toSlug(val);
                     }}
                     onChange={formik.handleChange}
-                    value={(() => {
-                        if (isSlugGenerated) return toSlug(formik.values.name);
-                        else formik.values.slug;
-                    })()}
+                    value={formik.values.slug}
                     required
                     isInvalid={!!formik.errors.slug}
                 />
@@ -210,7 +215,12 @@ const ProjectForm: React.FC<Props> = ({ onSubmit, validationSchema }) => {
                                     />
                                 </InputGroup>
                             </div>
-                            <div className="calculated-link">&nbsp;</div>
+                            <div className="calculated-link">
+                                {makeUrl(
+                                    formik.values.slug,
+                                    formik.values.ai_providers[ProviderIndex].ai_model_name
+                                )}
+                            </div>
                             <Button onClick={addProvider}>Add Ai Provider</Button>
                             <Button
                                 onClick={() => {
