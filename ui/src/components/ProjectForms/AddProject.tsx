@@ -4,40 +4,30 @@ import { addProjectSchema } from '../../api/formSchemas';
 import ProjectForm from '../../pages/ProjectForm';
 import { FormikValues } from './types';
 import { Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 const AddProject: React.FC = () => {
     const addProject = useAddProject();
-    const submit = async ({
-        name = '',
-        slug = '',
-        description = '',
-        ai_providers: [{ api_base = '', provider_name = '', ai_model_name = '' }],
-        tags = '',
-        org_id = ''
-    }: typeof FormikValues) => {
+    const navigate = useNavigate();
+    const submit = async (values: typeof FormikValues) => {
         const reqValues: addProjectRequest = {
-            name,
-            slug,
-            description,
-            ai_providers: [
-                {
-                    api_base,
-                    provider_name,
-                    ai_model_name
-                }
-            ],
-            tags: tags.replace(/\s/g, '').split(','),
-            org_id
+            ...values,
+            tags: values.tags.replace(/\s/g, '').split(',')
         };
         addProject.mutateAsync({ data: reqValues }).then(() => {
-            // queryToRefetch.refetch();
+            navigate('/');
         });
     };
     return (
         <div className="project__add">
-            <ProjectForm onSubmit={submit} validationSchema={addProjectSchema} />
-            <Button>Add</Button>
-            {/* <ProjectForm queryToRefetch={undefined} /> */}
+            <ProjectForm
+                formId="ProjectAdd"
+                submitFunc={submit}
+                validationSchema={addProjectSchema}
+            />
+            <Button type="submit" className="mt-2" form="ProjectAdd">
+                Add
+            </Button>
         </div>
     );
 };

@@ -4,9 +4,10 @@ export const FormikValues = {
     description: '',
     ai_providers: [
         {
+            deployment_name: '',
             api_base: '',
-            provider_name: '',
-            ai_model_name: ''
+            description: '',
+            provider_name: ''
         }
     ],
     tags: '',

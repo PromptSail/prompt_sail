@@ -2,13 +2,12 @@ export interface addProjectRequest {
     name: string;
     slug: string;
     description: string;
-    ai_providers: [
-        {
-            api_base: string;
-            provider_name: string;
-            ai_model_name: string;
-        }
-    ];
+    ai_providers: {
+        deployment_name: string;
+        api_base: string;
+        description: string;
+        provider_name: string;
+    }[];
     tags: string[];
     org_id: string;
 }
