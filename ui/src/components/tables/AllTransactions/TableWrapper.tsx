@@ -109,7 +109,7 @@ export const TableWrapper: React.FC = () => {
             </div>
             {transactions.isError && (
                 <>
-                    {console.log(transactions.error)}
+                    {console.error(transactions.error)}
                     <div>Error</div>
                 </>
             )}

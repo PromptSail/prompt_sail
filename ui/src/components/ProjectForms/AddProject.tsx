@@ -1,7 +1,7 @@
 import { useAddProject } from '../../api/queries';
 import { addProjectRequest } from '../../api/interfaces';
 import { addProjectSchema } from '../../api/formSchemas';
-import ProjectForm from '../../pages/ProjectForm';
+import ProjectForm from './ProjectForm';
 import { FormikValues } from './types';
 import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
