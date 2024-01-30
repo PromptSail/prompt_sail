@@ -1,6 +1,6 @@
 import { Accordion, Button, Form, InputGroup } from 'react-bootstrap';
 import { FormikValues } from './types';
-import { MutableRefObject, SetStateAction, useState } from 'react';
+import { MutableRefObject, SetStateAction, useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 
 interface Props {
@@ -19,6 +19,7 @@ const ProviderFormAndList: React.FC<Props> = ({
     providerErrorRef
 }) => {
     const [FormShowed, setFormShow] = useState(ProvidersList.length < 1);
+    const [EditedProvider, setEditedProvider] = useState<number | null>(null);
     const formik = useFormik({
         initialValues: {
             deployment_name: '',
@@ -47,6 +48,11 @@ const ProviderFormAndList: React.FC<Props> = ({
     const makeUrl = (slug: string, name: string) => {
         return `http://${slug || '<slug>'}/${toSlug(name) || '<name>'}`;
     };
+    useEffect(() => {
+        if (EditedProvider !== null) {
+            formik.setValues((old) => ({ ...old, ...ProvidersList[EditedProvider] }));
+        }
+    }, [EditedProvider]);
     return (
         <>
             <Accordion>
@@ -63,7 +69,15 @@ const ProviderFormAndList: React.FC<Props> = ({
                                 <span>{el.api_base}</span>
                             </div>
                             <div className="options">
-                                <Button variant="outline-secondary">Edit</Button>
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={() => {
+                                        setEditedProvider(id);
+                                        setFormShow(true);
+                                    }}
+                                >
+                                    Edit
+                                </Button>
                                 <Button
                                     onClick={() => {
                                         const newList = ProvidersList.filter(
@@ -82,7 +96,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                 ))}
             </Accordion>
             {FormShowed && (
-                <div className={`ai-providers ${formik.status}`}>
+                <div className={`ai-providers ${formik.status || ''}`}>
                     <form
                         className="inputs"
                         id="providersForm"
@@ -138,9 +152,26 @@ const ProviderFormAndList: React.FC<Props> = ({
                     <div className="calculated-link">
                         {makeUrl(slug, formik.values.deployment_name)}
                     </div>
-                    <Button type="submit" form="providersForm">
-                        Add Ai Provider
-                    </Button>
+                    {EditedProvider !== null && (
+                        <Button
+                            onClick={() => {
+                                const update = ProvidersList.map((el, id) => {
+                                    if (id == EditedProvider) return formik.values;
+                                    else return el;
+                                });
+                                setProvidersList(update);
+                                setEditedProvider(null);
+                                setFormShow(false);
+                            }}
+                        >
+                            Update AI Provider
+                        </Button>
+                    )}
+                    {EditedProvider === null && (
+                        <Button type="submit" form="providersForm">
+                            Add Ai Provider
+                        </Button>
+                    )}
                     <p className="no-providers-error" ref={providerErrorRef}>
                         You need to add at least one AI Provider
                     </p>
