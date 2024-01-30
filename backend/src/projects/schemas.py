@@ -34,4 +34,4 @@ class GetProjectSchema(BaseModel):
     ai_providers: list[ProjectAIProviderSchema]
     tags: list[str] = []
     org_id: str | None = None
-    total_transactions: int
+    total_transactions: int = 0

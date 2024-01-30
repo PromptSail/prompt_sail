@@ -22,6 +22,7 @@ from transactions.schemas import (
 )
 from transactions.use_cases import (
     count_transactions,
+    delete_multiple_transactions,
     get_all_filtered_and_paginated_transactions,
     get_transaction,
 )
@@ -36,8 +37,15 @@ async def get_projects(
     projects = ctx.call(get_all_projects)
     transactions_count = {}
     for project in projects:
-        transactions_count[project.id] = ctx.call(count_transactions, project_id=project.id)
-    projects = [GetProjectSchema(**project.model_dump(), total_transactions=transactions_count[project.id]) for project in projects]
+        transactions_count[project.id] = ctx.call(
+            count_transactions, project_id=project.id
+        )
+    projects = [
+        GetProjectSchema(
+            **project.model_dump(), total_transactions=transactions_count[project.id]
+        )
+        for project in projects
+    ]
     return projects
 
 
@@ -48,7 +56,9 @@ async def get_project_details(
 ) -> GetProjectSchema:
     project = ctx.call(get_project, project_id=project_id)
     transaction_count = ctx.call(count_transactions, project_id=project_id)
-    project = GetProjectSchema(**project.model_dump(), total_transactions=transaction_count)
+    project = GetProjectSchema(
+        **project.model_dump(), total_transactions=transaction_count
+    )
     return project
 
 
@@ -85,6 +95,7 @@ async def delete_existing_project(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ):
     ctx.call(delete_project, project_id=project_id)
+    ctx.call(delete_multiple_transactions, project_id=project_id)
 
 
 @app.get(

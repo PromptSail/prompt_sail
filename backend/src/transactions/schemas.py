@@ -9,10 +9,10 @@ class GetTransactionSchema(BaseModel):
     project_id: str
     request: dict[str, Any]
     response: dict[str, Any]
-    model: str
+    model: str | None
     type: str
     os: str | None
-    token_usage: int
+    token_usage: int | None
     library: str
     status_code: int
     message: str | None
@@ -29,10 +29,10 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     project_name: str
     request: dict[str, Any]
     response: dict[str, Any]
-    model: str
+    model: str | None
     type: str
     os: str | None
-    token_usage: int
+    token_usage: int | None
     library: str
     status_code: int
     message: str | None

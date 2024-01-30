@@ -15,10 +15,10 @@ class Transaction(BaseModel):
     request: dict[str, Any]
     response: dict[str, Any]
     tags: list[str]
-    model: str
+    model: str | None
     type: str
     os: str | None
-    token_usage: int
+    token_usage: int | None
     library: str
     status_code: int
     message: str | None
