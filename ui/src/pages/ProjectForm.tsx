@@ -1,9 +1,10 @@
 import { useFormik } from 'formik';
-import { useRef, useState } from 'react';
-import { Form, InputGroup } from 'react-bootstrap';
+import { useEffect, useRef, useState } from 'react';
+import { Button, Form, InputGroup } from 'react-bootstrap';
 import slugify from 'slugify';
 import * as yup from 'yup';
 import ProviderFormAndList from '../components/ProjectForms/ProviderFormAndList';
+import { getProjectResponse } from '../api/interfaces';
 
 const FormikValues = {
     name: '',
@@ -24,22 +25,26 @@ interface Props {
     submitFunc: (values: typeof FormikValues) => Promise<void>;
     validationSchema: yup.AnyObjectSchema;
     formId: string;
+    project?: getProjectResponse;
 }
 
-const ProjectForm: React.FC<Props> = ({ submitFunc, validationSchema, formId }) => {
-    const [aiProviders, setAiProviders] = useState<typeof FormikValues.ai_providers>([]);
-    const [isSlugGenerated, setSlugGenerate] = useState(true);
+const ProjectForm: React.FC<Props> = ({ submitFunc, validationSchema, formId, project }) => {
+    const [aiProviders, setAiProviders] = useState<typeof FormikValues.ai_providers>(
+        project ? project.ai_providers : []
+    );
+    const [isSlugGenerated, setSlugGenerate] = useState(!project);
     const providerErrorRef = useRef(null);
     const formik = useFormik({
         initialValues: FormikValues,
         onSubmit: async (values) => {
+            console.log(values);
             if (aiProviders.length > 0)
                 submitFunc({
                     ...values,
+                    slug: toSlug(values.slug),
                     ai_providers: aiProviders
                 });
             else {
-                console.log(providerErrorRef.current);
                 if (providerErrorRef.current) {
                     const error = providerErrorRef.current as HTMLParagraphElement;
                     console.log(error);
@@ -50,11 +55,24 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, validationSchema, formId }) 
         validationSchema,
         validateOnChange: false
     });
+    useEffect(() => {
+        if (project) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id, total_transactions, ai_providers, ...rest } = project;
+            const value = {
+                ...rest,
+                tags: project.tags.join(', '),
+                org_id: project.org_id || ''
+            };
+            formik.setValues((old) => ({ ...old, ...value }));
+        }
+    }, [project]);
     const toSlug = (text: string) => {
         return slugify(text, { replacement: '-', lower: true });
     };
     return (
         <div>
+            <Button onClick={() => console.log(formik.errors)}></Button>
             <form id={formId} onSubmit={formik.handleSubmit} noValidate>
                 <InputGroup className="mb-3">
                     <InputGroup.Text>Name</InputGroup.Text>

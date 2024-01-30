@@ -25,6 +25,10 @@ const App = () => {
                         >
                             <Routes>
                                 <Route path="/" element={<Dashboard />} />
+                                <Route
+                                    path="/projects/:projectId/update"
+                                    element={<Project.Update />}
+                                />
                                 <Route path="/projects/:projectId" element={<Project />} />
                                 <Route path="/projects/add" element={<Project.Add />} />
                                 <Route path="/transactions" element={<AllTransactions />} />
@@ -32,7 +36,7 @@ const App = () => {
                                     path="/transactions/:transactionId"
                                     element={<Transaction />}
                                 />
-                                <Route path="*" element={<Navigate to="/" />} />
+                                {/* <Route path="*" element={<Navigate to="/" />} /> */}
                             </Routes>
                         </div>
                     </div>

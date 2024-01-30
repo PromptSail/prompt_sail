@@ -12,36 +12,22 @@ export interface addProjectRequest {
     org_id: string;
 }
 
-export interface updateProjectRequest {
-    id: string;
-    name: string;
-    slug: string;
-    description: string;
-    ai_providers: [
-        {
-            api_base: string;
-            provider_name: string;
-            ai_model_name: string;
-        }
-    ];
-    tags: string[];
-    org_id: string;
-}
+export interface updateProjectRequest extends addProjectRequest {}
 
 export interface getAllProjects {
     id: string;
     name: string;
     slug: string;
     description: string;
-    ai_providers: [
-        {
-            api_base: string;
-            provider_name: string;
-            ai_model_name: string;
-        }
-    ];
+    ai_providers: {
+        api_base: string;
+        provider_name: string;
+        deployment_name: string;
+        description: string;
+    }[];
     tags: string[];
     org_id: string | undefined;
+    total_transactions: number;
 }
 
 export interface getProjectResponse extends getAllProjects {}

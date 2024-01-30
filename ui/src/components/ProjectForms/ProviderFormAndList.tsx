@@ -18,7 +18,7 @@ const ProviderFormAndList: React.FC<Props> = ({
     toSlug,
     providerErrorRef
 }) => {
-    const [FormShowed, setFormShow] = useState(true);
+    const [FormShowed, setFormShow] = useState(ProvidersList.length < 1);
     const formik = useFormik({
         initialValues: {
             deployment_name: '',

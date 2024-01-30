@@ -56,7 +56,7 @@ const Dashboard = () => {
                             />
                             <Button
                                 className="m-auto text-nowrap"
-                                onClick={() => navigate('projects/add')}
+                                onClick={() => navigate('/projects/add')}
                             >
                                 New Project +
                             </Button>
