@@ -1,6 +1,9 @@
 .project
     &__add, &__update
         max-width: 700px
+        h3
+            margin-top: 20px
+            margin-bottom: 10px
         .ai-providers
             padding: 10px
             border: 1px solid var(--bs-gray-400)
@@ -21,12 +24,13 @@
             .calculated-link
                 text-align: center
             .no-providers-error
-                display: none
                 color: var(--bs-red)
                 font-weight: bold
             &.error
                 background: #ffdcdc
                 border-color: var(--bs-red)
+        .add-another-provider
+            width: 100%
         .accordion
             *
                 line-height: 20px

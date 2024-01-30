@@ -2,9 +2,9 @@ import { useFormik } from 'formik';
 import { useEffect, useRef, useState } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
 import slugify from 'slugify';
-import * as yup from 'yup';
 import ProviderFormAndList from './ProviderFormAndList';
 import { getProjectResponse } from '../../api/interfaces';
+import { projectSchema } from '../../api/formSchemas';
 
 const FormikValues = {
     name: '',
@@ -23,19 +23,18 @@ const FormikValues = {
 };
 interface Props {
     submitFunc: (values: typeof FormikValues) => Promise<void>;
-    validationSchema: yup.AnyObjectSchema;
     formId: string;
     project?: getProjectResponse;
 }
 
-const ProjectForm: React.FC<Props> = ({ submitFunc, validationSchema, formId, project }) => {
+const ProjectForm: React.FC<Props> = ({ submitFunc, formId, project }) => {
     const [aiProviders, setAiProviders] = useState<typeof FormikValues.ai_providers>(
         project ? project.ai_providers : []
     );
     const [isSlugGenerated, setSlugGenerate] = useState(!project);
     const providerErrorRef = useRef(null);
     const formik = useFormik({
-        initialValues: FormikValues,
+        initialValues: { ...FormikValues, ai_providers: aiProviders },
         onSubmit: async (values) => {
             if (aiProviders.length > 0)
                 submitFunc({
@@ -47,10 +46,11 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, validationSchema, formId, pr
                 if (providerErrorRef.current) {
                     const error = providerErrorRef.current as HTMLParagraphElement;
                     error.style.display = 'block';
+                    error.innerHTML = projectSchema.fields.ai_providers.toString();
                 }
             }
         },
-        validationSchema,
+        validationSchema: projectSchema,
         validateOnChange: false
     });
     useEffect(() => {
@@ -143,11 +143,11 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, validationSchema, formId, pr
                 </InputGroup>
             </form>
             <ProviderFormAndList
-                providerErrorRef={providerErrorRef}
                 ProvidersList={aiProviders}
                 setProvidersList={setAiProviders}
                 slug={formik.values.slug}
                 toSlug={toSlug}
+                errorMessage={formik.errors.ai_providers as string}
             />
         </div>
     );

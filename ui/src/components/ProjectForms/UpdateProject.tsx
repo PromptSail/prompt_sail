@@ -1,6 +1,5 @@
 import { useUpdateProject } from '../../api/queries';
 import { updateProjectRequest } from '../../api/interfaces';
-import { addProjectSchema } from '../../api/formSchemas';
 import ProjectForm from './ProjectForm';
 import { FormikValues } from './types';
 import { Button } from 'react-bootstrap';
@@ -26,12 +25,8 @@ const UpdateProject: React.FC = () => {
     });
     return (
         <div className="project__update">
-            <ProjectForm
-                formId="ProjectUpdate"
-                submitFunc={submit}
-                validationSchema={addProjectSchema}
-                project={state.project}
-            />
+            <h3>Update project</h3>
+            <ProjectForm formId="ProjectUpdate" submitFunc={submit} project={state.project} />
             <Button type="submit" className="mt-2" form="ProjectUpdate">
                 Update
             </Button>

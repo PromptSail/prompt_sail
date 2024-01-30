@@ -1,14 +1,15 @@
 import { Accordion, Button, Form, InputGroup } from 'react-bootstrap';
 import { FormikValues } from './types';
-import { MutableRefObject, SetStateAction, useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import { useFormik } from 'formik';
+import { providerSchema } from '../../api/formSchemas';
 
 interface Props {
     ProvidersList: typeof FormikValues.ai_providers;
     setProvidersList: (list: SetStateAction<typeof FormikValues.ai_providers>) => void;
     slug: string;
     toSlug: (text: string) => string;
-    providerErrorRef: MutableRefObject<null>;
+    errorMessage: string;
 }
 
 const ProviderFormAndList: React.FC<Props> = ({
@@ -16,7 +17,7 @@ const ProviderFormAndList: React.FC<Props> = ({
     setProvidersList,
     slug,
     toSlug,
-    providerErrorRef
+    errorMessage
 }) => {
     const [FormShowed, setFormShow] = useState(ProvidersList.length < 1);
     const [EditedProvider, setEditedProvider] = useState<number | null>(null);
@@ -28,22 +29,14 @@ const ProviderFormAndList: React.FC<Props> = ({
             provider_name: ''
         },
         onSubmit: async ({ deployment_name, provider_name, api_base, description }) => {
-            if (!!deployment_name && !!provider_name && !!api_base) {
-                setProvidersList((old) => [
-                    ...old,
-                    { api_base, provider_name, deployment_name, description }
-                ]);
-                setFormShow(false);
-                formik.setStatus('');
-            } else {
-                formik.setStatus('error');
-                formik.setErrors({
-                    api_base: api_base ? undefined : 'Required',
-                    provider_name: provider_name ? undefined : 'Required',
-                    deployment_name: deployment_name ? undefined : 'Required'
-                });
-            }
-        }
+            setProvidersList((old) => [
+                ...old,
+                { api_base, provider_name, deployment_name, description }
+            ]);
+            setFormShow(false);
+        },
+        validateOnChange: false,
+        validationSchema: providerSchema
     });
     const makeUrl = (slug: string, name: string) => {
         return `http://${slug || '<slug>'}/${toSlug(name) || '<name>'}`;
@@ -96,37 +89,42 @@ const ProviderFormAndList: React.FC<Props> = ({
                 ))}
             </Accordion>
             {FormShowed && (
-                <div className={`ai-providers ${formik.status || ''}`}>
+                <div className={`ai-providers${formik.isValid ? '' : ' error'}`}>
                     <form
                         className="inputs"
                         id="providersForm"
                         onSubmit={formik.handleSubmit}
                         noValidate
                     >
-                        <Form.Select
-                            name={`provider_name`}
-                            onChange={formik.handleChange}
-                            value={formik.values.provider_name}
-                            aria-placeholder="Select provider"
-                            isInvalid={!!formik.errors.provider_name}
-                        >
-                            <option value="" key={null}>
-                                Select provider
-                            </option>
-                            {[
-                                'OpenAI',
-                                'Azure OpenAI',
-                                'Google Palm',
-                                'Anthropic Cloud',
-                                'Meta LLama',
-                                'HuggingFace',
-                                'Custom'
-                            ].map((el, id) => (
-                                <option value={el} key={`${el}${id}`}>
-                                    {el}
+                        <InputGroup>
+                            <Form.Select
+                                name={`provider_name`}
+                                onChange={formik.handleChange}
+                                value={formik.values.provider_name}
+                                aria-placeholder="Select provider"
+                                isInvalid={!!formik.errors.provider_name}
+                            >
+                                <option value="" key={null}>
+                                    Select provider
                                 </option>
-                            ))}
-                        </Form.Select>
+                                {[
+                                    'OpenAI',
+                                    'Azure OpenAI',
+                                    'Google Palm',
+                                    'Anthropic Cloud',
+                                    'Meta LLama',
+                                    'HuggingFace',
+                                    'Custom'
+                                ].map((el, id) => (
+                                    <option value={el} key={`${el}${id}`}>
+                                        {el}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid" tooltip>
+                                {formik.errors.provider_name}
+                            </Form.Control.Feedback>
+                        </InputGroup>
                         <InputGroup>
                             <InputGroup.Text>Deployment name</InputGroup.Text>
                             <Form.Control
@@ -136,6 +134,9 @@ const ProviderFormAndList: React.FC<Props> = ({
                                 value={formik.values.deployment_name}
                                 isInvalid={!!formik.errors.deployment_name}
                             />
+                            <Form.Control.Feedback type="invalid" tooltip>
+                                {formik.errors.deployment_name}
+                            </Form.Control.Feedback>
                         </InputGroup>
                         <InputGroup>
                             <InputGroup.Text>API Base URL</InputGroup.Text>
@@ -147,6 +148,9 @@ const ProviderFormAndList: React.FC<Props> = ({
                                 placeholder="https://api.openai.com/v1"
                                 isInvalid={!!formik.errors.api_base}
                             />
+                            <Form.Control.Feedback type="invalid" tooltip>
+                                {formik.errors.api_base}
+                            </Form.Control.Feedback>
                         </InputGroup>
                     </form>
                     <div className="calculated-link">
@@ -154,6 +158,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                     </div>
                     {EditedProvider !== null && (
                         <Button
+                            variant="dark"
                             onClick={() => {
                                 const update = ProvidersList.map((el, id) => {
                                     if (id == EditedProvider) return formik.values;
@@ -168,17 +173,17 @@ const ProviderFormAndList: React.FC<Props> = ({
                         </Button>
                     )}
                     {EditedProvider === null && (
-                        <Button type="submit" form="providersForm">
+                        <Button type="submit" form="providersForm" variant="dark">
                             Add Ai Provider
                         </Button>
                     )}
-                    <p className="no-providers-error" ref={providerErrorRef}>
-                        You need to add at least one AI Provider
-                    </p>
+                    {!!errorMessage && <p className="no-providers-error">{errorMessage}</p>}
                 </div>
             )}
             {!FormShowed && (
                 <Button
+                    className="add-another-provider"
+                    variant="dark"
                     onClick={() => {
                         setFormShow(true);
                     }}
