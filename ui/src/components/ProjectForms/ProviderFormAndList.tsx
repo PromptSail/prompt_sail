@@ -29,11 +29,19 @@ const ProviderFormAndList: React.FC<Props> = ({
             provider_name: ''
         },
         onSubmit: async ({ deployment_name, provider_name, api_base, description }) => {
-            setProvidersList((old) => [
-                ...old,
-                { api_base, provider_name, deployment_name, description }
-            ]);
-            setFormShow(false);
+            if (
+                ProvidersList.filter((e) => toSlug(e.deployment_name) === toSlug(deployment_name))
+                    .length > 0
+            ) {
+                formik.setErrors({ deployment_name: 'Name must be unique' });
+            } else {
+                formik.setErrors({});
+                setProvidersList((old) => [
+                    ...old,
+                    { api_base, provider_name, deployment_name, description }
+                ]);
+                setFormShow(false);
+            }
         },
         validateOnChange: false,
         validationSchema: providerSchema
@@ -63,13 +71,18 @@ const ProviderFormAndList: React.FC<Props> = ({
                             </div>
                             <div className="options">
                                 <Button
-                                    variant="outline-secondary"
+                                    variant={`${EditedProvider != id ? 'outline-' : ''}secondary`}
                                     onClick={() => {
-                                        setEditedProvider(id);
-                                        setFormShow(true);
+                                        if (EditedProvider != id) {
+                                            setEditedProvider(id);
+                                            setFormShow(true);
+                                        } else {
+                                            setEditedProvider(null);
+                                            setFormShow(false);
+                                        }
                                     }}
                                 >
-                                    Edit
+                                    {`${EditedProvider != id ? '' : 'Cancel '}edit`}
                                 </Button>
                                 <Button
                                     onClick={() => {
@@ -186,6 +199,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                     variant="dark"
                     onClick={() => {
                         setFormShow(true);
+                        formik.setValues((old) => ({ ...old, deployment_name: '' }));
                     }}
                 >
                     Add another AI Provider
