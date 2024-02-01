@@ -19,7 +19,7 @@ const ProviderFormAndList: React.FC<Props> = ({
     toSlug,
     errorMessage
 }) => {
-    const [FormShowed, setFormShow] = useState(ProvidersList.length < 1);
+    const [FormShowed, setFormShow] = useState(true);
     const [EditedProvider, setEditedProvider] = useState<number | null>(null);
     const formik = useFormik({
         initialValues: {
@@ -40,7 +40,6 @@ const ProviderFormAndList: React.FC<Props> = ({
                     ...old,
                     { api_base, provider_name, deployment_name, description }
                 ]);
-                setFormShow(false);
             }
         },
         validateOnChange: false,
@@ -53,7 +52,8 @@ const ProviderFormAndList: React.FC<Props> = ({
         if (EditedProvider !== null) {
             formik.setValues((old) => ({ ...old, ...ProvidersList[EditedProvider] }));
         }
-    }, [EditedProvider]);
+        if (ProvidersList.length > 0) setFormShow(false);
+    }, [EditedProvider, ProvidersList]);
     return (
         <>
             <Accordion>

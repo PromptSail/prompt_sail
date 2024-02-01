@@ -29,9 +29,7 @@ interface Props {
 
 const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
     const projects = useGetAllProjects();
-    const [aiProviders, setAiProviders] = useState<typeof FormikValues.ai_providers>(
-        FormikValues.ai_providers
-    );
+    const [aiProviders, setAiProviders] = useState<typeof FormikValues.ai_providers>([]);
     const [isSlugGenerated, setSlugGenerate] = useState(true);
     const formik = useFormik({
         initialValues: { ...FormikValues, ai_providers: aiProviders },
