@@ -35,7 +35,7 @@ docs:
       - title: "Organization Dashboard"
         url: /docs/organization-dashboard/
       - title: "Project Dashboard"
-        url: /docs/todo/
+        url: /docs/project-dashboard/
       - title: "Transactions View"
         url: /docs/todo/
       - title: "Cost Analysis View"
