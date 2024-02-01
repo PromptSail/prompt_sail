@@ -1,22 +1,19 @@
 ---
-title: "Contributing to Prompt Sail documentation"
+title: "Organization Dashboard"
 permalink: /docs/organization-dashboard/
-excerpt: "O Dashboard"
+excerpt: "The Organization Dashboard page serves as a central hub for managing projects within the organization"
 last_modified_at: 2024-02-01T14:06:00+01:00
 redirect_from:
-    - Organization Dashboard/theme-setup/
+    - /theme-setup/
 toc: true
 ---
 
-## Organization Dashboard
-
-**Description:**
 The Organization Dashboard page serves as a central hub for managing projects within the organization. It provides users with easy access to all pertinent project information and enables quick searching and creation of new projects.
 This page can be accessed at `localhost:80` after logging in to the application.
 
 <img src='../assets/images/Organization_Dashboard.png' />
 
-**Interface Elements:**
+### Interface Elements:
 
 -   **Project List:**
 
@@ -33,6 +30,6 @@ This page can be accessed at `localhost:80` after logging in to the application.
     -   Clicking the button opens the new project wizard, which guides the user through the process of creating a new project.
     -   The wizard enables users to specify all necessary information about the new project, such as name, description, tags, etc.
 
-**Notes:**
+### Notes:
 
 -   The Organization Dashboard page serves as the starting point for users of the application, providing them with quick access to all essential project management functions.
