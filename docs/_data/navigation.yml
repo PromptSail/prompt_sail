@@ -33,7 +33,7 @@ docs:
   - title: 2 - User UI Guide
     children:
       - title: "Organization Dashboard"
-        url: /docs/todo/
+        url: /docs/organization-dashboard/
       - title: "Project Dashboard"
         url: /docs/todo/
       - title: "Transactions View"
