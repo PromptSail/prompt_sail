@@ -1,6 +1,6 @@
 import { useFormik } from 'formik';
-import { useEffect, useState } from 'react';
-import { Form, InputGroup } from 'react-bootstrap';
+import { ReactNode, useEffect, useState } from 'react';
+import { Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import slugify from 'slugify';
 import ProviderFormAndList from './ProviderFormAndList';
 import { projectSchema } from '../../api/formSchemas';
@@ -65,6 +65,30 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
         validationSchema: projectSchema,
         validateOnChange: false
     });
+    const Info: React.FC<{ children: ReactNode }> = ({ children }) => {
+        return (
+            <OverlayTrigger placement="right" overlay={<Tooltip>{children}</Tooltip>}>
+                <span
+                    style={{
+                        position: 'absolute',
+                        right: '-30px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        border: '2px solid #555555',
+                        borderRadius: '50%',
+                        aspectRatio: '1/1',
+                        padding: '.5em',
+                        lineHeight: '5px',
+                        margin: 'auto',
+                        fontFamily: 'serif',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    i
+                </span>
+            </OverlayTrigger>
+        );
+    };
     useEffect(() => {
         if (projects.isSuccess && projectId) {
             const project = projects.data.filter((e) => e.id === projectId)[0];
@@ -133,6 +157,10 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                         <Form.Control.Feedback type="invalid" tooltip>
                             {formik.errors.slug}
                         </Form.Control.Feedback>
+                        <Info>
+                            Slug is a URL-friendly name used to identify a project. It's utilized in
+                            the URL for adding transactions
+                        </Info>
                     </InputGroup>
                     <InputGroup className="mb-3">
                         <InputGroup.Text>Description</InputGroup.Text>
