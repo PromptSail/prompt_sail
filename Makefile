@@ -4,13 +4,22 @@ run:
 	docker-compose up
 	
 run-dev:
-	cd src && uvicorn app:app --reload --proxy-headers --host 0.0.0.0
+	cd backend/src && uvicorn app:app --reload --proxy-headers --host 0.0.0.0
 	
 test: 
-	cd src && pytest ../tests
+	cd backend/src && pytest ../tests
+	
+test-windows:
+	 @set DATABASE_NAME=prompt_sail_test&& cd backend\src && pytest ..\tests -vv
 
 build:
 	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
+
+build-ui:
+	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA) promptsail-ui
+
+build-backend:
+	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA) promptsail-backend
 	
 format:
 	pre-commit run --all-files

@@ -28,13 +28,13 @@ services:
       mongodb:
         condition: service_healthy
     
-  app:
-    container_name: api
+  promptsail-backend:
+    container_name: promptsail-backend
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       args:
-        - BUILD_SHA      
+        - BUILD_SHA
     ports:
       - "8000:8000"
     environment:
@@ -44,17 +44,17 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-  spa:
-    container_name: spa
+  promptsail-ui:
+    container_name: promptsail-ui
     build:
-      context: ./FRONTEND
+      context: ./ui
       dockerfile: Dockerfile
     ports:
       - "80:80"
     depends_on:
         mongodb:
             condition: service_started
-        app:
+        promptsail-backend:
             condition: service_started
 networks:
   internal-network:

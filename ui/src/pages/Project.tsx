@@ -1,0 +1,107 @@
+import { useNavigate, useParams } from 'react-router-dom';
+import { useGetProject } from '../api/queries';
+import { getProjectResponse } from '../api/interfaces';
+import { AxiosResponse } from 'axios';
+import { UseQueryResult } from 'react-query';
+import UpdateProject from '../components/ProjectForms/UpdateProject';
+import ProjectInstall from '../components/ProjectInstall/ProjectInstall';
+import DeleteProject from '../components/ProjectForms/DeleteProject';
+import LatestTransactions from '../components/tables/LatestTransactions/LatestTransactions';
+import { useState } from 'react';
+import { Button } from 'react-bootstrap';
+import AddProject from '../components/ProjectForms/AddProject';
+const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
+    const navigate = useNavigate();
+    const params = useParams();
+    const [transactionLength, setTransactionLength] = useState('loading');
+    const project: UseQueryResult<AxiosResponse<getProjectResponse>> = useGetProject(
+        params.projectId || ''
+    );
+    if (project.isLoading)
+        return (
+            <>
+                <div>loading...</div>
+            </>
+        );
+    if (project.isError)
+        return (
+            <>
+                <div>An error has occurred</div>
+                {console.error(project.error)}
+                {navigate('/')}
+            </>
+        );
+    if (project.isSuccess) {
+        const data = project.data.data;
+        return (
+            <>
+                <div className="p-5 px-20 pt-[100px] w-full w-5/6 h-full flex flex-col gap-10 justify-between">
+                    <div>
+                        <div className="flex flex-row justify-end gap-3">
+                            <DeleteProject name={data.name} projectId={params.projectId || ''} />
+                            <Button
+                                onClick={() =>
+                                    navigate(`/projects/${params.projectId}/update`, {
+                                        state: { project: data }
+                                    })
+                                }
+                            >
+                                Edit
+                            </Button>
+                            <ProjectInstall
+                                slug={data.slug}
+                                api_base={data.ai_providers[0].api_base}
+                            />
+                        </div>
+                        <h2 className="text-2xl font-semibold mb-2 md:text-4xl">
+                            Project details:
+                        </h2>
+                        <div className="relative border-4 rounded border-gray-200 p-2 flex flex-col gap-3">
+                            <span className="absolute right-5 top-1 text-xl font-semibold text-gray-400">
+                                17 members
+                            </span>
+                            <p>
+                                <span className="text-3xl font-semibold">{data.name}</span>
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                <span className="text-xl font-semibold text-gray-400">
+                                    ({`http://${data.slug}.promptsail.local`})
+                                </span>
+                            </p>
+                            <p className="text-xl font-semibold text-gray-400">
+                                <span>Total cost: $ {(Math.random() * 200 + 10).toFixed(2)}</span>
+                                <span> - </span>
+                                <span>{transactionLength} transactions</span>
+                            </p>
+                            <p>{data.description}</p>
+                            <p className="text-2xl font-semibold">
+                                {'<_DOSTAWCA_>: < LIST[_MODEL_] >'}
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <div className="flex justify-between">
+                            <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">
+                                LLM Transactions
+                            </h4>
+                            <Button
+                                className="m-auto mx-0"
+                                variant="outline-secondary"
+                                onClick={() => navigate(`/transactions?project_id=${data.id}`)}
+                            >
+                                All Project Transactions
+                            </Button>
+                        </div>
+                        <LatestTransactions
+                            projectId={data.id}
+                            lengthTransactionRequest={setTransactionLength}
+                        />
+                    </div>
+                </div>
+            </>
+        );
+    }
+};
+Project.Add = AddProject;
+Project.Update = UpdateProject;
+
+export default Project;

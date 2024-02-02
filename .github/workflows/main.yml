@@ -4,17 +4,59 @@ on:
   push:
     branches:
       - main
+      - deployment
 
 jobs:
-  build-and-test:
+  build-test-deploy-ui:
     runs-on: ubuntu-latest
-    
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 14
+
+      - name: Install dependencies
+        run: |
+          cd ui
+          npm --version
+          npm install
+
+      - name: Build the Docker image
+        run: make build-ui
+        env:
+          BUILD_SHA: ${{ github.sha }}
+
+      - name: Log in to Heroku Container Registry
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:login
+
+      - name: Push Docker image to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          docker images
+          docker tag prompt_sail_promptsail-ui:latest registry.heroku.com/promptsail/web
+          docker push registry.heroku.com/promptsail/web
+
+      - name: Release to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:release web -a promptsail
+
+  build-test-deploy-backend:
+    runs-on: ubuntu-latest
+
     services:
       mongodb:
         image: mongo:latest
         env:
           MONGO_INITDB_ROOT_USERNAME: root
-          MONGO_INITDB_ROOT_PASSWORD: password 
+          MONGO_INITDB_ROOT_PASSWORD: password
         ports:
           - 27017:27017
 
@@ -25,7 +67,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install Poetry
         run: |
@@ -33,35 +75,37 @@ jobs:
 
       - name: Configure Poetry
         run: |
-          poetry config virtualenvs.create false
+          cd backend
+          poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
-            
-      - name: Install dependencies
-        run: poetry install            
+
+      - name: Install backend dependencies
+        run: cd backend && poetry install
 
       - name: Run tests
-        run: MONGO_URL=mongodb://root:password@localhost:27017 poetry run make test
+        run: |
+          cd backend
+          poetry run bash -c "cd .. && MONGO_URL=mongodb://root:password@localhost:27017 make test"
 
       - name: Build the Docker image
-        run: make build
+        run: make build-backend
         env:
-          BUILD_SHA: ${{ github.sha }}   
-          
+          BUILD_SHA: ${{ github.sha }}
+
       - name: Log in to Heroku Container Registry
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:login     
+        run: heroku container:login
 
       - name: Push Docker image to Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-            docker images
-            docker tag prompt_sail_app:latest registry.heroku.com/promptsail/web
-            docker push registry.heroku.com/promptsail/web
+          docker images
+          docker tag prompt_sail_promptsail-backend:latest registry.heroku.com/promptsail-backend/web
+          docker push registry.heroku.com/promptsail-backend/web
 
       - name: Release to Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:release web -a promptsail
-
+        run: heroku container:release web -a promptsail-backend
