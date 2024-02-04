@@ -137,7 +137,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/promptsail/promptsail:backend-${{ github.ref_type }}-${{ github.ref_name }} 
+          tags: ghcr.io/promptsail/promptsail-backend:${{ github.ref_name }} ${{ env.NOW }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -151,7 +151,7 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ghcr.io/promptsail/promptsail:backend-${{ github.ref_type }}-${{ github.ref_name }}  
+          TAGS: ghcr.io/promptsail/promptsail-backend:${{ github.ref_name }}  
           # ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         # This step uses the identity token to provision an ephemeral certificate
@@ -221,7 +221,7 @@ jobs:
           context: ./ui
           file: ./ui/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/promptsail/ui-${{ github.ref_type }}-${{ github.ref_name }}
+          tags: ghcr.io/promptsail/promptsail-ui:${{ github.ref_name }} ${{ env.NOW }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -235,7 +235,7 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ghcr.io/promptsail/ui-${{ github.ref_type }}-${{ github.ref_name }}
+          TAGS: ghcr.io/promptsail/promptsail-ui:${{ github.ref_name }}
           # ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         # This step uses the identity token to provision an ephemeral certificate
