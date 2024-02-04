@@ -9,12 +9,8 @@ on:
   push:
     branches: 
         - dev
-        - build-actions
     # Publish semver tags as releases.
     #tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: 
-        - build-actions
   release:
     types: [created]
 
