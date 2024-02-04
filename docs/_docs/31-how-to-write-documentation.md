@@ -1,8 +1,8 @@
 ---
-title: "Quick-Start Guide"
+title: "Contributing to Prompt Sail documentation"
 permalink: /docs/how-to-write-documentation/
 excerpt: "How to contribute to Prompt Sail documentation"
-last_modified_at: 2023-12-22T18:48:05+01:00
+last_modified_at: 2023-12-22T18:48:35+01:00
 redirect_from:
   - /theme-setup/
 toc: true
@@ -11,7 +11,7 @@ toc: true
 
 
 
-## How to contribute to Prompt Sail documentation
+## How the documentation is organized
 
 Our project documentation is hosted on GitHub Pages and built using Jekyll. Here's a brief overview of the structure and how to work with it:
 

@@ -9,6 +9,7 @@
 # Sets up all our shared environment variables
 ################################
 FROM python:3.10.2-slim-buster as python-base
+LABEL org.opencontainers.image.source="https://github.com/PromptSail/prompt_sail"
 
     # python
 ENV PYTHONUNBUFFERED=1 \

@@ -69,9 +69,11 @@ All of the above are set in the [docker-compose.yml](https://github.com/PromptSa
 
 ## Make your first API call
 
-Folder [examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples) and [LLM Integration]() section of the documentation contain more examples of how to make API calls to different LLM providers via Prompt Sail.
+Folder [examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples) and [LLM Integration](/docs/llm-integrations/) section of the documentation contain more examples of how to make API calls to different LLM providers via Prompt Sail.
 
-### OpenAI
+### OpenAI Chat model example
+
+Based on [How to store transactions from OpenAI via OpenAI Python SDK](https://github.com/PromptSail/prompt_sail/blob/examples/examples/openai_sdk_openai.ipynb) notebook.
 
 
 Create .evn file with your OpenAI API key and organization ID.
@@ -101,9 +103,8 @@ openai_org_id = os.getenv("OPENAI_ORG_ID")
 Make an API call to OpenAI via Prompt Sail.
 
 ```python
-api_base = "http://project1.promptsail.local"
 
-# api_base = "http://localhost:8000/project1"
+api_base = "http://localhost:8000/project1"
 
 ps_client = OpenAI(
     base_url=api_base,
@@ -127,4 +128,4 @@ response = ps_client.chat.completions.create(
 
 pprint(response.choices[0].message)
 
-``````
+```

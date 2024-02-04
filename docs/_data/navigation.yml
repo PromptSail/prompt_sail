@@ -24,22 +24,18 @@ docs:
         url: /docs/quick-start-guide/
       - title: "Project Setup"
         url: /docs/how-to-setup-llm-proxy-project/
-  - title: 1- LLM proxy setup
+  - title: 1- LLM integrations
     children:
-      - title: "LLM frameworks integration"
-        url: /docs/todo/
       - title: "Input/output capturing"
-        url: /docs/todo/
-      - title: "Working with tags"
-        url: /docs/todo/
-      - title: "Working with experiments"
-        url: /docs/todo/
+        url: /docs/storing-transactions/
+      - title: "LLM frameworks integration"
+        url: /docs/llm-integrations/
   - title: 2 - User UI Guide
     children:
       - title: "Organization Dashboard"
-        url: /docs/todo/
+        url: /docs/organization-dashboard/
       - title: "Project Dashboard"
-        url: /docs/todo/
+        url: /docs/project-dashboard/
       - title: "Transactions View"
         url: /docs/todo/
       - title: "Cost Analysis View"
@@ -49,19 +45,18 @@ docs:
       - title: "Documentation"
         url: /docs/how-to-write-documentation/
       - title: "Repository Structure"
-        url: /docs/todo/
-      - title: "Dependency injection"
-        url: /docs/todo/
-      - title: "How revers proxies work"
-        url: /docs/todo/
+        url: /docs/repository-structure/
+      - title: "Code of Conduct"
+        url: /docs/code-of-conduct/
+      - title: "Contributing Guidelines"
+        url: /docs/contributing/
+
 
       
   - title: 4 - About the project
     children:
-      - title: "History"
-        url: /docs/history/
-      - title: "Contributing"
-        url: /docs/contributing/
+      - title: "Contributors"
+        url: /docs/contributors/
       - title: "License"
         url: /docs/license/
       - title: "Terms &amp; Privacy Policy"
