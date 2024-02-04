@@ -8,7 +8,9 @@ import ProjectInstall from '../components/ProjectInstall/ProjectInstall';
 import DeleteProject from '../components/ProjectForms/DeleteProject';
 import LatestTransactions from '../components/tables/LatestTransactions/LatestTransactions';
 import { useState } from 'react';
-const Project: React.FC = () => {
+import { Button } from 'react-bootstrap';
+import AddProject from '../components/ProjectForms/AddProject';
+const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
     const navigate = useNavigate();
     const params = useParams();
     const [transactionLength, setTransactionLength] = useState('loading');
@@ -33,14 +35,19 @@ const Project: React.FC = () => {
         const data = project.data.data;
         return (
             <>
-                <div className="p-5 px-20 pt-[100px] w-full w-5/6 h-full flex flex-col justify-between">
+                <div className="p-5 px-20 pt-[100px] w-full w-5/6 h-full flex flex-col gap-10 justify-between">
                     <div>
                         <div className="flex flex-row justify-end gap-3">
                             <DeleteProject name={data.name} projectId={params.projectId || ''} />
-                            <UpdateProject
-                                projectId={params.projectId || ''}
-                                queryToRefetch={project}
-                            />
+                            <Button
+                                onClick={() =>
+                                    navigate(`/projects/${params.projectId}/update`, {
+                                        state: { project: data }
+                                    })
+                                }
+                            >
+                                Edit
+                            </Button>
                             <ProjectInstall
                                 slug={data.slug}
                                 api_base={data.ai_providers[0].api_base}
@@ -72,16 +79,20 @@ const Project: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">
-                            LLM Transactions
-                        </h4>
+                        <div className="flex justify-between">
+                            <h4 className="text-xl font-semibold mb-2 mt-3 md:text-2xl">
+                                LLM Transactions
+                            </h4>
+                            <Button
+                                className="m-auto mx-0"
+                                variant="outline-secondary"
+                                onClick={() => navigate(`/transactions?project_id=${data.id}`)}
+                            >
+                                All Project Transactions
+                            </Button>
+                        </div>
                         <LatestTransactions
-                            project={{
-                                name: data.name,
-                                id: data.id,
-                                api_base: data.ai_providers[0].api_base,
-                                slug: data.slug
-                            }}
+                            projectId={data.id}
                             lengthTransactionRequest={setTransactionLength}
                         />
                     </div>
@@ -90,5 +101,7 @@ const Project: React.FC = () => {
         );
     }
 };
+Project.Add = AddProject;
+Project.Update = UpdateProject;
 
 export default Project;

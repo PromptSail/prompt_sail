@@ -1,0 +1,65 @@
+.sidebar
+    position: fixed
+    height: 100%
+    width: 250px
+    transition: all 200ms ease
+    &__container
+        position: relative
+        background: rgb(39, 39, 42)
+        padding: 1.25rem
+        height: 100%
+        width: 100%
+        z-index: 2
+        display: flex
+        flex-direction: column
+        justify-content: space-between
+    &:hover
+        .sidebar__toggleButtonContainer
+            right: -65px
+    &__toggleButtonContainer
+        position: absolute
+        top: 0px
+        right: 5px
+        z-index: 1
+        padding: 20px
+        height: 100%
+        transition: right 200ms ease
+        .toggleButton
+            position: relative
+            top: 20px
+            transition: transform 500ms ease
+    .sidebar-top
+        .user
+            margin-bottom: 10px
+            *
+                margin: 0
+            &__name
+                font-size: 1.1em
+                color: white
+                font-weight: bold
+            &__email
+                color: var(--bs-gray-500)
+
+        .menu
+            display: flex
+            flex-direction: column
+            gap: .5rem
+    .sidebar-bottom
+        border-top: 2px solid var(--bs-gray-600)
+        color: var(--bs-gray-600)
+        padding-top: 5px
+        button
+            width: 100%
+            border: none
+            display: flex
+            flex-direction: row
+            justify-content: center
+            align-items: center
+            gap: 10px
+            font-weight: bold
+            svg
+                height: 100%
+                width: 20px
+
+.animationSidebar
+    transition: right 200ms ease

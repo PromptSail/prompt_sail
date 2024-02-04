@@ -11,66 +11,26 @@ import { getAllTransactionResponse } from '../../../api/interfaces';
 import { Link } from 'react-router-dom';
 import { columns } from '../columns';
 import { randomTransactionData } from '../../../api/test/randomTransactionsData';
+import iconSrc from '../../../assets/icons/box-arrow-up-right.svg';
+import { ReactSVG } from 'react-svg';
 
 interface Props {
     tableData: getAllTransactionResponse['items'];
-    project: {
-        name: string;
-        id: string;
-        api_base: string;
-        slug: string;
-    };
 }
 
-const LatestTransactionsTable: React.FC<Props> = ({ tableData, project }) => {
+const LatestTransactionsTable: React.FC<Props> = ({ tableData }) => {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
             time: tr.request_time,
             tags: tr.tags,
-            prompt: (() => {
-                let str = '';
-                if (tr.request.content.messages)
-                    tr.request.content.messages.map((m) => (str += `{${m.role}}: ${m.content}\n`));
-                else
-                    try {
-                        tr.request.content.prompt.map((p, id) => (str += `{prompt_${id}}: ${p}\n`));
-                    } catch (err) {
-                        str += `${err}`;
-                    }
-                return str;
-            })(),
-            response: (() => {
-                let str = '';
-                try {
-                    tr.response.content.choices.map((c) => {
-                        if (c.message) str += `{${c.message.role}}: ${c.message.content}\n`;
-                        else str += `{response_${c.index}}: ${c.text}\n`;
-                    });
-                } catch (err) {
-                    str = `${err}`;
-                }
-
-                return str;
-            })(),
-            model: (() => {
-                return `${tr.response.content.model}`; //\n(${tr.request.url})`;
-            })(),
-            // usage: tr.response.content.usage,
+            prompt: tr.prompt,
+            response: `${tr.message}`,
+            model: tr.model,
             more: (
-                <Link
-                    className="underline"
-                    id={tr.id}
-                    to={`/transactions/${tr.id}`}
-                    state={{
-                        project: {
-                            name: project.name,
-                            api_base: project.api_base,
-                            slug: project.slug
-                        }
-                    }}
-                >
-                    Details
+                <Link className="link" target="_blank" id={tr.id} to={`/transactions/${tr.id}`}>
+                    <span>Details</span>&nbsp;
+                    <ReactSVG src={iconSrc} />
                 </Link>
             )
         }))

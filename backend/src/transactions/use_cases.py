@@ -1,9 +1,9 @@
-from datetime import datetime
 import json
+from datetime import datetime
 
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
-from utils import create_transaction_query_from_filters
+from utils import create_transaction_query_from_filters, req_resp_to_transaction_parser
 
 
 def get_transactions_for_project(
@@ -32,7 +32,7 @@ def count_transactions(
     tags: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-    project_id: str | None = None
+    project_id: str | None = None,
 ) -> int:
     query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
     return transaction_repository.count(query)
@@ -45,15 +45,19 @@ def get_all_filtered_and_paginated_transactions(
     tags: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-    project_id: str | None = None
+    project_id: str | None = None,
 ) -> list[Transaction]:
     query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
     transactions = transaction_repository.get_paginated_and_filtered(
-        page, 
-        page_size, 
-        query
+        page, page_size, query
     )
     return transactions
+
+
+def delete_multiple_transactions(
+    transaction_repository: TransactionRepository, project_id: str
+) -> None:
+    transaction_repository.delete_cascade(project_id=project_id)
 
 
 def store_transaction(
@@ -70,6 +74,8 @@ def store_transaction(
     response_content = decoder.decode(buf)
 
     response_content = json.loads(response_content)
+
+    params = req_resp_to_transaction_parser(request, response, response_content)
 
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response
@@ -96,7 +102,16 @@ def store_transaction(
             encoding=response.encoding,
         ),
         tags=tags,
-        request_time=request_time
+        model=params["model"],
+        prompt=params["prompt"],
+        type=params["type"],
+        os=params["os"],
+        token_usage=params["token_usage"],
+        library=params["library"],
+        status_code=params["status_code"],
+        message=params["message"],
+        error_message=params["error_message"],
+        request_time=request_time,
     )
 
     transaction_repository.add(transaction)

@@ -1,12 +1,11 @@
 from pydantic import BaseModel
 
-from transactions.schemas import GetTransactionSchema
-
 
 class ProjectAIProviderSchema(BaseModel):
+    deployment_name: str
     api_base: str
+    description: str
     provider_name: str
-    ai_model_name: str
 
 
 class CreateProjectSchema(BaseModel):
@@ -35,3 +34,4 @@ class GetProjectSchema(BaseModel):
     ai_providers: list[ProjectAIProviderSchema]
     tags: list[str] = []
     org_id: str | None = None
+    total_transactions: int = 0

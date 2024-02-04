@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from typing import Any
 
+from pydantic import BaseModel
 from seedwork.exceptions import NotFoundException
 from utils import deserialize_data, serialize_data
 
@@ -26,6 +27,10 @@ class MongoRepository:
 
     def delete(self, doc_id: str):
         result = self._collection.delete_one({"_id": doc_id})
+        return result
+
+    def delete_many(self, filter_by: dict[str, Any]):
+        result = self._collection.delete_many(filter_by)
         return result
 
     def find_one(self, filter_by=None):
