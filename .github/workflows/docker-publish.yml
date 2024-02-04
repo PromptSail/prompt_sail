@@ -8,13 +8,15 @@ name: Build and Publish Docker to ghcr
 on:
   push:
     branches: 
-        #- dev
+        - dev
         - build-actions
     # Publish semver tags as releases.
     #tags: [ 'v*.*.*' ]
   pull_request:
     branches: 
         - build-actions
+  release:
+    types: [created]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -135,7 +137,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/promptsail/ps_backend_dev:${{ env.NOW }} #${{ steps.meta.outputs.tags }} #"ghcr.io/promptsail/dev-${{ env.NOW }}"
+          tags: ghcr.io/promptsail/promptsail:backend-${{ github.ref_type }}-${{ github.ref_name }} 
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -149,7 +151,8 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ${{ steps.meta.outputs.tags }}
+          TAGS: ghcr.io/promptsail/promptsail:backend-${{ github.ref_type }}-${{ github.ref_name }}  
+          # ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
@@ -218,7 +221,7 @@ jobs:
           context: ./ui
           file: ./ui/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/promptsail/ps_ui_dev:${{ env.NOW }} #${{ steps.meta.outputs.tags }} #"ghcr.io/promptsail/dev-${{ env.NOW }}"
+          tags: ghcr.io/promptsail/ui-${{ github.ref_type }}-${{ github.ref_name }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -232,7 +235,8 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ${{ steps.meta.outputs.tags }}
+          TAGS: ghcr.io/promptsail/ui-${{ github.ref_type }}-${{ github.ref_name }}
+          # ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
