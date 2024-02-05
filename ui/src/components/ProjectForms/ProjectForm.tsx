@@ -100,7 +100,11 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
         }
     }, [projects.status]);
     const toSlug = (text: string) => {
-        return slugify(text, { replacement: '-', lower: true });
+        const newText = text.replace(/^\d+|[@*()+:'"~]/g, '');
+        return slugify(newText, {
+            replacement: '-',
+            lower: true
+        });
     };
     if (projects.isError)
         return (
