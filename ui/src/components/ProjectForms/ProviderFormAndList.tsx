@@ -50,7 +50,7 @@ const ProviderFormAndList: React.FC<Props> = ({
         validationSchema: providerSchema
     });
     const makeUrl = (slug: string, name: string) => {
-        return `http://${toSlug(slug) || '<slug>'}/${toSlug(name) || '<name>'}`;
+        return `http://localhost:8000/${toSlug(slug) || '<slug>'}/${toSlug(name) || '<name>'}`;
     };
     return (
         <>
