@@ -29,10 +29,9 @@ interface Props {
 
 const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
     const projects = useGetAllProjects();
-    const [aiProviders, setAiProviders] = useState<typeof FormikValues.ai_providers>([]);
     const [isSlugGenerated, setSlugGenerate] = useState(true);
     const formik = useFormik({
-        initialValues: { ...FormikValues, ai_providers: aiProviders },
+        initialValues: { ...FormikValues, ai_providers: [] as typeof FormikValues.ai_providers },
         onSubmit: async (values) => {
             if (projects.isSuccess) {
                 const noEditedProjects = projects.data.filter((e) => e.id !== (projectId || ''));
@@ -43,8 +42,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                 if (isNameUnique && isSlugUnique)
                     submitFunc({
                         ...values,
-                        slug: toSlug(values.slug),
-                        ai_providers: aiProviders
+                        slug: toSlug(values.slug)
                     });
                 else {
                     if (!isNameUnique)
@@ -91,13 +89,12 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
         if (projects.isSuccess && projectId) {
             const project = projects.data.filter((e) => e.id === projectId)[0];
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { id, total_transactions, ai_providers, ...rest } = project;
-            setAiProviders(project.ai_providers);
+            const { id, total_transactions, tags, org_id, ...rest } = project;
             setSlugGenerate(!project);
             const value = {
                 ...rest,
-                tags: project.tags.join(', '),
-                org_id: project.org_id || ''
+                tags: tags.join(', '),
+                org_id: org_id || ''
             };
             formik.setValues((old) => ({ ...old, ...value }));
         }
@@ -193,10 +190,13 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                     </InputGroup>
                 </form>
                 <ProviderFormAndList
-                    ProvidersList={aiProviders}
-                    setProvidersList={setAiProviders}
+                    ProvidersList={formik.values.ai_providers}
+                    setProvidersList={(list: typeof FormikValues.ai_providers) =>
+                        formik.setValues({ ...formik.values, ai_providers: list })
+                    }
                     slug={formik.values.slug}
                     toSlug={toSlug}
+                    isProjects={!!projectId}
                     errorMessage={formik.errors.ai_providers as string}
                 />
             </div>
