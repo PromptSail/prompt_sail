@@ -6,6 +6,11 @@ class ProjectAIProviderSchema(BaseModel):
     api_base: str
     description: str
     provider_name: str
+    
+
+class GetAIProviderSchema(BaseModel):
+    provider_name: str
+    api_base_placeholder: str
 
 
 class CreateProjectSchema(BaseModel):

@@ -1,12 +1,13 @@
 from datetime import datetime
 from typing import Annotated
 
+import utils
 from app.dependencies import get_transaction_context
 from fastapi import Depends
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from projects.models import Project
-from projects.schemas import CreateProjectSchema, GetProjectSchema, UpdateProjectSchema
+from projects.schemas import CreateProjectSchema, GetProjectSchema, UpdateProjectSchema, GetAIProviderSchema
 from projects.use_cases import (
     add_project,
     delete_project,
@@ -156,3 +157,10 @@ async def get_paginated_transactions(
         total_pages=-(-count // page_size),
     )
     return page_response
+
+
+@app.get("/api/providers", response_class=JSONResponse)
+async def get_providers(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> list[GetAIProviderSchema]:
+    return [GetAIProviderSchema(**provider) for provider in utils.known_ai_providers]
