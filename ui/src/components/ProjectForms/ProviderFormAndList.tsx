@@ -1,15 +1,16 @@
 import { Accordion, Button, Form, InputGroup } from 'react-bootstrap';
 import { FormikValues } from './types';
-import { SetStateAction, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useFormik } from 'formik';
 import { providerSchema } from '../../api/formSchemas';
 
 interface Props {
     ProvidersList: typeof FormikValues.ai_providers;
-    setProvidersList: (list: SetStateAction<typeof FormikValues.ai_providers>) => void;
+    setProvidersList: (list: typeof FormikValues.ai_providers) => void;
     slug: string;
     toSlug: (text: string) => string;
     errorMessage: string;
+    isProjects: boolean;
 }
 
 const ProviderFormAndList: React.FC<Props> = ({
@@ -17,9 +18,10 @@ const ProviderFormAndList: React.FC<Props> = ({
     setProvidersList,
     slug,
     toSlug,
-    errorMessage
+    errorMessage,
+    isProjects
 }) => {
-    const [FormShowed, setFormShow] = useState(true);
+    const [FormShowed, setFormShow] = useState(!isProjects);
     const [EditedProvider, setEditedProvider] = useState<number | null>(null);
     const formik = useFormik({
         initialValues: {
@@ -35,11 +37,13 @@ const ProviderFormAndList: React.FC<Props> = ({
             ) {
                 formik.setErrors({ deployment_name: 'Name must be unique' });
             } else {
+                console.log(deployment_name);
                 formik.setErrors({});
-                setProvidersList((old) => [
-                    ...old,
+                setProvidersList([
+                    ...ProvidersList,
                     { api_base, provider_name, deployment_name, description }
                 ]);
+                setFormShow(false);
             }
         },
         validateOnChange: false,
@@ -48,12 +52,6 @@ const ProviderFormAndList: React.FC<Props> = ({
     const makeUrl = (slug: string, name: string) => {
         return `http://${toSlug(slug) || '<slug>'}/${toSlug(name) || '<name>'}`;
     };
-    useEffect(() => {
-        if (EditedProvider !== null) {
-            formik.setValues((old) => ({ ...old, ...ProvidersList[EditedProvider] }));
-        }
-        if (ProvidersList.length > 0) setFormShow(false);
-    }, [EditedProvider, ProvidersList]);
     return (
         <>
             <Accordion>
@@ -75,6 +73,10 @@ const ProviderFormAndList: React.FC<Props> = ({
                                     onClick={() => {
                                         if (EditedProvider != id) {
                                             setEditedProvider(id);
+                                            formik.setValues((old) => ({
+                                                ...old,
+                                                ...ProvidersList[id]
+                                            }));
                                             setFormShow(true);
                                         } else {
                                             setEditedProvider(null);
