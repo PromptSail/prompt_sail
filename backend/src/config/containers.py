@@ -14,8 +14,8 @@ from dependency_injector.providers import Dependency, Factory, Provider, Singlet
 from dependency_injector.wiring import Provide, inject  # noqa
 from lato import Application, DependencyProvider, TransactionContext
 from projects.repositories import ProjectRepository
-from transactions.repositories import TransactionRepository
 from settings.repositories import SettingsRepository
+from transactions.repositories import TransactionRepository
 
 # logger = logging.getLogger("ps")
 # logger.setLevel(logging.DEBUG)

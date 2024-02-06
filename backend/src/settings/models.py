@@ -10,4 +10,3 @@ class OrganizationSettings(BaseModel):
     id: str
     organization_name: str
     users: list[User]
-    

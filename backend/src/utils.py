@@ -175,12 +175,9 @@ class OrderedSet(OrderedDict):
 
 
 known_ai_providers = [
-    {
-        "provider_name": "OpenAI",
-        "api_base_placeholder": "https://api.openai.com/v1"
-    },
+    {"provider_name": "OpenAI", "api_base_placeholder": "https://api.openai.com/v1"},
     {
         "provider_name": "Azure OpenAI",
-        "api_base_placeholder": "https://your-deployment-name.openai.azure.com"
-    }
+        "api_base_placeholder": "https://your-deployment-name.openai.azure.com",
+    },
 ]

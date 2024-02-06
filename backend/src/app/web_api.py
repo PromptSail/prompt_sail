@@ -7,7 +7,12 @@ from fastapi import Depends
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from projects.models import Project
-from projects.schemas import CreateProjectSchema, GetProjectSchema, UpdateProjectSchema, GetAIProviderSchema
+from projects.schemas import (
+    CreateProjectSchema,
+    GetAIProviderSchema,
+    GetProjectSchema,
+    UpdateProjectSchema,
+)
 from projects.use_cases import (
     add_project,
     delete_project,
@@ -15,6 +20,8 @@ from projects.use_cases import (
     get_project,
     update_project,
 )
+from settings.schemas import AuthorizeUserSchema
+from settings.use_cases import get_organization_name, get_users_for_organization
 from transactions.models import generate_uuid
 from transactions.schemas import (
     GetTransactionPageResponseSchema,
@@ -27,8 +34,6 @@ from transactions.use_cases import (
     get_all_filtered_and_paginated_transactions,
     get_transaction,
 )
-from settings.use_cases import get_organization_name, get_users_for_organization
-from settings.schemas import GetUserSchema
 
 from .app import app
 
@@ -178,9 +183,12 @@ async def get_organization(
 
 @app.post("/api/authorize", response_class=JSONResponse)
 async def authorize_user(
-    data: dict[str, str],
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+    data: AuthorizeUserSchema,
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> dict[str, Any]:
-    if GetUserSchema(**data) in [GetUserSchema(**data.model_dump()) for data in ctx.call(get_users_for_organization)]:
+    if AuthorizeUserSchema(**data.model_dump()) in [
+        AuthorizeUserSchema(**data.model_dump())
+        for data in ctx.call(get_users_for_organization)
+    ]:
         return {"status": 200, "message": "OK"}
     return {"status": 404, "message": "Not Found"}
