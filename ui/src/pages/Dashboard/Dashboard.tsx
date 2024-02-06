@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import ProjetTile from '../../components/ProjectTile/ProjectTile';
 import { getAllProjects } from '../../api/interfaces';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useGetAllProjects } from '../../api/queries';
 
 const Dashboard = () => {
     const projects = useGetAllProjects();
-    const navigate = useNavigate();
     const [filter, setFilter] = useState('');
     const filterProjects = (data: getAllProjects) => {
         return (
@@ -45,7 +44,6 @@ const Dashboard = () => {
                                 else if (filter != '') setFilter('');
                             }}
                         />
-                        {/* <Button onClick={() => navigate('/projects/add')}>New Project +</Button> */}
                     </div>
                     <div className="content">
                         <div className="projects-info">
