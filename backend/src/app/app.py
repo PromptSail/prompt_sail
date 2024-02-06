@@ -71,7 +71,7 @@ async def fastapi_lifespan(app: FastAPI):
                 ctx.call(add_settings, data)
             else:
                 raise ValueError(
-                    "Theres no ORGANIZATION_NAME or ADMIN_PASSWORD in .env file!"
+                    "Theres no ORGANIZATION_NAME or ADMIN_PASSWORD in environment variables!"
                 )
     yield
     ...
