@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 import utils
 from app.dependencies import get_transaction_context
@@ -27,6 +27,8 @@ from transactions.use_cases import (
     get_all_filtered_and_paginated_transactions,
     get_transaction,
 )
+from settings.use_cases import get_organization_name, get_users_for_organization
+from settings.schemas import GetUserSchema
 
 from .app import app
 
@@ -164,3 +166,21 @@ async def get_providers(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
 ) -> list[GetAIProviderSchema]:
     return [GetAIProviderSchema(**provider) for provider in utils.known_ai_providers]
+
+
+@app.get("/api/organization", response_class=JSONResponse)
+async def get_organization(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> str:
+    organization_name = ctx.call(get_organization_name)
+    return str(organization_name)
+
+
+@app.post("/api/authorize", response_class=JSONResponse)
+async def authorize_user(
+    data: dict[str, str],
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> dict[str, Any]:
+    if GetUserSchema(**data) in [GetUserSchema(**data.model_dump()) for data in ctx.call(get_users_for_organization)]:
+        return {"status": 200, "message": "OK"}
+    return {"status": 404, "message": "Not Found"}
