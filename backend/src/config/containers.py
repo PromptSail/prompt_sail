@@ -15,6 +15,7 @@ from dependency_injector.wiring import Provide, inject  # noqa
 from lato import Application, DependencyProvider, TransactionContext
 from projects.repositories import ProjectRepository
 from transactions.repositories import TransactionRepository
+from settings.repositories import SettingsRepository
 
 # logger = logging.getLogger("ps")
 # logger.setLevel(logging.DEBUG)
@@ -165,4 +166,7 @@ class TransactionContainer(containers.DeclarativeContainer):
     )
     transaction_repository = providers.Singleton(
         TransactionRepository, db_client=db_client, collection_name="transactions"
+    )
+    settings_repository = providers.Singleton(
+        SettingsRepository, db_client=db_client, collection_name="settings"
     )
