@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { getAllProjects } from '../../api/interfaces';
 
 interface Props {
@@ -5,20 +6,27 @@ interface Props {
 }
 
 const ProjetTile: React.FC<Props> = ({ data }) => {
-    const random = (Math.random() * 2000 + 10).toFixed(2);
     return (
-        <div className="border-4 rounded border-gray-200 p-5 hover:bg-gray-100">
-            <h2 className="text-2xl text-center">{data.name}</h2>
-            <span>{data.description}</span>
-            <ol className="mt-5" style={{ listStyle: 'inside' }}>
-                <li>Members: 10</li>
-                {/* <li>Transactions: {data.transactions.length}</li> */}
-                <li>Experiments: 5</li>
-                <li>Total cost: $ {random}</li>
-            </ol>
-            {/* <span>{data.slug}</span> */}
-            {/* <span>{da}</span> */}
-        </div>
+        <Link to={`/projects/${data.id}`} className="project-tile">
+            <div className="card">
+                <h3>{data.name}</h3>
+                <p className="description">{data.description}</p>
+                <div className="details">
+                    <div className="element">
+                        <span>Members:</span>
+                        <span>10</span>
+                    </div>
+                    <div className="element">
+                        <span>Total tranasction:</span>
+                        <span>{data.total_transactions}</span>
+                    </div>
+                    <div className="element">
+                        <span>Total const:</span>
+                        <span>$ 129.32</span>
+                    </div>
+                </div>
+            </div>
+        </Link>
     );
 };
 
