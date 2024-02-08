@@ -12,12 +12,10 @@ const ProjectInstall: React.FC<Props> = ({ slug, api_base }) => {
     const [isShow, setShow] = useState(false);
     return (
         <>
-            <Button variant="secondary" onClick={() => setShow((e) => !e)}>
-                Install
-            </Button>
+            <button onClick={() => setShow((e) => !e)}>Help</button>
             <Modal size="lg" show={isShow} onHide={() => setShow((e) => !e)}>
                 <Modal.Header closeButton>
-                    <Modal.Title className="text-3xl font-semibold">Installation</Modal.Title>
+                    <Modal.Title className="text-3xl font-semibold">Help</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="flex flex-col gap-3">
                     <div>

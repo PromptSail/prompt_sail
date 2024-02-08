@@ -1,0 +1,136 @@
+.project
+    height: 100%
+    overflow-y: auto
+    background: #eef4fa
+    padding: 20px 40px
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    gap: 30px
+    & > *
+        width: min(1400px, 100%)
+        margin: auto
+    button
+        font-size: 1.5em
+        background: #FFF
+        padding: 10px 30px
+        box-shadow: -2px 5px 7px 0px rgba(0, 0, 0, 0.1)
+        border-radius: 15px
+        transition: 100ms
+        transition-delay: 100ms
+        outline: 0px solid hsl(220, 90%, 70%)
+        &:hover
+            transition: 100ms
+            outline-width: 2px
+            transform: translateY(-5px)
+            box-shadow: -6px 10px 7px 0px rgba(0, 0, 0, 0.1)
+            color: hsl(220, 90%, 70%)
+    .details
+        &__header
+            margin: 10px 10px
+            font-weight: 600
+        &__content
+            position: relative
+            display: flex 
+            flex-direction: column 
+            gap: 15px
+            border-radius: 10px 
+            .info
+                display: flex
+                flex-direction: row
+                gap: 10px
+                justify-content: space-between
+                .left
+                    display: flex
+                    flex-direction: row
+                    gap: 10px
+                    width: min(800px, 100%)
+                    .box
+                        padding: 20px
+                        background: #FFF
+                        box-shadow: -2px 5px 7px 0px rgba(0, 0, 0, 0.1)
+                        border-radius: 15px
+                        .element
+                            width: 250px
+                            margin-bottom: 10px
+                            display: flex
+                            flex-direction: row
+                            justify-content: space-between
+                            font-weight: bold
+                            &:last-child
+                                margin-bottom: 0
+                        &.ai-providers
+                            p
+                                font-weight: 600
+                                line-height: .75m
+                                margin-bottom: 5px
+                    .description
+                        width: 100%
+                        .header
+                            font-weight: 600
+                            margin: 0 20px 4px
+                        .content
+                            margin: 0
+                            padding: 15px
+                            min-height: 100px
+                            background: #FFF
+                            box-shadow: -2px 5px 7px 0px rgba(0, 0, 0, 0.1)
+                            border-radius: 15px
+                            height: calc(100% - 28px)
+                            overflow-y: auto
+                .buttons
+                    display: flex 
+                    flex-direction: column
+                    justify-content: flex-end
+                    gap: 15px                        
+            .ai-providers
+                max-width: 600px
+                .header
+                    font-weight: 600
+                    margin: 0 20px 4px
+                .content
+                    display: flex
+                    position: relative
+                    flex-direction: row
+                    overflow-x: auto
+                    gap: 15px
+                    padding: 15px
+                    background: #FFF
+                    box-shadow: -2px 5px 7px 0px rgba(0, 0, 0, 0.1)
+                    border-radius: 15px
+                    table
+                        width: 100%
+                        thead
+                            th
+                                text-align: start
+                                padding-left: 15px
+                        tbody
+                            td
+                                padding: 5px 0
+                            tr
+                                &:hover
+                                    background: hsl(223, 0%, 90%)
+                                td
+                                    padding-left: 15px
+                                    &:first-child
+                                        border-radius: 15px 0 0 15px
+                                    &:last-child
+                                        border-radius: 0 15px 15px 0
+
+                    
+    .tableWrapper
+        &__header
+            display: flex 
+            justify-content: space-between
+            margin: 10px 0
+            h5
+                margin-top: auto
+                margin-left: 20px
+            button
+                font-size: 1em
+                font-weight: 600
+        &> .content
+            padding: 15px
+            background: #FFF
+            box-shadow: -2px 5px 7px 0px rgba(0, 0, 0, 0.1)
+            border-radius: 15px
