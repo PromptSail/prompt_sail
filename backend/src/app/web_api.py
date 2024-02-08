@@ -104,7 +104,8 @@ async def update_existing_project(
 ) -> GetProjectSchema:
     data = dict(**data.model_dump(exclude_none=True))
     updated = ctx.call(update_project, project_id=project_id, fields_to_update=data)
-    return updated
+    total_tokens_usage = ctx.call(count_token_usage_for_project, project_id=project_id)
+    return GetProjectSchema(**updated.model_dump(), total_tokens_usage=total_tokens_usage)
 
 
 @app.delete("/api/projects/{project_id}", response_class=JSONResponse, status_code=204)
