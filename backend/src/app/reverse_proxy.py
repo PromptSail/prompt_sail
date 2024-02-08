@@ -37,12 +37,12 @@ async def close_stream(
 
 
 @app.api_route(
-    "/{project_slug}/{deployment_name}/{path:path}",
+    "/{project_slug}/{provider_slug}/{path:path}",
     methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
 )
 async def reverse_proxy(
     project_slug: str,
-    deployment_name: str,
+    provider_slug: str,
     path: str,
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
@@ -57,7 +57,7 @@ async def reverse_proxy(
 
     tags = tags.split(",") if tags is not None else []
     project = ctx.call(get_project_by_slug, slug=project_slug)
-    url = ApiURLBuilder.build(project, deployment_name, path, target_path)
+    url = ApiURLBuilder.build(project, provider_slug, path, target_path)
 
     logger.debug(f"got projects for {project}")
 

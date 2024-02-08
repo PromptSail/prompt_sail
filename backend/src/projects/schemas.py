@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class ProjectAIProviderSchema(BaseModel):
     deployment_name: str
+    slug: str
     api_base: str
     description: str
     provider_name: str
@@ -40,3 +41,4 @@ class GetProjectSchema(BaseModel):
     tags: list[str] = []
     org_id: str | None = None
     total_transactions: int = 0
+    total_tokens_usage: int = 0

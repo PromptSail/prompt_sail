@@ -33,6 +33,7 @@ async def fastapi_lifespan(app: FastAPI):
                 ai_providers=[
                     AIProvider(
                         deployment_name="openai",
+                        slug="openai",
                         api_base="https://api.openai.com/v1",
                         description="",
                         provider_name="OpenAI",
@@ -48,6 +49,7 @@ async def fastapi_lifespan(app: FastAPI):
                 ai_providers=[
                     AIProvider(
                         deployment_name="openai",
+                        slug="openai",
                         api_base="https://api.openai.com/v1",
                         description="",
                         provider_name="OpenAI",

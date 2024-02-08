@@ -115,7 +115,8 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["type"] = "chat"
         transaction_params["prompt"] = request_content["messages"][0]["content"]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["message"]
+            # transaction_params["error_message"] = response_content["message"]
+            transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["message"] = None
         else:
             transaction_params["model"] = response_content["model"]
@@ -148,11 +149,11 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
 class ApiURLBuilder:
     @staticmethod
-    def build(project, deployment_name: str, path: str, target_path: str) -> str:
+    def build(project, deployment_slug: str, path: str, target_path: str) -> str:
         api_base = [
             prov.api_base
             for prov in project.ai_providers
-            if prov.deployment_name == deployment_name
+            if prov.slug == deployment_slug
         ][0]
         if path == "":
             path = target_path if target_path is not None else ""

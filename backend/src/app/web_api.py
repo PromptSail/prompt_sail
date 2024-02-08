@@ -29,6 +29,7 @@ from transactions.schemas import (
     GetTransactionWithProjectSlugSchema,
 )
 from transactions.use_cases import (
+    count_token_usage_for_project,
     count_transactions,
     delete_multiple_transactions,
     get_all_filtered_and_paginated_transactions,
@@ -44,13 +45,19 @@ async def get_projects(
 ) -> list[GetProjectSchema]:
     projects = ctx.call(get_all_projects)
     transactions_count = {}
+    total_tokens_usage = {}
     for project in projects:
         transactions_count[project.id] = ctx.call(
             count_transactions, project_id=project.id
         )
+        total_tokens_usage[project.id] = ctx.call(
+            count_token_usage_for_project, project_id=project.id
+        )
     projects = [
         GetProjectSchema(
-            **project.model_dump(), total_transactions=transactions_count[project.id]
+            **project.model_dump(),
+            total_transactions=transactions_count[project.id],
+            total_tokens_usage=total_tokens_usage[project.id],
         )
         for project in projects
     ]
@@ -64,8 +71,11 @@ async def get_project_details(
 ) -> GetProjectSchema:
     project = ctx.call(get_project, project_id=project_id)
     transaction_count = ctx.call(count_transactions, project_id=project_id)
+    total_tokens_usage = ctx.call(count_token_usage_for_project, project_id=project_id)
     project = GetProjectSchema(
-        **project.model_dump(), total_transactions=transaction_count
+        **project.model_dump(),
+        total_transactions=transaction_count,
+        total_tokens_usage=total_tokens_usage,
     )
     return project
 
