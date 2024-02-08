@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import Project from './pages/Project';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Project from './pages/Project/Project';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Transaction from './pages/Transaction';
@@ -18,27 +18,19 @@ const App = () => {
             <>
                 <div className="h-screen">
                     <Sidebar pageRef={page} setLoginState={setLoginState}></Sidebar>
-                    <div ref={page} style={{ marginLeft: '250px' }}>
-                        <div
-                            style={{ margin: '0 auto', padding: '0 50px' }}
-                            className="overflow-y-auto max-w-[1200px]"
-                        >
-                            <Routes>
-                                <Route path="/" element={<Dashboard />} />
-                                <Route
-                                    path="/projects/:projectId/update"
-                                    element={<Project.Update />}
-                                />
-                                <Route path="/projects/:projectId" element={<Project />} />
-                                <Route path="/projects/add" element={<Project.Add />} />
-                                <Route path="/transactions" element={<AllTransactions />} />
-                                <Route
-                                    path="/transactions/:transactionId"
-                                    element={<Transaction />}
-                                />
-                                <Route path="*" element={<Navigate to="/" />} />
-                            </Routes>
-                        </div>
+                    <div ref={page} style={{ marginLeft: '250px', height: '100%' }}>
+                        <Routes>
+                            <Route path="/" element={<Dashboard />} />
+                            <Route
+                                path="/projects/:projectId/update"
+                                element={<Project.Update />}
+                            />
+                            <Route path="/projects/:projectId" element={<Project />} />
+                            <Route path="/projects/add" element={<Project.Add />} />
+                            <Route path="/transactions" element={<AllTransactions />} />
+                            <Route path="/transactions/:transactionId" element={<Transaction />} />
+                            <Route path="*" element={<Navigate to="/" />} />
+                        </Routes>
                     </div>
                 </div>
                 <ToastContainer />

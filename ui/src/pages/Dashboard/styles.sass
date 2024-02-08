@@ -1,0 +1,35 @@
+.dashboard
+    height: 100%
+    overflow-y: auto
+    background: #eef4fa
+    padding: 20px 40px
+    .header
+        text-align: right
+        .search-bar
+            background: #fff
+            margin: auto 0
+            padding: 5px 15px
+            border-radius: 25px
+            width: min(100%, 250px)
+            caret-color: #BBB
+            box-shadow: -2px 5px 7px 0px rgba(0, 0, 0, 0.1)
+            &:active, &:focus
+                outline: none
+    .content
+        margin: 25px auto
+        display: grid
+        justify-content: center
+        grid-template-columns: repeat(auto-fill, 260px)
+        padding: .5rem 0
+        gap: 20px
+
+        .projects-info
+            grid-column: 1 / -1
+            display: flex
+            flex-direction: row
+            gap: 15px
+            margin: 0 20px
+            .info
+                margin-top: auto
+                *
+                    margin: 0 10px

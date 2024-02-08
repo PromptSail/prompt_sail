@@ -12,9 +12,7 @@ const DeleteProject: React.FC<Props> = ({ name, projectId }) => {
     const deleteProject = useDeleteProject();
     return (
         <>
-            <Button variant="primary" onClick={() => setShow((e) => !e)}>
-                Delete
-            </Button>
+            <button onClick={() => setShow((e) => !e)}>Delete</button>
             <Modal show={isShow} onHide={() => setShow((e) => !e)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Delete {name}</Modal.Title>
