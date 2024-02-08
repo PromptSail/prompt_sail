@@ -18,7 +18,7 @@ const AddProject: React.FC = () => {
         });
     };
     return (
-        <div className="project__add">
+        <div className="projectForm__add">
             <h3>Create project</h3>
             <ProjectForm formId="ProjectAdd" submitFunc={submit} />
             <Button type="submit" className="mt-2" form="ProjectAdd">

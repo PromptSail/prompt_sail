@@ -1,4 +1,3 @@
-import { SetStateAction, useEffect } from 'react';
 import React from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllTransactions } from '../../../api/queries';
@@ -11,18 +10,17 @@ declare global {
 }
 interface Props {
     projectId: string;
-    lengthTransactionRequest: (length: SetStateAction<string>) => void;
 }
-const LatestTransactions: React.FC<Props> = ({ projectId, lengthTransactionRequest }) => {
+const LatestTransactions: React.FC<Props> = ({ projectId }) => {
     const filters: TransactionsFilters = {
         page_size: '5',
         project_id: projectId
     };
     const transactions = useGetAllTransactions(filters);
-    useEffect(() => {
-        if (transactions.isSuccess)
-            lengthTransactionRequest(`${transactions.data.data.total_elements}`);
-    }, [transactions.status]);
+    // useEffect(() => {
+    //     if (transactions.isSuccess)
+    //         lengthTransactionRequest(`${transactions.data.data.total_elements}`);
+    // }, [transactions.status]);
 
     if (transactions.isLoading)
         return (
