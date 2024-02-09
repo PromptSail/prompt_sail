@@ -13,6 +13,7 @@ const FormikValues = {
     ai_providers: [
         {
             deployment_name: '',
+            slug: '',
             api_base: '',
             description: '',
             provider_name: ''
@@ -198,7 +199,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                     setProvidersList={(list: typeof FormikValues.ai_providers) =>
                         formik.setValues({ ...formik.values, ai_providers: list })
                     }
-                    slug={formik.values.slug}
+                    projectSlug={formik.values.slug}
                     toSlug={toSlug}
                     isProjects={!!projectId}
                     errorMessage={formik.errors.ai_providers as string}
