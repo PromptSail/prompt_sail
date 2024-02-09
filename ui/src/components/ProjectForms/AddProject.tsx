@@ -13,9 +13,18 @@ const AddProject: React.FC = () => {
             ...values,
             tags: values.tags.replace(/\s/g, '').split(',')
         };
-        addProject.mutateAsync({ data: reqValues }).then(() => {
-            navigate('/');
-        });
+        addProject
+            .mutateAsync(
+                { data: reqValues },
+                {
+                    onError: (err) => {
+                        alert(`${err.code} ${err.message}`);
+                    }
+                }
+            )
+            .then(() => {
+                navigate('/');
+            });
     };
     return (
         <div className="projectForm__add">

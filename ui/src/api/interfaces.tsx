@@ -4,6 +4,7 @@ export interface addProjectRequest {
     description: string;
     ai_providers: {
         deployment_name: string;
+        slug: string;
         api_base: string;
         description: string;
         provider_name: string;
@@ -21,6 +22,7 @@ export interface getAllProjects {
     description: string;
     ai_providers: {
         api_base: string;
+        slug: string;
         provider_name: string;
         deployment_name: string;
         description: string;

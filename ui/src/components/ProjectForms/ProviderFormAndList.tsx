@@ -7,7 +7,7 @@ import { providerSchema } from '../../api/formSchemas';
 interface Props {
     ProvidersList: typeof FormikValues.ai_providers;
     setProvidersList: (list: typeof FormikValues.ai_providers) => void;
-    slug: string;
+    projectSlug: string;
     toSlug: (text: string) => string;
     errorMessage: string;
     isProjects: boolean;
@@ -16,7 +16,7 @@ interface Props {
 const ProviderFormAndList: React.FC<Props> = ({
     ProvidersList,
     setProvidersList,
-    slug,
+    projectSlug,
     toSlug,
     errorMessage,
     isProjects
@@ -26,6 +26,7 @@ const ProviderFormAndList: React.FC<Props> = ({
     const formik = useFormik({
         initialValues: {
             deployment_name: '',
+            slug: '',
             description: '',
             api_base: '',
             provider_name: ''
@@ -37,12 +38,18 @@ const ProviderFormAndList: React.FC<Props> = ({
             ) {
                 formik.setErrors({ deployment_name: 'Name must be unique' });
             } else {
-                console.log(deployment_name);
                 formik.setErrors({});
                 setProvidersList([
                     ...ProvidersList,
-                    { api_base, provider_name, deployment_name, description }
+                    {
+                        api_base,
+                        slug: toSlug(deployment_name),
+                        provider_name,
+                        deployment_name,
+                        description
+                    }
                 ]);
+                console.log(ProvidersList);
                 setFormShow(false);
             }
         },
@@ -169,7 +176,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                         </InputGroup>
                     </form>
                     <div className="calculated-link">
-                        {makeUrl(slug, formik.values.deployment_name)}
+                        {makeUrl(projectSlug, formik.values.deployment_name)}
                     </div>
                     {EditedProvider !== null && (
                         <Button

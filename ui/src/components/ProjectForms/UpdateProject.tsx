@@ -14,9 +14,18 @@ const UpdateProject: React.FC = () => {
             ...values,
             tags: values.tags.replace(/\s/g, '').split(',')
         };
-        updateProject.mutateAsync({ id: projectId, data: reqValues }).then(() => {
-            navigate(`/projects/${projectId}`);
-        });
+        updateProject
+            .mutateAsync(
+                { id: projectId, data: reqValues },
+                {
+                    onError: (err) => {
+                        alert(`${err.code} ${err.message}`);
+                    }
+                }
+            )
+            .then(() => {
+                navigate(`/projects/${projectId}`);
+            });
     };
     return (
         <div className="projectForm__update">

@@ -105,7 +105,7 @@ export const useAddProject = (): UseMutationResult<
                 });
             },
             onError: (err) => {
-                console.error(err);
+                console.error(`${err.code}: ${err.message}`);
             }
         }
     );
@@ -129,7 +129,7 @@ export const useUpdateProject = (): UseMutationResult<
                 });
             },
             onError: (err) => {
-                console.error(err);
+                console.error(`${err.code}: ${err.message}`);
             }
         }
     );
@@ -149,6 +149,9 @@ export const useDeleteProject = (): UseMutationResult<AxiosResponse, AxiosError,
                     autoClose: 1000
                 });
                 navigate('/');
+            },
+            onError: (err) => {
+                console.error(`${err.code}: ${err.message}`);
             }
         }
     );
