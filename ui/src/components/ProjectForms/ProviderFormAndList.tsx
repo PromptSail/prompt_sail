@@ -3,12 +3,12 @@ import { FormikValues } from './types';
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import { providerSchema } from '../../api/formSchemas';
+import { makeUrl, toSlug } from '../../helpers/aiProvider';
 
 interface Props {
     ProvidersList: typeof FormikValues.ai_providers;
     setProvidersList: (list: typeof FormikValues.ai_providers) => void;
     projectSlug: string;
-    toSlug: (text: string) => string;
     errorMessage: string;
     isProjects: boolean;
 }
@@ -17,7 +17,6 @@ const ProviderFormAndList: React.FC<Props> = ({
     ProvidersList,
     setProvidersList,
     projectSlug,
-    toSlug,
     errorMessage,
     isProjects
 }) => {
@@ -56,9 +55,6 @@ const ProviderFormAndList: React.FC<Props> = ({
         validateOnChange: false,
         validationSchema: providerSchema
     });
-    const makeUrl = (slug: string, name: string) => {
-        return `http://localhost:8000/${toSlug(slug) || '<slug>'}/${toSlug(name) || '<name>'}`;
-    };
     return (
         <>
             <Accordion>

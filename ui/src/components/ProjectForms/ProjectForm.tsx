@@ -1,10 +1,10 @@
 import { useFormik } from 'formik';
 import { ReactNode, useEffect, useState } from 'react';
 import { Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import slugify from 'slugify';
 import ProviderFormAndList from './ProviderFormAndList';
 import { projectSchema } from '../../api/formSchemas';
 import { useGetAllProjects } from '../../api/queries';
+import { toSlug } from '../../helpers/aiProvider';
 
 const FormikValues = {
     name: '',
@@ -100,13 +100,6 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
             formik.setValues((old) => ({ ...old, ...value }));
         }
     }, [projects.status]);
-    const toSlug = (text: string) => {
-        const newText = text.replace(/^\d+|[@*()+:'"~]/g, '');
-        return slugify(newText, {
-            replacement: '-',
-            lower: true
-        });
-    };
     if (projects.isError)
         return (
             <>
@@ -200,7 +193,6 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                         formik.setValues({ ...formik.values, ai_providers: list })
                     }
                     projectSlug={formik.values.slug}
-                    toSlug={toSlug}
                     isProjects={!!projectId}
                     errorMessage={formik.errors.ai_providers as string}
                 />
