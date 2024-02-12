@@ -24,6 +24,10 @@ const ProjetTile: React.FC<Props> = ({ data }) => {
                         <span>Total cost:</span>
                         <span>$ 1.00</span>
                     </div>
+                    <div className="element">
+                        <span>Tags:</span>
+                        <span>{data.tags.join(', ')}</span>
+                    </div>
                 </div>
             </div>
         </Link>

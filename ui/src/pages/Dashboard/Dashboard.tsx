@@ -29,6 +29,7 @@ const Dashboard = () => {
             </>
         );
     if (projects.isSuccess) {
+        const filteredProjects = projects.data.filter((el) => filterProjects(el));
         return (
             <>
                 <div className="dashboard">
@@ -37,7 +38,7 @@ const Dashboard = () => {
                             className="search-bar"
                             type="text"
                             name="search"
-                            placeholder="Search"
+                            placeholder="Search project (by name, tags, etc)"
                             onChange={(e) => {
                                 const val = e.currentTarget.value;
                                 if (val.length > 2) setFilter(val);
@@ -58,11 +59,12 @@ const Dashboard = () => {
                                 <h3>Add New Project +</h3>
                             </div>
                         </Link>
-                        {projects.data
-                            .filter((el) => filterProjects(el))
-                            .map((project: getAllProjects, id: number) => (
-                                <ProjetTile key={id} data={project} />
-                            ))}
+                        {filteredProjects.map((project: getAllProjects, id: number) => (
+                            <ProjetTile key={id} data={project} />
+                        ))}
+                        {filteredProjects.length == 0 && (
+                            <h2 className="no-projects-found">No projects found</h2>
+                        )}
                     </div>
                 </div>
             </>
