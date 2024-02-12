@@ -16,9 +16,9 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
     const project: UseQueryResult<AxiosResponse<getProjectResponse>> = useGetProject(
         params.projectId || ''
     );
-    const popover = (description: string) => (
+    const popover = (label: string, description: string) => (
         <Popover>
-            <Popover.Header>Description</Popover.Header>
+            <Popover.Header>{label}</Popover.Header>
             <Popover.Body>{description}</Popover.Body>
         </Popover>
     );
@@ -38,6 +38,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
         );
     if (project.isSuccess) {
         const data = project.data.data;
+        const tags = data.tags.join(', ');
         return (
             <div className="project">
                 <div className="details">
@@ -69,7 +70,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                             <div className="content">
                                 <div className="element">
                                     <span>Members:</span>
-                                    <span>10</span>
+                                    <span>1</span>
                                 </div>
                                 <div className="element">
                                     <span>Total tranasction:</span>
@@ -77,11 +78,20 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                                 </div>
                                 <div className="element">
                                     <span>Total const:</span>
-                                    <span>$ 129.32</span>
+                                    <span>$ 1.00</span>
                                 </div>
                                 <div className="element">
                                     <span>Tags:</span>
-                                    <span>{data.tags.join(', ')}</span>
+                                    {tags.length > 30 ? (
+                                        <OverlayTrigger
+                                            placement="bottom"
+                                            overlay={popover('Tags', tags)}
+                                        >
+                                            <span>{tags.substring(0, 30) + `...`}</span>
+                                        </OverlayTrigger>
+                                    ) : (
+                                        <span>{tags}</span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -104,7 +114,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                                                 key={id}
                                                 overlay={
                                                     el.description.length > 1 ? (
-                                                        popover(el.description)
+                                                        popover('Description', el.description)
                                                     ) : (
                                                         <></>
                                                     )

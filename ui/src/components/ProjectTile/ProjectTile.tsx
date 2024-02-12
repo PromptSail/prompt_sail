@@ -14,15 +14,15 @@ const ProjetTile: React.FC<Props> = ({ data }) => {
                 <div className="details">
                     <div className="element">
                         <span>Members:</span>
-                        <span>10</span>
+                        <span>1</span>
                     </div>
                     <div className="element">
-                        <span>Total tranasction:</span>
+                        <span>Total transactions:</span>
                         <span>{data.total_transactions}</span>
                     </div>
                     <div className="element">
-                        <span>Total const:</span>
-                        <span>$ 129.32</span>
+                        <span>Total cost:</span>
+                        <span>$ 1.00</span>
                     </div>
                 </div>
             </div>
