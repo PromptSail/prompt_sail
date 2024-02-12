@@ -1,53 +1,111 @@
 .projectForm
     &__add, &__update
-        max-width: 700px
-        padding: 50px 0 0 50px
-        h3
-            padding-top: 20px
-            margin-bottom: 10px
-        .ai-providers
-            padding: 10px
-            border: 1px solid var(--bs-gray-400)
-            border-radius: 7px
-            background: var(--bs-gray-200)
+        width: 100%
+        padding:  20px 50px
+        
+        button:not(.accordion-button)
+            font-size: 1.3em
+            background: hsl(220,90%,90%)
+            padding: 10px 20px
+            line-height: 1em
+            box-shadow: -1px 2px 2px 0px rgba(0, 0, 0, 0.15)
+            border-radius: 15px
+            transition: 100ms 
+            transition-delay: 100ms
+            &:hover
+                transition: 100ms
+                outline-color: hsl(220, 90%, 70%)
+                transform: translateY(-5px)
+                box-shadow: -6px 10px 7px 0px rgba(0, 0, 0, 0.15)
+                color: hsl(220, 90%, 70%)
+            
+        .box
+            background: #FFF
+            padding: 15px
+            border-radius: 15px
+            box-shadow: -2px 5px 7px 0px rgba(0, 0, 0, 0.1)
+        .forms
             display: flex
-            flex-direction: column
-            gap: 10px
-            .inputs
-                display: grid
-                grid-template-columns: repeat(2, 1fr)
-                grid-template-rows: repeat(2, 1fr)
-                grid-column-gap: 0px
-                grid-row-gap: 0px
-                gap: 10px
-                div:last-child
-                    grid-area: 2 / 1 / 3 / 3
-            .calculated-link
-                text-align: center
-                font-weight: bold
-                font-size: 1.2em
-            .no-providers-error
-                color: var(--bs-red)
-                font-weight: bold
-            &.error
-                background: #ffdcdc
-                border-color: var(--bs-red)
-        .add-another-provider
-            width: 100%
-        .accordion
-            *
-                line-height: 20px
-            .options
+            flex-direction: row
+            gap: 15px
+            flex-wrap: wrap
+            margin-top: 25px
+            .form-floating
+                input, textarea, select
+                    border: none
+                    border-radius: 0
+                    box-shadow: none !important
+                    border-bottom: 1px solid var(--bs-gray-300)
+                    &.is-invalid
+                        border-color: var(--bs-red)
+                    &:disabled
+                        background: #FFF
+                        &~ label::after
+                            background: #FFF
+                .invalid-feedback
+                    display: block !important
+                    min-height: 1.43em !important
+            &> div
+                min-width: 300px
+                flex: 1 1 0%
+            .project-form
+                .header
+                    margin: 0 0 10px 15px
+                form
+                    display: flex
+                    flex-direction: column
+                    gap: 5px
+                h3
+                    padding-top: 20px
+                    margin-bottom: 10px
+            .providers-form
                 display: flex
+                flex-direction: column
                 gap: 10px
-                margin-top: 10px
-                *
-                    flex: 1
-            .content
-                display: flex
-                flex-direction: row
-                gap: min(100%, 50px)
-                .title
-                    width: 40%
-                    min-width: 20px
-                    font-weight: bold
+                .header
+                    margin-left: 15px
+                .accordion
+                    display: flex
+                    flex-direction: column
+                    gap: 10px
+                    &-header button
+                        border-radius: 15px
+                    &-item
+                        padding: 0
+                        border: none
+                        .box
+                            box-shadow: none
+                    &-button
+                        padding: 10px 15px
+                        box-shadow: none
+                    *
+                        line-height: 20px
+                    .options
+                        display: flex
+                        gap: 10px
+                        margin-top: 10px
+                        *
+                            flex: 1
+                    .content
+                        display: flex
+                        flex-direction: row
+                        gap: min(100%, 50px)
+                        .title
+                            width: 40%
+                            min-width: 20px
+                            font-weight: bold
+                form
+                    display: flex
+                    flex-direction: column
+                    gap: 10px
+                    .generated-link
+                        color: var(--bs-gray-700)
+                        cursor: text
+                    .no-providers-error
+                        color: var(--bs-red)
+                        font-weight: bold
+                    &.error
+                        background: #ffdcdc
+                        border-color: var(--bs-red)
+                .add-another-provider
+                    width: 100%

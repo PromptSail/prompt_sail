@@ -1,4 +1,4 @@
-import { Accordion, Button, Form, InputGroup } from 'react-bootstrap';
+import { Accordion, FloatingLabel, Form } from 'react-bootstrap';
 import { FormikValues } from './types';
 import { useState } from 'react';
 import { useFormik } from 'formik';
@@ -20,197 +20,196 @@ const ProviderFormAndList: React.FC<Props> = ({
     errorMessage,
     isProjects
 }) => {
-    const [FormShowed, setFormShow] = useState(!isProjects);
     const [EditedProvider, setEditedProvider] = useState<number | null>(null);
-    const formik = useFormik({
-        initialValues: {
-            deployment_name: '',
-            slug: '',
-            description: '',
-            api_base: '',
-            provider_name: ''
-        },
-        onSubmit: async ({ deployment_name, provider_name, api_base, description }) => {
-            if (
-                ProvidersList.filter((e) => toSlug(e.deployment_name) === toSlug(deployment_name))
-                    .length > 0
-            ) {
-                formik.setErrors({ deployment_name: 'Name must be unique' });
-            } else {
-                formik.setErrors({});
-                setProvidersList([
-                    ...ProvidersList,
-                    {
-                        api_base,
-                        slug: toSlug(deployment_name),
-                        provider_name,
-                        deployment_name,
-                        description
-                    }
-                ]);
-                console.log(ProvidersList);
-                setFormShow(false);
-            }
-        },
-        validateOnChange: false,
-        validationSchema: providerSchema
-    });
-    return (
-        <>
-            <Accordion>
-                {ProvidersList.map((el, id) => (
-                    <Accordion.Item eventKey={`${id}`} key={id}>
-                        <Accordion.Header>{el.deployment_name}</Accordion.Header>
-                        <Accordion.Body>
-                            <div className="content">
-                                <span className="title">Provider:</span>
-                                <span>{el.provider_name}</span>
-                            </div>
-                            <div className="content">
-                                <span className="title">Api url:</span>
-                                <span>{el.api_base}</span>
-                            </div>
-                            <div className="options">
-                                <Button
-                                    variant={`${EditedProvider != id ? 'outline-' : ''}secondary`}
-                                    onClick={() => {
-                                        if (EditedProvider != id) {
-                                            setEditedProvider(id);
-                                            formik.setValues((old) => ({
-                                                ...old,
-                                                ...ProvidersList[id]
-                                            }));
-                                            setFormShow(true);
-                                        } else {
-                                            setEditedProvider(null);
-                                            setFormShow(false);
-                                        }
-                                    }}
-                                >
-                                    {`${EditedProvider != id ? '' : 'Cancel '}edit`}
-                                </Button>
-                                <Button
-                                    onClick={() => {
-                                        const newList = ProvidersList.filter(
-                                            (_el, idx) => idx != id
-                                        );
-                                        setProvidersList(newList);
-                                        if (newList.length < 1) setFormShow(true);
-                                    }}
-                                    variant="outline-danger"
-                                >
-                                    Delete
-                                </Button>
-                            </div>
-                        </Accordion.Body>
-                    </Accordion.Item>
-                ))}
-            </Accordion>
-            {FormShowed && (
-                <div className={`ai-providers${formik.isValid ? '' : ' error'}`}>
-                    <form
-                        className="inputs"
-                        id="providersForm"
-                        onSubmit={formik.handleSubmit}
-                        noValidate
+    const [FormShowed, setFormShow] = useState(!isProjects);
+    const ProviderForm: React.FC = () => {
+        const formik = useFormik({
+            initialValues:
+                EditedProvider != null
+                    ? {
+                          deployment_name: ProvidersList[EditedProvider].deployment_name,
+                          slug: ProvidersList[EditedProvider].slug,
+                          description: ProvidersList[EditedProvider].description,
+                          api_base: ProvidersList[EditedProvider].api_base,
+                          provider_name: ProvidersList[EditedProvider].provider_name
+                      }
+                    : {
+                          deployment_name: '',
+                          slug: '',
+                          description: '',
+                          api_base: '',
+                          provider_name: ''
+                      },
+            onSubmit: async ({ deployment_name, provider_name, api_base, description }) => {
+                if (
+                    ProvidersList.filter(
+                        (e, idx) =>
+                            toSlug(e.deployment_name) === toSlug(deployment_name) &&
+                            idx != EditedProvider
+                    ).length > 0
+                ) {
+                    formik.setErrors({ deployment_name: 'Name must be unique' });
+                } else {
+                    formik.setErrors({});
+                    if (EditedProvider != null) {
+                        const newList = ProvidersList.map((el, idx) => {
+                            if (idx === EditedProvider) return formik.values;
+                            else return el;
+                        });
+                        console.log(newList);
+                        setProvidersList(newList);
+                        setEditedProvider(null);
+                    } else
+                        setProvidersList([
+                            ...ProvidersList,
+                            {
+                                api_base,
+                                slug: toSlug(deployment_name),
+                                provider_name,
+                                deployment_name,
+                                description
+                            }
+                        ]);
+                    setFormShow(false);
+                }
+            },
+            validateOnChange: false,
+            validationSchema: providerSchema
+        });
+        return (
+            <form className="box" onSubmit={formik.handleSubmit} noValidate>
+                <FloatingLabel label="AI Provider">
+                    <Form.Select
+                        name={`provider_name`}
+                        onChange={formik.handleChange}
+                        value={formik.values.provider_name}
+                        aria-placeholder="Select provider"
+                        isInvalid={!!formik.errors.provider_name}
                     >
-                        <InputGroup>
-                            <Form.Select
-                                name={`provider_name`}
-                                onChange={formik.handleChange}
-                                value={formik.values.provider_name}
-                                aria-placeholder="Select provider"
-                                isInvalid={!!formik.errors.provider_name}
-                            >
-                                <option value="" key={null}>
-                                    Select provider
-                                </option>
-                                {[
-                                    'OpenAI',
-                                    'Azure OpenAI',
-                                    'Google Palm',
-                                    'Anthropic Cloud',
-                                    'Meta LLama',
-                                    'HuggingFace',
-                                    'Custom'
-                                ].map((el, id) => (
-                                    <option value={el} key={`${el}${id}`}>
-                                        {el}
-                                    </option>
-                                ))}
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid" tooltip>
-                                {formik.errors.provider_name}
-                            </Form.Control.Feedback>
-                        </InputGroup>
-                        <InputGroup>
-                            <InputGroup.Text>Deployment name</InputGroup.Text>
-                            <Form.Control
-                                type="text"
-                                name={`deployment_name`}
-                                onChange={formik.handleChange}
-                                value={formik.values.deployment_name}
-                                isInvalid={!!formik.errors.deployment_name}
-                            />
-                            <Form.Control.Feedback type="invalid" tooltip>
-                                {formik.errors.deployment_name}
-                            </Form.Control.Feedback>
-                        </InputGroup>
-                        <InputGroup>
-                            <InputGroup.Text>API Base URL</InputGroup.Text>
-                            <Form.Control
-                                type="url"
-                                name={`api_base`}
-                                onChange={formik.handleChange}
-                                value={formik.values.api_base}
-                                placeholder="https://api.openai.com/v1"
-                                isInvalid={!!formik.errors.api_base}
-                            />
-                            <Form.Control.Feedback type="invalid" tooltip>
-                                {formik.errors.api_base}
-                            </Form.Control.Feedback>
-                        </InputGroup>
-                    </form>
-                    <div className="calculated-link">
-                        {makeUrl(projectSlug, formik.values.deployment_name)}
-                    </div>
-                    {EditedProvider !== null && (
-                        <Button
-                            variant="dark"
-                            onClick={() => {
-                                const update = ProvidersList.map((el, id) => {
-                                    if (id == EditedProvider) return formik.values;
-                                    else return el;
-                                });
-                                setProvidersList(update);
-                                setEditedProvider(null);
-                                setFormShow(false);
-                            }}
-                        >
-                            Update AI Provider
-                        </Button>
-                    )}
-                    {EditedProvider === null && (
-                        <Button type="submit" form="providersForm" variant="dark">
-                            Add Ai Provider
-                        </Button>
-                    )}
-                    {!!errorMessage && <p className="no-providers-error">{errorMessage}</p>}
-                </div>
+                        <option value="" key={null}>
+                            Select provider
+                        </option>
+                        {[
+                            'OpenAI',
+                            'Azure OpenAI',
+                            'Google Palm',
+                            'Anthropic Cloud',
+                            'Meta LLama',
+                            'HuggingFace',
+                            'Custom'
+                        ].map((el, id) => (
+                            <option value={el} key={`${el}${id}`}>
+                                {el}
+                            </option>
+                        ))}
+                    </Form.Select>
+                    <Form.Control.Feedback type="invalid">
+                        {formik.errors.provider_name}
+                    </Form.Control.Feedback>
+                </FloatingLabel>
+                <FloatingLabel label="Deployment name">
+                    <Form.Control
+                        type="text"
+                        name={`deployment_name`}
+                        onChange={formik.handleChange}
+                        value={formik.values.deployment_name}
+                        placeholder="Deployment name"
+                        isInvalid={!!formik.errors.deployment_name}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {formik.errors.deployment_name}
+                    </Form.Control.Feedback>
+                </FloatingLabel>
+                <FloatingLabel label="Api base URL">
+                    <Form.Control
+                        type="url"
+                        name={`api_base`}
+                        onChange={formik.handleChange}
+                        value={formik.values.api_base}
+                        placeholder="https://api.openai.com/v1"
+                        isInvalid={!!formik.errors.api_base}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                        {formik.errors.api_base}
+                    </Form.Control.Feedback>
+                </FloatingLabel>
+                <FloatingLabel label="Proxy URL (generated automatically)">
+                    <Form.Control
+                        type="text"
+                        className="generated-link"
+                        onChange={formik.handleChange}
+                        value={makeUrl(projectSlug, formik.values.deployment_name)}
+                        placeholder="Proxy URL"
+                        disabled
+                    />
+                    <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                </FloatingLabel>
+                <button type="submit">
+                    {EditedProvider != undefined ? 'Update AI Provider' : 'Add Ai Provider'}
+                </button>
+                {!!errorMessage && <p className="no-providers-error">{errorMessage}</p>}
+            </form>
+        );
+    };
+    return (
+        <div className="providers-form">
+            <h5 className="header">Providers details</h5>
+            {ProvidersList.length > 0 && (
+                <Accordion>
+                    {ProvidersList.map((el, id) => (
+                        <Accordion.Item eventKey={`${id}`} key={id} className="box">
+                            <Accordion.Header>{el.deployment_name}</Accordion.Header>
+                            <Accordion.Body>
+                                <div className="content">
+                                    <span className="title">Provider:</span>
+                                    <span>{el.provider_name}</span>
+                                </div>
+                                <div className="content">
+                                    <span className="title">Api url:</span>
+                                    <span>{el.api_base}</span>
+                                </div>
+                                <div className="options">
+                                    <button
+                                        onClick={() => {
+                                            if (EditedProvider != id) {
+                                                setEditedProvider(id);
+                                                setFormShow(false);
+                                            } else setEditedProvider(null);
+                                        }}
+                                    >
+                                        {`${EditedProvider != id ? '' : 'Cancel '}edit`}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const newList = ProvidersList.filter(
+                                                (_el, idx) => idx != id
+                                            );
+                                            setProvidersList(newList);
+                                            if (newList.length < 1) setFormShow(true);
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                                {EditedProvider == id && <ProviderForm />}
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    ))}
+                </Accordion>
             )}
+            {FormShowed && <ProviderForm />}
             {!FormShowed && (
-                <Button
+                <button
                     className="add-another-provider"
-                    variant="dark"
                     onClick={() => {
                         setFormShow(true);
-                        formik.setValues((old) => ({ ...old, deployment_name: '' }));
+                        setEditedProvider(null);
                     }}
                 >
                     Add another AI Provider
-                </Button>
+                </button>
             )}
-        </>
+        </div>
     );
 };
 export default ProviderFormAndList;
