@@ -28,7 +28,7 @@ const UpdateProject: React.FC = () => {
     };
     return (
         <div className="projectForm__update">
-            <h3>Update project</h3>
+            <h1>Update project</h1>
             <ProjectForm formId="ProjectUpdate" submitFunc={submit} projectId={projectId} />
             <button type="submit" className="mt-2" form="ProjectUpdate">
                 Update

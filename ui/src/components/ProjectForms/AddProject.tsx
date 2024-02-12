@@ -3,6 +3,7 @@ import { addProjectRequest } from '../../api/interfaces';
 import ProjectForm from './ProjectForm';
 import { FormikValues } from './types';
 import { useNavigate } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 
 const AddProject: React.FC = () => {
     const addProject = useAddProject();
@@ -27,11 +28,11 @@ const AddProject: React.FC = () => {
     };
     return (
         <div className="projectForm__add">
-            <h3>Create project</h3>
+            <h1>Create project</h1>
             <ProjectForm formId="ProjectAdd" submitFunc={submit} />
-            <button type="submit" className="mt-2" form="ProjectAdd">
+            <Button type="submit" variant="primary" size="lg" form="ProjectAdd">
                 Create
-            </button>
+            </Button>
         </div>
     );
 };

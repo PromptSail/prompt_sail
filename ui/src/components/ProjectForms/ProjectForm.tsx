@@ -112,52 +112,54 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
         return (
             <div className="forms">
                 <div className="project-form">
-                    <h5 className="header">Project details</h5>
+                    <h2 className="header">Project details</h2>
                     <form className="box" id={formId} onSubmit={formik.handleSubmit} noValidate>
-                        <FloatingLabel label="Name">
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                onChange={formik.handleChange}
-                                value={formik.values.name}
-                                onKeyUp={(e) => {
-                                    const val = e.currentTarget.value;
-                                    if (isSlugGenerated)
-                                        formik.setValues((old) => ({
-                                            ...old,
-                                            slug: toSlug(val)
-                                        }));
-                                }}
-                                placeholder="name"
-                                isInvalid={!!formik.errors.name}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {formik.errors.name}
-                            </Form.Control.Feedback>
-                        </FloatingLabel>
-                        <FloatingLabel label="Slug">
-                            <Form.Control
-                                type="text"
-                                name="slug"
-                                onKeyDown={() => setSlugGenerate(false)}
-                                onBlur={(e) => {
-                                    const val = e.currentTarget.value;
-                                    if (val.length < 1) setSlugGenerate(true);
-                                    e.currentTarget.value = toSlug(val);
-                                }}
-                                onChange={formik.handleChange}
-                                value={formik.values.slug}
-                                placeholder="slug"
-                                isInvalid={!!formik.errors.slug}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {formik.errors.slug}
-                            </Form.Control.Feedback>
-                            <Info>
-                                Slug is a URL-friendly name used to identify a project. It's
-                                utilized in the URL for adding transactions
-                            </Info>
-                        </FloatingLabel>
+                        <div className="double-inputs">
+                            <FloatingLabel label="Name">
+                                <Form.Control
+                                    type="text"
+                                    name="name"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.name}
+                                    onKeyUp={(e) => {
+                                        const val = e.currentTarget.value;
+                                        if (isSlugGenerated)
+                                            formik.setValues((old) => ({
+                                                ...old,
+                                                slug: toSlug(val)
+                                            }));
+                                    }}
+                                    placeholder="name"
+                                    isInvalid={!!formik.errors.name}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {formik.errors.name}
+                                </Form.Control.Feedback>
+                            </FloatingLabel>
+                            <FloatingLabel label="Slug">
+                                <Form.Control
+                                    type="text"
+                                    name="slug"
+                                    onKeyDown={() => setSlugGenerate(false)}
+                                    onBlur={(e) => {
+                                        const val = e.currentTarget.value;
+                                        if (val.length < 1) setSlugGenerate(true);
+                                        e.currentTarget.value = toSlug(val);
+                                    }}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.slug}
+                                    placeholder="slug"
+                                    isInvalid={!!formik.errors.slug}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {formik.errors.slug}
+                                </Form.Control.Feedback>
+                                <Info>
+                                    Slug is a URL-friendly name used to identify a project. It's
+                                    utilized in the URL for adding transactions
+                                </Info>
+                            </FloatingLabel>
+                        </div>
                         <FloatingLabel label="Description">
                             <Form.Control
                                 as="textarea"

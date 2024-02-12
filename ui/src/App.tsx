@@ -20,7 +20,12 @@ const App = () => {
                     <Sidebar pageRef={page} setLoginState={setLoginState}></Sidebar>
                     <div
                         ref={page}
-                        style={{ marginLeft: '250px', height: '100%', background: '#eef4fa' }}
+                        style={{
+                            marginLeft: '250px',
+                            height: '100%',
+                            background: '#eef4fa',
+                            overflowY: 'auto'
+                        }}
                     >
                         <Routes>
                             <Route path="/" element={<Dashboard />} />

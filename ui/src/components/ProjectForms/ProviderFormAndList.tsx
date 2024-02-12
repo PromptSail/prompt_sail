@@ -1,4 +1,4 @@
-import { Accordion, FloatingLabel, Form } from 'react-bootstrap';
+import { Accordion, Button, FloatingLabel, Form } from 'react-bootstrap';
 import { FormikValues } from './types';
 import { useState } from 'react';
 import { useFormik } from 'formik';
@@ -78,48 +78,50 @@ const ProviderFormAndList: React.FC<Props> = ({
         });
         return (
             <form className="box" onSubmit={formik.handleSubmit} noValidate>
-                <FloatingLabel label="AI Provider">
-                    <Form.Select
-                        name={`provider_name`}
-                        onChange={formik.handleChange}
-                        value={formik.values.provider_name}
-                        aria-placeholder="Select provider"
-                        isInvalid={!!formik.errors.provider_name}
-                    >
-                        <option value="" key={null}>
-                            Select provider
-                        </option>
-                        {[
-                            'OpenAI',
-                            'Azure OpenAI',
-                            'Google Palm',
-                            'Anthropic Cloud',
-                            'Meta LLama',
-                            'HuggingFace',
-                            'Custom'
-                        ].map((el, id) => (
-                            <option value={el} key={`${el}${id}`}>
-                                {el}
+                <div className="double-inputs">
+                    <FloatingLabel label="AI Provider">
+                        <Form.Select
+                            name={`provider_name`}
+                            onChange={formik.handleChange}
+                            value={formik.values.provider_name}
+                            aria-placeholder="Select provider"
+                            isInvalid={!!formik.errors.provider_name}
+                        >
+                            <option value="" key={null}>
+                                Select provider
                             </option>
-                        ))}
-                    </Form.Select>
-                    <Form.Control.Feedback type="invalid">
-                        {formik.errors.provider_name}
-                    </Form.Control.Feedback>
-                </FloatingLabel>
-                <FloatingLabel label="Deployment name">
-                    <Form.Control
-                        type="text"
-                        name={`deployment_name`}
-                        onChange={formik.handleChange}
-                        value={formik.values.deployment_name}
-                        placeholder="Deployment name"
-                        isInvalid={!!formik.errors.deployment_name}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                        {formik.errors.deployment_name}
-                    </Form.Control.Feedback>
-                </FloatingLabel>
+                            {[
+                                'OpenAI',
+                                'Azure OpenAI',
+                                'Google Palm',
+                                'Anthropic Cloud',
+                                'Meta LLama',
+                                'HuggingFace',
+                                'Custom'
+                            ].map((el, id) => (
+                                <option value={el} key={`${el}${id}`}>
+                                    {el}
+                                </option>
+                            ))}
+                        </Form.Select>
+                        <Form.Control.Feedback type="invalid">
+                            {formik.errors.provider_name}
+                        </Form.Control.Feedback>
+                    </FloatingLabel>
+                    <FloatingLabel label="Deployment name">
+                        <Form.Control
+                            type="text"
+                            name={`deployment_name`}
+                            onChange={formik.handleChange}
+                            value={formik.values.deployment_name}
+                            placeholder="Deployment name"
+                            isInvalid={!!formik.errors.deployment_name}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {formik.errors.deployment_name}
+                        </Form.Control.Feedback>
+                    </FloatingLabel>
+                </div>
                 <FloatingLabel label="Api base URL">
                     <Form.Control
                         type="url"
@@ -144,16 +146,16 @@ const ProviderFormAndList: React.FC<Props> = ({
                     />
                     <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
                 </FloatingLabel>
-                <button type="submit">
+                <Button type="submit" variant="dark">
                     {EditedProvider != undefined ? 'Update AI Provider' : 'Add Ai Provider'}
-                </button>
+                </Button>
                 {!!errorMessage && <p className="no-providers-error">{errorMessage}</p>}
             </form>
         );
     };
     return (
         <div className="providers-form">
-            <h5 className="header">Providers details</h5>
+            <h2 className="header">Providers details</h2>
             {ProvidersList.length > 0 && (
                 <Accordion>
                     {ProvidersList.map((el, id) => (
@@ -169,7 +171,8 @@ const ProviderFormAndList: React.FC<Props> = ({
                                     <span>{el.api_base}</span>
                                 </div>
                                 <div className="options">
-                                    <button
+                                    <Button
+                                        variant="dark"
                                         onClick={() => {
                                             if (EditedProvider != id) {
                                                 setEditedProvider(id);
@@ -177,9 +180,10 @@ const ProviderFormAndList: React.FC<Props> = ({
                                             } else setEditedProvider(null);
                                         }}
                                     >
-                                        {`${EditedProvider != id ? '' : 'Cancel '}edit`}
-                                    </button>
-                                    <button
+                                        {`${EditedProvider != id ? '' : 'Cancel '}Edit`}
+                                    </Button>
+                                    <Button
+                                        variant="danger"
                                         onClick={() => {
                                             const newList = ProvidersList.filter(
                                                 (_el, idx) => idx != id
@@ -189,7 +193,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                                         }}
                                     >
                                         Delete
-                                    </button>
+                                    </Button>
                                 </div>
                                 {EditedProvider == id && <ProviderForm />}
                             </Accordion.Body>
@@ -199,7 +203,8 @@ const ProviderFormAndList: React.FC<Props> = ({
             )}
             {FormShowed && <ProviderForm />}
             {!FormShowed && (
-                <button
+                <Button
+                    variant="dark"
                     className="add-another-provider"
                     onClick={() => {
                         setFormShow(true);
@@ -207,7 +212,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                     }}
                 >
                     Add another AI Provider
-                </button>
+                </Button>
             )}
         </div>
     );

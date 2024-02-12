@@ -2,34 +2,32 @@
     &__add, &__update
         width: 100%
         padding:  20px 50px
-        
-        button:not(.accordion-button)
+        max-width: 800px
+        display: flex
+        flex-direction: column
+        gap: 40px
+        h1
+            font-size: 2.2em
+            line-height: 1.3em
+        h2
             font-size: 1.3em
-            background: hsl(220,90%,90%)
-            padding: 10px 20px
             line-height: 1em
-            box-shadow: -1px 2px 2px 0px rgba(0, 0, 0, 0.15)
-            border-radius: 15px
-            transition: 100ms 
-            transition-delay: 100ms
-            &:hover
-                transition: 100ms
-                outline-color: hsl(220, 90%, 70%)
-                transform: translateY(-5px)
-                box-shadow: -6px 10px 7px 0px rgba(0, 0, 0, 0.15)
-                color: hsl(220, 90%, 70%)
-            
         .box
             background: #FFF
             padding: 15px
             border-radius: 15px
             box-shadow: -2px 5px 7px 0px rgba(0, 0, 0, 0.1)
-        .forms
+        .double-inputs
             display: flex
             flex-direction: row
-            gap: 15px
+            gap: 10px
+            *
+                flex: 1 1 0%
+        .forms
+            display: flex
+            flex-direction: column
+            gap: 25px
             flex-wrap: wrap
-            margin-top: 25px
             .form-floating
                 input, textarea, select
                     border: none
@@ -54,7 +52,7 @@
                 form
                     display: flex
                     flex-direction: column
-                    gap: 5px
+                    gap: 0px
                 h3
                     padding-top: 20px
                     margin-bottom: 10px
@@ -97,7 +95,7 @@
                 form
                     display: flex
                     flex-direction: column
-                    gap: 10px
+                    gap: 0px
                     .generated-link
                         color: var(--bs-gray-700)
                         cursor: text
