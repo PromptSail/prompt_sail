@@ -53,10 +53,10 @@ const ProviderFormAndList: React.FC<Props> = ({
                     formik.setErrors({});
                     if (EditedProvider != null) {
                         const newList = ProvidersList.map((el, idx) => {
-                            if (idx === EditedProvider) return formik.values;
+                            if (idx === EditedProvider)
+                                return { ...formik.values, slug: toSlug(deployment_name) };
                             else return el;
                         });
-                        console.log(newList);
                         setProvidersList(newList);
                         setEditedProvider(null);
                     } else
