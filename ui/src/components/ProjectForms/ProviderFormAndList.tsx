@@ -77,7 +77,11 @@ const ProviderFormAndList: React.FC<Props> = ({
             validationSchema: providerSchema
         });
         return (
-            <form className="box" onSubmit={formik.handleSubmit} noValidate>
+            <form
+                className={`box${errorMessage ? ' invalid' : ''}`}
+                onSubmit={formik.handleSubmit}
+                noValidate
+            >
                 <div className="double-inputs">
                     <FloatingLabel label="AI Provider">
                         <Form.Select
@@ -149,7 +153,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                 <Button type="submit" variant="dark">
                     {EditedProvider != undefined ? 'Update AI Provider' : 'Add Ai Provider'}
                 </Button>
-                {!!errorMessage && <p className="no-providers-error">{errorMessage}</p>}
+                {/* {!!errorMessage && <p className="no-providers-error">{errorMessage}</p>} */}
             </form>
         );
     };
@@ -172,7 +176,11 @@ const ProviderFormAndList: React.FC<Props> = ({
                             transactions
                         </span>
                     </OverlayTrigger>{' '}
-                    in the project, you need to add at least one AI provider.
+                    in the project,{' '}
+                    <span className={errorMessage ? 'no-providers-error' : ''}>
+                        {' '}
+                        you need to add at least one AI provider.
+                    </span>
                 </p>
             </div>
             {ProvidersList.length > 0 && (

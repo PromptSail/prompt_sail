@@ -5,7 +5,8 @@
         max-width: 800px
         display: flex
         flex-direction: column
-        gap: 40px
+        gap: 20px
+        margin: auto
         a
             text-decoration: underline
         h1
@@ -30,6 +31,11 @@
             flex-direction: column
             gap: 25px
             flex-wrap: wrap
+            .no-providers-error
+                color: var(--bs-red)
+                font-weight: bold
+            .invalid
+                outline: 2px solid var(--bs-danger)
             .form-floating
                 input, textarea, select
                     border: none
@@ -61,11 +67,13 @@
             .providers-form
                 display: flex
                 flex-direction: column
-                gap: 10px
+                gap: 5px
                 .header
                     display: flex
                     flex-direction: column
                     gap: 10px
+                    p
+                        font-size: small
                 .accordion
                     display: flex
                     flex-direction: column
@@ -103,9 +111,6 @@
                     .generated-link
                         color: var(--bs-gray-700)
                         cursor: text
-                    .no-providers-error
-                        color: var(--bs-red)
-                        font-weight: bold
                     &.error
                         background: #ffdcdc
                         border-color: var(--bs-red)

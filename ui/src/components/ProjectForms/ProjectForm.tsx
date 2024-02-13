@@ -68,9 +68,10 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                 <span
                     style={{
                         position: 'absolute',
-                        right: '-15px',
+                        right: '7px',
                         top: '45%',
                         transform: 'translateY(-80%) scale(.7)',
+                        background: '#FFF',
                         border: '2px solid #555555',
                         borderRadius: '50%',
                         aspectRatio: '1/1',
@@ -113,7 +114,12 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
             <div className="forms">
                 <div className="project-form">
                     <h2 className="header">Project details</h2>
-                    <form className="box" id={formId} onSubmit={formik.handleSubmit} noValidate>
+                    <form
+                        className={`box${Object.keys(formik.errors).length > 0 ? ' invalid' : ''}`}
+                        id={formId}
+                        onSubmit={formik.handleSubmit}
+                        noValidate
+                    >
                         <div className="double-inputs">
                             <FloatingLabel label="Name">
                                 <Form.Control
