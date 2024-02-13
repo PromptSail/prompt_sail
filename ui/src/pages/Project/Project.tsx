@@ -7,7 +7,7 @@ import UpdateProject from '../../components/ProjectForms/UpdateProject';
 import ProjectInstall from '../../components/ProjectInstall/ProjectInstall';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
 import LatestTransactions from '../../components/tables/LatestTransactions/LatestTransactions';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import AddProject from '../../components/ProjectForms/AddProject';
 import { makeUrl } from '../../helpers/aiProvider';
 const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
@@ -43,13 +43,13 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
             <div className="project">
                 <div className="details">
                     <div className="details__header">
-                        <h2>{data.name}</h2>
+                        <h1>{data.name}</h1>
                         <div className="buttons">
                             <ProjectInstall
                                 slug={data.slug}
                                 api_base={data.ai_providers[0].api_base}
                             />
-                            <button
+                            <Button
                                 onClick={() =>
                                     navigate(`/projects/${params.projectId}/update`, {
                                         state: { project: data }
@@ -57,7 +57,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                                 }
                             >
                                 Edit
-                            </button>
+                            </Button>
                             <DeleteProject name={data.name} projectId={params.projectId || ''} />
                         </div>
                     </div>
@@ -66,7 +66,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                     </div>
                     <div className="details__content">
                         <div className="box basicInfo">
-                            <h5 className="header">Basic info</h5>
+                            <h2 className="header">Basic info</h2>
                             <div className="content">
                                 <div className="element">
                                     <span>Members:</span>
@@ -96,7 +96,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                             </div>
                         </div>
                         <div className="box aiProviders">
-                            <h5 className="header">AI Providers</h5>
+                            <h2 className="header">AI Providers</h2>
                             <div className="content">
                                 <table>
                                     <thead>
@@ -136,10 +136,14 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                 </div>
                 <div className="box tableWrapper">
                     <div className="header">
-                        <h5>LLM Transactions</h5>
-                        <button onClick={() => navigate(`/transactions?project_id=${data.id}`)}>
+                        <h2>LLM Transactions</h2>
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => navigate(`/transactions?project_id=${data.id}`)}
+                        >
                             View all Transactions
-                        </button>
+                        </Button>
                     </div>
                     <div className="content">
                         <LatestTransactions projectId={data.id} />

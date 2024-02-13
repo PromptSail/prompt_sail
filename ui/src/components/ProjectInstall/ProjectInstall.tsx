@@ -12,7 +12,18 @@ const ProjectInstall: React.FC<Props> = ({ slug, api_base }) => {
     const [isShow, setShow] = useState(false);
     return (
         <>
-            <button onClick={() => setShow((e) => !e)}>Help</button>
+            <Button
+                variant="info"
+                onClick={() =>
+                    window.open('https://promptsail.github.io/prompt_sail/docs/project-dashboard/')
+                }
+            >
+                Help
+            </Button>
+
+            {/* <Button variant="info" onClick={() => setShow((e) => !e)}>
+                Help
+            </Button> */}
             <Modal size="lg" show={isShow} onHide={() => setShow((e) => !e)}>
                 <Modal.Header closeButton>
                     <Modal.Title className="text-3xl font-semibold">Help</Modal.Title>

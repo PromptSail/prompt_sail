@@ -16,7 +16,7 @@ export const TableWrapper: React.FC = () => {
         tags: params.get('tags') || '',
         date_from: params.get('date_from') || '',
         date_to: params.get('date_to') || '',
-        page_size: params.get('page_size') || '20'
+        page_size: params.get('page_size') || '10'
     });
     const transactions = useGetAllTransactions(filters);
     const [{ page, totalPages, totalElements }, setPagesInfo] = useState({

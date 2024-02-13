@@ -1,4 +1,4 @@
-import { Accordion, Button, FloatingLabel, Form } from 'react-bootstrap';
+import { Accordion, Button, FloatingLabel, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FormikValues } from './types';
 import { useState } from 'react';
 import { useFormik } from 'formik';
@@ -155,7 +155,26 @@ const ProviderFormAndList: React.FC<Props> = ({
     };
     return (
         <div className="providers-form">
-            <h2 className="header">Providers details</h2>
+            <div className="header">
+                <h2>Providers details</h2>
+                <p>
+                    To use Promptsail as a proxy server for collecting{' '}
+                    <OverlayTrigger
+                        placement="bottom"
+                        overlay={
+                            <Tooltip>
+                                A transaction consists of a request sent to an LLM provider and a
+                                response received to the request.
+                            </Tooltip>
+                        }
+                    >
+                        <span style={{ textDecoration: 'underline', fontWeight: 'bold' }}>
+                            transactions
+                        </span>
+                    </OverlayTrigger>{' '}
+                    in the project, you need to add at least one AI provider.
+                </p>
+            </div>
             {ProvidersList.length > 0 && (
                 <Accordion>
                     {ProvidersList.map((el, id) => (

@@ -68,7 +68,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                 <span
                     style={{
                         position: 'absolute',
-                        left: '-15px',
+                        right: '-15px',
                         top: '45%',
                         transform: 'translateY(-80%) scale(.7)',
                         border: '2px solid #555555',
