@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import ProjetTile from '../components/ProjectTile/ProjectTile';
 import { getAllProjects } from '../api/interfaces';
-import { Link } from 'react-router-dom';
-import { Form } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button, Form } from 'react-bootstrap';
 import { useGetAllProjects } from '../api/queries';
-import AddProject from '../components/ProjectForms/AddProject';
 
 const Dashboard = () => {
     const projects = useGetAllProjects();
+    const navigate = useNavigate();
     const [filter, setFilter] = useState('');
     const filterProjects = (data: getAllProjects) => {
         return (
@@ -33,7 +33,7 @@ const Dashboard = () => {
     if (projects.isSuccess) {
         return (
             <>
-                <div className="w-5/6 m-auto">
+                <div>
                     <div className="flex flex-row justify-between">
                         <div className="flex flex-col">
                             <h2 className="text-3xl font-semibold text-left">Projects</h2>
@@ -54,7 +54,12 @@ const Dashboard = () => {
                                     else if (filter != '') setFilter('');
                                 }}
                             />
-                            <AddProject queryToRefetch={projects} />
+                            <Button
+                                className="m-auto text-nowrap"
+                                onClick={() => navigate('/projects/add')}
+                            >
+                                New Project +
+                            </Button>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 py-5 gap-3 md:grid-cols-2">

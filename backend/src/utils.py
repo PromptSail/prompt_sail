@@ -1,3 +1,4 @@
+import json
 from collections import OrderedDict
 from datetime import datetime
 from urllib.parse import parse_qs, urlparse
@@ -50,7 +51,7 @@ def create_transaction_query_from_filters(
     tags: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-    project_id: str | None = None
+    project_id: str | None = None,
 ) -> dict:
     query = {}
     if project_id is not None:
@@ -64,7 +65,99 @@ def create_transaction_query_from_filters(
     if date_to is not None:
         query["response_time"]["$lte"] = date_to
     return query
-    
+
+
+def parse_headers_to_dict(headers: list[tuple[bytes]]) -> dict:
+    return {header[0].decode("utf8"): header[2].decode("utf8") for header in headers}
+
+
+def req_resp_to_transaction_parser(request, response, response_content) -> dict:
+    response_headers = parse_headers_to_dict(
+        response.__dict__["headers"].__dict__["_list"]
+    )
+    request_headers = parse_headers_to_dict(
+        request.__dict__["headers"].__dict__["_list"]
+    )
+    request_content = json.loads(request.__dict__["_content"].decode("utf8"))
+
+    transaction_params = {
+        "library": request_headers["user-agent"],
+        "status_code": response.__dict__["status_code"],
+        "model": request_content.get("model", None),
+        "token_usage": None,
+        "os": request_headers.get("x-stainless-os", None),
+    }
+
+    url = str(request.__dict__["url"])
+
+    if "openai.azure.com" in url and "embeddings" in url:
+        transaction_params["type"] = "embedding"
+        transaction_params["prompt"] = request_content["input"]
+        if response.__dict__["status_code"] > 200:
+            transaction_params["error_message"] = response_content["message"]
+            transaction_params["message"] = None
+        else:
+            transaction_params["model"] = response_content["model"]
+            transaction_params["token_usage"] = response_content["usage"][
+                "total_tokens"
+            ]
+            msg = (
+                "["
+                + ", ".join(
+                    map(lambda x: str(x), response_content["data"][0]["embedding"])
+                )
+                + "]"
+            )
+            transaction_params["message"] = msg
+            transaction_params["error_message"] = None
+
+    if "openai.azure.com" in url and "completions" in url:
+        transaction_params["type"] = "chat"
+        transaction_params["prompt"] = request_content["messages"][0]["content"]
+        if response.__dict__["status_code"] > 200:
+            transaction_params["error_message"] = response_content["message"]
+            transaction_params["message"] = None
+        else:
+            transaction_params["model"] = response_content["model"]
+            transaction_params["token_usage"] = response_content["usage"][
+                "total_tokens"
+            ]
+            transaction_params["message"] = response_content["choices"][0]["message"][
+                "content"
+            ]
+            transaction_params["error_message"] = None
+
+    if "api.openai.com" in url and "completions" in url:
+        transaction_params["type"] = "chat"
+        transaction_params["prompt"] = request_content["messages"][0]["content"]
+        if response.__dict__["status_code"] > 200:
+            transaction_params["error_message"] = response_content["error"]["message"]
+            transaction_params["message"] = None
+        else:
+            transaction_params["model"] = response_headers["openai-model"]
+            transaction_params["token_usage"] = response_content["usage"][
+                "total_tokens"
+            ]
+            transaction_params["message"] = response_content["choices"][0]["message"][
+                "content"
+            ]
+            transaction_params["error_message"] = None
+
+    return transaction_params
+
+
+class ApiURLBuilder:
+    @staticmethod
+    def build(project, deployment_name: str, path: str, target_path: str) -> str:
+        api_base = [
+            prov.api_base
+            for prov in project.ai_providers
+            if prov.deployment_name == deployment_name
+        ][0]
+        if path == "":
+            path = target_path if target_path is not None else ""
+        return f"{api_base}/{path}"
+
 
 class OrderedSet(OrderedDict):
     def __init__(self, iterable=None):

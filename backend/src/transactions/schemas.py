@@ -9,6 +9,15 @@ class GetTransactionSchema(BaseModel):
     project_id: str
     request: dict[str, Any]
     response: dict[str, Any]
+    model: str | None
+    type: str
+    os: str | None
+    token_usage: int | None
+    library: str
+    status_code: int
+    message: str | None
+    prompt: str
+    error_message: str | None
     request_time: datetime
     response_time: datetime
     tags: list[str]
@@ -20,6 +29,15 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     project_name: str
     request: dict[str, Any]
     response: dict[str, Any]
+    model: str | None
+    type: str
+    os: str | None
+    token_usage: int | None
+    library: str
+    status_code: int
+    message: str | None
+    prompt: str
+    error_message: str | None
     request_time: datetime
     response_time: datetime
     tags: list[str]

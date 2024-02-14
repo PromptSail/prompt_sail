@@ -15,5 +15,16 @@ class Transaction(BaseModel):
     request: dict[str, Any]
     response: dict[str, Any]
     tags: list[str]
+    model: str | None
+    type: str
+    os: str | None
+    token_usage: int | None
+    library: str
+    status_code: int
+    message: str | None
+    prompt: str
+    error_message: str | None
     request_time: datetime
-    response_time: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    response_time: datetime = Field(
+        default_factory=lambda: datetime.now(tz=timezone.utc)
+    )
