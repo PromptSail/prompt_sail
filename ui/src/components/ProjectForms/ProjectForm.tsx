@@ -161,8 +161,8 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                             <Form.Control
                                 name="tags"
                                 onChange={formik.handleChange}
-                                value={formik.values.description}
-                                isInvalid={!!formik.errors.description}
+                                value={formik.values.tags}
+                                isInvalid={!!formik.errors.tags}
                             />
                             <Form.Control.Feedback type="invalid">
                                 {formik.errors.tags}
