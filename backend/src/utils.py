@@ -2,6 +2,7 @@ import json
 from collections import OrderedDict
 from datetime import datetime
 from urllib.parse import parse_qs, urlparse, unquote
+import base64
 
 
 def serialize_data(obj):
@@ -92,7 +93,18 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
     if "openai.azure.com" in url and "embeddings" in url:
         transaction_params["type"] = "embedding"
-        transaction_params["prompt"] = request_content["input"]
+        if isinstance(request_content["input"], list):
+            prompt = (
+                    "["
+                    + ", ".join(
+                        map(lambda x: str(x), request_content["input"])
+                    )
+                    + "]"
+                )
+        else:
+            prompt = str(request_content["input"])
+            
+        transaction_params["prompt"] = prompt
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["message"]
             transaction_params["message"] = None
@@ -101,13 +113,16 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["token_usage"] = response_content["usage"][
                 "total_tokens"
             ]
-            msg = (
-                "["
-                + ", ".join(
-                    map(lambda x: str(x), response_content["data"][0]["embedding"])
+            if isinstance(response_content["data"][0]["embedding"], list):
+                msg = (
+                    "["
+                    + ", ".join(
+                        map(lambda x: str(x), response_content["data"][0]["embedding"])
+                    )
+                    + "]"
                 )
-                + "]"
-            )
+            else:
+                msg = str(response_content["data"][0]["embedding"])
             transaction_params["message"] = msg
             transaction_params["error_message"] = None
 
