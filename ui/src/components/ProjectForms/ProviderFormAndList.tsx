@@ -5,6 +5,7 @@ import { useFormik } from 'formik';
 import { providerSchema } from '../../api/formSchemas';
 import { makeUrl, toSlug } from '../../helpers/aiProvider';
 import Helper from './helper';
+import { useGetProviders } from '../../api/queries';
 
 interface Props {
     ProvidersList: typeof FormikValues.ai_providers;
@@ -23,6 +24,7 @@ const ProviderFormAndList: React.FC<Props> = ({
 }) => {
     const [EditedProvider, setEditedProvider] = useState<number | null>(null);
     const [FormShowed, setFormShow] = useState(!isProjects);
+    const providers = useGetProviders();
     const ProviderForm: React.FC = () => {
         const formik = useFormik({
             initialValues:
@@ -77,6 +79,7 @@ const ProviderFormAndList: React.FC<Props> = ({
             validateOnChange: false,
             validationSchema: providerSchema
         });
+        const [apiBasePlaceholder, setApiBasePlaceholder] = useState('http://your.url');
         return (
             <form
                 className={`box${errorMessage ? ' invalid' : ''}`}
@@ -88,7 +91,15 @@ const ProviderFormAndList: React.FC<Props> = ({
                         <Form.Label>AI Providers</Form.Label>
                         <Form.Select
                             name={`provider_name`}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                                formik.handleChange(e);
+                                const prov = providers.data?.data.filter(
+                                    (el) => el.provider_name === e.target.value
+                                )[0];
+                                setApiBasePlaceholder(
+                                    prov?.api_base_placeholder || 'http://your.url'
+                                );
+                            }}
                             value={formik.values.provider_name}
                             aria-placeholder="Select provider"
                             isInvalid={!!formik.errors.provider_name}
@@ -96,7 +107,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                             <option value="" key={null}>
                                 Select provider
                             </option>
-                            {[
+                            {/* {[
                                 'OpenAI',
                                 'Azure OpenAI',
                                 'Google Palm',
@@ -108,7 +119,29 @@ const ProviderFormAndList: React.FC<Props> = ({
                                 <option value={el} key={`${el}${id}`}>
                                     {el}
                                 </option>
-                            ))}
+                            ))} */}
+                            {providers.isLoading && (
+                                <option value={'loading'} key={`loading`}>
+                                    loading...
+                                </option>
+                            )}
+                            {providers.isError && (
+                                <option value={'error'} key={`error`}>
+                                    {`${providers.error.code}:${providers.error.message}`}
+                                </option>
+                            )}
+                            {providers.isSuccess &&
+                                providers.data.data.map((el, id) => (
+                                    <option
+                                        onClick={() =>
+                                            setApiBasePlaceholder(el.api_base_placeholder)
+                                        }
+                                        value={el.provider_name}
+                                        key={`${el.provider_name}${id}`}
+                                    >
+                                        {el.provider_name}
+                                    </option>
+                                ))}
                         </Form.Select>
                         <Form.Control.Feedback type="invalid">
                             {formik.errors.provider_name}
@@ -146,7 +179,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                         name={`api_base`}
                         onChange={formik.handleChange}
                         value={formik.values.api_base}
-                        placeholder="https://api.openai.com/v1"
+                        placeholder={apiBasePlaceholder}
                         isInvalid={!!formik.errors.api_base}
                     />
                     <Form.Control.Feedback type="invalid">

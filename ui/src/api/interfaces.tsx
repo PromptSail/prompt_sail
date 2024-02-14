@@ -86,3 +86,7 @@ export interface getAllTransactionResponse {
     total_pages: number;
     total_elements: number;
 }
+export interface getProviders {
+    provider_name: string;
+    api_base_placeholder: string;
+}

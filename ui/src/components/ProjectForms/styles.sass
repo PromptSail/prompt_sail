@@ -13,22 +13,6 @@
         flex-direction: column
         gap: 20px
         margin: auto
-        .labeled-input
-            label
-                color: var(--bs-gray-600)
-                position: relative
-            .form-control, .form-select
-                margin-top: 5px
-                &.is-invalid
-                    border-color: var(--bs-red)
-                &:disabled
-                    background: #FFF
-                    &~ label::after
-                         background: #FFF
-            .invalid-feedback
-                display: block !important
-                min-height: 1.43em !important
-
         a
             text-decoration: underline
         h1
@@ -47,7 +31,7 @@
             flex-direction: row
             gap: 10px
             padding-bottom: 5px
-            *
+            &> *
                 flex: 1 1 0%
         .forms
             display: flex
@@ -59,21 +43,24 @@
                 font-weight: bold
             .invalid
                 outline: 2px solid var(--bs-danger)
-            .form-floating
-                input, textarea, select
-                    border: none
-                    border-radius: 0
-                    box-shadow: none !important
-                    border-bottom: 1px solid var(--bs-gray-300)
+            .labeled-input
+                label
+                    color: var(--bs-gray-600)
+                    position: relative
+                .form-control, .form-select
+                    margin-top: 5px
                     &.is-invalid
                         border-color: var(--bs-red)
                     &:disabled
                         background: #FFF
                         &~ label::after
                             background: #FFF
+                    &::placeholder
+                        color: var(--bs-gray-400)
                 .invalid-feedback
                     display: block !important
                     min-height: 1.43em !important
+
             &> div
                 min-width: 300px
                 flex: 1 1 0%

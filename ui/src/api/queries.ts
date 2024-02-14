@@ -9,7 +9,8 @@ import {
     getAllProjects,
     getProjectResponse,
     updateProjectRequest,
-    getTransactionResponse
+    getTransactionResponse,
+    getProviders
 } from './interfaces';
 import { TransactionsFilters } from './types';
 
@@ -153,6 +154,20 @@ export const useDeleteProject = (): UseMutationResult<AxiosResponse, AxiosError,
             onError: (err) => {
                 console.error(`${err.code}: ${err.message}`);
             }
+        }
+    );
+};
+export const useGetProviders = (): UseQueryResult<AxiosResponse<getProviders[]>, AxiosError> => {
+    return useQuery(
+        'providers',
+        async () => {
+            return await api.getProviders();
+        },
+        {
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: false
         }
     );
 };
