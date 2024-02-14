@@ -6,11 +6,15 @@ interface Props {
 }
 
 const ProjetTile: React.FC<Props> = ({ data }) => {
+    const tags = data.tags.join(', asdasd ');
+    const desc = data.description;
     return (
         <Link to={`/projects/${data.id}`} className="project-tile">
             <div className="card">
                 <h3>{data.name}</h3>
-                <p className="description">{data.description}</p>
+                <p className="description">
+                    {desc.length > 25 ? desc.substring(0, 25) + '...' : desc}
+                </p>
                 <div className="details">
                     <div className="element">
                         <span>Members:</span>
@@ -26,7 +30,7 @@ const ProjetTile: React.FC<Props> = ({ data }) => {
                     </div>
                     <div className="element">
                         <span>Tags:</span>
-                        <span>{data.tags.join(', ')}</span>
+                        <span>{tags.length > 20 ? tags.substring(0, 20) + '...' : tags}</span>
                     </div>
                 </div>
             </div>
