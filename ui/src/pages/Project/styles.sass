@@ -6,6 +6,12 @@
     display: flex
     flex-direction: column
     gap: 50px
+    h1
+        font-size: 2.5em
+        line-height: 1.6em
+    h2
+        font-size: 1.3em
+        line-height: 1.3em
     .box
         display: flex
         flex-direction: column
@@ -13,6 +19,7 @@
         &> .header
             padding: 0px 20px
             font-weight: 600
+            width: 100%
         &> .content
             padding: 20px
             flex-grow: 1
@@ -22,37 +29,19 @@
     & > *
         width: min(1400px, 100%)
         margin: 0 auto                    
-    button
-        font-size: 1.5em
-        background: hsl(220,90%,90%)
-        padding: 5px 30px 7px
-        line-height: 1em
-        box-shadow: -1px 2px 2px 0px rgba(0, 0, 0, 0.15)
-        border-radius: 15px
-        transition: 100ms 
-        transition-delay: 100ms
-        &:hover
-            transition: 100ms
-            outline-color: hsl(220, 90%, 70%)
-            transform: translateY(-5px)
-            box-shadow: -6px 10px 7px 0px rgba(0, 0, 0, 0.15)
-            color: hsl(220, 90%, 70%)
     .details
         &__header
             display: flex
             flex-direction: row
             justify-content: space-between
             .buttons
-                margin: auto 0
-                --delete: hsl(0,100%,70%)
-                --help: hsl(110,90%,30%)
-                &> *
-                    margin-left: 15px
-                button
-                    &:last-child
-                        background: hsl(0,90%,90%)
-                        &:hover
-                            color: var(--delete)
+                display: flex
+                flex-direction: row
+                gap: 10px
+                *
+                    margin: auto
+                    padding: 5px 20px
+                    flex: 1 1 0%
         .description
             width: 100%
             min-height: 60px
@@ -64,16 +53,18 @@
         &__content
             display: flex
             flex-direction: row
+            flex-wrap: wrap
             gap: 15px
             width: 100%
             .basicInfo
+                flex: 0 0 300px
                 &> .content
                     display: flex
                     flex-direction: column
                     justify-content: space-between
                     gap: 10px
                 .element
-                    width: 250px
+                    width: 100%
                     display: flex
                     flex-direction: row
                     justify-content: space-between
@@ -81,37 +72,38 @@
                     &:last-child
                         margin-bottom: 0                       
             .aiProviders
-                width: 100%
+                flex: 1
+                min-width: 400px
+                max-width: 100%
                 &> .content
                     padding: 20px 10px
-                    overflow: auto
                     max-height: 160px
-                table
                     width: 100%
-                    thead 
-                        th
-                            padding-left: 15px
-                            text-align: start
-                    tbody 
-                        tr
-                            width: 100%
-                            &:hover
-                                background: hsl(223, 0%, 90%)
-                            td
-                                padding: 5px 0 0 15px
-                                &:first-child
-                                    border-radius: 15px 0 0 15px
-                                &:last-child
-                                    border-radius: 0 15px 15px 0
+                    display: block
+                    overflow-x: auto
+                    table
+                        width: 100%
+                        min-width: max-content
+                        thead 
+                            th
+                                padding-left: 15px
+                                text-align: start
+                                width: auto
+                        tbody 
+                            tr
+                                width: 100%
+                                &:hover
+                                    background: hsl(223, 0%, 90%)
+                                td
+                                    padding: 5px 0 0 15px
+                                    &:first-child
+                                        border-radius: 15px 0 0 15px
+                                    &:last-child
+                                        border-radius: 0 15px 15px 0
     .tableWrapper
         .header
             display: flex 
             // justify-content: space-between
             gap: 15px
-            h5
-                margin-top: auto
-            button
-                padding-bottom: 5px
-                border-radius: 10px
-                font-size: 1em
-                font-weight: 600
+            h2
+                margin-top: 4px

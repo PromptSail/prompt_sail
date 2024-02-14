@@ -18,7 +18,15 @@ const App = () => {
             <>
                 <div className="h-screen">
                     <Sidebar pageRef={page} setLoginState={setLoginState}></Sidebar>
-                    <div ref={page} style={{ marginLeft: '250px', height: '100%' }}>
+                    <div
+                        ref={page}
+                        style={{
+                            marginLeft: '250px',
+                            height: '100%',
+                            background: '#eef4fa',
+                            overflowY: 'auto'
+                        }}
+                    >
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
                             <Route
