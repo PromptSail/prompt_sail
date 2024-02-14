@@ -237,7 +237,10 @@ const ProviderFormAndList: React.FC<Props> = ({
                 <Accordion>
                     {ProvidersList.map((el, id) => (
                         <Accordion.Item eventKey={`${id}`} key={id} className="box">
-                            <Accordion.Header>{el.deployment_name}</Accordion.Header>
+                            <Accordion.Header>
+                                <span>{el.deployment_name}</span>
+                                <span>{makeUrl(projectSlug, el.deployment_name)}</span>
+                            </Accordion.Header>
                             <Accordion.Body>
                                 <div className="content">
                                     <span className="title">Provider:</span>
