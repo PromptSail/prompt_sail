@@ -210,9 +210,12 @@ const ProviderFormAndList: React.FC<Props> = ({
     return (
         <div className="providers-form">
             <div className="header">
-                <h2>Providers details</h2>
+                <h2>Provider details</h2>
                 <p>
-                    To use Promptsail as a proxy server for collecting{' '}
+                    <span className={errorMessage ? 'no-providers-error' : ''}>
+                        Add at least one AI provider
+                    </span>
+                    , to use PromptSail as a proxy server for collecting{' '}
                     <OverlayTrigger
                         placement="bottom"
                         overlay={
@@ -226,11 +229,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                             transactions
                         </span>
                     </OverlayTrigger>{' '}
-                    in the project,{' '}
-                    <span className={errorMessage ? 'no-providers-error' : ''}>
-                        {' '}
-                        you need to add at least one AI provider.
-                    </span>
+                    in the project
                 </p>
             </div>
             {ProvidersList.length > 0 && (

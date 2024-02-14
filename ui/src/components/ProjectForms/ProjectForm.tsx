@@ -118,7 +118,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                                     Slug
                                     <Helper>
                                         Slug is a URL-friendly name used to identify a project. It's
-                                        utilized in the URL for adding transactions
+                                        utilized in the proxy URL for adding transactions
                                     </Helper>
                                 </Form.Label>
 
