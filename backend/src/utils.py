@@ -1,7 +1,7 @@
 import json
 from collections import OrderedDict
 from datetime import datetime
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, unquote
 
 
 def serialize_data(obj):
@@ -156,8 +156,9 @@ class ApiURLBuilder:
             if prov.slug == deployment_slug
         ][0]
         if path == "":
-            path = target_path if target_path is not None else ""
-        return f"{api_base}/{path}"
+            path = unquote(target_path) if target_path is not None else ""
+        url = api_base + f"/{path}".replace("//", "/")
+        return url
 
 
 class OrderedSet(OrderedDict):
