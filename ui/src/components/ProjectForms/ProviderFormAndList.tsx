@@ -1,9 +1,10 @@
-import { Accordion, Button, FloatingLabel, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Accordion, Button, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FormikValues } from './types';
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import { providerSchema } from '../../api/formSchemas';
 import { makeUrl, toSlug } from '../../helpers/aiProvider';
+import Helper from './helper';
 
 interface Props {
     ProvidersList: typeof FormikValues.ai_providers;
@@ -83,7 +84,8 @@ const ProviderFormAndList: React.FC<Props> = ({
                 noValidate
             >
                 <div className="double-inputs">
-                    <FloatingLabel label="AI Provider">
+                    <Form.Group className="labeled-input">
+                        <Form.Label>AI Providers</Form.Label>
                         <Form.Select
                             name={`provider_name`}
                             onChange={formik.handleChange}
@@ -111,22 +113,34 @@ const ProviderFormAndList: React.FC<Props> = ({
                         <Form.Control.Feedback type="invalid">
                             {formik.errors.provider_name}
                         </Form.Control.Feedback>
-                    </FloatingLabel>
-                    <FloatingLabel label="Deployment name">
+                    </Form.Group>
+                    <Form.Group className="labeled-input">
+                        <Form.Label>
+                            Deployment name
+                            <Helper>
+                                It is a short uniqe name to identify your deployment of the AI
+                                provider and is utilized as a part of a proxy URL
+                            </Helper>
+                        </Form.Label>
                         <Form.Control
                             type="text"
                             name={`deployment_name`}
                             onChange={formik.handleChange}
                             value={formik.values.deployment_name}
-                            placeholder="Deployment name"
                             isInvalid={!!formik.errors.deployment_name}
                         />
                         <Form.Control.Feedback type="invalid">
                             {formik.errors.deployment_name}
                         </Form.Control.Feedback>
-                    </FloatingLabel>
+                    </Form.Group>
                 </div>
-                <FloatingLabel label="Api base URL">
+                <Form.Group className="labeled-input">
+                    <Form.Label>
+                        Api base URL
+                        <Helper>
+                            Enter the base URL for the LLM endpoint you want to connect with
+                        </Helper>
+                    </Form.Label>
                     <Form.Control
                         type="url"
                         name={`api_base`}
@@ -138,22 +152,25 @@ const ProviderFormAndList: React.FC<Props> = ({
                     <Form.Control.Feedback type="invalid">
                         {formik.errors.api_base}
                     </Form.Control.Feedback>
-                </FloatingLabel>
-                <FloatingLabel label="Proxy URL (generated automatically)">
+                </Form.Group>
+                <Form.Group className="labeled-input">
+                    <Form.Label>Proxy URL</Form.Label>
                     <Form.Control
                         type="text"
                         className="generated-link"
                         onChange={formik.handleChange}
                         value={makeUrl(projectSlug, formik.values.deployment_name)}
-                        placeholder="Proxy URL"
                         disabled
                     />
-                    <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
-                </FloatingLabel>
+                    <p style={{ fontSize: 'small', margin: '5px 0 15px', textAlign: 'center' }}>
+                        A proxy URL is auto-generated from the project slug and the deployment name
+                        and is used to forward requests to the AI provider and collect these
+                        requests and their responses (as transactions) in the project.
+                    </p>
+                </Form.Group>
                 <Button type="submit" variant="dark">
                     {EditedProvider != undefined ? 'Update AI Provider' : 'Add Ai Provider'}
                 </Button>
-                {/* {!!errorMessage && <p className="no-providers-error">{errorMessage}</p>} */}
             </form>
         );
     };

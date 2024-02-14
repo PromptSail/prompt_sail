@@ -1,3 +1,9 @@
+.tooltip-inner
+    background: var(--bs-gray-600)
+.tooltip-arrow::before
+    border-top-color: var(--bs-gray-600) !important
+    border-bottom-color: var(--bs-gray-600) !important
+    
 .projectForm
     &__add, &__update
         width: 100%
@@ -7,6 +13,22 @@
         flex-direction: column
         gap: 20px
         margin: auto
+        .labeled-input
+            label
+                color: var(--bs-gray-600)
+                position: relative
+            .form-control, .form-select
+                margin-top: 5px
+                &.is-invalid
+                    border-color: var(--bs-red)
+                &:disabled
+                    background: #FFF
+                    &~ label::after
+                         background: #FFF
+            .invalid-feedback
+                display: block !important
+                min-height: 1.43em !important
+
         a
             text-decoration: underline
         h1
@@ -24,6 +46,7 @@
             display: flex
             flex-direction: row
             gap: 10px
+            padding-bottom: 5px
             *
                 flex: 1 1 0%
         .forms

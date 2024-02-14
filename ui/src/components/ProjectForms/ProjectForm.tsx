@@ -1,10 +1,11 @@
 import { useFormik } from 'formik';
-import { ReactNode, useEffect, useState } from 'react';
-import { FloatingLabel, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { useEffect, useState } from 'react';
+import { Form } from 'react-bootstrap';
 import ProviderFormAndList from './ProviderFormAndList';
 import { projectSchema } from '../../api/formSchemas';
 import { useGetAllProjects } from '../../api/queries';
 import { toSlug } from '../../helpers/aiProvider';
+import Helper from './helper';
 
 const FormikValues = {
     name: '',
@@ -62,31 +63,6 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
         validationSchema: projectSchema,
         validateOnChange: false
     });
-    const Info: React.FC<{ children: ReactNode }> = ({ children }) => {
-        return (
-            <OverlayTrigger placement="right" overlay={<Tooltip>{children}</Tooltip>}>
-                <span
-                    style={{
-                        position: 'absolute',
-                        right: '7px',
-                        top: '45%',
-                        transform: 'translateY(-80%) scale(.7)',
-                        background: '#FFF',
-                        border: '2px solid #555555',
-                        borderRadius: '50%',
-                        aspectRatio: '1/1',
-                        padding: '.5em',
-                        lineHeight: '5px',
-                        margin: 'auto',
-                        fontFamily: 'serif',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    i
-                </span>
-            </OverlayTrigger>
-        );
-    };
     useEffect(() => {
         if (projects.isSuccess && projectId) {
             const project = projects.data.filter((e) => e.id === projectId)[0];
@@ -114,14 +90,10 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
             <div className="forms">
                 <div className="project-form">
                     <h2 className="header">Project details</h2>
-                    <form
-                        className={`box${Object.keys(formik.errors).length > 0 ? ' invalid' : ''}`}
-                        id={formId}
-                        onSubmit={formik.handleSubmit}
-                        noValidate
-                    >
+                    <form className={`box`} id={formId} onSubmit={formik.handleSubmit} noValidate>
                         <div className="double-inputs">
-                            <FloatingLabel label="Name">
+                            <Form.Group className="labeled-input">
+                                <Form.Label>Name</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="name"
@@ -135,14 +107,21 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                                                 slug: toSlug(val)
                                             }));
                                     }}
-                                    placeholder="name"
                                     isInvalid={!!formik.errors.name}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     {formik.errors.name}
                                 </Form.Control.Feedback>
-                            </FloatingLabel>
-                            <FloatingLabel label="Slug">
+                            </Form.Group>
+                            <Form.Group className="labeled-input">
+                                <Form.Label>
+                                    Slug
+                                    <Helper>
+                                        Slug is a URL-friendly name used to identify a project. It's
+                                        utilized in the URL for adding transactions
+                                    </Helper>
+                                </Form.Label>
+
                                 <Form.Control
                                     type="text"
                                     name="slug"
@@ -154,19 +133,15 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                                     }}
                                     onChange={formik.handleChange}
                                     value={formik.values.slug}
-                                    placeholder="slug"
                                     isInvalid={!!formik.errors.slug}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     {formik.errors.slug}
                                 </Form.Control.Feedback>
-                                <Info>
-                                    Slug is a URL-friendly name used to identify a project. It's
-                                    utilized in the URL for adding transactions
-                                </Info>
-                            </FloatingLabel>
+                            </Form.Group>
                         </div>
-                        <FloatingLabel label="Description">
+                        <Form.Group className="labeled-input">
+                            <Form.Label>Description</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 name="description"
@@ -175,25 +150,24 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                                 rows={4}
                                 cols={50}
                                 maxLength={280}
-                                placeholder="description"
                                 isInvalid={!!formik.errors.description}
                             />
                             <Form.Control.Feedback type="invalid">
                                 {formik.errors.description}
                             </Form.Control.Feedback>
-                        </FloatingLabel>
-                        <FloatingLabel label="Tags">
+                        </Form.Group>
+                        <Form.Group className="labeled-input">
+                            <Form.Label>Tags</Form.Label>
                             <Form.Control
                                 name="tags"
                                 onChange={formik.handleChange}
                                 value={formik.values.description}
-                                placeholder="tags"
                                 isInvalid={!!formik.errors.description}
                             />
                             <Form.Control.Feedback type="invalid">
                                 {formik.errors.tags}
                             </Form.Control.Feedback>
-                        </FloatingLabel>
+                        </Form.Group>
                     </form>
                 </div>
                 <ProviderFormAndList
