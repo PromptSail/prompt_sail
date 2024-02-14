@@ -56,7 +56,7 @@ docker run prompt-sail
 ### Check that the Docker containers are running
 
 
-The UI should be running at [http://localhost:80/](http://localhost:80/) 
+The UI should be running at [http://localhost:80/](http://localhost:80/) with default username and password `admin`:`password`. Default organization name will be `Default`. You can edit it in database using mongo-express.
 
 The backend should be running at [http://localhost:8000/](http://localhost:8000/)
 
@@ -100,11 +100,41 @@ openai_key = os.getenv("OPENAI_API_KEY")
 openai_org_id = os.getenv("OPENAI_ORG_ID")
 ```
 
-Make an API call to OpenAI via Prompt Sail.
+Make an API call to OpenAI via Prompt Sail without tagging.
 
 ```python
 
-api_base = "http://localhost:8000/project1"
+api_base = "http://localhost:8000/project1/openai/"
+
+ps_client = OpenAI(
+    base_url=api_base,
+    api_key=openai_key,
+)
+
+
+response = ps_client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {
+            "role": "system",
+            "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair.",
+        },
+        {
+            "role": "user",
+            "content": "Compose a poem that explains the concept of recursion in programming.",
+        },
+    ],
+)
+
+pprint(response.choices[0].message)
+
+```
+
+Make an API call to OpenAI via Prompt Sail adding some tags for the transaction.
+
+```python
+
+api_base = "http://localhost:8000/project1/openai/?tags=zero_shot,simple_prompt,dev1,poc&target_path="
 
 ps_client = OpenAI(
     base_url=api_base,
