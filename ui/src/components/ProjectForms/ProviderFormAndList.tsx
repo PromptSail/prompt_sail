@@ -107,19 +107,6 @@ const ProviderFormAndList: React.FC<Props> = ({
                             <option value="" key={null}>
                                 Select provider
                             </option>
-                            {/* {[
-                                'OpenAI',
-                                'Azure OpenAI',
-                                'Google Palm',
-                                'Anthropic Cloud',
-                                'Meta LLama',
-                                'HuggingFace',
-                                'Custom'
-                            ].map((el, id) => (
-                                <option value={el} key={`${el}${id}`}>
-                                    {el}
-                                </option>
-                            ))} */}
                             {providers.isLoading && (
                                 <option value={'loading'} key={`loading`}>
                                     loading...
