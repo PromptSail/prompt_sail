@@ -52,51 +52,25 @@ export const TableWrapper: React.FC = () => {
         <div className="table__wrapper">
             <div className="table__filters">
                 <div className="inputs">
-                    <div className="row">
-                        <FilterProject
-                            projectId={filters.project_id}
-                            setFilters={setFilters}
-                            setNewParam={setNewParam}
-                        />
-                        <FilterTags
-                            tags={filters.tags}
-                            setFilters={setFilters}
-                            setNewParam={setNewParam}
-                        />
-                    </div>
-                    <div className="row">
-                        <FilterDates
-                            params={params}
-                            setParams={setParams}
-                            setFilters={setFilters}
-                            setNewParam={setNewParam}
-                        />
-                    </div>
+                    <FilterProject
+                        projectId={filters.project_id}
+                        setFilters={setFilters}
+                        setNewParam={setNewParam}
+                    />
+                    <FilterDates
+                        params={params}
+                        setParams={setParams}
+                        setFilters={setFilters}
+                        setNewParam={setNewParam}
+                    />
+                    <FilterTags
+                        tags={filters.tags}
+                        setFilters={setFilters}
+                        setNewParam={setNewParam}
+                    />
                 </div>
                 <div className="page">
-                    <div className="row">
-                        <Button
-                            size="sm"
-                            onClick={() => setPage(1)}
-                            disabled={page == 1}
-                        >{`<<`}</Button>
-                        <Button
-                            size="sm"
-                            onClick={() => setPage(page - 1)}
-                            disabled={page == 1}
-                        >{`<`}</Button>
-                        <Button
-                            size="sm"
-                            onClick={() => setPage(page + 1)}
-                            disabled={page >= totalPages}
-                        >{`>`}</Button>
-                        <Button
-                            size="sm"
-                            onClick={() => setPage(totalPages)}
-                            disabled={page >= totalPages}
-                        >{`>>`}</Button>
-                    </div>
-                    <div className="row">
+                    <div className="info">
                         <span>{page < 0 ? 'Loading...' : `${page} of ${totalPages}`}</span>
                         <FilterPageSize
                             pageSize={filters.page_size}
@@ -104,6 +78,36 @@ export const TableWrapper: React.FC = () => {
                             setNewParam={setNewParam}
                         />
                         <span>{page < 0 ? 'Loading...' : `${totalElements} rows`}</span>
+                    </div>
+                    <div className="buttons">
+                        <Button
+                            style={{ background: '#71aaff' }}
+                            variant="primary"
+                            size="sm"
+                            onClick={() => setPage(1)}
+                            disabled={page == 1}
+                        >{`<<`}</Button>
+                        <Button
+                            style={{ background: '#71aaff' }}
+                            variant="primary"
+                            size="sm"
+                            onClick={() => setPage(page - 1)}
+                            disabled={page == 1}
+                        >{`<`}</Button>
+                        <Button
+                            style={{ background: '#71aaff' }}
+                            variant="primary"
+                            size="sm"
+                            onClick={() => setPage(page + 1)}
+                            disabled={page >= totalPages}
+                        >{`>`}</Button>
+                        <Button
+                            style={{ background: '#71aaff' }}
+                            variant="primary"
+                            size="sm"
+                            onClick={() => setPage(totalPages)}
+                            disabled={page >= totalPages}
+                        >{`>>`}</Button>
                     </div>
                 </div>
             </div>
@@ -121,30 +125,8 @@ export const TableWrapper: React.FC = () => {
                 />
             )}
             <div className="table__filters_footer">
-                <div className="page_footer">
-                    <div className="row">
-                        <Button
-                            size="sm"
-                            onClick={() => setPage(1)}
-                            disabled={page == 1}
-                        >{`<<`}</Button>
-                        <Button
-                            size="sm"
-                            onClick={() => setPage(page - 1)}
-                            disabled={page == 1}
-                        >{`<`}</Button>
-                        <Button
-                            size="sm"
-                            onClick={() => setPage(page + 1)}
-                            disabled={page >= totalPages}
-                        >{`>`}</Button>
-                        <Button
-                            size="sm"
-                            onClick={() => setPage(totalPages)}
-                            disabled={page >= totalPages}
-                        >{`>>`}</Button>
-                    </div>
-                    <div className="row">
+                <div className="page">
+                    <div className="info">
                         <span className="my-auto">
                             {page < 0 ? 'Loading...' : `${page} of ${totalPages}`}
                         </span>
@@ -156,6 +138,36 @@ export const TableWrapper: React.FC = () => {
                         <span className="my-auto">
                             {page < 0 ? 'Loading...' : `${totalElements} rows`}
                         </span>
+                    </div>
+                    <div className="buttons">
+                        <Button
+                            style={{ background: '#71aaff' }}
+                            variant="primary"
+                            size="sm"
+                            onClick={() => setPage(1)}
+                            disabled={page == 1}
+                        >{`<<`}</Button>
+                        <Button
+                            style={{ background: '#71aaff' }}
+                            variant="primary"
+                            size="sm"
+                            onClick={() => setPage(page - 1)}
+                            disabled={page == 1}
+                        >{`<`}</Button>
+                        <Button
+                            style={{ background: '#71aaff' }}
+                            variant="primary"
+                            size="sm"
+                            onClick={() => setPage(page + 1)}
+                            disabled={page >= totalPages}
+                        >{`>`}</Button>
+                        <Button
+                            style={{ background: '#71aaff' }}
+                            variant="primary"
+                            size="sm"
+                            onClick={() => setPage(totalPages)}
+                            disabled={page >= totalPages}
+                        >{`>>`}</Button>
                     </div>
                 </div>
             </div>

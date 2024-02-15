@@ -79,7 +79,7 @@ const ProviderFormAndList: React.FC<Props> = ({
             validateOnChange: false,
             validationSchema: providerSchema
         });
-        const [apiBasePlaceholder, setApiBasePlaceholder] = useState('http://your.url');
+        const [apiBasePlaceholder, setApiBasePlaceholder] = useState('https://ai-provider.url');
         return (
             <form
                 className={`box${errorMessage ? ' invalid' : ''}`}
@@ -190,7 +190,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                     />
                     <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
                 </Form.Group>
-                <Button type="submit" variant="dark">
+                <Button type="submit" variant="secondary">
                     {EditedProvider != undefined ? 'Update AI Provider' : 'Add Ai Provider'}
                 </Button>
             </form>
@@ -270,7 +270,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                 </Accordion>
             )}
             {FormShowed && <ProviderForm />}
-            {!FormShowed && (
+            {!FormShowed && !EditedProvider && (
                 <Button
                     variant="dark"
                     className="add-another-provider"

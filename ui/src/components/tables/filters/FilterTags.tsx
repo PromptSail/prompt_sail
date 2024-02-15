@@ -21,6 +21,7 @@ const FilterTags: React.FC<Props> = ({ tags, setFilters, setNewParam }) => {
                     defaultValue={tags}
                 />
                 <Button
+                    style={{ background: '#71aaff' }}
                     variant="primary"
                     id="tagsSelect"
                     onClick={() => {

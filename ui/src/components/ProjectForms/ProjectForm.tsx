@@ -141,7 +141,10 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                             </Form.Group>
                         </div>
                         <Form.Group className="labeled-input">
-                            <Form.Label>Description</Form.Label>
+                            <Form.Label>
+                                Description{' '}
+                                <span style={{ color: 'var(--bs-gray-500)' }}>(optional)</span>
+                            </Form.Label>
                             <Form.Control
                                 as="textarea"
                                 name="description"
@@ -157,7 +160,9 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                             </Form.Control.Feedback>
                         </Form.Group>
                         <Form.Group className="labeled-input">
-                            <Form.Label>Tags</Form.Label>
+                            <Form.Label>
+                                Tags <span style={{ color: 'var(--bs-gray-500)' }}>(optional)</span>
+                            </Form.Label>
                             <Form.Control
                                 name="tags"
                                 onChange={formik.handleChange}
