@@ -6,7 +6,7 @@ interface Props {
 }
 
 const ProjetTile: React.FC<Props> = ({ data }) => {
-    const tags = data.tags.join(', asdasd ');
+    const tags = data.tags.join(', ');
     const desc = data.description;
     return (
         <Link to={`/projects/${data.id}`} className="project-tile">
