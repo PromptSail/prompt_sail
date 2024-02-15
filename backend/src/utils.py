@@ -2,7 +2,6 @@ import json
 from collections import OrderedDict
 from datetime import datetime
 from urllib.parse import parse_qs, urlparse, unquote
-import base64
 
 
 def serialize_data(obj):
@@ -19,9 +18,11 @@ def deserialize_data(obj):
 
 def extract_tags_from_url(url_str: str) -> tuple[str, dict[str, str]]:
     """
+    Extract tags and relevant information from the provided URL.
 
-    :param url_str: string (url) with tags in query params, for example: http://dom.com/?experiment=2&tags=3,4
-    :return: tuple[str, dict[str, str]]: tuple of url without tags and dict of tags
+    :param url_str: The URL string to extract tags from.
+    :return: A tuple containing the modified URL (scheme + netloc) and a dictionary with extracted information.
+             The dictionary includes 'model', 'experiment', and 'tags'.
     """
     parsed_url = urlparse(url_str)
     query_params = parse_qs(parsed_url.query)
@@ -35,10 +36,11 @@ def extract_tags_from_url(url_str: str) -> tuple[str, dict[str, str]]:
 
 def detect_subdomain(host, base_url) -> str | None:
     """
+    Detect and extract the subdomain from the given host and base URL.
 
-    :param host: as in `request.headers.get("host")`, for example mydomain.com:8000
-    :param base_url: as in config, for example: https://mydomain.com or http://localhost:8000
-    :return: subdomain, if any
+    :param host: The host obtained from `request.headers.get("host")`, e.g., mydomain.com:8000.
+    :param base_url: The base URL from the configuration, e.g., https://mydomain.com or http://localhost:8000.
+    :return: The extracted subdomain, if present; otherwise, returns None.
     """
     host = host.split(":")[0]
     base_name = base_url.split("://")[-1].split(":")[0]
@@ -54,6 +56,15 @@ def create_transaction_query_from_filters(
     date_to: datetime | None = None,
     project_id: str | None = None,
 ) -> dict:
+    """
+    Create a MongoDB query dictionary based on specified filters for transactions.
+
+    :param tags: Optional. List of tags to filter transactions by.
+    :param date_from: Optional. Start date for filtering transactions.
+    :param date_to: Optional. End date for filtering transactions.
+    :param project_id: Optional. Project ID to filter transactions by.
+    :return: MongoDB query dictionary representing the specified filters.
+    """
     query = {}
     if project_id is not None:
         query["project_id"] = project_id
@@ -69,10 +80,24 @@ def create_transaction_query_from_filters(
 
 
 def parse_headers_to_dict(headers: list[tuple[bytes]]) -> dict:
+    """
+    Parse a list of header tuples into a dictionary.
+
+    :param headers: List of header tuples where each tuple consists of (name: bytes, value: bytes).
+    :return: A dictionary representing the parsed headers with names as keys and values as decoded strings.
+    """
     return {header[0].decode("utf8"): header[2].decode("utf8") for header in headers}
 
 
 def req_resp_to_transaction_parser(request, response, response_content) -> dict:
+    """
+    Parse information from a request, response, and response content into a dictionary representing a transaction.
+
+    :param request: The request object.
+    :param response: The response object.
+    :param response_content: The content of the response.
+    :return: A dictionary containing parsed information from the request, response, and response content.
+    """
     response_headers = parse_headers_to_dict(
         response.__dict__["headers"].__dict__["_list"]
     )
@@ -165,6 +190,15 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 class ApiURLBuilder:
     @staticmethod
     def build(project, deployment_slug: str, path: str, target_path: str) -> str:
+        """
+        Build an API URL using the specified project, deployment slug, path, and target path.
+
+        :param project: The project object containing AI providers.
+        :param deployment_slug: The deployment slug to identify the AI provider.
+        :param path: The base path for the API URL.
+        :param target_path: The target path to be appended to the base path.
+        :return: The constructed API URL.
+        """
         api_base = [
             prov.api_base
             for prov in project.ai_providers
@@ -178,15 +212,30 @@ class ApiURLBuilder:
 
 class OrderedSet(OrderedDict):
     def __init__(self, iterable=None):
+        """
+        Create an ordered set, a set that maintains the order of element insertion.
+
+        :param iterable: Optional iterable to initialize the ordered set.
+        """
         super().__init__()
         if iterable:
             for item in iterable:
                 self.add(item)
 
     def add(self, item):
+        """
+        Add an item to the ordered set.
+
+        :param item: The item to add to the set.
+        """
         self[item] = None
 
     def update(self, iterable):
+        """
+        Update the ordered set with elements from the provided iterable.
+
+        :param iterable: The iterable containing elements to be added to the ordered set.
+        """
         for item in iterable:
             self.add(item)
 
