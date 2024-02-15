@@ -151,8 +151,8 @@ const ProviderFormAndList: React.FC<Props> = ({
                         <Form.Label>
                             Deployment name
                             <Helper>
-                                It is a short uniqe name to identify your deployment of the AI
-                                provider and is utilized as a part of a proxy URL
+                                Enter a unique name for your deployment from the AI provider to
+                                identify it in the proxy URL
                             </Helper>
                         </Form.Label>
                         <Form.Control
@@ -187,7 +187,13 @@ const ProviderFormAndList: React.FC<Props> = ({
                     </Form.Control.Feedback>
                 </Form.Group>
                 <Form.Group className="labeled-input">
-                    <Form.Label>Proxy URL</Form.Label>
+                    <Form.Label>
+                        Proxy URL
+                        <Helper>
+                            A proxy URL is auto-generated from the project slug and the deployment
+                            name and is used to capture and log all interactions with LLM provider
+                        </Helper>
+                    </Form.Label>
                     <Form.Control
                         type="text"
                         className="generated-link"
@@ -195,11 +201,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                         value={makeUrl(projectSlug, formik.values.deployment_name)}
                         disabled
                     />
-                    <p style={{ fontSize: 'small', margin: '5px 0 15px', textAlign: 'center' }}>
-                        A proxy URL is auto-generated from the project slug and the deployment name
-                        and is used to forward requests to the AI provider and collect these
-                        requests and their responses (as transactions) in the project.
-                    </p>
+                    <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
                 </Form.Group>
                 <Button type="submit" variant="dark">
                     {EditedProvider != undefined ? 'Update AI Provider' : 'Add Ai Provider'}
