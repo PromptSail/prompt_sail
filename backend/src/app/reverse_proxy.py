@@ -15,6 +15,13 @@ from .app import app
 
 
 async def iterate_stream(response, buffer):
+    """
+    Asynchronously iterate over the raw stream of a response and accumulate chunks in a buffer.
+
+    :param response: The response object.
+    :param buffer: The buffer to accumulate chunks.
+    :return: An asynchronous generator yielding chunks from the response stream.
+    """
     async for chunk in response.aiter_raw():
         buffer.append(chunk)
         yield chunk
@@ -23,6 +30,17 @@ async def iterate_stream(response, buffer):
 async def close_stream(
     app: Application, project_id, request, response, buffer, tags, request_time
 ):
+    """
+    Asynchronously close the response stream and store the transaction in the database.
+
+    :param app: The Application instance.
+    :param project_id: The Project ID.
+    :param request: The incoming request.
+    :param response: The response object.
+    :param buffer: The buffer containing accumulated chunks.
+    :param tags: The tags associated with the transaction.
+    :param request_time: The request time.
+    """
     await response.aclose()
     with app.transaction_context() as ctx:
         ctx.call(
@@ -49,6 +67,18 @@ async def reverse_proxy(
     tags: str | None = None,
     target_path: str | None = None,
 ):
+    """
+    API route for reverse proxying requests to the upstream server.
+
+    :param project_slug: The slug of the project.
+    :param provider_slug: The slug of the AI provider.
+    :param path: The path for the reverse proxy.
+    :param request: The incoming request.
+    :param ctx: The transaction context dependency.
+    :param tags: Optional. Tags associated with the transaction.
+    :param target_path: Optional. Target path for the reverse proxy.
+    :return: A StreamingResponse object.
+    """
     logger = get_logger(request)
 
     # if not request.state.is_handled_by_proxy:

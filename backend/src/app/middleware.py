@@ -4,21 +4,35 @@ from .app import app
 
 # @app.middleware("detect_subdomain")
 # async def __call__(request: Request, call_next):
+#     """
+#     Middleware for detecting subdomain in the request and setting corresponding state.
+# 
+#     :param request: The incoming request.
+#     :param call_next: The callable representing the next middleware or endpoint in the chain.
+#     :return: The response from the middleware or endpoint.
+#     """
 #     host = request.headers.get("host", "")
 #     subdomain = detect_subdomain(host, config.BASE_URL)
-#
+# 
 #     if subdomain in [None, "ui", "www"]:
 #         request.state.is_handled_by_proxy = False
 #     else:
 #         request.state.is_handled_by_proxy = True
 #         request.state.slug = subdomain
-#
+# 
 #     response = await call_next(request)
 #     return response
 
 
 @app.middleware("transaction_context")
 async def __call__(request: Request, call_next):
+    """
+    Middleware for managing transaction context.
+
+    :param request: The incoming request.
+    :param call_next: The callable representing the next middleware or endpoint in the chain.
+    :return: The response from the middleware or endpoint.
+    """
     application = request.app.container.application()
     ctx = application.transaction_context()
     request.state.transaction_context = ctx
@@ -30,6 +44,13 @@ async def __call__(request: Request, call_next):
 
 @app.middleware("proxy_tunnel")
 async def __call__(request: Request, call_next):
+    """
+    Middleware for handling proxy tunnel requests.
+
+    :param request: The incoming request.
+    :param call_next: The callable representing the next middleware or endpoint in the chain.
+    :return: The response from the middleware or endpoint.
+    """
     if request.method == "CONNECT":
         # Parse the host and port from the request's path
         host, port = request.scope.get("path").split(":")
