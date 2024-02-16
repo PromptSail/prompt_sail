@@ -1,24 +1,21 @@
 .table
     &__LatestTransactions, &__AllTransactions
         overflow-x: auto
+        background: #FFF
         table
             min-width: max-content
             width: 100%
             thead
-                box-shadow: 0px 7px 7px 0px rgba(0, 0, 0, 0.28)
-                color: #b8d4ff
+                color: #e7e7e7
                 tr
                     th
                         position: relative
                         text-align: start
                         padding: 10px 5px
-                        background: #0d6efd
+                        background: var(--bs-primary)
                         cursor: pointer
                         user-select: none
-                        &:first-child
-                            border-radius: 10px 0 0 0
                         &:last-child
-                            border-radius: 0 10px 0 0
                             cursor: default
                         .content
                             &::after
@@ -27,11 +24,11 @@
                                 opacity: 0
                                 font-weight: bold
                             &.sort-asc
-                                color: white
+                                color: #FFF
                                 &::after
                                     opacity: 1
                             &.sort-desc
-                                color: white
+                                color: #FFF
                                 &::after
                                     opacity: 1
                                     content: '▼'
@@ -39,14 +36,14 @@
                 tr
                     width: 100%
                     &:hover
-                        background: #0d6efd22
+                        background: #0d6dfd33
                     td
                         text-align: start
                         padding: 10px 5px
                     &:nth-child(2n - 1)
-                        background: #0d6efd11
+                        background: #0d6dfd22
                         &:hover
-                            background: #0d6efd22
+                            background: #0d6dfd33
                     .link
                         span
                             text-decoration: underline
@@ -63,82 +60,36 @@
     &__filters, &__filters_footer
         display: flex
         flex-direction: row
-        background: #0d6efd
+        background: var(--bs-primary)
         padding: 5px
         border-radius: 10px 10px 0 0
         gap: 5px
         justify-content: space-between
-        color: #b8d4ff !important
-        font-weight: bold
+        color: #FFF
         &_footer
             flex-direction: row
             justify-content: end
             border-radius: 0 0 10px 10px
         +maxW(950px)
             flex-direction: column
-        .inputs, .page, .page_footer
-            display: flex
-            flex-direction: column
-            gap: 5px
-            &_footer
-                flex-direction: row-reverse
-                +maxW(950px)
-                    flex-direction: column
-        .row
+        .inputs, .page
             display: flex
             flex-direction: row
+            flex-wrap: wrap
+            margin-bottom: auto
             gap: 5px
-            .tags,.project_select
-                & > *
-                    height: 100%
-            .project_select
-                select
-                    background: #0d6efd
-                    color: #b8d4ff
-                    font-weight: bold
-                +maxW(950px)
-                    width: 50%
-            .tags
-                input
-                    background: #0d6efd
-                    color: #b8d4ff
-                    font-weight: bold
-                    &::placeholder
-                        color: #b8d4ff
-                +maxW(950px)
-                    width: 50%
-                button
-                    background: #0a58ce
-            .rs-picker-daterange
-                border: 1px solid white
-                border-radius: 7px
-                padding: 5px
-                display: inline
-                +maxW(950px)
-                    width: 100%
-                input
-                    &::placeholder
-                        color: #b8d4ff !important 
-                    outline: none
-                    +maxW(950px)
-                        width: calc(100% - 1em)
+            *
+                flex-grow: 1
+        .page
+            .info
+                display: flex
+                flex-direction: row
+                gap: 5px
                 *
-                    background: #0d6efd !important
-                    color: #b8d4ff !important
-                    font-weight: bold
-                    &:active
-                        color: #b8d4ff !important
-        .page_size
-            color: #b8d4ff
-            font-weight: bold
-            margin: auto 0
-            select
-                background: #0d6efd
-                border: 1px solid white
-                border-radius: 7px
-        .page, .page_footer
-            .row
-                justify-content: space-around
-            +maxW(950px)
-                button
-                    width: 100%
+                    margin: auto
+                    min-width: 45px
+                    text-align: center
+            .buttons
+                display: flex
+                flex-direction: row
+                gap: 5px

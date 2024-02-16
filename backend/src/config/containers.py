@@ -14,6 +14,7 @@ from dependency_injector.providers import Dependency, Factory, Provider, Singlet
 from dependency_injector.wiring import Provide, inject  # noqa
 from lato import Application, DependencyProvider, TransactionContext
 from projects.repositories import ProjectRepository
+from settings.repositories import SettingsRepository
 from transactions.repositories import TransactionRepository
 
 # logger = logging.getLogger("ps")
@@ -27,6 +28,14 @@ from transactions.repositories import TransactionRepository
 
 
 def resolve_provider_by_type(container: Container, cls: type) -> Optional[Provider]:
+    """
+    Resolve a provider from the container based on the specified type.
+
+    :param container: The dependency injection container.
+    :param cls: The type for which to resolve a provider.
+    :return: The resolved Provider object, or None if no matching provider is found.
+    :raises ValueError: If multiple matching providers are found.
+    """
     def inspect_provider(provider: Provider) -> bool:
         if isinstance(provider, (Factory, Singleton)):
             return issubclass(provider.cls, cls)
@@ -49,6 +58,15 @@ def resolve_provider_by_type(container: Container, cls: type) -> Optional[Provid
 
 
 def _default(val):
+    """
+    Convert a value to its default representation.
+
+    Handles the conversion of UUID objects to strings.
+
+    :param val: The value to be converted.
+    :return: The default representation of the value.
+    :raises TypeError: If the value is not of a supported type.
+    """
     import uuid
 
     if isinstance(val, uuid.UUID):
@@ -57,15 +75,37 @@ def _default(val):
 
 
 def dumps(d):
+    """
+    Serialize a Python object to a JSON-formatted string.
+
+    :param d: The Python object to be serialized.
+    :return: A JSON-formatted string representing the serialized object.
+    """
     return json.dumps(d, default=_default)
 
 
 class ContainerProvider(DependencyProvider):
+    """
+    Dependency provider for integrating a dependency injection container.
+
+    This provider interacts with the specified container to manage dependencies.
+    """
     def __init__(self, container: Container):
+        """
+        Initialize the ContainerProvider with a dependency injection container.
+
+        :param container: The dependency injection container.
+        """
         self.container = container
         self.counter = 0
 
     def has_dependency(self, identifier: str | type) -> bool:
+        """
+        Check if the container has a dependency identified by the specified identifier.
+
+        :param identifier: The identifier (either a string or a type) of the dependency.
+        :return: True if the dependency is found, False otherwise.
+        """
         if isinstance(identifier, type) and resolve_provider_by_type(
             self.container, identifier
         ):
@@ -74,6 +114,12 @@ class ContainerProvider(DependencyProvider):
             return identifier in self.container.providers
 
     def register_dependency(self, identifier, dependency_instance):
+        """
+        Register a dependency in the container.
+
+        :param identifier: The identifier for the dependency.
+        :param dependency_instance: The instance of the dependency to be registered.
+        """
         pr = providers.Object(dependency_instance)
         try:
             setattr(self.container, identifier, pr)
@@ -82,6 +128,12 @@ class ContainerProvider(DependencyProvider):
             self.counter += 1
 
     def get_dependency(self, identifier):
+        """
+        Get the instance of a dependency from the container.
+
+        :param identifier: The identifier of the dependency to be retrieved.
+        :return: The instance of the dependency.
+        """
         try:
             if isinstance(identifier, type):
                 provider = resolve_provider_by_type(self.container, identifier)
@@ -93,12 +145,26 @@ class ContainerProvider(DependencyProvider):
         return instance
 
     def copy(self, *args, **kwargs):
+        """
+        Create a copy of the ContainerProvider with updated parameters.
+
+        :param args: Additional positional arguments.
+        :param kwargs: Additional keyword arguments.
+        :return: A new instance of ContainerProvider with updated parameters.
+        """
         dp = ContainerProvider(copy.copy(self.container))
         dp.update(*args, **kwargs)
         return dp
 
 
 def create_application(container, **kwargs):
+    """
+    Create and configure an application with a dependency injection container.
+
+    :param container: The dependency injection container.
+    :param kwargs: Additional keyword arguments for configuring the application.
+    :return: An instance of the configured Application.
+    """
     application = Application(
         name="PromptSail",
         dependency_provider=ContainerProvider(container),
@@ -109,6 +175,11 @@ def create_application(container, **kwargs):
 
     @application.on_create_transaction_context
     def on_create_transaction_context():
+        """
+        Event handler for creating a transaction context.
+
+        :return: A new TransactionContext.
+        """
         correlation_id = uuid.uuid4()
         transaction_level_container = TransactionContainer(
             correlation_id=correlation_id,
@@ -121,11 +192,22 @@ def create_application(container, **kwargs):
 
     @application.on_enter_transaction_context
     def on_enter_transaction_context(ctx: TransactionContext):
+        """
+        Event handler for entering a transaction context.
+
+        :param ctx: The TransactionContext.
+        """
         logging_context.correlation_id = ctx["correlation_id"]
         logger.debug(f"transaction started")
 
     @application.on_exit_transaction_context
     def on_exit_transaction_context(ctx: TransactionContext, exception):
+        """
+        Event handler for exiting a transaction context.
+
+        :param ctx: The TransactionContext.
+        :param exception: The exception (if any) that occurred during the transaction.
+        """
         logger.debug(f"transaction ended ")
         logging_context.correlation_id = None
 
@@ -138,6 +220,11 @@ def create_application(container, **kwargs):
 
 
 class TopLevelContainer(containers.DeclarativeContainer):
+    """
+    Top-level dependency injection container for the application.
+
+    Inherits from containers.DeclarativeContainer.
+    """
     __self__ = providers.Self()
     config = providers.Configuration()
     logger = providers.Object(logger)
@@ -156,6 +243,11 @@ class TopLevelContainer(containers.DeclarativeContainer):
 
 
 class TransactionContainer(containers.DeclarativeContainer):
+    """
+    Dependency injection container for managing dependencies related to transactions.
+
+    Inherits from containers.DeclarativeContainer.
+    """
     correlation_id = providers.Dependency(instance_of=UUID)
     logger = providers.Dependency(instance_of=Logger)
     db_client = providers.Dependency(instance_of=pymongo.database.Database)
@@ -165,4 +257,7 @@ class TransactionContainer(containers.DeclarativeContainer):
     )
     transaction_repository = providers.Singleton(
         TransactionRepository, db_client=db_client, collection_name="transactions"
+    )
+    settings_repository = providers.Singleton(
+        SettingsRepository, db_client=db_client, collection_name="settings"
     )

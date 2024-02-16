@@ -10,12 +10,21 @@ container.config.override(config)
 
 @asynccontextmanager
 async def fastapi_lifespan(app: FastAPI):
+    import os
+
+    from dotenv import find_dotenv, load_dotenv
     from projects.models import AIProvider, Project
     from projects.use_cases import add_project
+    from settings.models import OrganizationSettings, User
+    from settings.use_cases import add_settings
+
+    load_dotenv(find_dotenv())
 
     application = container.application()
     with application.transaction_context() as ctx:
         project_repository = ctx["project_repository"]
+        settings_repository = ctx["settings_repository"]
+
         if project_repository.count() == 0:
             data1 = Project(
                 name="Project 1",
@@ -24,15 +33,10 @@ async def fastapi_lifespan(app: FastAPI):
                 ai_providers=[
                     AIProvider(
                         deployment_name="openai",
+                        slug="openai",
                         api_base="https://api.openai.com/v1",
                         description="",
                         provider_name="OpenAI",
-                    ),
-                    AIProvider(
-                        deployment_name="azure_openai",
-                        api_base="https://openai-prompt-sail.openai.azure.com",
-                        description="",
-                        provider_name="Azure OpenAI",
                     ),
                 ],
                 tags=["tag1", "tag2"],
@@ -45,15 +49,10 @@ async def fastapi_lifespan(app: FastAPI):
                 ai_providers=[
                     AIProvider(
                         deployment_name="openai",
+                        slug="openai",
                         api_base="https://api.openai.com/v1",
                         description="",
                         provider_name="OpenAI",
-                    ),
-                    AIProvider(
-                        deployment_name="azure_openai",
-                        api_base="https://openai-prompt-sail.openai.azure.com",
-                        description="",
-                        provider_name="Azure OpenAI",
                     ),
                 ],
                 tags=["tag1", "tag2", "tag3"],
@@ -61,6 +60,21 @@ async def fastapi_lifespan(app: FastAPI):
             )
             ctx.call(add_project, data1)
             ctx.call(add_project, data2)
+
+        if settings_repository.count() == 0:
+            organization_name = os.getenv("ORGANIZATION_NAME", None)
+            admin_password = os.getenv("ADMIN_PASSWORD", None)
+            if (admin_password and organization_name) is not None:
+                data = OrganizationSettings(
+                    id="settings",
+                    organization_name=organization_name,
+                    users=[User(username="admin", password=admin_password)],
+                )
+                ctx.call(add_settings, data)
+            else:
+                raise ValueError(
+                    "Theres no ORGANIZATION_NAME or ADMIN_PASSWORD in environment variables!"
+                )
     yield
     ...
 

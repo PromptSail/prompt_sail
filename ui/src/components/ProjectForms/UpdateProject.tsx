@@ -2,8 +2,8 @@ import { useUpdateProject } from '../../api/queries';
 import { updateProjectRequest } from '../../api/interfaces';
 import ProjectForm from './ProjectForm';
 import { FormikValues } from './types';
-import { Button } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 
 const UpdateProject: React.FC = () => {
     const updateProject = useUpdateProject();
@@ -14,15 +14,24 @@ const UpdateProject: React.FC = () => {
             ...values,
             tags: values.tags.replace(/\s/g, '').split(',')
         };
-        updateProject.mutateAsync({ id: projectId, data: reqValues }).then(() => {
-            navigate(`/projects/${projectId}`);
-        });
+        updateProject
+            .mutateAsync(
+                { id: projectId, data: reqValues },
+                {
+                    onError: (err) => {
+                        alert(`${err.code} ${err.message}`);
+                    }
+                }
+            )
+            .then(() => {
+                navigate(`/projects/${projectId}`);
+            });
     };
     return (
-        <div className="project__update">
-            <h3>Update project</h3>
+        <div className="projectForm__update">
+            <h1>Update project</h1>
             <ProjectForm formId="ProjectUpdate" submitFunc={submit} projectId={projectId} />
-            <Button type="submit" className="mt-2" form="ProjectUpdate">
+            <Button type="submit" variant="primary" size="lg" className="mt-2" form="ProjectUpdate">
                 Update
             </Button>
         </div>

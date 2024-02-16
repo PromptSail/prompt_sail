@@ -76,12 +76,12 @@ const TransactionAndProjectDetails: React.FC<Params> = ({ transaction }) => {
                     </div>
                 </div>
                 <div>
-                    <div className="my-5">
+                    {/* <div className="my-5">
                         <SyntaxHighlighter
                             language="python"
                             style={styles.atomOneDark}
                             customStyle={{ display: 'inline' }}
-                        >{`http://${projectData.slug}.promptsail.local`}</SyntaxHighlighter>
+                        >{`http://localhost:8000/${projectData.slug}/${transaction.}`}</SyntaxHighlighter>
                         <span className="hidden md:inline">&rArr;</span>
                         <span className="block md:hidden my-5 ms-3">&dArr;</span>
                         <SyntaxHighlighter
@@ -91,7 +91,7 @@ const TransactionAndProjectDetails: React.FC<Params> = ({ transaction }) => {
                         >
                             {projectData.ai_providers[0].api_base}
                         </SyntaxHighlighter>
-                    </div>
+                    </div> */}
                     <h2 className="text-2xl font-semibold">Request</h2>
                     <SyntaxHighlighter language="python" style={styles.atomOneDark}>
                         {JSON.stringify(transaction.request, null, 4)}

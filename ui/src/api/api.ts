@@ -5,6 +5,7 @@ import {
     getAllProjects,
     getAllTransactionResponse,
     getProjectResponse,
+    getProviders,
     getTransactionResponse,
     updateProjectRequest
 } from './interfaces';
@@ -30,6 +31,9 @@ const api = {
     },
     updateProject: (id: string, data: updateProjectRequest): Promise<AxiosResponse<any>> => {
         return client.put(`/api/projects/${id}`, data);
+    },
+    getProviders: (): Promise<AxiosResponse<getProviders[]>> => {
+        return client.get('/api/providers');
     }
 };
 

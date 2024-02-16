@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { getAllProjects } from '../../api/interfaces';
 
 interface Props {
@@ -5,20 +6,35 @@ interface Props {
 }
 
 const ProjetTile: React.FC<Props> = ({ data }) => {
-    const random = (Math.random() * 2000 + 10).toFixed(2);
+    const tags = data.tags.join(', ');
+    const desc = data.description;
     return (
-        <div className="border-4 rounded border-gray-200 p-5 hover:bg-gray-100">
-            <h2 className="text-2xl text-center">{data.name}</h2>
-            <span>{data.description}</span>
-            <ol className="mt-5" style={{ listStyle: 'inside' }}>
-                <li>Members: 10</li>
-                {/* <li>Transactions: {data.transactions.length}</li> */}
-                <li>Experiments: 5</li>
-                <li>Total cost: $ {random}</li>
-            </ol>
-            {/* <span>{data.slug}</span> */}
-            {/* <span>{da}</span> */}
-        </div>
+        <Link to={`/projects/${data.id}`} className="project-tile">
+            <div className="card">
+                <h3>{data.name}</h3>
+                <p className="description">
+                    {desc.length > 25 ? desc.substring(0, 25) + '...' : desc}
+                </p>
+                <div className="details">
+                    <div className="element">
+                        <span>Members:</span>
+                        <span>1</span>
+                    </div>
+                    <div className="element">
+                        <span>Total transactions:</span>
+                        <span>{data.total_transactions}</span>
+                    </div>
+                    <div className="element">
+                        <span>Total cost:</span>
+                        <span>$ 1.00</span>
+                    </div>
+                    <div className="element">
+                        <span>Tags:</span>
+                        <span>{tags.length > 20 ? tags.substring(0, 20) + '...' : tags}</span>
+                    </div>
+                </div>
+            </div>
+        </Link>
     );
 };
 

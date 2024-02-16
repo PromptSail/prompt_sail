@@ -8,6 +8,13 @@ from .app import app
 
 @app.exception_handler(ProjectNotFoundException)
 async def not_found_exception_handler(request: Request, exc: NotFoundException):
+    """
+    Exception handler for ProjectNotFoundException.
+
+    :param request: The incoming request.
+    :param exc: The ProjectNotFoundException instance.
+    :return: A JSONResponse with a 404 status code and the exception message.
+    """
     message = exc.message
     return JSONResponse(
         status_code=404,
@@ -19,6 +26,13 @@ async def not_found_exception_handler(request: Request, exc: NotFoundException):
 async def slug_already_exists_exception_handler(
     request: Request, exc: SlugAlreadyExistsException
 ):
+    """
+    Exception handler for SlugAlreadyExistsException.
+
+    :param request: The incoming request.
+    :param exc: The SlugAlreadyExistsException instance.
+    :return: A JSONResponse with a 400 status code and the exception message.
+    """
     message = exc.message
     return JSONResponse(
         status_code=400,

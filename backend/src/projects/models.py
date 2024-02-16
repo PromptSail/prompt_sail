@@ -4,6 +4,7 @@ from transactions.models import generate_uuid
 
 class AIProvider(BaseModel):
     deployment_name: str
+    slug: str
     api_base: str
     description: str
     provider_name: str

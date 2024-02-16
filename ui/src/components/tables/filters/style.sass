@@ -1,0 +1,31 @@
+.rs-picker-daterange
+    border: 1px solid white
+    border-radius: 7px
+    padding: 5px
+    display: inline
+    background: #FFF
+    +maxW(950px)
+        width: 100%
+    input
+        font-weight: 400
+        color: #000
+        width: calc(100% - 15px)
+        &::placeholder
+            // color: #b8d4ff !important 
+        outline: none
+        +maxW(950px)
+            width: calc(100% - 1em)
+.tags
+    input
+        &::placeholder
+            color: var(--bs-gray-500)
+    +maxW(950px)
+        width: 50%
+    button
+        // background: #0a58ce
+        max-width: 80px
+.page_size
+    color: #000
+    margin: auto 0
+    select
+        border-radius: 7px

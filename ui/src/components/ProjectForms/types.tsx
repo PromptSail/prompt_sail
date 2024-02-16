@@ -5,6 +5,7 @@ export const FormikValues = {
     ai_providers: [
         {
             deployment_name: '',
+            slug: '',
             api_base: '',
             description: '',
             provider_name: ''
