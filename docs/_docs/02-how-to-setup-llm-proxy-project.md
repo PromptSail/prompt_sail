@@ -1,5 +1,5 @@
 ---
-title: "How to run the "
+title: "How to run the project"
 permalink: /docs/how-to-setup-llm-proxy-project/
 excerpt: "How to quickly install and setup Prompt Sail project."
 last_modified_at: 2023-12-22T18:48:05+01:00
@@ -15,19 +15,19 @@ toc: true
 **Configuration**
 
 The setup is straightforward. You need to modify the `base_url` when creating your AI API object. 
-You can also include additional parameters in the URL, such as `project_slug`, `provider_slug`, and `tags`.
+You can also include additional parameters in the URL, such as `project_slug`, `deployment_name`, and `tags`.
 __Tags are not required.__
 
 Here's a template for the `base_url` when you don't want to tag your transactions:
 
 ```
-http://localhost:8000/<project_slug>/<provider_slug>/chat/completions
+http://localhost:8000/<project_slug>/<deployment_name>/chat/completions
 ```
 
 However, if you are interested in tagging your transactions you need to build a link as follows:
 
 ```
-http://localhost:8000/<project_slug>/<provider_slug>/?tags=zero_shot,simple_prompt,dev1,poc&target_path=/chat/completions
+http://localhost:8000/<project_slug>/<deployment_name>/?tags=zero_shot,simple_prompt,dev1,poc&target_path=/chat/completions
 ```
 
 As you can see right after `provider_slug` the tags immediately appear, and then as query_param `target_path` we added 
