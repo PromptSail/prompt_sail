@@ -1,41 +1,36 @@
 ---
-title: "How to run the project"
+title: "Project Setup"
 permalink: /docs/how-to-setup-llm-proxy-project/
 excerpt: "How to quickly install and setup Prompt Sail project."
 last_modified_at: 2023-12-22T18:48:05+01:00
 redirect_from:
-  - /theme-setup/
+    - /theme-setup/
 toc: true
 ---
 
+The Project Setup page guides users through the process of creating a new project within our application. This includes defining project details and integrating AI providers. To begin the process of creating a new project, click on "Add new Project" on the [Organization Dashboard](https://promptsail.github.io/prompt_sail/docs/organization-dashboard/) page after you have [logged in](https://promptsail.github.io/prompt_sail/docs/todo/).You should see a form with two sections:
 
+## Project Details
 
+This section contains key information about the project
 
+1. **Name**: This is the name that will uniquely identify your project within the application.
+2. **Slug**: The project slug is a URL-friendly version of the project name. It is used to create a proxy URL for a project. It is filled in automatically or you can enter it yourself
+3. **Description (optional)**: This field provides an opportunity to provide additional information about your project. You can use it to describe the goals, objectives, or any other relevant details that users should know about the project. While optional, providing a description can help users better understand the purpose of your project.
 
-**Configuration**
+4. **Tags (optional)**: Tags are keywords or labels that you can assign to your project to help categorize and organize it. They can be used to group similar projects together or to indicate specific characteristics or features of your project. While optional, adding tags can make it easier for users to search for and discover your project within the application.
 
-The setup is straightforward. You need to modify the `base_url` when creating your AI API object. 
-You can also include additional parameters in the URL, such as `project_slug`, `deployment_name`, and `tags`.
-__Tags are not required.__
+## Provider details
 
-Here's a template for the `base_url` when you don't want to tag your transactions:
+This section contains information about the AI providers in use. Once you have added at least one AI provider, you will see a list with it and the option to add another one
 
-```
-http://localhost:8000/<project_slug>/<deployment_name>/chat/completions
-```
+1. **Ai Provider (Select provider)**: This functionality allows users to choose from a list of available AI providers to integrate into their project. The dropdown list typically contains a variety of AI providers offering different services or functionalities.
+2. **Deployment name**: The deployment name is a unique identifier for the deployment of your AI model or service within the project. It is used to create a proxy URL for a project.
+3. **Api base URL**: The API base URL is the root URL for the API endpoints provided by your AI service or model. It serves as the starting point for accessing various functionalities and resources offered by the AI provider.
+4. **Proxy URL**: The proxy URL serves as an intermediary between the project and the AI provider's API. It is generated automatically based on the deployment name and project slug. After filled in neccsesary information copy this link to used it
 
-However, if you are interested in tagging your transactions you need to build a link as follows:
+After entering the necessary information, click Add Ai Provider to add it to the project. **You need to add at least one Ai Provider**
 
-```
-http://localhost:8000/<project_slug>/<deployment_name>/?tags=zero_shot,simple_prompt,dev1,poc&target_path=/chat/completions
-```
+## Complete Project Creation
 
-As you can see right after `provider_slug` the tags immediately appear, and then as query_param `target_path` we added 
-the rest of the link. If you use most libraries, you should leave this parameter empty, ie: `target_path=`, 
-because they add the rest of the link themselves. 
-
-**Usage**
-
-Once the setup is complete, you can begin using Prompt Sail. It will automatically capture and log all prompts and responses. You can then view and analyze this data through the intuitive user interface. UI is available at [http://localhost:80/](http://localhost:80/)
-
-Prompt Sail is designed to integrate smoothly into your workflow, offering valuable insights without causing any disruption to your development process.
+Once all necessary information is provided, users click the "Create" button to finalize project creation. The new project will then be visible in the [Organization Dashboard](https://promptsail.github.io/prompt_sail/docs/organization-dashboard/).
