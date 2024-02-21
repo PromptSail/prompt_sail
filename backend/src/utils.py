@@ -3,6 +3,8 @@ from collections import OrderedDict
 from datetime import datetime
 from urllib.parse import parse_qs, urlparse, unquote
 
+from transactions.schemas import GetTransactionUsageStatisticsSchema, GetTransactionStatusStatisticsSchema
+
 
 def serialize_data(obj):
     obj["_id"] = obj["id"]
@@ -110,14 +112,21 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         "library": request_headers["user-agent"],
         "status_code": response.__dict__["status_code"],
         "model": request_content.get("model", None),
-        "token_usage": None,
+        "input_tokens": None,
+        "output_tokens": None,
         "os": request_headers.get("x-stainless-os", None),
+        "provider": "Unknown",
     }
+
+    if "usage" in response_content:
+        transaction_params["input_tokens"] = response_content["usage"].get("prompt_tokens", 0)
+        transaction_params["output_tokens"] = response_content["usage"].get("completion_tokens", 0)
 
     url = str(request.__dict__["url"])
 
     if "openai.azure.com" in url and "embeddings" in url:
         transaction_params["type"] = "embedding"
+        transaction_params["provider"] = "Azure"
         if isinstance(request_content["input"], list):
             prompt = (
                     "["
@@ -135,9 +144,6 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["message"] = None
         else:
             transaction_params["model"] = response_content["model"]
-            transaction_params["token_usage"] = response_content["usage"][
-                "total_tokens"
-            ]
             if isinstance(response_content["data"][0]["embedding"], list):
                 msg = (
                     "["
@@ -153,6 +159,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
     if "openai.azure.com" in url and "completions" in url:
         transaction_params["type"] = "chat"
+        transaction_params["provider"] = "Azure"
         transaction_params["prompt"] = request_content["messages"][0]["content"]
         if response.__dict__["status_code"] > 200:
             # transaction_params["error_message"] = response_content["message"]
@@ -160,9 +167,6 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["message"] = None
         else:
             transaction_params["model"] = response_content["model"]
-            transaction_params["token_usage"] = response_content["usage"][
-                "total_tokens"
-            ]
             transaction_params["message"] = response_content["choices"][0]["message"][
                 "content"
             ]
@@ -170,21 +174,70 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
     if "api.openai.com" in url and "completions" in url:
         transaction_params["type"] = "chat"
+        transaction_params["provider"] = "OpenAI"
         transaction_params["prompt"] = request_content["messages"][0]["content"]
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["message"] = None
         else:
             transaction_params["model"] = response_headers["openai-model"]
-            transaction_params["token_usage"] = response_content["usage"][
-                "total_tokens"
-            ]
             transaction_params["message"] = response_content["choices"][0]["message"][
                 "content"
             ]
             transaction_params["error_message"] = None
 
     return transaction_params
+
+
+def token_counter_for_transactions(
+    transactions: list[GetTransactionUsageStatisticsSchema]
+) -> list[GetTransactionUsageStatisticsSchema]:
+    result = {}
+    for transaction in transactions:
+        key = (transaction.provider, transaction.model)
+        if key in result:
+            result[key][0] += transaction.total_input_tokens
+            result[key][1] += transaction.total_output_tokens
+            result[key][2] += transaction.total_transactions
+        else:
+            result[key] = [
+                transaction.total_input_tokens, 
+                transaction.total_output_tokens, 
+                transaction.total_transactions
+            ]
+
+    result_list = [GetTransactionUsageStatisticsSchema(
+        project_id=transactions[0].project_id, 
+        provider=provider,
+        model=model, 
+        total_input_tokens=input_tokens, 
+        total_output_tokens=output_tokens,
+        total_transactions=total_transactions
+    ) for (provider, model), (input_tokens, output_tokens, total_transactions) in result.items()]
+
+    return result_list
+
+
+def status_counter_for_transactions(
+    transactions: list[GetTransactionStatusStatisticsSchema]
+) -> list[GetTransactionStatusStatisticsSchema]:
+    result = {}
+    for transaction in transactions:
+        key = (transaction.provider, transaction.model, transaction.status_code)
+        if key in result:
+            result[key] += 1
+        else:
+            result[key] = 1
+
+    result_list = [GetTransactionStatusStatisticsSchema(
+        project_id=transactions[0].project_id, 
+        provider=provider,
+        model=model, 
+        status_code=status_code,
+        total_transactions=total_transactions
+    ) for (provider, model, status_code), total_transactions in result.items()]
+
+    return result_list
 
 
 class ApiURLBuilder:

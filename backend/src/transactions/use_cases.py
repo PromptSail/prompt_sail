@@ -184,11 +184,13 @@ def store_transaction(
             encoding=response.encoding,
         ),
         tags=tags,
+        provider=params["provider"],
         model=params["model"],
         prompt=params["prompt"],
         type=params["type"],
         os=params["os"],
-        token_usage=params["token_usage"],
+        input_tokens=params["input_tokens"],
+        output_tokens=params["output_tokens"],
         library=params["library"],
         status_code=params["status_code"],
         message=params["message"],
@@ -197,3 +199,14 @@ def store_transaction(
     )
 
     transaction_repository.add(transaction)
+
+
+def get_list_of_filtered_transactions(
+    project_id: str, 
+    date_from: datetime, 
+    date_to: datetime, 
+    transaction_repository: TransactionRepository,
+) -> list[Transaction]:
+    query = create_transaction_query_from_filters(date_from=date_from, date_to=date_to, project_id=project_id)
+    transactions = transaction_repository.get_filtered(query)
+    return transactions

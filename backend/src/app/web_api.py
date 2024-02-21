@@ -27,13 +27,15 @@ from transactions.schemas import (
     GetTransactionPageResponseSchema,
     GetTransactionSchema,
     GetTransactionWithProjectSlugSchema,
+    GetTransactionUsageStatisticsSchema, 
+    GetTransactionStatusStatisticsSchema,
 )
 from transactions.use_cases import (
     count_token_usage_for_project,
     count_transactions,
     delete_multiple_transactions,
     get_all_filtered_and_paginated_transactions,
-    get_transaction,
+    get_transaction, get_list_of_filtered_transactions,
 )
 
 from .app import app
@@ -226,6 +228,59 @@ async def get_paginated_transactions(
         total_pages=-(-count // page_size),
     )
     return page_response
+
+
+@app.get("/api/statistics/usage", response_class=JSONResponse)
+async def get_transaction_statistics_over_time(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None,
+) -> list[GetTransactionUsageStatisticsSchema]:
+    transactions = ctx.call(
+        get_list_of_filtered_transactions, 
+        project_id=project_id, 
+        date_from=date_from, 
+        date_to=date_to,
+    )
+    transactions = [GetTransactionUsageStatisticsSchema(
+        project_id=project_id, 
+        provider=transaction.provider, 
+        model=transaction.model, 
+        total_input_tokens=transaction.input_tokens or 0, 
+        total_output_tokens=transaction.output_tokens or 0, 
+        total_transactions=1
+    ) for transaction in transactions]
+    
+    stats = utils.token_counter_for_transactions(transactions)
+    
+    return stats
+
+
+@app.get("/api/statistics/statuses", response_class=JSONResponse)
+async def get_transaction_statistics_over_time(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None,
+) -> list[GetTransactionStatusStatisticsSchema]:
+    transactions = ctx.call(
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    transactions = [GetTransactionStatusStatisticsSchema(
+        project_id=project_id,
+        provider=transaction.provider,
+        model=transaction.model,
+        status_code=transaction.status_code,
+        total_transactions=1
+    ) for transaction in transactions]
+
+    stats = utils.status_counter_for_transactions(transactions)
+
+    return stats
 
 
 @app.get("/api/providers", response_class=JSONResponse)

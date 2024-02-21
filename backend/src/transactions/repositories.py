@@ -60,8 +60,16 @@ class TransactionRepository(MongoRepository):
         :return: A paginated and filtered list of Transaction objects based on the specified criteria.
         """
         return self.find(query)[::-1][
-            (page - 1) * page_size : (page - 1) * page_size + page_size
-        ]
+               (page - 1) * page_size : (page - 1) * page_size + page_size
+               ]
+
+    def get_filtered(self, query: dict[str, str | datetime | None]):
+        """
+        Retrieve a paginated and filtered list of transactions from the repository.
+        :param query: Query parameters to filter transactions.
+        :return: A filtered list of Transaction objects based on the specified criteria.
+        """
+        return self.find(query)
 
     def delete_cascade(self, project_id: str):
         """
