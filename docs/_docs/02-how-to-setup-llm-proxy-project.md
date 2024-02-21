@@ -2,7 +2,7 @@
 title: "Project Setup"
 permalink: /docs/how-to-setup-llm-proxy-project/
 excerpt: "How to quickly install and setup Prompt Sail project."
-last_modified_at: 2023-12-22T18:48:05+01:00
+last_modified_at: 2024-02-21T12:14:05+01:00
 redirect_from:
     - /theme-setup/
 toc: true
