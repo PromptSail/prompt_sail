@@ -1,0 +1,466 @@
+[
+    {
+        "model_name": "babbage-002",
+        "start_date": "",
+        "match_pattern": "(?i)^(babbage-002)$",
+        "input_price": 0.0004,
+        "output_price": 0.0016,
+        "total_price": 0
+    },
+    {
+        "model_name": "chat-bison",
+        "start_date": "",
+        "match_pattern": "(?i)^(chat-bison)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "chat-bison-32k",
+        "start_date": "",
+        "match_pattern": "(?i)^(chat-bison-32k)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "claude-1.1",
+        "start_date": "",
+        "match_pattern": "(?i)^(claude-1.1)$",
+        "input_price": 0.008,
+        "output_price": 0.024,
+        "total_price": 0
+    },
+    {
+        "model_name": "claude-1.2",
+        "start_date": "",
+        "match_pattern": "(?i)^(claude-1.2)$",
+        "input_price": 0.008,
+        "output_price": 0.024,
+        "total_price": 0
+    },
+    {
+        "model_name": "claude-1.3",
+        "start_date": "",
+        "match_pattern": "(?i)^(claude-1.3)$",
+        "input_price": 0.008,
+        "output_price": 0.024,
+        "total_price": 0
+    },
+    {
+        "model_name": "claude-2.0",
+        "start_date": "",
+        "match_pattern": "(?i)^(claude-2.0)$",
+        "input_price": 0.008,
+        "output_price": 0.024,
+        "total_price": 0
+    },
+    {
+        "model_name": "claude-2.1",
+        "start_date": "",
+        "match_pattern": "(?i)^(claude-2.1)$",
+        "input_price": 0.008,
+        "output_price": 0.024,
+        "total_price": 0
+    },
+    {
+        "model_name": "claude-instant-1",
+        "start_date": "",
+        "match_pattern": "(?i)^(claude-instant-1)$",
+        "input_price": 0.00163,
+        "output_price": 0.00551,
+        "total_price": 0
+    },
+    {
+        "model_name": "claude-instant-1.2",
+        "start_date": "",
+        "match_pattern": "(?i)^(claude-instant-1.2)$",
+        "input_price": 0.00163,
+        "output_price": 0.00551,
+        "total_price": 0
+    },
+    {
+        "model_name": "code-bison",
+        "start_date": "",
+        "match_pattern": "(?i)^(code-bison)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "code-bison-32k",
+        "start_date": "",
+        "match_pattern": "(?i)^(code-bison-32k)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "code-gecko",
+        "start_date": "",
+        "match_pattern": "(?i)^(code-gecko)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "codechat-bison",
+        "start_date": "",
+        "match_pattern": "(?i)^(codechat-bison)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "codechat-bison-32k",
+        "start_date": "",
+        "match_pattern": "(?i)^(codechat-bison-32k)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "davinci-002",
+        "start_date": "",
+        "match_pattern": "(?i)^(davinci-002)$",
+        "input_price": 0.006,
+        "output_price": 0.012,
+        "total_price": 0
+    },
+    {
+        "model_name": "ft:babbage-002",
+        "start_date": "",
+        "match_pattern": "(?i)^(ft:)(babbage-002:)(.+)(:)(.*)(:)(.+)$$",
+        "input_price": 0.0016,
+        "output_price": 0.0016,
+        "total_price": 0
+    },
+    {
+        "model_name": "ft:davinci-002",
+        "start_date": "",
+        "match_pattern": "(?i)^(ft:)(davinci-002:)(.+)(:)(.*)(:)(.+)$$",
+        "input_price": 0.012,
+        "output_price": 0.012,
+        "total_price": 0
+    },
+    {
+        "model_name": "ft:gpt-3.5-turbo-0613",
+        "start_date": "",
+        "match_pattern": "(?i)^(ft:)(gpt-3.5-turbo-0613:)(.+)(:)(.*)(:)(.+)$",
+        "input_price": 0.012,
+        "output_price": 0.016,
+        "total_price": 0
+    },
+    {
+        "model_name": "ft:gpt-3.5-turbo-1106",
+        "start_date": "",
+        "match_pattern": "(?i)^(ft:)(gpt-3.5-turbo-1106:)(.+)(:)(.*)(:)(.+)$",
+        "input_price": 0.003,
+        "output_price": 0.006,
+        "total_price": 0
+    },
+    {
+        "model_name": "gemini-pro",
+        "start_date": "",
+        "match_pattern": "(?i)^(gemini-pro)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo",
+        "start_date": "2024-02-16",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo)$",
+        "input_price": 0.0005,
+        "output_price": 0.0015,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo",
+        "start_date": "2023-11-06",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo)$",
+        "input_price": 0.0005,
+        "output_price": 0.0015,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo",
+        "start_date": "2023-06-27",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo)$",
+        "input_price": 0.0005,
+        "output_price": 0.0015,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo)$",
+        "input_price": 0.0005,
+        "output_price": 0.0015,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo-0125",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-0125)$",
+        "input_price": 0.0005,
+        "output_price": 0.0015,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo-0301",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-0301)$",
+        "input_price": 0.002,
+        "output_price": 0.002,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo-0613",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-0613)$",
+        "input_price": 0.0015,
+        "output_price": 0.002,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo-1106",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-1106)$",
+        "input_price": 0.001,
+        "output_price": 0.002,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo-16k",
+        "start_date": "24-02-16",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-16k)$",
+        "input_price": 0.0005,
+        "output_price": 0.0015,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo-16k",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-16k)$",
+        "input_price": 0.003,
+        "output_price": 0.004,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-3.5-turbo-instruct",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-instruct)$",
+        "input_price": 0.0015,
+        "output_price": 0.002,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4)$",
+        "input_price": 0.03,
+        "output_price": 0.06,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-0125-preview",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-0125-preview)$",
+        "input_price": 0.01,
+        "output_price": 0.03,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-0314",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-0314)$",
+        "input_price": 0.03,
+        "output_price": 0.06,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-0613",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-0613)$",
+        "input_price": 0.03,
+        "output_price": 0.06,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-32k",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-32k)$",
+        "input_price": 0.06,
+        "output_price": 0.12,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-32k-0314",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-32k-0314)$",
+        "input_price": 0.06,
+        "output_price": 0.12,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-32k-0613",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-32k-0613)$",
+        "input_price": 0.06,
+        "output_price": 0.12,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-turbo",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-1106-preview)$",
+        "input_price": 0.01,
+        "output_price": 0.03,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-turbo-preview",
+        "start_date": "2023-11-06",
+        "match_pattern": "(?i)^(gpt-4-turbo-preview)$",
+        "input_price": 0.01,
+        "output_price": 0.03,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-turbo-preview",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-turbo-preview)$",
+        "input_price": 0.03,
+        "output_price": 0.06,
+        "total_price": 0
+    },
+    {
+        "model_name": "gpt-4-turbo-vision",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-vision-preview)$",
+        "input_price": 0.01,
+        "output_price": 0.03,
+        "total_price": 0
+    },
+    {
+        "model_name": "text-ada-001",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-ada-001)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.004
+    },
+    {
+        "model_name": "text-babbage-001",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-babbage-001)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.0005
+    },
+    {
+        "model_name": "text-bison",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-bison)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "text-bison-32k",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-bison-32k)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.00025,
+        "output_price": 0.0005,
+        "total_price": 0
+    },
+    {
+        "model_name": "text-curie-001",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-curie-001)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.02
+    },
+    {
+        "model_name": "text-davinci-001",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-davinci-001)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.02
+    },
+    {
+        "model_name": "text-davinci-002",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-davinci-002)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.02
+    },
+    {
+        "model_name": "text-davinci-003",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-davinci-003)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.02
+    },
+    {
+        "model_name": "text-embedding-3-small",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-embedding-3-small)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.00002
+    },
+    {
+        "model_name": "text-embedding-ada-002",
+        "start_date": "2022-12-06",
+        "match_pattern": "(?i)^(text-embedding-ada-002)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.0001
+    },
+    {
+        "model_name": "text-embedding-ada-002-v2",
+        "start_date": "2022-12-06",
+        "match_pattern": "(?i)^(text-embedding-ada-002-v2)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.0001
+    },
+    {
+        "model_name": "text-embedding-ada-002-v2",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-embedding-3-large)$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.00013
+    },
+    {
+        "model_name": "text-unicorn",
+        "start_date": "",
+        "match_pattern": "(?i)^(text-unicorn)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0.0025,
+        "output_price": 0.0075,
+        "total_price": 0
+    },
+    {
+        "model_name": "textembedding-gecko",
+        "start_date": "",
+        "match_pattern": "(?i)^(textembedding-gecko)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.0001
+    },
+    {
+        "model_name": "textembedding-gecko-multilingual",
+        "start_date": "",
+        "match_pattern": "(?i)^(textembedding-gecko-multilingual)(@[a-zA-Z0-9]+)?$",
+        "input_price": 0,
+        "output_price": 0,
+        "total_price": 0.0001
+    }
+]
