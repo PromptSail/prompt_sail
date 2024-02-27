@@ -4,6 +4,16 @@ from fastapi import Request
 from .app import app
 
 
+@app.get("/healthcheck")
+async def healthcheck(request: Request):
+    """
+    API endpoint to information about the API's health status.
+
+    :param request: The incoming request.
+    """
+    return {"status": "OK", "datetime": datetime.now(tz=timezone.utc)}
+
+
 @app.api_route(
     "/{path:path}",
     methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
