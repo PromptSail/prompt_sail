@@ -1,9 +1,13 @@
 from datetime import datetime
 from typing import Annotated, Any
 
+from math import ceil
 import utils
+import re
+
 from app.dependencies import get_transaction_context
-from fastapi import Depends
+from fastapi import Depends, Request
+from app.dependencies import get_provider_pricelist
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from projects.models import Project
@@ -11,7 +15,7 @@ from projects.schemas import (
     CreateProjectSchema,
     GetAIProviderSchema,
     GetProjectSchema,
-    UpdateProjectSchema,
+    UpdateProjectSchema, GetAIProviderPriceSchema,
 )
 from projects.use_cases import (
     add_project,
@@ -29,6 +33,7 @@ from transactions.schemas import (
     GetTransactionWithProjectSlugSchema,
     GetTransactionUsageStatisticsSchema, 
     GetTransactionStatusStatisticsSchema,
+    StatisticTransactionSchema,
 )
 from transactions.use_cases import (
     count_token_usage_for_project,
@@ -232,28 +237,43 @@ async def get_paginated_transactions(
 
 @app.get("/api/statistics/usage", response_class=JSONResponse)
 async def get_transaction_statistics_over_time(
+    request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
 ) -> list[GetTransactionUsageStatisticsSchema]:
     transactions = ctx.call(
-        get_list_of_filtered_transactions, 
-        project_id=project_id, 
-        date_from=date_from, 
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from,
         date_to=date_to,
     )
-    transactions = [GetTransactionUsageStatisticsSchema(
-        project_id=project_id, 
-        provider=transaction.provider, 
-        model=transaction.model, 
-        total_input_tokens=transaction.input_tokens or 0, 
-        total_output_tokens=transaction.output_tokens or 0, 
-        total_transactions=1
+    transactions = [StatisticTransactionSchema(
+        project_id=project_id,
+        provider=transaction.provider,
+        model=transaction.model,
+        total_input_tokens=transaction.input_tokens or 0,
+        total_output_tokens=transaction.output_tokens or 0,
+        status_code=transaction.status_code,
+        date=transaction.response_time,
+        total_transactions=1,
     ) for transaction in transactions]
+
+    stats = utils.token_counter_for_transactions(transactions, "monthly")
+    pricelist = get_provider_pricelist(request)
     
-    stats = utils.token_counter_for_transactions(transactions)
-    
+    for stat in stats:
+        possible_prices = [price for price in pricelist if re.match(price.match_pattern, stat.model)]
+        if len(possible_prices) > 0:
+            # TODO: Counting by date instead of by lastest
+            lastest = max(possible_prices, key=lambda x: x.start_date if x.start_date else datetime.min)
+            if lastest.input_price > 0 and lastest.output_price > 0:
+                stat.total_cost += ceil(stat.total_input_tokens / 1000) * lastest.input_price
+                stat.total_cost += ceil(stat.total_output_tokens / 1000) * lastest.output_price
+            else:
+                stat.total_cost = (stat.total_input_tokens + stat.total_output_tokens) * lastest.total_price
+            
     return stats
 
 
@@ -270,27 +290,38 @@ async def get_transaction_statistics_over_time(
         date_from=date_from,
         date_to=date_to,
     )
-    transactions = [GetTransactionStatusStatisticsSchema(
+    transactions = [StatisticTransactionSchema(
         project_id=project_id,
         provider=transaction.provider,
         model=transaction.model,
+        total_input_tokens=transaction.input_tokens or 0,
+        total_output_tokens=transaction.output_tokens or 0,
         status_code=transaction.status_code,
-        total_transactions=1
+        date=transaction.response_time,
+        total_transactions=1,
     ) for transaction in transactions]
-
     stats = utils.status_counter_for_transactions(transactions)
 
     return stats
 
 
+@app.get("/api/statistics/pricelist", response_class=JSONResponse)
+async def fetch_provider_pricelist(request: Request) -> list[GetAIProviderPriceSchema]:
+    """
+    API endpoint to retrieve a price list of AI providers.
+
+    :param request: The incoming request.
+    """
+    price_list = get_provider_pricelist(request)
+    return [GetAIProviderPriceSchema(**price.__dict__) for price in price_list]
+
+
 @app.get("/api/providers", response_class=JSONResponse)
-async def get_providers(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
-) -> list[GetAIProviderSchema]:
+async def get_providers(request: Request) -> list[GetAIProviderSchema]:
     """
     API endpoint to retrieve a list of AI providers.
 
-    :param ctx: The transaction context dependency.
+    :param request: The incoming request.
     """
     return [GetAIProviderSchema(**provider) for provider in utils.known_ai_providers]
 

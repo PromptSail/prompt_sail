@@ -233,7 +233,7 @@
     },
     {
         "model_name": "gpt-3.5-turbo-16k",
-        "start_date": "24-02-16",
+        "start_date": "2024-02-16",
         "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-16k)$",
         "input_price": 0.0005,
         "output_price": 0.0015,

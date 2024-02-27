@@ -2,8 +2,10 @@ import json
 from collections import OrderedDict
 from datetime import datetime
 from urllib.parse import parse_qs, urlparse, unquote
+from itertools import groupby
+from operator import itemgetter
 
-from transactions.schemas import GetTransactionUsageStatisticsSchema, GetTransactionStatusStatisticsSchema
+from transactions.schemas import GetTransactionUsageStatisticsSchema, GetTransactionStatusStatisticsSchema, StatisticTransactionSchema
 
 
 def serialize_data(obj):
@@ -190,11 +192,16 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
 
 def token_counter_for_transactions(
-    transactions: list[GetTransactionUsageStatisticsSchema]
+    transactions: list[StatisticTransactionSchema],
+    period
 ) -> list[GetTransactionUsageStatisticsSchema]:
     result = {}
     for transaction in transactions:
-        key = (transaction.provider, transaction.model)
+        xperiod = transaction.date.date() if period == "daily" else (
+            transaction.date.strftime(f"%Y-%m-{transaction.date.isocalendar()[1]}") if period == "weekly" else
+            transaction.date.strftime("%Y-%m")
+        )
+        key = (transaction.provider, transaction.model, xperiod)
         if key in result:
             result[key][0] += transaction.total_input_tokens
             result[key][1] += transaction.total_output_tokens
@@ -212,14 +219,15 @@ def token_counter_for_transactions(
         model=model, 
         total_input_tokens=input_tokens, 
         total_output_tokens=output_tokens,
-        total_transactions=total_transactions
-    ) for (provider, model), (input_tokens, output_tokens, total_transactions) in result.items()]
+        total_transactions=total_transactions,
+        total_cost=0
+    ) for (provider, model, period), (input_tokens, output_tokens, total_transactions) in result.items()]
 
     return result_list
 
 
 def status_counter_for_transactions(
-    transactions: list[GetTransactionStatusStatisticsSchema]
+    transactions: list[StatisticTransactionSchema]
 ) -> list[GetTransactionStatusStatisticsSchema]:
     result = {}
     for transaction in transactions:
@@ -238,6 +246,66 @@ def status_counter_for_transactions(
     ) for (provider, model, status_code), total_transactions in result.items()]
 
     return result_list
+
+
+def aggregate_transactions(transactions: list[StatisticTransactionSchema], period: str):
+    # DONT WORK PROPERTLY. WHy?
+    key_func = lambda x: (
+        x.provider,
+        x.model,
+        x.date.date() if period == "daily" else (
+            x.date.strftime(f"%Y-%m-{x.date.isocalendar()[1]}") if period == "weekly" else
+            x.date.strftime("%Y-%m")
+        )
+    )
+    transactions.sort(key=lambda x: (x.provider, x.model, x.date))
+    grouped = groupby(transactions, key=key_func)
+
+    aggregated_data = []
+    for key, group in grouped:
+        dates = [entry.date for entry in group]
+        total_input_tokens = sum(entry.total_input_tokens for entry in group)
+        total_output_tokens = sum(entry.total_output_tokens for entry in group)
+        total_transactions = sum(entry.total_transactions for entry in group)
+        aggregated_data.append({
+            "provider": key[0],
+            "model": key[1],
+            "period": key[2],
+            "dates": dates,
+            "total_input_tokens": total_input_tokens,
+            "total_output_tokens": total_output_tokens,
+            "total_transactions": total_transactions
+        })
+
+    return aggregated_data
+
+class ProviderPrice:
+    
+    def __init__(
+        self, 
+        model_name: str, 
+        start_date: datetime | str | None, 
+        match_pattern: str, 
+        input_price: int | float, 
+        output_price: int | float, 
+        total_price: int | float
+    ) -> None:
+        self.model_name = model_name
+        self.start_date = datetime.strptime(start_date, "%Y-%m-%d") if start_date != "" else None
+        self.match_pattern = match_pattern
+        self.input_price = input_price
+        self.output_price = output_price
+        self.total_price = total_price
+        
+    def __repr__(self):
+        return "{" + f"model_name: {self.model_name}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}" + "}"
+
+
+def read_provider_pricelist(path: str = "../provider_price_list.json") -> list[ProviderPrice]:
+    with open(path, 'r') as f:
+        data = json.load(f)
+    prices = [ProviderPrice(**provider) for provider in data]
+    return prices
 
 
 class ApiURLBuilder:

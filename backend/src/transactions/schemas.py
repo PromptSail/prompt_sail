@@ -46,6 +46,17 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     response_time: datetime
     tags: list[str]
     
+
+class StatisticTransactionSchema(BaseModel):
+    project_id: str
+    provider: str
+    model: str
+    total_input_tokens: int
+    total_output_tokens: int
+    status_code: int
+    date: datetime
+    total_transactions: int
+    
     
 class GetTransactionUsageStatisticsSchema(BaseModel):
     project_id: str
@@ -54,6 +65,7 @@ class GetTransactionUsageStatisticsSchema(BaseModel):
     total_input_tokens: int
     total_output_tokens: int
     total_transactions: int
+    total_cost: float
     
 
 class GetTransactionStatusStatisticsSchema(BaseModel):

@@ -16,6 +16,7 @@ from lato import Application, DependencyProvider, TransactionContext
 from projects.repositories import ProjectRepository
 from settings.repositories import SettingsRepository
 from transactions.repositories import TransactionRepository
+from utils import read_provider_pricelist
 
 # logger = logging.getLogger("ps")
 # logger.setLevel(logging.DEBUG)
@@ -240,6 +241,9 @@ class TopLevelContainer(containers.DeclarativeContainer):
         logger=logger,
         container=__self__,
     )
+    provider_pricelist = providers.Singleton(
+        read_provider_pricelist
+    )
 
 
 class TransactionContainer(containers.DeclarativeContainer):
@@ -252,6 +256,7 @@ class TransactionContainer(containers.DeclarativeContainer):
     logger = providers.Dependency(instance_of=Logger)
     db_client = providers.Dependency(instance_of=pymongo.database.Database)
     app = providers.Dependency(instance_of=Application)
+
     project_repository = providers.Singleton(
         ProjectRepository, db_client=db_client, collection_name="projects"
     )
@@ -261,3 +266,4 @@ class TransactionContainer(containers.DeclarativeContainer):
     settings_repository = providers.Singleton(
         SettingsRepository, db_client=db_client, collection_name="settings"
     )
+    
