@@ -62,6 +62,7 @@ class GetTransactionUsageStatisticsSchema(BaseModel):
     project_id: str
     provider: str
     model: str
+    date: datetime
     total_input_tokens: int
     total_output_tokens: int
     total_transactions: int
@@ -72,6 +73,7 @@ class GetTransactionStatusStatisticsSchema(BaseModel):
     project_id: str
     provider: str
     model: str
+    date: datetime
     status_code: int
     total_transactions: int
     

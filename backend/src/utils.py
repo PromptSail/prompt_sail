@@ -4,6 +4,7 @@ from datetime import datetime
 from urllib.parse import parse_qs, urlparse, unquote
 from itertools import groupby
 from operator import itemgetter
+import pandas as pd
 
 from transactions.schemas import GetTransactionUsageStatisticsSchema, GetTransactionStatusStatisticsSchema, StatisticTransactionSchema
 
@@ -195,89 +196,74 @@ def token_counter_for_transactions(
     transactions: list[StatisticTransactionSchema],
     period
 ) -> list[GetTransactionUsageStatisticsSchema]:
-    result = {}
-    for transaction in transactions:
-        xperiod = transaction.date.date() if period == "daily" else (
-            transaction.date.strftime(f"%Y-%m-{transaction.date.isocalendar()[1]}") if period == "weekly" else
-            transaction.date.strftime("%Y-%m")
-        )
-        key = (transaction.provider, transaction.model, xperiod)
-        if key in result:
-            result[key][0] += transaction.total_input_tokens
-            result[key][1] += transaction.total_output_tokens
-            result[key][2] += transaction.total_transactions
-        else:
-            result[key] = [
-                transaction.total_input_tokens, 
-                transaction.total_output_tokens, 
-                transaction.total_transactions
-            ]
+    
+    data_dicts = [dto.model_dump() for dto in transactions]
+    df = pd.DataFrame(data_dicts)
+    df.set_index('date', inplace=True)
+    if period == "weekly":
+        period = "W-Mon"
+    elif period == "monthly":
+        period = "ME"
+    else:
+        period = "D"
+    result = df.groupby(['provider', 'model']).resample(period).sum()
 
+    del result['provider']
+    del result['model']
+
+    result = result.reset_index()
+    
+    data_dicts = result.to_dict(orient='records')
+    
     result_list = [GetTransactionUsageStatisticsSchema(
-        project_id=transactions[0].project_id, 
-        provider=provider,
-        model=model, 
-        total_input_tokens=input_tokens, 
-        total_output_tokens=output_tokens,
-        total_transactions=total_transactions,
+        project_id=str(data['project_id']),
+        provider=data['provider'],
+        model=data['model'],
+        date=data['date'],
+        total_input_tokens=data['total_input_tokens'],
+        total_output_tokens=data['total_output_tokens'],
+        total_transactions=data['total_transactions'],
         total_cost=0
-    ) for (provider, model, period), (input_tokens, output_tokens, total_transactions) in result.items()]
+    ) for data in data_dicts]
 
     return result_list
 
 
 def status_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema]
+    transactions: list[StatisticTransactionSchema],
+    period
 ) -> list[GetTransactionStatusStatisticsSchema]:
-    result = {}
-    for transaction in transactions:
-        key = (transaction.provider, transaction.model, transaction.status_code)
-        if key in result:
-            result[key] += 1
-        else:
-            result[key] = 1
+    
+    data_dicts = [dto.model_dump() for dto in transactions]
+    df = pd.DataFrame(data_dicts)
+    df.set_index('date', inplace=True)
+    if period == "weekly":
+        period = "W-Mon"
+    elif period == "monthly":
+        period = "ME"
+    else:
+        period = "D"
+    result = df.groupby(['provider', 'model', 'status_code']).resample(period).sum()
+
+    del result['provider']
+    del result['model']
+    del result['status_code']
+
+    result = result.reset_index()
+
+    data_dicts = result.to_dict(orient='records')
 
     result_list = [GetTransactionStatusStatisticsSchema(
-        project_id=transactions[0].project_id, 
-        provider=provider,
-        model=model, 
-        status_code=status_code,
-        total_transactions=total_transactions
-    ) for (provider, model, status_code), total_transactions in result.items()]
+        project_id=str(data['project_id']),
+        provider=data['provider'],
+        model=data['model'],
+        date=data['date'],
+        status_code=data['status_code'],
+        total_transactions=data['total_transactions'],
+    ) for data in data_dicts]
 
     return result_list
 
-
-def aggregate_transactions(transactions: list[StatisticTransactionSchema], period: str):
-    # DONT WORK PROPERTLY. WHy?
-    key_func = lambda x: (
-        x.provider,
-        x.model,
-        x.date.date() if period == "daily" else (
-            x.date.strftime(f"%Y-%m-{x.date.isocalendar()[1]}") if period == "weekly" else
-            x.date.strftime("%Y-%m")
-        )
-    )
-    transactions.sort(key=lambda x: (x.provider, x.model, x.date))
-    grouped = groupby(transactions, key=key_func)
-
-    aggregated_data = []
-    for key, group in grouped:
-        dates = [entry.date for entry in group]
-        total_input_tokens = sum(entry.total_input_tokens for entry in group)
-        total_output_tokens = sum(entry.total_output_tokens for entry in group)
-        total_transactions = sum(entry.total_transactions for entry in group)
-        aggregated_data.append({
-            "provider": key[0],
-            "model": key[1],
-            "period": key[2],
-            "dates": dates,
-            "total_input_tokens": total_input_tokens,
-            "total_output_tokens": total_output_tokens,
-            "total_transactions": total_transactions
-        })
-
-    return aggregated_data
 
 class ProviderPrice:
     

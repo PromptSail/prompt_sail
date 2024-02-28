@@ -242,6 +242,7 @@ async def get_transaction_statistics_over_time(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    period: str | None = "daily"
 ) -> list[GetTransactionUsageStatisticsSchema]:
     transactions = ctx.call(
         get_list_of_filtered_transactions,
@@ -259,8 +260,8 @@ async def get_transaction_statistics_over_time(
         date=transaction.response_time,
         total_transactions=1,
     ) for transaction in transactions]
-
-    stats = utils.token_counter_for_transactions(transactions, "monthly")
+    
+    stats = utils.token_counter_for_transactions(transactions, period)
     pricelist = get_provider_pricelist(request)
     
     for stat in stats:
@@ -283,6 +284,7 @@ async def get_transaction_statistics_over_time(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    period: str | None = "daily"
 ) -> list[GetTransactionStatusStatisticsSchema]:
     transactions = ctx.call(
         get_list_of_filtered_transactions,
@@ -300,7 +302,7 @@ async def get_transaction_statistics_over_time(
         date=transaction.response_time,
         total_transactions=1,
     ) for transaction in transactions]
-    stats = utils.status_counter_for_transactions(transactions)
+    stats = utils.status_counter_for_transactions(transactions, period)
 
     return stats
 
