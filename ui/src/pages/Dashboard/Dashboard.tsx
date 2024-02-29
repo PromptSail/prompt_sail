@@ -1,10 +1,17 @@
-import { useState } from 'react';
-import ProjetTile from '../../components/ProjectTile/ProjectTile';
+import { Flex, Input, Space, Typography, Card, Segmented } from 'antd';
+import { CSSProperties, useState } from 'react';
+import ProjectTile from '../../components/ProjectTile/ProjectTile';
 import { getAllProjects } from '../../api/interfaces';
-import { Link } from 'react-router-dom';
 import { useGetAllProjects } from '../../api/queries';
+import { AppstoreOutlined, BarsOutlined, TableOutlined } from '@ant-design/icons';
+import TableDashboard from './TableDashboard';
+
+const { Title, Text } = Typography;
 
 const Dashboard = () => {
+    const textStyles: CSSProperties = { lineHeight: '2em' };
+    const titleStyles: CSSProperties = { margin: '0' };
+    const [dashView, setDashView] = useState('kanban');
     const projects = useGetAllProjects();
     const [filter, setFilter] = useState('');
     const filterProjects = (data: getAllProjects) => {
@@ -32,41 +39,93 @@ const Dashboard = () => {
         const filteredProjects = projects.data.filter((el) => filterProjects(el));
         return (
             <>
-                <div className="dashboard">
-                    <div className="header">
-                        <input
-                            className="search-bar"
-                            type="text"
-                            name="search"
-                            placeholder="Search project (by name, tags, etc)"
-                            onChange={(e) => {
-                                const val = e.currentTarget.value;
-                                if (val.length > 2) setFilter(val);
-                                else if (filter != '') setFilter('');
-                            }}
-                        />
-                    </div>
-                    <div className="content">
-                        <div className="projects-info">
-                            <h4>Projects</h4>
-                            <div className="info">
-                                <span>17 members</span>
-                                <span>{projects.data.length} projects</span>
-                            </div>
-                        </div>
-                        <Link to={`/projects/add`} key="new" className="project-tile">
-                            <div className="card new">
-                                <h3>Add New Project +</h3>
-                            </div>
-                        </Link>
-                        {filteredProjects.map((project: getAllProjects, id: number) => (
-                            <ProjetTile key={id} data={project} />
-                        ))}
-                        {filteredProjects.length == 0 && (
-                            <h2 className="no-projects-found">No projects found</h2>
+                <Flex vertical gap={30}>
+                    <div
+                        style={{
+                            display: 'grid',
+                            justifyContent: 'center',
+                            gridTemplateColumns: 'repeat(auto-fill, 260px)',
+                            padding: '.5rem 0',
+                            gap: '20px'
+                        }}
+                    >
+                        <Flex justify="space-between" style={{ gridColumn: '1 / -1' }}>
+                            <Space align="end" size={15}>
+                                <Title level={1} style={titleStyles}>
+                                    Projects
+                                </Title>
+                                <Text style={textStyles}>1 members</Text>
+                                <Text style={textStyles}>{projects.data.length} projects</Text>
+                            </Space>
+                            <Segmented
+                                style={{ marginTop: 'auto' }}
+                                defaultValue={dashView}
+                                onChange={setDashView}
+                                options={[
+                                    {
+                                        label: 'Kanban',
+                                        value: 'kanban',
+                                        icon: <AppstoreOutlined />
+                                    },
+                                    { label: 'List', value: 'list', icon: <BarsOutlined /> },
+                                    { label: 'Table', value: 'table', icon: <TableOutlined /> }
+                                ]}
+                            />
+                            <Input
+                                type="text"
+                                name="search"
+                                placeholder="Search project (by name, tags, etc)"
+                                onChange={(e) => {
+                                    const val = e.currentTarget.value;
+                                    if (val.length > 2) setFilter(val);
+                                    else if (filter != '') setFilter('');
+                                }}
+                                style={{ marginTop: 'auto', maxWidth: '300px' }}
+                            />
+                        </Flex>
+                        {dashView != 'table' && (
+                            <>
+                                <Card
+                                    hoverable
+                                    styles={{ body: { height: '100%' } }}
+                                    style={{
+                                        gridColumn: `${dashView == 'list' ? '1 / -1' : 'auto'}`
+                                    }}
+                                >
+                                    <Space
+                                        style={{
+                                            height: '100%',
+                                            width: '100%',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <Title
+                                            level={2}
+                                            style={{
+                                                ...titleStyles,
+                                                textAlign: 'center',
+                                                opacity: 0.5
+                                            }}
+                                        >
+                                            Add new project +
+                                        </Title>
+                                    </Space>
+                                </Card>
+                                {filteredProjects.map((e) => (
+                                    <ProjectTile
+                                        data={e}
+                                        key={e.id}
+                                        isListStyled={dashView == 'list'}
+                                    />
+                                ))}
+                                {filteredProjects.length == 0 && (
+                                    <h2 className="no-projects-found">No projects found</h2>
+                                )}
+                            </>
                         )}
+                        {dashView == 'table' && <TableDashboard data={projects.data} />}
                     </div>
-                </div>
+                </Flex>
             </>
         );
     }
