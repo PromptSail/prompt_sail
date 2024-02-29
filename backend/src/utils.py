@@ -1,12 +1,15 @@
 import json
 from collections import OrderedDict
 from datetime import datetime
-from urllib.parse import parse_qs, urlparse, unquote
-from itertools import groupby
-from operator import itemgetter
-import pandas as pd
+from urllib.parse import parse_qs, unquote, urlparse
 
-from transactions.schemas import GetTransactionUsageStatisticsSchema, GetTransactionStatusStatisticsSchema, StatisticTransactionSchema, GetTransactionLatencyStatisticsSchema
+import pandas as pd
+from transactions.schemas import (
+    GetTransactionLatencyStatisticsSchema,
+    GetTransactionStatusStatisticsSchema,
+    GetTransactionUsageStatisticsSchema,
+    StatisticTransactionSchema,
+)
 
 
 def serialize_data(obj):
@@ -122,8 +125,12 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     }
 
     if "usage" in response_content:
-        transaction_params["input_tokens"] = response_content["usage"].get("prompt_tokens", 0)
-        transaction_params["output_tokens"] = response_content["usage"].get("completion_tokens", 0)
+        transaction_params["input_tokens"] = response_content["usage"].get(
+            "prompt_tokens", 0
+        )
+        transaction_params["output_tokens"] = response_content["usage"].get(
+            "completion_tokens", 0
+        )
 
     url = str(request.__dict__["url"])
 
@@ -132,15 +139,11 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["provider"] = "Azure"
         if isinstance(request_content["input"], list):
             prompt = (
-                    "["
-                    + ", ".join(
-                        map(lambda x: str(x), request_content["input"])
-                    )
-                    + "]"
-                )
+                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+            )
         else:
             prompt = str(request_content["input"])
-            
+
         transaction_params["prompt"] = prompt
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["message"]
@@ -193,138 +196,202 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
 
 def token_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema],
-    period
+    transactions: list[StatisticTransactionSchema], period
 ) -> list[GetTransactionUsageStatisticsSchema]:
-    
+    """
+    Calculate token usage statistics based on a given period.
+
+    This function takes a list of transactions and calculates token usage statistics
+    aggregated over the specified period (weekly, monthly, or daily).
+
+    :param transactions: A list of StatisticTransactionSchema objects representing transactions.
+    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
+    """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index('date', inplace=True)
+    df.set_index("date", inplace=True)
     if period == "weekly":
         period = "W-Mon"
     elif period == "monthly":
         period = "ME"
     else:
         period = "D"
-    result = df.groupby(['provider', 'model']).resample(period).sum()
+    result = df.groupby(["provider", "model"]).resample(period).sum()
 
-    del result['provider']
-    del result['model']
+    del result["provider"]
+    del result["model"]
 
     result = result.reset_index()
-    
-    data_dicts = result.to_dict(orient='records')
-    
-    result_list = [GetTransactionUsageStatisticsSchema(
-        project_id=str(data['project_id']),
-        provider=data['provider'],
-        model=data['model'],
-        date=data['date'],
-        total_input_tokens=data['total_input_tokens'],
-        total_output_tokens=data['total_output_tokens'],
-        total_transactions=data['total_transactions'],
-        total_cost=0
-    ) for data in data_dicts]
+
+    data_dicts = result.to_dict(orient="records")
+
+    result_list = [
+        GetTransactionUsageStatisticsSchema(
+            project_id=str(data["project_id"]),
+            provider=data["provider"],
+            model=data["model"],
+            date=data["date"],
+            total_input_tokens=data["total_input_tokens"],
+            total_output_tokens=data["total_output_tokens"],
+            total_transactions=data["total_transactions"],
+            total_cost=0,
+        )
+        for data in data_dicts
+    ]
 
     return result_list
 
 
 def status_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema],
-    period
+    transactions: list[StatisticTransactionSchema], period
 ) -> list[GetTransactionStatusStatisticsSchema]:
-    
+    """
+    Calculate transaction status statistics based on a given period.
+
+    This function takes a list of transactions and calculates statistics
+    on transaction statuses aggregated over the specified period (weekly, monthly, or daily).
+
+    :param transactions: A list of StatisticTransactionSchema objects representing transactions.
+    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :return: A list of GetTransactionStatusStatisticsSchema objects containing status statistics.
+    """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index('date', inplace=True)
+    df.set_index("date", inplace=True)
     if period == "weekly":
         period = "W-Mon"
     elif period == "monthly":
         period = "ME"
     else:
         period = "D"
-    result = df.groupby(['provider', 'model', 'status_code']).resample(period).sum()
+    result = df.groupby(["provider", "model", "status_code"]).resample(period).sum()
 
-    del result['provider']
-    del result['model']
-    del result['status_code']
+    del result["provider"]
+    del result["model"]
+    del result["status_code"]
 
     result = result.reset_index()
 
-    data_dicts = result.to_dict(orient='records')
+    data_dicts = result.to_dict(orient="records")
 
-    result_list = [GetTransactionStatusStatisticsSchema(
-        project_id=str(data['project_id']),
-        provider=data['provider'],
-        model=data['model'],
-        date=data['date'],
-        status_code=data['status_code'],
-        total_transactions=data['total_transactions'],
-    ) for data in data_dicts]
+    result_list = [
+        GetTransactionStatusStatisticsSchema(
+            project_id=str(data["project_id"]),
+            provider=data["provider"],
+            model=data["model"],
+            date=data["date"],
+            status_code=data["status_code"],
+            total_transactions=data["total_transactions"],
+        )
+        for data in data_dicts
+    ]
 
     return result_list
 
 
 def latency_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema],
-    period
+    transactions: list[StatisticTransactionSchema], period
 ) -> list[GetTransactionLatencyStatisticsSchema]:
+    """
+    Calculate transaction latency statistics based on a given period.
+
+    This function takes a list of transactions and calculates statistics
+    on transaction latency aggregated over the specified period (weekly, monthly, or daily).
+
+    :param transactions: A list of StatisticTransactionSchema objects representing transactions.
+    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :return: A list of GetTransactionLatencyStatisticsSchema objects containing latency statistics.
+    """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index('date', inplace=True)
+    df.set_index("date", inplace=True)
     if period == "weekly":
         period = "W-Mon"
     elif period == "monthly":
         period = "ME"
     else:
         period = "D"
-    result = df.groupby(['provider', 'model']).resample(period).sum()
-    
+    result = df.groupby(["provider", "model"]).resample(period).sum()
+
     print(result)
 
-    del result['provider']
-    del result['model']
+    del result["provider"]
+    del result["model"]
 
     result = result.reset_index()
 
-    data_dicts = result.to_dict(orient='records')
+    data_dicts = result.to_dict(orient="records")
 
-    result_list = [GetTransactionLatencyStatisticsSchema(
-        project_id=str(data['project_id']),
-        provider=data['provider'],
-        model=data['model'],
-        date=data['date'],
-        latency=data['latency'].seconds / data['total_transactions'] if data['latency'].seconds > 0 else 0,
-        total_transactions=data['total_transactions'],
-    ) for data in data_dicts]
+    result_list = [
+        GetTransactionLatencyStatisticsSchema(
+            project_id=str(data["project_id"]),
+            provider=data["provider"],
+            model=data["model"],
+            date=data["date"],
+            latency=data["latency"].seconds / data["total_transactions"]
+            if data["latency"].seconds > 0
+            else 0,
+            total_transactions=data["total_transactions"],
+        )
+        for data in data_dicts
+    ]
 
     return result_list
 
 
 class ProviderPrice:
-    
     def __init__(
-        self, 
-        model_name: str, 
-        start_date: datetime | str | None, 
-        match_pattern: str, 
-        input_price: int | float, 
-        output_price: int | float, 
-        total_price: int | float
+        self,
+        model_name: str,
+        start_date: datetime | str | None,
+        match_pattern: str,
+        input_price: int | float,
+        output_price: int | float,
+        total_price: int | float,
     ) -> None:
+        """
+        Initialize a ProviderPrice object.
+
+        :param model_name: The name of the AI model.
+        :param start_date: The start date for the price information.
+        :param match_pattern: The match pattern for the price information.
+        :param input_price: The price for input usage.
+        :param output_price: The price for output usage.
+        :param total_price: The total price for usage.
+        """
         self.model_name = model_name
-        self.start_date = datetime.strptime(start_date, "%Y-%m-%d") if start_date != "" else None
+        self.start_date = (
+            datetime.strptime(start_date, "%Y-%m-%d") if start_date != "" else None
+        )
         self.match_pattern = match_pattern
         self.input_price = input_price
         self.output_price = output_price
         self.total_price = total_price
-        
+
     def __repr__(self):
-        return "{" + f"model_name: {self.model_name}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}" + "}"
+        """
+        Return a string representation of the ProviderPrice object.
+
+        :return: A string representation of the object.
+        """
+        return (
+            "{"
+            + f"model_name: {self.model_name}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}"
+            + "}"
+        )
 
 
-def read_provider_pricelist(path: str = "../provider_price_list.json") -> list[ProviderPrice]:
-    with open(path, 'r') as f:
+def read_provider_pricelist(
+    path: str = "../provider_price_list.json",
+) -> list[ProviderPrice]:
+    """
+    Read the provider price list from a JSON file.
+
+    :param path: The path to the JSON file containing provider prices.
+    :return: A list of ProviderPrice objects.
+    """
+    with open(path, "r") as f:
         data = json.load(f)
     prices = [ProviderPrice(**provider) for provider in data]
     return prices

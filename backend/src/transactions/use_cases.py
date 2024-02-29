@@ -122,7 +122,7 @@ def delete_multiple_transactions(
 ) -> None:
     """
      Delete multiple transactions and related data for a specific project.
-    
+
     :param transaction_repository: An instance of TransactionRepository used for accessing transaction data.
     :param project_id: The Project ID for which transactions and related data will be deleted.
     :return: None
@@ -202,11 +202,25 @@ def store_transaction(
 
 
 def get_list_of_filtered_transactions(
-    project_id: str, 
-    date_from: datetime, 
-    date_to: datetime, 
+    project_id: str,
+    date_from: datetime,
+    date_to: datetime,
     transaction_repository: TransactionRepository,
 ) -> list[Transaction]:
-    query = create_transaction_query_from_filters(date_from=date_from, date_to=date_to, project_id=project_id)
+    """
+    Retrieve a list of transactions filtered by project ID and date range.
+
+    This function queries the transaction repository using the specified project ID
+    and date range to retrieve a list of transactions that match the given criteria.
+
+    :param project_id: The unique identifier of the project.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
+    :param transaction_repository: An instance of TransactionRepository for data retrieval.
+    :return: A list of Transaction objects that meet the specified criteria.
+    """
+    query = create_transaction_query_from_filters(
+        date_from=date_from, date_to=date_to, project_id=project_id
+    )
     transactions = transaction_repository.get_filtered(query)
     return transactions

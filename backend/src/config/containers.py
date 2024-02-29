@@ -37,6 +37,7 @@ def resolve_provider_by_type(container: Container, cls: type) -> Optional[Provid
     :return: The resolved Provider object, or None if no matching provider is found.
     :raises ValueError: If multiple matching providers are found.
     """
+
     def inspect_provider(provider: Provider) -> bool:
         if isinstance(provider, (Factory, Singleton)):
             return issubclass(provider.cls, cls)
@@ -91,6 +92,7 @@ class ContainerProvider(DependencyProvider):
 
     This provider interacts with the specified container to manage dependencies.
     """
+
     def __init__(self, container: Container):
         """
         Initialize the ContainerProvider with a dependency injection container.
@@ -226,6 +228,7 @@ class TopLevelContainer(containers.DeclarativeContainer):
 
     Inherits from containers.DeclarativeContainer.
     """
+
     __self__ = providers.Self()
     config = providers.Configuration()
     logger = providers.Object(logger)
@@ -241,9 +244,7 @@ class TopLevelContainer(containers.DeclarativeContainer):
         logger=logger,
         container=__self__,
     )
-    provider_pricelist = providers.Singleton(
-        read_provider_pricelist
-    )
+    provider_pricelist = providers.Singleton(read_provider_pricelist)
 
 
 class TransactionContainer(containers.DeclarativeContainer):
@@ -252,6 +253,7 @@ class TransactionContainer(containers.DeclarativeContainer):
 
     Inherits from containers.DeclarativeContainer.
     """
+
     correlation_id = providers.Dependency(instance_of=UUID)
     logger = providers.Dependency(instance_of=Logger)
     db_client = providers.Dependency(instance_of=pymongo.database.Database)
@@ -266,4 +268,3 @@ class TransactionContainer(containers.DeclarativeContainer):
     settings_repository = providers.Singleton(
         SettingsRepository, db_client=db_client, collection_name="settings"
     )
-    
