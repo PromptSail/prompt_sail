@@ -1,4 +1,3 @@
-import { Button, Form, InputGroup } from 'react-bootstrap';
 import { SetStateAction, useRef } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 
@@ -12,7 +11,7 @@ const FilterTags: React.FC<Props> = ({ tags, setFilters, setNewParam }) => {
     const tagsInput = useRef(null);
     return (
         <div className="tags">
-            <InputGroup size="sm">
+            {/* <InputGroup size="sm">
                 <Form.Control
                     placeholder="tags"
                     aria-label="tags"
@@ -38,7 +37,7 @@ const FilterTags: React.FC<Props> = ({ tags, setFilters, setNewParam }) => {
                 >
                     Search
                 </Button>
-            </InputGroup>
+            </InputGroup> */}
         </div>
     );
 };

@@ -1,10 +1,3 @@
-import {
-    SortingState,
-    flexRender,
-    getCoreRowModel,
-    getSortedRowModel,
-    useReactTable
-} from '@tanstack/react-table';
 import { getAllTransactionResponse } from '../../../api/interfaces';
 import { transaction } from '../types';
 import { useState } from 'react';
@@ -20,7 +13,6 @@ interface Props {
 }
 
 const AllTransactionsTable: React.FC<Props> = ({ tableData, pageSize }) => {
-    const [sorting, setSorting] = useState<SortingState>([]);
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
             time: tr.request_time,
@@ -39,17 +31,9 @@ const AllTransactionsTable: React.FC<Props> = ({ tableData, pageSize }) => {
     window.test = (length: number) => {
         setData(randomTransactionData(length || 5));
     };
-    const table = useReactTable({
-        data,
-        columns,
-        state: { sorting },
-        onSortingChange: setSorting,
-        getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel()
-    });
     return (
         <>
-            <div className="table__AllTransactions">
+            {/* <div className="table__AllTransactions">
                 <table>
                     <thead>
                         {table.getHeaderGroups().map((hGroup) => (
@@ -109,7 +93,7 @@ const AllTransactionsTable: React.FC<Props> = ({ tableData, pageSize }) => {
                         })()}
                     </tbody>
                 </table>
-            </div>
+            </div> */}
         </>
     );
 };

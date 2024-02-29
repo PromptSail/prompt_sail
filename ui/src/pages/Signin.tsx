@@ -1,6 +1,5 @@
 import { useFormik } from 'formik';
 import { SetStateAction } from 'react';
-import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { checkLogin } from '../storage/login';
 import Logo from '../assets/imgs/prompt_sail_logo200.jpg';
 const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }> = ({
@@ -25,7 +24,7 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
                         <h5>Sign in to continue</h5>
                         <form onSubmit={formik.handleSubmit}>
                             <div className="inputs">
-                                <FloatingLabel label="Email">
+                                {/* <FloatingLabel label="Email">
                                     <Form.Control
                                         type="email"
                                         name="email"
@@ -44,9 +43,9 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
                                         onChange={formik.handleChange}
                                         autoComplete="login current-password"
                                     />
-                                </FloatingLabel>
+                                </FloatingLabel> */}
                             </div>
-                            <Button type="submit">Log In</Button>
+                            <button type="submit">Log In</button>
                         </form>
                     </div>
                     <div>

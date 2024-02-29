@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { TransactionsFilters } from '../../../api/types';
-import { Button } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import FilterProject from '../filters/FilterProject';
 import FilterTags from '../filters/FilterTags';
@@ -80,34 +79,26 @@ export const TableWrapper: React.FC = () => {
                         <span>{page < 0 ? 'Loading...' : `${totalElements} rows`}</span>
                     </div>
                     <div className="buttons">
-                        <Button
+                        <button
                             style={{ background: '#71aaff' }}
-                            variant="primary"
-                            size="sm"
                             onClick={() => setPage(1)}
                             disabled={page == 1}
-                        >{`<<`}</Button>
-                        <Button
+                        >{`<<`}</button>
+                        <button
                             style={{ background: '#71aaff' }}
-                            variant="primary"
-                            size="sm"
                             onClick={() => setPage(page - 1)}
                             disabled={page == 1}
-                        >{`<`}</Button>
-                        <Button
+                        >{`<`}</button>
+                        <button
                             style={{ background: '#71aaff' }}
-                            variant="primary"
-                            size="sm"
                             onClick={() => setPage(page + 1)}
                             disabled={page >= totalPages}
-                        >{`>`}</Button>
-                        <Button
+                        >{`>`}</button>
+                        <button
                             style={{ background: '#71aaff' }}
-                            variant="primary"
-                            size="sm"
                             onClick={() => setPage(totalPages)}
                             disabled={page >= totalPages}
-                        >{`>>`}</Button>
+                        >{`>>`}</button>
                     </div>
                 </div>
             </div>
@@ -140,34 +131,26 @@ export const TableWrapper: React.FC = () => {
                         </span>
                     </div>
                     <div className="buttons">
-                        <Button
+                        <button
                             style={{ background: '#71aaff' }}
-                            variant="primary"
-                            size="sm"
                             onClick={() => setPage(1)}
                             disabled={page == 1}
-                        >{`<<`}</Button>
-                        <Button
+                        >{`<<`}</button>
+                        <button
                             style={{ background: '#71aaff' }}
-                            variant="primary"
-                            size="sm"
                             onClick={() => setPage(page - 1)}
                             disabled={page == 1}
-                        >{`<`}</Button>
-                        <Button
+                        >{`<`}</button>
+                        <button
                             style={{ background: '#71aaff' }}
-                            variant="primary"
-                            size="sm"
                             onClick={() => setPage(page + 1)}
                             disabled={page >= totalPages}
-                        >{`>`}</Button>
-                        <Button
+                        >{`>`}</button>
+                        <button
                             style={{ background: '#71aaff' }}
-                            variant="primary"
-                            size="sm"
                             onClick={() => setPage(totalPages)}
                             disabled={page >= totalPages}
-                        >{`>>`}</Button>
+                        >{`>>`}</button>
                     </div>
                 </div>
             </div>

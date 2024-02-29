@@ -1,4 +1,3 @@
-import { Form } from 'react-bootstrap';
 import { SetStateAction } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllProjects } from '../../../api/queries';
@@ -26,8 +25,7 @@ const FilterProject: React.FC<Props> = ({ projectId, setFilters, setNewParam }) 
     if (projects.isSuccess) {
         return (
             <div className="project_select">
-                <Form.Select
-                    size="sm"
+                <select
                     aria-label="Select project"
                     value={projectId}
                     onChange={(v) => {
@@ -55,7 +53,7 @@ const FilterProject: React.FC<Props> = ({ projectId, setFilters, setNewParam }) 
                             <option value="">No projects found</option>
                         </>
                     )}
-                </Form.Select>
+                </select>
             </div>
         );
     }

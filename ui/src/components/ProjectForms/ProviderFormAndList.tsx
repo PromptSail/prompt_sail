@@ -1,4 +1,3 @@
-import { Accordion, Button, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FormikValues } from './types';
 import { useState } from 'react';
 import { useFormik } from 'formik';
@@ -87,7 +86,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                 noValidate
             >
                 <div className="double-inputs">
-                    <Form.Group className="labeled-input">
+                    {/* <Form.Group className="labeled-input">
                         <Form.Label>AI Providers</Form.Label>
                         <Form.Select
                             name={`provider_name`}
@@ -133,8 +132,8 @@ const ProviderFormAndList: React.FC<Props> = ({
                         <Form.Control.Feedback type="invalid">
                             {formik.errors.provider_name}
                         </Form.Control.Feedback>
-                    </Form.Group>
-                    <Form.Group className="labeled-input">
+                    </Form.Group> */}
+                    {/* <Form.Group className="labeled-input">
                         <Form.Label>
                             Deployment name
                             <Helper>
@@ -152,9 +151,9 @@ const ProviderFormAndList: React.FC<Props> = ({
                         <Form.Control.Feedback type="invalid">
                             {formik.errors.deployment_name}
                         </Form.Control.Feedback>
-                    </Form.Group>
+                    </Form.Group> */}
                 </div>
-                <Form.Group className="labeled-input">
+                {/* <Form.Group className="labeled-input">
                     <Form.Label>
                         Api base URL
                         <Helper>
@@ -189,10 +188,10 @@ const ProviderFormAndList: React.FC<Props> = ({
                         disabled
                     />
                     <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
-                </Form.Group>
-                <Button type="submit" variant="secondary">
+                </Form.Group> */}
+                <button type="submit">
                     {EditedProvider != undefined ? 'Update AI Provider' : 'Add Ai Provider'}
-                </Button>
+                </button>
             </form>
         );
     };
@@ -205,7 +204,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                         Add at least one AI provider
                     </span>
                     , to use PromptSail as a proxy server for collecting{' '}
-                    <OverlayTrigger
+                    {/* <OverlayTrigger
                         placement="bottom"
                         overlay={
                             <Tooltip>
@@ -217,62 +216,62 @@ const ProviderFormAndList: React.FC<Props> = ({
                         <span style={{ textDecoration: 'underline', fontWeight: 'bold' }}>
                             transactions
                         </span>
-                    </OverlayTrigger>{' '}
+                    </OverlayTrigger>{' '} */}
                     in the project
                 </p>
             </div>
             {ProvidersList.length > 0 && (
-                <Accordion>
-                    {ProvidersList.map((el, id) => (
-                        <Accordion.Item eventKey={`${id}`} key={id} className="box">
-                            <Accordion.Header>
-                                <span>{el.deployment_name}</span>
-                                <span>{makeUrl(projectSlug, el.deployment_name)}</span>
-                            </Accordion.Header>
-                            <Accordion.Body>
-                                <div className="content">
-                                    <span className="title">Provider:</span>
-                                    <span>{el.provider_name}</span>
-                                </div>
-                                <div className="content">
-                                    <span className="title">Api url:</span>
-                                    <span>{el.api_base}</span>
-                                </div>
-                                <div className="options">
-                                    <Button
-                                        variant="dark"
-                                        onClick={() => {
-                                            if (EditedProvider != id) {
-                                                setEditedProvider(id);
-                                                setFormShow(false);
-                                            } else setEditedProvider(null);
-                                        }}
-                                    >
-                                        {`${EditedProvider != id ? '' : 'Cancel '}Edit`}
-                                    </Button>
-                                    <Button
-                                        variant="danger"
-                                        onClick={() => {
-                                            const newList = ProvidersList.filter(
-                                                (_el, idx) => idx != id
-                                            );
-                                            setProvidersList(newList);
-                                            if (newList.length < 1) setFormShow(true);
-                                        }}
-                                    >
-                                        Delete
-                                    </Button>
-                                </div>
-                                {EditedProvider == id && <ProviderForm />}
-                            </Accordion.Body>
-                        </Accordion.Item>
-                    ))}
-                </Accordion>
+                <></>
+                // <Accordion>
+                //     {ProvidersList.map((el, id) => (
+                //         <Accordion.Item eventKey={`${id}`} key={id} className="box">
+                //             <Accordion.Header>
+                //                 <span>{el.deployment_name}</span>
+                //                 <span>{makeUrl(projectSlug, el.deployment_name)}</span>
+                //             </Accordion.Header>
+                //             <Accordion.Body>
+                //                 <div className="content">
+                //                     <span className="title">Provider:</span>
+                //                     <span>{el.provider_name}</span>
+                //                 </div>
+                //                 <div className="content">
+                //                     <span className="title">Api url:</span>
+                //                     <span>{el.api_base}</span>
+                //                 </div>
+                //                 <div className="options">
+                //                     <Button
+                //                         variant="dark"
+                //                         onClick={() => {
+                //                             if (EditedProvider != id) {
+                //                                 setEditedProvider(id);
+                //                                 setFormShow(false);
+                //                             } else setEditedProvider(null);
+                //                         }}
+                //                     >
+                //                         {`${EditedProvider != id ? '' : 'Cancel '}Edit`}
+                //                     </Button>
+                //                     <Button
+                //                         variant="danger"
+                //                         onClick={() => {
+                //                             const newList = ProvidersList.filter(
+                //                                 (_el, idx) => idx != id
+                //                             );
+                //                             setProvidersList(newList);
+                //                             if (newList.length < 1) setFormShow(true);
+                //                         }}
+                //                     >
+                //                         Delete
+                //                     </Button>
+                //                 </div>
+                //                 {EditedProvider == id && <ProviderForm />}
+                //             </Accordion.Body>
+                //         </Accordion.Item>
+                //     ))}
+                // </Accordion>
             )}
             {FormShowed && <ProviderForm />}
             {!FormShowed && !EditedProvider && (
-                <Button
-                    variant="dark"
+                <button
                     className="add-another-provider"
                     onClick={() => {
                         setFormShow(true);
@@ -280,7 +279,7 @@ const ProviderFormAndList: React.FC<Props> = ({
                     }}
                 >
                     Add another AI Provider
-                </Button>
+                </button>
             )}
         </div>
     );

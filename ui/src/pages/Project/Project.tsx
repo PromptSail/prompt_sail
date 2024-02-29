@@ -7,7 +7,6 @@ import UpdateProject from '../../components/ProjectForms/UpdateProject';
 import ProjectInstall from '../../components/ProjectInstall/ProjectInstall';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
 import LatestTransactions from '../../components/tables/LatestTransactions/LatestTransactions';
-import { Button, OverlayTrigger, Popover } from 'react-bootstrap';
 import AddProject from '../../components/ProjectForms/AddProject';
 import { makeUrl } from '../../helpers/aiProvider';
 const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
@@ -17,10 +16,11 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
         params.projectId || ''
     );
     const popover = (label: string, description: string) => (
-        <Popover>
-            <Popover.Header>{label}</Popover.Header>
-            <Popover.Body>{description}</Popover.Body>
-        </Popover>
+        <></>
+        // <Popover>
+        //     <Popover.Header>{label}</Popover.Header>
+        //     <Popover.Body>{description}</Popover.Body>
+        // </Popover>
     );
     if (project.isLoading)
         return (
@@ -49,7 +49,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                                 slug={data.slug}
                                 api_base={data.ai_providers[0].api_base}
                             />
-                            <Button
+                            <button
                                 onClick={() =>
                                     navigate(`/projects/${params.projectId}/update`, {
                                         state: { project: data }
@@ -57,7 +57,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                                 }
                             >
                                 Edit
-                            </Button>
+                            </button>
                             <DeleteProject name={data.name} projectId={params.projectId || ''} />
                         </div>
                     </div>
@@ -83,13 +83,14 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                                 <div className="element">
                                     <span>Tags:</span>
                                     {tags.length > 30 ? (
-                                        <OverlayTrigger
-                                            placement="bottom"
-                                            overlay={popover('Tags', tags)}
-                                        >
-                                            <span>{tags.substring(0, 30) + `...`}</span>
-                                        </OverlayTrigger>
+                                        <></>
                                     ) : (
+                                        // <OverlayTrigger
+                                        //     placement="bottom"
+                                        //     overlay={popover('Tags', tags)}
+                                        // >
+                                        //     <span>{tags.substring(0, 30) + `...`}</span>
+                                        // </OverlayTrigger>
                                         <span>{tags}</span>
                                     )}
                                 </div>
@@ -109,24 +110,25 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                                     </thead>
                                     <tbody>
                                         {data.ai_providers.map((el, id) => (
-                                            <OverlayTrigger
-                                                placement="bottom"
-                                                key={id}
-                                                overlay={
-                                                    el.description.length > 1 ? (
-                                                        popover('Description', el.description)
-                                                    ) : (
-                                                        <></>
-                                                    )
-                                                }
-                                            >
-                                                <tr>
-                                                    <td>{el.provider_name}</td>
-                                                    <td>{el.deployment_name}</td>
-                                                    <td>{makeUrl(data.slug, el.slug)}</td>
-                                                    <td>{el.api_base}</td>
-                                                </tr>
-                                            </OverlayTrigger>
+                                            <></>
+                                            // <OverlayTrigger
+                                            //     placement="bottom"
+                                            //     key={id}
+                                            //     overlay={
+                                            //         el.description.length > 1 ? (
+                                            //             popover('Description', el.description)
+                                            //         ) : (
+                                            //             <></>
+                                            //         )
+                                            //     }
+                                            // >
+                                            //     <tr>
+                                            //         <td>{el.provider_name}</td>
+                                            //         <td>{el.deployment_name}</td>
+                                            //         <td>{makeUrl(data.slug, el.slug)}</td>
+                                            //         <td>{el.api_base}</td>
+                                            //     </tr>
+                                            // </OverlayTrigger>
                                         ))}
                                     </tbody>
                                 </table>
@@ -137,13 +139,9 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                 <div className="box tableWrapper">
                     <div className="header">
                         <h2>LLM Transactions</h2>
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => navigate(`/transactions?project_id=${data.id}`)}
-                        >
+                        <button onClick={() => navigate(`/transactions?project_id=${data.id}`)}>
                             View all Transactions
-                        </Button>
+                        </button>
                     </div>
                     <div className="content">
                         <LatestTransactions projectId={data.id} />

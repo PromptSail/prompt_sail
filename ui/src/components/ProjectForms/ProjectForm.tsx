@@ -1,6 +1,5 @@
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
-import { Form } from 'react-bootstrap';
 import ProviderFormAndList from './ProviderFormAndList';
 import { projectSchema } from '../../api/formSchemas';
 import { useGetAllProjects } from '../../api/queries';
@@ -91,7 +90,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                 <div className="project-form">
                     <h2 className="header">Project details</h2>
                     <form className={`box`} id={formId} onSubmit={formik.handleSubmit} noValidate>
-                        <div className="double-inputs">
+                        {/* <div className="double-inputs">
                             <Form.Group className="labeled-input">
                                 <Form.Label>Name</Form.Label>
                                 <Form.Control
@@ -172,7 +171,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                             <Form.Control.Feedback type="invalid">
                                 {formik.errors.tags}
                             </Form.Control.Feedback>
-                        </Form.Group>
+                        </Form.Group> */}
                     </form>
                 </div>
                 <ProviderFormAndList

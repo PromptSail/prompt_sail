@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Button, Modal } from 'react-bootstrap';
 import { useDeleteProject } from '../../api/queries';
 
 interface Props {
@@ -12,7 +11,7 @@ const DeleteProject: React.FC<Props> = ({ name, projectId }) => {
     const deleteProject = useDeleteProject();
     return (
         <>
-            <Button variant="danger" onClick={() => setShow((e) => !e)}>
+            {/* <Button variant="danger" onClick={() => setShow((e) => !e)}>
                 Delete
             </Button>
             <Modal show={isShow} onHide={() => setShow((e) => !e)}>
@@ -37,7 +36,7 @@ const DeleteProject: React.FC<Props> = ({ name, projectId }) => {
                         Yes
                     </Button>
                 </Modal.Footer>
-            </Modal>
+            </Modal> */}
         </>
     );
 };

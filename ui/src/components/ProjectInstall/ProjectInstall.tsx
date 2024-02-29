@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Button, Modal } from 'react-bootstrap';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import * as styles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
@@ -12,19 +11,18 @@ const ProjectInstall: React.FC<Props> = ({ slug, api_base }) => {
     const [isShow, setShow] = useState(false);
     return (
         <>
-            <Button
-                variant="info"
+            <button
                 onClick={() =>
                     window.open('https://promptsail.github.io/prompt_sail/docs/project-dashboard/')
                 }
             >
                 Help
-            </Button>
+            </button>
 
             {/* <Button variant="info" onClick={() => setShow((e) => !e)}>
                 Help
             </Button> */}
-            <Modal size="lg" show={isShow} onHide={() => setShow((e) => !e)}>
+            {/* <Modal size="lg" show={isShow} onHide={() => setShow((e) => !e)}>
                 <Modal.Header closeButton>
                     <Modal.Title className="text-3xl font-semibold">Help</Modal.Title>
                 </Modal.Header>
@@ -76,7 +74,7 @@ llm("Explaining the meaning of life in one sentence")`}
                         Close
                     </Button>
                 </Modal.Footer>
-            </Modal>
+            </Modal> */}
         </>
     );
 };

@@ -1,5 +1,4 @@
 import { MutableRefObject, ReactNode, SetStateAction, useEffect, useState } from 'react';
-import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
 import { ReactSVG } from 'react-svg';
 import Icon from '../../assets/icons/box-arrow-left.svg';
@@ -40,27 +39,17 @@ const Sidebar: React.FC<Props> = ({ children, classes, pageRef, setLoginState })
                             <p className="user__email">{user.email}</p>
                         </div>
                         <div className="menu">
-                            <Button
-                                variant="primary"
-                                className="w-full"
-                                onClick={() => navigate('/')}
-                            >
+                            <button className="w-full" onClick={() => navigate('/')}>
                                 Projects
-                            </Button>
-                            <Button
-                                variant="primary"
-                                className="w-full"
-                                onClick={() => navigate('/transactions')}
-                            >
+                            </button>
+                            <button className="w-full" onClick={() => navigate('/transactions')}>
                                 Transactions
-                            </Button>
+                            </button>
                             {children}
                         </div>
                     </div>
                     <div className="sidebar-bottom">
-                        <Button
-                            size="sm"
-                            variant="outline-secondary"
+                        <button
                             className="outline-none"
                             onClick={() => {
                                 localStorage.removeItem('login');
@@ -71,7 +60,7 @@ const Sidebar: React.FC<Props> = ({ children, classes, pageRef, setLoginState })
                                 <ReactSVG src={Icon} />
                             </div>
                             <span>Log out</span>
-                        </Button>
+                        </button>
                     </div>
                 </div>
                 <div
@@ -80,7 +69,7 @@ const Sidebar: React.FC<Props> = ({ children, classes, pageRef, setLoginState })
                     }}
                     className="sidebar__toggleButtonContainer"
                 >
-                    <Button
+                    <button
                         style={{
                             transform: isSidebarHide ? 'rotate(180deg)' : undefined
                         }}
@@ -88,7 +77,7 @@ const Sidebar: React.FC<Props> = ({ children, classes, pageRef, setLoginState })
                         className="toggleButton"
                     >
                         {'<'}
-                    </Button>
+                    </button>
                 </div>
             </div>
         </>

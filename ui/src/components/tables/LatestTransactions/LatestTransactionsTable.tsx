@@ -1,12 +1,5 @@
 import { useState } from 'react';
 import { transaction } from '../types';
-import {
-    SortingState,
-    flexRender,
-    getCoreRowModel,
-    getSortedRowModel,
-    useReactTable
-} from '@tanstack/react-table';
 import { getAllTransactionResponse } from '../../../api/interfaces';
 import { Link } from 'react-router-dom';
 import { columns } from '../columns';
@@ -19,7 +12,6 @@ interface Props {
 }
 
 const LatestTransactionsTable: React.FC<Props> = ({ tableData }) => {
-    const [sorting, setSorting] = useState<SortingState>([]);
     const [data, setData] = useState<transaction[]>(
         tableData.map((tr) => ({
             time: tr.request_time,
@@ -35,20 +27,12 @@ const LatestTransactionsTable: React.FC<Props> = ({ tableData }) => {
             )
         }))
     );
-    const table = useReactTable({
-        data,
-        columns,
-        state: { sorting },
-        onSortingChange: setSorting,
-        getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel()
-    });
     window.test = (length: number) => {
         setData(randomTransactionData(length || 5));
     };
     return (
         <div className="table__LatestTransactions">
-            <table>
+            {/* <table>
                 <thead>
                     {table.getHeaderGroups().map((hGroup) => (
                         <tr key={hGroup.id}>
@@ -99,7 +83,7 @@ const LatestTransactionsTable: React.FC<Props> = ({ tableData }) => {
                         ));
                     })()}
                 </tbody>
-            </table>
+            </table> */}
         </div>
     );
 };
