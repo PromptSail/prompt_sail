@@ -1,3 +1,4 @@
+from _datetime import datetime
 from pydantic import BaseModel
 
 
@@ -12,6 +13,15 @@ class ProjectAIProviderSchema(BaseModel):
 class GetAIProviderSchema(BaseModel):
     provider_name: str
     api_base_placeholder: str
+
+
+class GetAIProviderPriceSchema(BaseModel):
+    model_name: str
+    start_date: datetime | str | None
+    match_pattern: str
+    input_price: int | float
+    output_price: int | float
+    total_price: int | float
 
 
 class CreateProjectSchema(BaseModel):

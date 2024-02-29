@@ -9,7 +9,6 @@ class TransactionNotFoundException(NotFoundException):
     """
     Exception raised when a transaction is not found.
     """
-    pass
 
 
 class TransactionRepository(MongoRepository):
@@ -18,12 +17,13 @@ class TransactionRepository(MongoRepository):
 
     Inherits from MongoRepository and is specific to the Transaction model.
     """
+
     model_class = Transaction
 
     def add(self, doc):
         """
         Add a document to the repository.
-        
+
         :param doc: The document to be added to the repository.
         :return: The result of the add operation.
         """
@@ -35,7 +35,7 @@ class TransactionRepository(MongoRepository):
         Retrieve a list of transactions associated with a specific project.
 
         :param project_id: The identifier of the project for which transactions are retrieved.
-        :return: A list of Transaction objects associated with the specified project. 
+        :return: A list of Transaction objects associated with the specified project.
         """
         return self.find({"project_id": project_id})
 
@@ -63,10 +63,18 @@ class TransactionRepository(MongoRepository):
             (page - 1) * page_size : (page - 1) * page_size + page_size
         ]
 
+    def get_filtered(self, query: dict[str, str | datetime | None]):
+        """
+        Retrieve a paginated and filtered list of transactions from the repository.
+        :param query: Query parameters to filter transactions.
+        :return: A filtered list of Transaction objects based on the specified criteria.
+        """
+        return self.find(query)
+
     def delete_cascade(self, project_id: str):
         """
         Delete multiple transactions and related data for a specific project using cascading deletion.
-        
+
         :param project_id: The Project ID for which transactions and related data will be deleted.
         :return: The result of the cascading deletion operation.
         """

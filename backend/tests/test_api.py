@@ -74,7 +74,9 @@ def test_get_project_happy_path(client, application):
 
     # assert
     assert response.status_code == 200
-    assert response.json() == dict(id="project1", total_transactions=0, total_tokens_usage=0, **test_obj)
+    assert response.json() == dict(
+        id="project1", total_transactions=0, total_tokens_usage=0, **test_obj
+    )
 
 
 def test_update_project(client, application):
@@ -137,4 +139,6 @@ def test_get_projects(client, application):
 
     # assert
     assert result.status_code == 200
-    assert result.json() == [dict(id=project_id, total_transactions=0, total_tokens_usage=0, **test_obj)]
+    assert result.json() == [
+        dict(id=project_id, total_transactions=0, total_tokens_usage=0, **test_obj)
+    ]

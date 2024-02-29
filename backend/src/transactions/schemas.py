@@ -1,6 +1,6 @@
 from typing import Any
 
-from _datetime import datetime
+from _datetime import datetime, timedelta
 from pydantic import BaseModel
 
 
@@ -9,10 +9,12 @@ class GetTransactionSchema(BaseModel):
     project_id: str
     request: dict[str, Any]
     response: dict[str, Any]
+    provider: str
     model: str | None
     type: str
     os: str | None
-    token_usage: int | None
+    input_tokens: int | None
+    output_tokens: int | None
     library: str
     status_code: int
     message: str | None
@@ -29,10 +31,12 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     project_name: str
     request: dict[str, Any]
     response: dict[str, Any]
+    provider: str
     model: str | None
     type: str
     os: str | None
-    token_usage: int | None
+    input_tokens: int | None
+    output_tokens: int | None
     library: str
     status_code: int
     message: str | None
@@ -41,6 +45,47 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     request_time: datetime
     response_time: datetime
     tags: list[str]
+
+
+class StatisticTransactionSchema(BaseModel):
+    project_id: str
+    provider: str
+    model: str
+    total_input_tokens: int
+    total_output_tokens: int
+    status_code: int
+    latency: timedelta
+    date: datetime
+    total_transactions: int
+
+
+class GetTransactionUsageStatisticsSchema(BaseModel):
+    project_id: str
+    provider: str
+    model: str
+    date: datetime
+    total_input_tokens: int
+    total_output_tokens: int
+    total_transactions: int
+    total_cost: float
+
+
+class GetTransactionStatusStatisticsSchema(BaseModel):
+    project_id: str
+    provider: str
+    model: str
+    date: datetime
+    status_code: int
+    total_transactions: int
+
+
+class GetTransactionLatencyStatisticsSchema(BaseModel):
+    project_id: str
+    provider: str
+    model: str
+    date: datetime
+    latency: timedelta | int | float
+    total_transactions: int
 
 
 class GetTransactionPageResponseSchema(BaseModel):
