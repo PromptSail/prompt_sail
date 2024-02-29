@@ -6,7 +6,7 @@ import FilterTags from '../filters/FilterTags';
 import FilterDates from '../filters/FilterDates';
 import FilterPageSize from '../filters/FilterPageSize';
 import { useGetAllTransactions } from '../../../api/queries';
-import AllTransactionsTable from './AllTransactionsTable';
+import AllTransactionsTable from './TransactionsTable';
 
 export const TableWrapper: React.FC = () => {
     const [params, setParams] = useSearchParams();

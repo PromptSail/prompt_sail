@@ -1,39 +1,14 @@
 import { getAllProjects } from '../../api/interfaces';
-import { Card, Flex, Popover, Space, Tag, Typography } from 'antd';
+import { Card, Flex, Space, Typography } from 'antd';
 import { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+import { TagsContainer } from '../../helpers/dataContainer';
 const { Title, Text } = Typography;
 
 interface Props {
     data: getAllProjects;
     isListStyled: boolean;
 }
-
-const TagsContainer: React.FC<{ tags: string[] }> = ({ tags }) => (
-    <Space size={0} className="min-w-40">
-        {tags
-            .filter((_el, id) => id < 3)
-            .map((e, id) => (
-                <Tag key={id} color="magenta">
-                    {e}
-                </Tag>
-            ))}
-        {tags.length > 3 && (
-            <Popover
-                content={tags.map((e, id) => (
-                    <Tag key={id} color="magenta">
-                        {e}
-                    </Tag>
-                ))}
-                title="Tags"
-                trigger="hover"
-            >
-                <Tag style={{ cursor: 'pointer' }}>...</Tag>
-            </Popover>
-        )}
-    </Space>
-);
-
 const ProjectTile: React.FC<Props> = ({ isListStyled, data }) => {
     const titleStyles: CSSProperties = { margin: '0' };
 
