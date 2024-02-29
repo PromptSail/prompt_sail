@@ -1,6 +1,6 @@
 from typing import Any
 
-from _datetime import datetime
+from _datetime import datetime, timedelta
 from pydantic import BaseModel
 
 
@@ -54,6 +54,7 @@ class StatisticTransactionSchema(BaseModel):
     total_input_tokens: int
     total_output_tokens: int
     status_code: int
+    latency: timedelta
     date: datetime
     total_transactions: int
     
@@ -75,6 +76,15 @@ class GetTransactionStatusStatisticsSchema(BaseModel):
     model: str
     date: datetime
     status_code: int
+    total_transactions: int
+
+
+class GetTransactionLatencyStatisticsSchema(BaseModel):
+    project_id: str
+    provider: str
+    model: str
+    date: datetime
+    latency: timedelta | int | float
     total_transactions: int
     
 

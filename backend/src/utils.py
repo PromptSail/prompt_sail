@@ -6,7 +6,7 @@ from itertools import groupby
 from operator import itemgetter
 import pandas as pd
 
-from transactions.schemas import GetTransactionUsageStatisticsSchema, GetTransactionStatusStatisticsSchema, StatisticTransactionSchema
+from transactions.schemas import GetTransactionUsageStatisticsSchema, GetTransactionStatusStatisticsSchema, StatisticTransactionSchema, GetTransactionLatencyStatisticsSchema
 
 
 def serialize_data(obj):
@@ -259,6 +259,42 @@ def status_counter_for_transactions(
         model=data['model'],
         date=data['date'],
         status_code=data['status_code'],
+        total_transactions=data['total_transactions'],
+    ) for data in data_dicts]
+
+    return result_list
+
+
+def latency_counter_for_transactions(
+    transactions: list[StatisticTransactionSchema],
+    period
+) -> list[GetTransactionLatencyStatisticsSchema]:
+    data_dicts = [dto.model_dump() for dto in transactions]
+    df = pd.DataFrame(data_dicts)
+    df.set_index('date', inplace=True)
+    if period == "weekly":
+        period = "W-Mon"
+    elif period == "monthly":
+        period = "ME"
+    else:
+        period = "D"
+    result = df.groupby(['provider', 'model']).resample(period).sum()
+    
+    print(result)
+
+    del result['provider']
+    del result['model']
+
+    result = result.reset_index()
+
+    data_dicts = result.to_dict(orient='records')
+
+    result_list = [GetTransactionLatencyStatisticsSchema(
+        project_id=str(data['project_id']),
+        provider=data['provider'],
+        model=data['model'],
+        date=data['date'],
+        latency=data['latency'].seconds / data['total_transactions'] if data['latency'].seconds > 0 else 0,
         total_transactions=data['total_transactions'],
     ) for data in data_dicts]
 

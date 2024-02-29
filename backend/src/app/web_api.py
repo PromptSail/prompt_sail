@@ -31,9 +31,9 @@ from transactions.schemas import (
     GetTransactionPageResponseSchema,
     GetTransactionSchema,
     GetTransactionWithProjectSlugSchema,
-    GetTransactionUsageStatisticsSchema, 
+    GetTransactionUsageStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
-    StatisticTransactionSchema,
+    StatisticTransactionSchema, GetTransactionLatencyStatisticsSchema,
 )
 from transactions.use_cases import (
     count_token_usage_for_project,
@@ -236,7 +236,7 @@ async def get_paginated_transactions(
 
 
 @app.get("/api/statistics/usage", response_class=JSONResponse)
-async def get_transaction_statistics_over_time(
+async def get_transaction_usage_statistics_over_time(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     date_from: datetime | None = None,
@@ -258,9 +258,10 @@ async def get_transaction_statistics_over_time(
         total_output_tokens=transaction.output_tokens or 0,
         status_code=transaction.status_code,
         date=transaction.response_time,
+        latency=(transaction.response_time - transaction.request_time),
         total_transactions=1,
     ) for transaction in transactions]
-    
+        
     stats = utils.token_counter_for_transactions(transactions, period)
     pricelist = get_provider_pricelist(request)
     
@@ -279,7 +280,7 @@ async def get_transaction_statistics_over_time(
 
 
 @app.get("/api/statistics/statuses", response_class=JSONResponse)
-async def get_transaction_statistics_over_time(
+async def get_transaction_status_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     date_from: datetime | None = None,
     date_to: datetime | None = None,
@@ -300,9 +301,40 @@ async def get_transaction_statistics_over_time(
         total_output_tokens=transaction.output_tokens or 0,
         status_code=transaction.status_code,
         date=transaction.response_time,
+        latency=(transaction.response_time - transaction.request_time).seconds,
         total_transactions=1,
     ) for transaction in transactions]
     stats = utils.status_counter_for_transactions(transactions, period)
+
+    return stats
+
+
+@app.get("/api/statistics/latency", response_class=JSONResponse)
+async def get_transaction_latency_statistics_over_time(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None,
+    period: str | None = "daily"
+) -> list[GetTransactionLatencyStatisticsSchema]:
+    transactions = ctx.call(
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    transactions = [StatisticTransactionSchema(
+        project_id=project_id,
+        provider=transaction.provider,
+        model=transaction.model,
+        total_input_tokens=transaction.input_tokens or 0,
+        total_output_tokens=transaction.output_tokens or 0,
+        status_code=transaction.status_code,
+        date=transaction.response_time,
+        latency=(transaction.response_time - transaction.request_time).seconds,
+        total_transactions=1,
+    ) for transaction in transactions]
+    stats = utils.latency_counter_for_transactions(transactions, period)
 
     return stats
 
