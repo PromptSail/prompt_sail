@@ -17,6 +17,7 @@ gunicorn = "^21.2.0"
 brotli = "^1.1.0"
 pandas = "^2.2.1"
 lato = "^0.8.0"
+python-slugify = "^8.0.4"
 
 
 [tool.poetry.group.dev]

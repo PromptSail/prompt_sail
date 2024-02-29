@@ -314,8 +314,6 @@ def latency_counter_for_transactions(
         period = "D"
     result = df.groupby(["provider", "model"]).resample(period).sum()
 
-    print(result)
-
     del result["provider"]
     del result["model"]
 

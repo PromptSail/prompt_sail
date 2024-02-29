@@ -8,7 +8,7 @@ from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
-from projects.models import Project
+from projects.models import AIProvider, Project
 from projects.schemas import (
     CreateProjectSchema,
     GetAIProviderPriceSchema,
@@ -25,6 +25,7 @@ from projects.use_cases import (
 )
 from settings.schemas import AuthorizeUserSchema
 from settings.use_cases import get_organization_name, get_users_for_organization
+from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
@@ -118,6 +119,10 @@ async def create_project(
         id=project_id,
         **data.model_dump(),
     )
+    project.slug = slugify(data.slug)
+    for idx in range(len(project.ai_providers)):
+        project.ai_providers[idx].slug = slugify(project.ai_providers[idx].slug)
+
     ctx.call(add_project, project)
     project = ctx.call(get_project, project_id)
     response = GetProjectSchema(**project.model_dump())
@@ -139,6 +144,12 @@ async def update_existing_project(
     :return: A GetProjectSchema object representing the updated project.
     """
     data = dict(**data.model_dump(exclude_none=True))
+    if "slug" in data:
+        data["slug"] = slugify(data["slug"])
+    if "ai_providers" in data:
+        for idx in range(len(data["ai_providers"])):
+            data["ai_providers"][idx] = AIProvider(**data["ai_providers"][idx])
+            data["ai_providers"][idx].slug = slugify(data["ai_providers"][idx].slug)
     updated = ctx.call(update_project, project_id=project_id, fields_to_update=data)
     total_tokens_usage = ctx.call(count_token_usage_for_project, project_id=project_id)
     return GetProjectSchema(
