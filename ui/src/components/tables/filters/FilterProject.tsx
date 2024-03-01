@@ -1,13 +1,14 @@
 import { SetStateAction } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllProjects } from '../../../api/queries';
+import { Select } from 'antd';
 
 interface Props {
-    projectId: string | undefined;
+    defaultValue: string | undefined;
     setFilters: (length: SetStateAction<TransactionsFilters>) => void;
-    setNewParam: (param: { [key: string]: string }) => void;
+    setProject: (project_id: string) => void;
 }
-const FilterProject: React.FC<Props> = ({ projectId, setFilters, setNewParam }) => {
+const FilterProject: React.FC<Props> = ({ defaultValue, setFilters, setProject }) => {
     const projects = useGetAllProjects();
     if (projects.isLoading)
         return (
@@ -23,38 +24,27 @@ const FilterProject: React.FC<Props> = ({ projectId, setFilters, setNewParam }) 
             </>
         );
     if (projects.isSuccess) {
+        const options =
+            projects.data.length > 0
+                ? [<option value="">Select project</option>]
+                : [<option value="">No projects found</option>];
+        projects.data.map((el) =>
+            options.push(
+                <option key={el.id} value={el.id}>
+                    {el.name}
+                </option>
+            )
+        );
+
         return (
-            <div className="project_select">
-                <select
-                    aria-label="Select project"
-                    value={projectId}
-                    onChange={(v) => {
-                        const project_id = v.currentTarget.value;
-                        setFilters((old) => ({
-                            ...old,
-                            project_id,
-                            page: '1'
-                        }));
-                        setNewParam({ project_id });
-                    }}
-                >
-                    {projects.data.length > 0 && (
-                        <>
-                            <option value="">Select project</option>
-                            {projects.data.map((el) => (
-                                <option key={el.id} value={el.id}>
-                                    {el.name}
-                                </option>
-                            ))}
-                        </>
-                    )}
-                    {projects.data.length == 0 && (
-                        <>
-                            <option value="">No projects found</option>
-                        </>
-                    )}
-                </select>
-            </div>
+            <Select
+                defaultValue={defaultValue}
+                onChange={(e) => {
+                    console.log(e);
+                }}
+                style={{ width: 150 }}
+                options={options}
+            />
         );
     }
 };

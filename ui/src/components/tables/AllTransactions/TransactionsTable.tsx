@@ -5,9 +5,12 @@ import { ReactSVG } from 'react-svg';
 import { Badge, Flex, Space, Table } from 'antd';
 import { TagsContainer } from '../../../helpers/dataContainer';
 import { ArrowRightOutlined } from '@ant-design/icons';
+import { Dispatch, SetStateAction } from 'react';
+import { TransactionsFilters } from '../../../api/types';
 
 interface Props {
-    data: getAllTransactionResponse['items'];
+    data: getAllTransactionResponse;
+    setFilters: Dispatch<SetStateAction<TransactionsFilters>>;
 }
 interface DataType {
     key: React.Key;
@@ -24,7 +27,7 @@ interface DataType {
     more: React.ReactNode;
 }
 
-const TransactionsTable: React.FC<Props> = ({ data }) => {
+const TransactionsTable: React.FC<Props> = ({ data, setFilters }) => {
     const columns = [
         {
             title: 'Time',
@@ -94,10 +97,10 @@ const TransactionsTable: React.FC<Props> = ({ data }) => {
         }
     ];
     const tableData: DataType[] = [];
-    data.map((tr) =>
+    data.items.map((tr) => {
         tableData.push({
             key: tr.id,
-            time: tr.request_time,
+            time: new Date(tr.request_time + 'Z').toLocaleString('pl-PL').padStart(20, '0'),
             latency: '2.00s',
             messages: (
                 <Flex vertical>
@@ -105,7 +108,12 @@ const TransactionsTable: React.FC<Props> = ({ data }) => {
                         <b>Input:</b> {tr.prompt}
                     </div>
                     <div>
-                        <b>Output: </b> {tr.message}
+                        <b>Output: </b>{' '}
+                        {tr.message
+                            ? tr.message?.length > 25
+                                ? tr.message?.substring(0, 23) + '...'
+                                : tr.message
+                            : tr.error_message}
                     </div>
                 </Flex>
             ),
@@ -126,18 +134,25 @@ const TransactionsTable: React.FC<Props> = ({ data }) => {
                     <ReactSVG src={iconSrc} />
                 </Link>
             )
-        })
-    );
+        });
+    });
     return (
         <Table
             dataSource={tableData}
             columns={columns}
             pagination={{
                 position: ['topRight', 'bottomRight'],
+                onChange: (page) => {
+                    setFilters((old) => ({ ...old, page: `${page}` }));
+                },
+                onShowSizeChange: (_, size) => {
+                    setFilters((old) => ({ ...old, page_size: `${size}` }));
+                },
+                defaultCurrent: data.page_index,
                 showSizeChanger: true,
                 defaultPageSize: 5,
                 pageSizeOptions: [5, 10, 20, 50],
-                total: 50
+                total: data.total_elements
             }}
             scroll={{ y: 400 }}
         />

@@ -1,17 +1,33 @@
 import { SetStateAction } from 'react';
+import dayjs from 'dayjs';
 import { TransactionsFilters } from '../../../api/types';
-import { SetURLSearchParams } from 'react-router-dom';
+import { DatePicker } from 'antd';
+const { RangePicker } = DatePicker;
 
 interface Props {
-    params: URLSearchParams;
-    setParams: SetURLSearchParams;
-    setFilters: (length: SetStateAction<TransactionsFilters>) => void;
-    setNewParam: (param: { [key: string]: string }) => void;
+    defaultValues: [string, string];
+    setFilters: (args: SetStateAction<TransactionsFilters>) => void;
+    setDates: (date_from: string, date_to: string) => void;
 }
 
-const FilterDates: React.FC<Props> = ({ params, setParams, setFilters, setNewParam }) => {
+const FilterDates: React.FC<Props> = ({ defaultValues, setFilters, setDates }) => {
     return (
-        <></>
+        <RangePicker
+            onChange={(_, dates) => {
+                setFilters((old) => ({
+                    ...old,
+                    date_from: new Date(dates[0]).toISOString(),
+                    date_to: new Date(dates[1]).toISOString()
+                }));
+                setDates(new Date(dates[0]).toISOString(), new Date(dates[1]).toISOString());
+            }}
+            defaultValue={
+                defaultValues[0].length > 1
+                    ? [dayjs(defaultValues[0]), dayjs(defaultValues[1])]
+                    : undefined
+            }
+            showTime
+        />
         // <DateRangePicker
         //     format="yyyy-MM-dd HH:mm:ss"
         //     placeholder="Select date range"

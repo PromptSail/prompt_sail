@@ -1,12 +1,12 @@
-import { Tag, Typography, Flex, Select, DatePicker } from 'antd';
+import { Typography, Flex } from 'antd';
 import { useSearchParams } from 'react-router-dom';
 import { TransactionsFilters } from '../api/types';
 import { useEffect, useState } from 'react';
 import { useGetAllTransactions } from '../api/queries';
 import TransactionsTable from '../components/tables/AllTransactions/TransactionsTable';
+import TableFilters from '../components/tables/AllTransactions/TableFilters';
 
 const { Title } = Typography;
-const { RangePicker } = DatePicker;
 const Transactions = () => {
     const [params, setParams] = useSearchParams();
     const [filters, setFilters] = useState<TransactionsFilters>({
@@ -37,7 +37,7 @@ const Transactions = () => {
             page: `${val}`
         }));
     };
-    const setNewParam = (param: { [key: string]: string }) => {
+    const setURLParam = (param: { [key: string]: string }) => {
         const newParam = new URLSearchParams(params);
         for (const key in param) {
             if (Object.prototype.hasOwnProperty.call(param, key)) {
@@ -61,61 +61,12 @@ const Transactions = () => {
                     Transactions
                 </Title>
                 <Flex vertical gap={25}>
-                    <Flex gap={10}>
-                        <Select
-                            defaultValue=""
-                            style={{ width: 150 }}
-                            options={[
-                                { value: '', label: 'Select project' },
-                                { value: 'Project1', label: 'Project1' },
-                                { value: 'Project2', label: 'Project2' },
-                                { value: 'My Project', label: 'My Project' },
-                                { value: 'Project asd asd', label: 'Project asd asd' }
-                            ]}
-                        />
-                        <RangePicker showTime />
-                        <Select
-                            mode="multiple"
-                            allowClear
-                            style={{ width: 250 }}
-                            tagRender={({ label, value, closable, onClose }) => {
-                                return (
-                                    <Tag color={value} closable={closable} onClose={onClose}>
-                                        {label}
-                                    </Tag>
-                                );
-                            }}
-                            placeholder="Select tags"
-                            defaultValue={[]}
-                            options={[
-                                {
-                                    label: 'tag1',
-                                    value: 'magenta'
-                                },
-                                {
-                                    label: 'tag2',
-                                    value: 'red'
-                                },
-                                {
-                                    label: 'tag3',
-                                    value: 'volcano'
-                                },
-                                {
-                                    label: 'tag4',
-                                    value: 'blue'
-                                },
-                                {
-                                    label: 'tag5',
-                                    value: 'cyan'
-                                },
-                                {
-                                    label: 'tag6',
-                                    value: 'purple'
-                                }
-                            ]}
-                        />
-                    </Flex>
-                    <TransactionsTable data={transactions.data?.data.items} />
+                    <TableFilters
+                        filters={filters}
+                        setFilters={setFilters}
+                        setURLParam={setURLParam}
+                    />
+                    <TransactionsTable data={transactions.data?.data} setFilters={setFilters} />
                 </Flex>
             </>
         );
