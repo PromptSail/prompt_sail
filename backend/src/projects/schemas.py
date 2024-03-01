@@ -51,4 +51,3 @@ class GetProjectSchema(BaseModel):
     tags: list[str] = []
     org_id: str | None = None
     total_transactions: int = 0
-    total_tokens_usage: int = 0
