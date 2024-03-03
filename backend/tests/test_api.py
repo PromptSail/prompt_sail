@@ -28,7 +28,6 @@ def test_create_project_returns_201(client, application):
     assert_obj = test_obj.copy()
     assert_obj["id"] = response.json()["id"]
     assert_obj["total_transactions"] = response.json()["total_transactions"]
-    assert_obj["total_tokens_usage"] = response.json()["total_tokens_usage"]
     assert response.json() == assert_obj
 
 
@@ -75,7 +74,7 @@ def test_get_project_happy_path(client, application):
     # assert
     assert response.status_code == 200
     assert response.json() == dict(
-        id="project1", total_transactions=0, total_tokens_usage=0, **test_obj
+        id="project1", total_transactions=0 **test_obj
     )
 
 
@@ -94,7 +93,7 @@ def test_update_project(client, application):
     # assert
     assert response.status_code == 200
     assert response.json() == test_obj | dict(
-        id=project_id, total_transactions=0, total_tokens_usage=0, name="Autotest2"
+        id=project_id, total_transactions=0, name="Autotest2"
     )
 
 
@@ -140,5 +139,5 @@ def test_get_projects(client, application):
     # assert
     assert result.status_code == 200
     assert result.json() == [
-        dict(id=project_id, total_transactions=0, total_tokens_usage=0, **test_obj)
+        dict(id=project_id, total_transactions=0, **test_obj)
     ]
