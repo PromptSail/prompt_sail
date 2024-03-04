@@ -11,47 +11,45 @@ interface Props {
 const FilterTags: React.FC<Props> = ({ defaultValue, setFilters, setTags }) => {
     const options = [
         {
-            label: 'tag1',
-            value: 'magenta'
+            value: 'tag1'
         },
         {
-            label: 'tag2',
-            value: 'red'
+            value: 'tag2'
         },
         {
-            label: 'tag3',
-            value: 'volcano'
+            value: 'tag3'
         },
         {
-            label: 'tag4',
-            value: 'blue'
+            value: 'tag4'
         },
         {
-            label: 'tag5',
-            value: 'cyan'
+            value: 'tag5'
         },
         {
-            label: 'tag6',
-            value: 'purple'
+            value: 'tag6'
         }
     ];
     const defaults: typeof options = [];
     if (defaultValue.length > 0)
         defaultValue.split(',').map((el) => {
-            console.log(el);
-            defaults.push({ label: el, value: 'magenta' });
+            defaults.push({ value: el });
         });
     return (
         <Select
-            mode="multiple"
+            mode="tags"
             allowClear
             style={{ width: 250 }}
-            tagRender={({ label, value, closable, onClose }) => {
+            tagRender={({ value, closable, onClose }) => {
                 return (
-                    <Tag color={value} closable={closable} onClose={onClose}>
-                        {label}
+                    <Tag color="magenta" closable={closable} onClose={onClose}>
+                        {value}
                     </Tag>
                 );
+            }}
+            onChange={(e) => {
+                const tags = e.join(',');
+                setFilters((old) => ({ ...old, tags }));
+                setTags(tags);
             }}
             placeholder="Select tags"
             defaultValue={defaults}

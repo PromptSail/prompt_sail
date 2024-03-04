@@ -1,4 +1,4 @@
-import { Flex, Select, Tag } from 'antd';
+import { Flex } from 'antd';
 import { TransactionsFilters } from '../../../api/types';
 import { Dispatch, SetStateAction } from 'react';
 import FilterProject from '../filters/FilterProject';
@@ -29,7 +29,7 @@ const TableFilters: React.FC<Props> = ({ filters, setFilters, setURLParam }) => 
                 }}
             />
             <FilterTags
-                defaultValue={''}
+                defaultValue={filters.tags || ''}
                 setFilters={setFilters}
                 setTags={(tags: string) => {
                     setURLParam({ tags });
