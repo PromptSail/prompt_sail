@@ -1,20 +1,21 @@
-import { Link } from 'react-router-dom';
 import { Badge, Flex, Space, Table } from 'antd';
-import { TagsContainer } from '../../../helpers/dataContainer';
+import { Link } from 'react-router-dom';
+import { TagsContainer } from '../../helpers/dataContainer';
+import { useEffect, useState } from 'react';
+import { DataType, columns } from '../../components/tables/columns';
+import { useGetAllTransactions } from '../../api/queries';
 import { ArrowRightOutlined, LinkOutlined } from '@ant-design/icons';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { TransactionsFilters } from '../../../api/types';
-import { useGetAllTransactions } from '../../../api/queries';
-import { DataType, columns } from '../columns';
 
 interface Props {
-    filters: TransactionsFilters;
-    setFilters: Dispatch<SetStateAction<TransactionsFilters>>;
+    projectId: string;
 }
 
-const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
-    const transactions = useGetAllTransactions(filters);
-    const [isLoading, setLoading] = useState(true);
+const LatestTransactions: React.FC<Props> = ({ projectId }) => {
+    const transactions = useGetAllTransactions({
+        project_id: projectId,
+        page_size: '10'
+    });
+    const [isLoading, setLoading] = useState(false);
     const [tableData, setTableData] = useState<{
         items: DataType[];
         page_index: number;
@@ -94,23 +95,11 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
         <Table
             dataSource={tableData.items}
             columns={columns}
+            pagination={false}
             loading={isLoading}
-            pagination={{
-                position: ['topRight', 'bottomRight'],
-                onChange: (page) => {
-                    setFilters((old) => ({ ...old, page: `${page}` }));
-                },
-                onShowSizeChange: (_, size) => {
-                    setFilters((old) => ({ ...old, page_size: `${size}` }));
-                },
-                defaultCurrent: tableData.page_index,
-                showSizeChanger: true,
-                pageSize: tableData.page_size,
-                pageSizeOptions: [5, 10, 20, 50]
-            }}
+            size="small"
             scroll={{ y: 400 }}
         />
     );
 };
-
-export default TransactionsTable;
+export default LatestTransactions;

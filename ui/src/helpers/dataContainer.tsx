@@ -1,7 +1,12 @@
 import { Popover, Space, Tag } from 'antd';
 
-export const TagsContainer: React.FC<{ tags: string[] }> = ({ tags }) => (
-    <Space size={0} className="min-w-40">
+interface Props {
+    tags: string[];
+    classname?: string;
+}
+
+export const TagsContainer: React.FC<Props> = ({ tags, classname }) => (
+    <Space size={0} className={`min-w-40 ${classname}`}>
         {tags
             .filter((_el, id) => id < 3)
             .map((e, id) => (

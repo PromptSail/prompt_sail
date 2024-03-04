@@ -1,5 +1,7 @@
-import { useState } from 'react';
 import { useDeleteProject } from '../../api/queries';
+import { Button, Modal } from 'antd';
+import { ExclamationCircleFilled } from '@ant-design/icons';
+const { confirm } = Modal;
 
 interface Props {
     name: string;
@@ -7,36 +9,24 @@ interface Props {
 }
 
 const DeleteProject: React.FC<Props> = ({ name, projectId }) => {
-    const [isShow, setShow] = useState(false);
     const deleteProject = useDeleteProject();
     return (
         <>
-            {/* <Button variant="danger" onClick={() => setShow((e) => !e)}>
+            <Button
+                danger
+                onClick={() =>
+                    confirm({
+                        title: name,
+                        icon: <ExclamationCircleFilled />,
+                        content: 'Are you sure you want to delete this project?',
+                        onOk() {
+                            deleteProject.mutateAsync(projectId);
+                        }
+                    })
+                }
+            >
                 Delete
             </Button>
-            <Modal show={isShow} onHide={() => setShow((e) => !e)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Delete {name}</Modal.Title>
-                </Modal.Header>
-
-                <Modal.Body>
-                    <p>Are you sure you want to delete this project?</p>
-                </Modal.Body>
-
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShow((e) => !e)}>
-                        No
-                    </Button>
-                    <Button
-                        variant="primary"
-                        onClick={() => {
-                            deleteProject.mutateAsync(projectId);
-                        }}
-                    >
-                        Yes
-                    </Button>
-                </Modal.Footer>
-            </Modal> */}
         </>
     );
 };
