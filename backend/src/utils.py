@@ -266,7 +266,7 @@ def status_counter_for_transactions(
         'model': 'first',
         'total_input_tokens': 'sum',
         'total_output_tokens': 'sum',
-        'status_code': 'sum',
+        'status_code': 'first',
         'latency': 'sum',
         'total_transactions': 'sum'
     })
@@ -307,7 +307,16 @@ def latency_counter_for_transactions(
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
-    result = df.groupby(["provider", "model"]).resample(period).sum()
+    result = df.groupby(["provider", "model"]).resample(period).agg({
+        'project_id': 'first',
+        'provider': 'first',
+        'model': 'first',
+        'total_input_tokens': 'sum',
+        'total_output_tokens': 'sum',
+        'status_code': 'first',
+        'latency': 'sum',
+        'total_transactions': 'sum'
+    })
 
     del result["provider"]
     del result["model"]
@@ -315,15 +324,16 @@ def latency_counter_for_transactions(
     result = result.reset_index()
 
     data_dicts = result.to_dict(orient="records")
-
     result_list = [
         GetTransactionLatencyStatisticsSchema(
-            project_id=str(data["project_id"]),
             provider=data["provider"],
             model=data["model"],
             date=data["date"],
-            latency=data["latency"].seconds / data["total_transactions"]
-            if data["latency"].seconds > 0
+            mean_latency=data["latency"].total_seconds() / data["total_transactions"]
+            if data["latency"].total_seconds() > 0
+            else 0,
+            tokens_per_second=data['total_output_tokens'] / data["latency"].total_seconds()
+            if data["latency"].total_seconds() != 0 and data['total_output_tokens'] != 0
             else 0,
             total_transactions=data["total_transactions"],
         )
@@ -449,7 +459,7 @@ def pandas_period_from_string(period: str):
     if period == "monthly":
         return "ME"
     if period == "yearly":
-        return "A"
+        return "YE"
     if period == "hourly":
         return "H"
     if period == "minutely":

@@ -77,11 +77,11 @@ class GetTransactionStatusStatisticsSchema(BaseModel):
 
 
 class GetTransactionLatencyStatisticsSchema(BaseModel):
-    project_id: str
     provider: str
     model: str
     date: datetime
-    latency: timedelta | int | float
+    mean_latency: timedelta | int | float
+    tokens_per_second: int | float
     total_transactions: int
 
 
