@@ -202,21 +202,17 @@ def token_counter_for_transactions(
     Calculate token usage statistics based on a given period.
 
     This function takes a list of transactions and calculates token usage statistics
-    aggregated over the specified period (weekly, monthly, or daily).
+    aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
 
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
-    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :param period: A string indicating the aggregation period. 
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
     :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
-    if period == "weekly":
-        period = "W-Mon"
-    elif period == "monthly":
-        period = "ME"
-    else:
-        period = "D"
+    period = pandas_period_from_string(period)
     result = df.groupby(["provider", "model"]).resample(period).sum()
 
     del result["provider"]
@@ -250,25 +246,31 @@ def status_counter_for_transactions(
     Calculate transaction status statistics based on a given period.
 
     This function takes a list of transactions and calculates statistics
-    on transaction statuses aggregated over the specified period (weekly, monthly, or daily).
+    on transaction statuses aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
 
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
-    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :param period: A string indicating the aggregation period. 
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
     :return: A list of GetTransactionStatusStatisticsSchema objects containing status statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
+    for x in range(len(data_dicts)):
+        data_dicts[x]["status_code"] = (data_dicts[x]["status_code"] // 100) * 100
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
-    if period == "weekly":
-        period = "W-Mon"
-    elif period == "monthly":
-        period = "ME"
-    else:
-        period = "D"
-    result = df.groupby(["provider", "model", "status_code"]).resample(period).sum()
+    period = pandas_period_from_string(period)
+        
+    result = df.groupby(["status_code"]).resample(period).agg({
+        'project_id': 'first',
+        'provider': 'first',
+        'model': 'first',
+        'total_input_tokens': 'sum',
+        'total_output_tokens': 'sum',
+        'status_code': 'sum',
+        'latency': 'sum',
+        'total_transactions': 'sum'
+    })
 
-    del result["provider"]
-    del result["model"]
     del result["status_code"]
 
     result = result.reset_index()
@@ -277,9 +279,6 @@ def status_counter_for_transactions(
 
     result_list = [
         GetTransactionStatusStatisticsSchema(
-            project_id=str(data["project_id"]),
-            provider=data["provider"],
-            model=data["model"],
             date=data["date"],
             status_code=data["status_code"],
             total_transactions=data["total_transactions"],
@@ -297,21 +296,17 @@ def latency_counter_for_transactions(
     Calculate transaction latency statistics based on a given period.
 
     This function takes a list of transactions and calculates statistics
-    on transaction latency aggregated over the specified period (weekly, monthly, or daily).
+    on transaction latency aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
 
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
-    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :param period: A string indicating the aggregation period. 
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
     :return: A list of GetTransactionLatencyStatisticsSchema objects containing latency statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
-    if period == "weekly":
-        period = "W-Mon"
-    elif period == "monthly":
-        period = "ME"
-    else:
-        period = "D"
+    period = pandas_period_from_string(period)
     result = df.groupby(["provider", "model"]).resample(period).sum()
 
     del result["provider"]
@@ -446,6 +441,20 @@ class OrderedSet(OrderedDict):
         """
         for item in iterable:
             self.add(item)
+
+
+def pandas_period_from_string(period: str):
+    if period == "weekly":
+        return "W-Mon"
+    if period == "monthly":
+        return "ME"
+    if period == "yearly":
+        return "A"
+    if period == "hourly":
+        return "H"
+    if period == "minutely":
+        return "5T"
+    return "D"
 
 
 known_ai_providers = [

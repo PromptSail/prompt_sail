@@ -71,9 +71,6 @@ class GetTransactionUsageStatisticsSchema(BaseModel):
 
 
 class GetTransactionStatusStatisticsSchema(BaseModel):
-    project_id: str
-    provider: str
-    model: str
     date: datetime
     status_code: int
     total_transactions: int
