@@ -10,7 +10,7 @@ import { useState } from 'react';
 import Signin from './pages/Signin';
 import { checkLogin } from './storage/login';
 import { Layout } from 'antd';
-import Transaction from './pages/Transaction';
+import Transaction from './pages/Transaction/Transaction';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
