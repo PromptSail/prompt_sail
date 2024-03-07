@@ -213,23 +213,36 @@ def token_counter_for_transactions(
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
-    result = df.groupby(["provider", "model"]).resample(period).sum()
+    result = df.groupby(["provider", "model"]).resample(period).agg({
+        'project_id': 'first',
+        'provider': 'first',
+        'model': 'first',
+        'total_input_tokens': 'sum',
+        'total_output_tokens': 'sum',
+        'status_code': 'sum',
+        'latency': 'sum',
+        'total_transactions': 'sum',
+        'generation_speed': 'sum'
+    })
 
     del result["provider"]
     del result["model"]
 
     result = result.reset_index()
 
+    result['output_cumulative_total'] = result.groupby(['provider', 'model'])['total_output_tokens'].cumsum()
+    result['input_cumulative_total'] = result.groupby(['provider', 'model'])['total_input_tokens'].cumsum()
     data_dicts = result.to_dict(orient="records")
 
     result_list = [
         GetTransactionUsageStatisticsSchema(
-            project_id=str(data["project_id"]),
             provider=data["provider"],
             model=data["model"],
             date=data["date"],
             total_input_tokens=data["total_input_tokens"],
             total_output_tokens=data["total_output_tokens"],
+            input_cumulative_total=data['input_cumulative_total'],
+            output_cumulative_total=data['output_cumulative_total'],
             total_transactions=data["total_transactions"],
             total_cost=0,
         )
@@ -268,7 +281,8 @@ def status_counter_for_transactions(
         'total_output_tokens': 'sum',
         'status_code': 'first',
         'latency': 'sum',
-        'total_transactions': 'sum'
+        'total_transactions': 'sum',
+        'generation_speed': 'sum'
     })
 
     del result["status_code"]
@@ -315,7 +329,8 @@ def latency_counter_for_transactions(
         'total_output_tokens': 'sum',
         'status_code': 'first',
         'latency': 'sum',
-        'total_transactions': 'sum'
+        'total_transactions': 'sum',
+        'generation_speed': 'sum'
     })
 
     del result["provider"]
@@ -332,8 +347,8 @@ def latency_counter_for_transactions(
             mean_latency=data["latency"].total_seconds() / data["total_transactions"]
             if data["latency"].total_seconds() > 0
             else 0,
-            tokens_per_second=data['total_output_tokens'] / data["latency"].total_seconds()
-            if data["latency"].total_seconds() != 0 and data['total_output_tokens'] != 0
+            tokens_per_second=data['generation_speed'] / data["total_transactions"]
+            if data['generation_speed'] > 0 and data["total_transactions"] > 0
             else 0,
             total_transactions=data["total_transactions"],
         )

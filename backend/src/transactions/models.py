@@ -26,6 +26,7 @@ class Transaction(BaseModel):
     message: str | None
     prompt: str
     error_message: str | None
+    generation_speed: int | float
     request_time: datetime
     response_time: datetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc)

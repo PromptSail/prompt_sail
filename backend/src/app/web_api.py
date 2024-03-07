@@ -276,7 +276,8 @@ async def get_transaction_usage_statistics_over_time(
             total_output_tokens=transaction.output_tokens or 0,
             status_code=transaction.status_code,
             date=transaction.response_time,
-            latency=(transaction.response_time - transaction.request_time),
+            latency=(transaction.response_time - transaction.request_time).total_seconds(),
+            generation_speed=transaction.generation_speed,
             total_transactions=1,
         )
         for transaction in transactions
@@ -297,14 +298,14 @@ async def get_transaction_usage_statistics_over_time(
             )
             if lastest.input_price > 0 and lastest.output_price > 0:
                 stat.total_cost += (
-                    ceil(stat.total_input_tokens / 1000) * lastest.input_price
+                    ceil(stat.input_cumulative_total / 1000) * lastest.input_price
                 )
                 stat.total_cost += (
-                    ceil(stat.total_output_tokens / 1000) * lastest.output_price
+                    ceil(stat.output_cumulative_total / 1000) * lastest.output_price
                 )
             else:
                 stat.total_cost = (
-                    stat.total_input_tokens + stat.total_output_tokens
+                    stat.input_cumulative_total + stat.output_cumulative_total
                 ) * lastest.total_price
 
     return stats
@@ -347,7 +348,8 @@ async def get_transaction_status_statistics_over_time(
             total_output_tokens=transaction.output_tokens or 0,
             status_code=transaction.status_code,
             date=transaction.response_time,
-            latency=(transaction.response_time - transaction.request_time).seconds,
+            latency=(transaction.response_time - transaction.request_time).total_seconds(),
+            generation_speed=transaction.generation_speed,
             total_transactions=1,
         )
         for transaction in transactions
@@ -394,7 +396,8 @@ async def get_transaction_latency_statistics_over_time(
             total_output_tokens=transaction.output_tokens or 0,
             status_code=transaction.status_code,
             date=transaction.response_time,
-            latency=(transaction.response_time - transaction.request_time).seconds,
+            latency=(transaction.response_time - transaction.request_time).total_seconds(),
+            generation_speed=transaction.generation_speed,
             total_transactions=1,
         )
         for transaction in transactions
