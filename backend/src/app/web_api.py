@@ -1,9 +1,9 @@
 import re
-from datetime import datetime
 from math import ceil
 from typing import Annotated, Any
 
 import utils
+from _datetime import datetime
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
@@ -251,23 +251,23 @@ async def get_transaction_usage_statistics_over_time(
 
     This endpoint fetches transaction data based on the specified project ID,
     date range, and period. It then processes the data to generate usage statistics
-    including total input tokens, total output tokens, cumulative input tokens, cumulative output tokens as well as 
+    including total input tokens, total output tokens, cumulative input tokens, cumulative output tokens as well as
     total cost calculated based on cumulative values for the best possible representation of costs over time.\n
 
     :param request: The FastAPI Request object (automatically applied).\n
     :param ctx: The transaction context, providing access to dependencies (automatically applied).\n
     :param project_id: The unique identifier of the project.\n
-    :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the 
+    :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the
         beginning of the project's existence).\n
-    :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the 
+    :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely. 
+    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
         (default is "daily").\n
-    :return: A list of GetTransactionUsageStatisticsSchema (provider, model, date, total_input_tokens, 
-        total_output_tokens, input_cumulative_total, output_cumulative_total, total_transactions, total_cost) 
+    :return: A list of GetTransactionUsageStatisticsSchema (provider, model, date, total_input_tokens,
+        total_output_tokens, input_cumulative_total, output_cumulative_total, total_transactions, total_cost)
         representing the usage statistics.\n
     """
-    
+
     try:
         transactions = ctx.call(
             get_list_of_filtered_transactions,
@@ -284,19 +284,23 @@ async def get_transaction_usage_statistics_over_time(
                 total_output_tokens=transaction.output_tokens or 0,
                 status_code=transaction.status_code,
                 date=transaction.response_time,
-                latency=(transaction.response_time - transaction.request_time).total_seconds(),
+                latency=(
+                    transaction.response_time - transaction.request_time
+                ).total_seconds(),
                 generation_speed=transaction.generation_speed,
                 total_transactions=1,
             )
             for transaction in transactions
         ]
-    
+
         stats = utils.token_counter_for_transactions(transactions, period)
         pricelist = get_provider_pricelist(request)
-    
+
         for stat in stats:
             possible_prices = [
-                price for price in pricelist if re.match(price.match_pattern, stat.model)
+                price
+                for price in pricelist
+                if re.match(price.match_pattern, stat.model)
             ]
             if len(possible_prices) > 0:
                 # TODO: Counting by date instead of by lastest
@@ -306,16 +310,20 @@ async def get_transaction_usage_statistics_over_time(
                 )
                 if lastest.input_price > 0 and lastest.output_price > 0:
                     stat.total_cost += (
-                        ceil(stat.input_cumulative_total / 1000) * lastest.input_price
+                        ceil(stat.input_cumulative_total // 1000 + 1)
+                        * lastest.input_price
                     )
                     stat.total_cost += (
-                        ceil(stat.output_cumulative_total / 1000) * lastest.output_price
+                        ceil(stat.output_cumulative_total // 1000 + 1)
+                        * lastest.output_price
                     )
                 else:
                     stat.total_cost = (
-                        stat.input_cumulative_total + stat.output_cumulative_total
+                        (stat.input_cumulative_total + stat.output_cumulative_total)
+                        // 1000
+                        + 1
                     ) * lastest.total_price
-    
+
         return stats
     except Exception as e:
         return {"error": str(e)}
@@ -338,13 +346,13 @@ async def get_transaction_status_statistics_over_time(
 
     :param ctx: The transaction context, providing access to dependencies (automatically applied).\n
     :param project_id: The unique identifier of the project.\n
-    :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the 
+    :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the
         beginning of the project's existence).\n
-    :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the 
+    :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely. 
+    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
         (default is "daily").\n
-    :return: A list of GetTransactionStatusStatisticsSchema (date, status_code, total_transactions) representing the 
+    :return: A list of GetTransactionStatusStatisticsSchema (date, status_code, total_transactions) representing the
         status statistics.\n
     """
     try:
@@ -363,14 +371,16 @@ async def get_transaction_status_statistics_over_time(
                 total_output_tokens=transaction.output_tokens or 0,
                 status_code=transaction.status_code,
                 date=transaction.response_time,
-                latency=(transaction.response_time - transaction.request_time).total_seconds(),
+                latency=(
+                    transaction.response_time - transaction.request_time
+                ).total_seconds(),
                 generation_speed=transaction.generation_speed,
                 total_transactions=1,
             )
             for transaction in transactions
         ]
         stats = utils.status_counter_for_transactions(transactions, period)
-    
+
         return stats
     except Exception as e:
         return {"error": str(e)}
@@ -392,13 +402,13 @@ async def get_transaction_latency_statistics_over_time(
 
     :param ctx: The transaction context, providing access to dependencies (automatically applied).\n
     :param project_id: The unique identifier of the project.\n
-    :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the 
+    :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the
         beginning of the project's existence).\n
-    :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the 
+    :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely. 
+    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
         (default is "daily").\n
-    :return: A list of GetTransactionLatencyStatisticsSchema (provider, model, date, mean_latency, tokens_per_second, 
+    :return: A list of GetTransactionLatencyStatisticsSchema (provider, model, date, mean_latency, tokens_per_second,
         total_transactions) representing the generation speed and latency statistics.\n
     """
     try:
@@ -417,14 +427,16 @@ async def get_transaction_latency_statistics_over_time(
                 total_output_tokens=transaction.output_tokens or 0,
                 status_code=transaction.status_code,
                 date=transaction.response_time,
-                latency=(transaction.response_time - transaction.request_time).total_seconds(),
+                latency=(
+                    transaction.response_time - transaction.request_time
+                ).total_seconds(),
                 generation_speed=transaction.generation_speed,
                 total_transactions=1,
             )
             for transaction in transactions
         ]
         stats = utils.latency_counter_for_transactions(transactions, period)
-    
+
         return stats
     except Exception as e:
         return {"error": str(e)}
