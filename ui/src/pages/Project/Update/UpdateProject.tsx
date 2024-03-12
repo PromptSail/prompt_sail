@@ -1,7 +1,7 @@
-import { useUpdateProject } from '../../api/queries';
-import { updateProjectRequest } from '../../api/interfaces';
-import ProjectForm from './ProjectForm';
-import { FormikValues } from './types';
+import { useUpdateProject } from '../../../api/queries';
+import { updateProjectRequest } from '../../../api/interfaces';
+import ProjectForm from '../../../components/ProjectForms/ProjectForm';
+import { FormikValues } from '../../../components/ProjectForms/types';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const UpdateProject: React.FC = () => {

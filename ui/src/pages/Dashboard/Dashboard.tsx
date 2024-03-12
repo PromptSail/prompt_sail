@@ -5,6 +5,7 @@ import { getAllProjects } from '../../api/interfaces';
 import { useGetAllProjects } from '../../api/queries';
 import { AppstoreOutlined, BarsOutlined, TableOutlined } from '@ant-design/icons';
 import TableDashboard from './TableDashboard';
+import { Link } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
@@ -85,32 +86,27 @@ const Dashboard = () => {
                         </Flex>
                         {dashView != 'table' && (
                             <>
-                                <Card
-                                    hoverable
-                                    styles={{ body: { height: '100%' } }}
+                                <Link
+                                    to="/projects/add"
                                     style={{
                                         gridColumn: `${dashView == 'list' ? '1 / -1' : 'auto'}`
                                     }}
                                 >
-                                    <Space
-                                        style={{
-                                            height: '100%',
-                                            width: '100%',
-                                            justifyContent: 'center'
-                                        }}
+                                    <Card
+                                        hoverable
+                                        className="h-full w-full"
+                                        styles={{ body: { height: '100%' } }}
                                     >
-                                        <Title
-                                            level={2}
-                                            style={{
-                                                ...titleStyles,
-                                                textAlign: 'center',
-                                                opacity: 0.5
-                                            }}
-                                        >
-                                            Add new project +
-                                        </Title>
-                                    </Space>
-                                </Card>
+                                        <Space className="h-full w-full justify-center">
+                                            <Title
+                                                level={2}
+                                                className="!m-0 text-center opacity-50"
+                                            >
+                                                Add new project +
+                                            </Title>
+                                        </Space>
+                                    </Card>
+                                </Link>
                                 {filteredProjects.map((e) => (
                                     <ProjectTile
                                         data={e}

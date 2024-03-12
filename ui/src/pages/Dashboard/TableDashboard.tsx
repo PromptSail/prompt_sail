@@ -101,7 +101,7 @@ const TableContainer: React.FC<Props> = ({ data }) => {
                 <Table.Summary fixed="top">
                     <Table.Summary.Row>
                         <Table.Summary.Cell index={0} colSpan={5}>
-                            <Link to={''}>
+                            <Link to={'/projects/add'}>
                                 <Card
                                     hoverable
                                     styles={{ body: { height: '100%', padding: '10px 24px' } }}
