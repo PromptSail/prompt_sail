@@ -74,7 +74,7 @@ def test_get_project_happy_path(client, application):
     # assert
     assert response.status_code == 200
     assert response.json() == dict(
-        id="project1", total_transactions=0 **test_obj
+        id="project1", total_transactions=0, **test_obj
     )
 
 
