@@ -1,9 +1,10 @@
 import json
+import random
 from collections import OrderedDict
-from datetime import datetime
 from urllib.parse import parse_qs, unquote, urlparse
 
 import pandas as pd
+from _datetime import datetime, timedelta, timezone
 from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
@@ -202,38 +203,57 @@ def token_counter_for_transactions(
     Calculate token usage statistics based on a given period.
 
     This function takes a list of transactions and calculates token usage statistics
-    aggregated over the specified period (weekly, monthly, or daily).
+    aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
 
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
-    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :param period: A string indicating the aggregation period.
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
     :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
-    if period == "weekly":
-        period = "W-Mon"
-    elif period == "monthly":
-        period = "ME"
-    else:
-        period = "D"
-    result = df.groupby(["provider", "model"]).resample(period).sum()
+    period = pandas_period_from_string(period)
+    result = (
+        df.groupby(["provider", "model"])
+        .resample(period)
+        .agg(
+            {
+                "project_id": "first",
+                "provider": "first",
+                "model": "first",
+                "total_input_tokens": "sum",
+                "total_output_tokens": "sum",
+                "status_code": "sum",
+                "latency": "sum",
+                "total_transactions": "sum",
+                "generation_speed": "sum",
+            }
+        )
+    )
 
     del result["provider"]
     del result["model"]
 
     result = result.reset_index()
 
+    result["output_cumulative_total"] = result.groupby(["provider", "model"])[
+        "total_output_tokens"
+    ].cumsum()
+    result["input_cumulative_total"] = result.groupby(["provider", "model"])[
+        "total_input_tokens"
+    ].cumsum()
     data_dicts = result.to_dict(orient="records")
 
     result_list = [
         GetTransactionUsageStatisticsSchema(
-            project_id=str(data["project_id"]),
             provider=data["provider"],
             model=data["model"],
             date=data["date"],
             total_input_tokens=data["total_input_tokens"],
             total_output_tokens=data["total_output_tokens"],
+            input_cumulative_total=data["input_cumulative_total"],
+            output_cumulative_total=data["output_cumulative_total"],
             total_transactions=data["total_transactions"],
             total_cost=0,
         )
@@ -250,25 +270,38 @@ def status_counter_for_transactions(
     Calculate transaction status statistics based on a given period.
 
     This function takes a list of transactions and calculates statistics
-    on transaction statuses aggregated over the specified period (weekly, monthly, or daily).
+    on transaction statuses aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
 
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
-    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :param period: A string indicating the aggregation period.
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
     :return: A list of GetTransactionStatusStatisticsSchema objects containing status statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
+    for x in range(len(data_dicts)):
+        data_dicts[x]["status_code"] = (data_dicts[x]["status_code"] // 100) * 100
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
-    if period == "weekly":
-        period = "W-Mon"
-    elif period == "monthly":
-        period = "ME"
-    else:
-        period = "D"
-    result = df.groupby(["provider", "model", "status_code"]).resample(period).sum()
+    period = pandas_period_from_string(period)
 
-    del result["provider"]
-    del result["model"]
+    result = (
+        df.groupby(["status_code"])
+        .resample(period)
+        .agg(
+            {
+                "project_id": "first",
+                "provider": "first",
+                "model": "first",
+                "total_input_tokens": "sum",
+                "total_output_tokens": "sum",
+                "status_code": "first",
+                "latency": "sum",
+                "total_transactions": "sum",
+                "generation_speed": "sum",
+            }
+        )
+    )
+
     del result["status_code"]
 
     result = result.reset_index()
@@ -277,9 +310,6 @@ def status_counter_for_transactions(
 
     result_list = [
         GetTransactionStatusStatisticsSchema(
-            project_id=str(data["project_id"]),
-            provider=data["provider"],
-            model=data["model"],
             date=data["date"],
             status_code=data["status_code"],
             total_transactions=data["total_transactions"],
@@ -297,22 +327,34 @@ def latency_counter_for_transactions(
     Calculate transaction latency statistics based on a given period.
 
     This function takes a list of transactions and calculates statistics
-    on transaction latency aggregated over the specified period (weekly, monthly, or daily).
+    on transaction latency aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
 
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
-    :param period: A string indicating the aggregation period. Choose from 'weekly', 'monthly', or 'daily'.
+    :param period: A string indicating the aggregation period.
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
     :return: A list of GetTransactionLatencyStatisticsSchema objects containing latency statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
-    if period == "weekly":
-        period = "W-Mon"
-    elif period == "monthly":
-        period = "ME"
-    else:
-        period = "D"
-    result = df.groupby(["provider", "model"]).resample(period).sum()
+    period = pandas_period_from_string(period)
+    result = (
+        df.groupby(["provider", "model"])
+        .resample(period)
+        .agg(
+            {
+                "project_id": "first",
+                "provider": "first",
+                "model": "first",
+                "total_input_tokens": "sum",
+                "total_output_tokens": "sum",
+                "status_code": "first",
+                "latency": "sum",
+                "total_transactions": "sum",
+                "generation_speed": "sum",
+            }
+        )
+    )
 
     del result["provider"]
     del result["model"]
@@ -320,15 +362,16 @@ def latency_counter_for_transactions(
     result = result.reset_index()
 
     data_dicts = result.to_dict(orient="records")
-
     result_list = [
         GetTransactionLatencyStatisticsSchema(
-            project_id=str(data["project_id"]),
             provider=data["provider"],
             model=data["model"],
             date=data["date"],
-            latency=data["latency"].seconds / data["total_transactions"]
-            if data["latency"].seconds > 0
+            mean_latency=data["latency"].total_seconds() / data["total_transactions"]
+            if data["latency"].total_seconds() > 0
+            else 0,
+            tokens_per_second=data["generation_speed"] / data["total_transactions"]
+            if data["generation_speed"] > 0 and data["total_transactions"] > 0
             else 0,
             total_transactions=data["total_transactions"],
         )
@@ -446,6 +489,61 @@ class OrderedSet(OrderedDict):
         """
         for item in iterable:
             self.add(item)
+
+
+def pandas_period_from_string(period: str):
+    if period == "weekly":
+        return "W-Mon"
+    if period == "monthly":
+        return "ME"
+    if period == "yearly":
+        return "YE"
+    if period == "hourly":
+        return "H"
+    if period == "minutely":
+        return "5T"
+    return "D"
+
+
+def generate_mock_transactions(n: int):
+    providers = ["Azure", "OpenAI"]
+    models = ["gpt-3.5-turbo", "gpt-4", "text-davinci-001"]
+    status_codes = [200, 300, 400, 500]
+
+    transactions = []
+
+    for x in range(0, n):
+        transaction_id = f"transaction-{x}"
+        input_tokens = random.randint(5, 25)
+        output_tokens = random.randint(200, 800)
+        new_timedelta = random.randint(0, 30)
+        start_date = datetime.now(tz=timezone.utc) - timedelta(days=new_timedelta)
+        stop_date = start_date + timedelta(seconds=random.randint(1, 6))
+        transactions.append(
+            {
+                "id": transaction_id,
+                "project_id": "project-test",
+                "request": {},
+                "response": {},
+                "tags": ["tag1", "tag2", "tag3"],
+                "provider": random.choice(providers),
+                "model": random.choice(models),
+                "type": "chat",
+                "os": None,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "library": "PostmanRuntime/7.36.3",
+                "status_code": random.choice(status_codes),
+                "message": "",
+                "prompt": "",
+                "error_message": None,
+                "request_time": start_date,
+                "response_time": stop_date,
+                "generation_speed": output_tokens
+                / (stop_date - start_date).total_seconds(),
+            }
+        )
+    return transactions
 
 
 known_ai_providers = [

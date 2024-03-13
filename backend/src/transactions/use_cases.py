@@ -1,6 +1,6 @@
 import json
-from datetime import datetime
 
+from _datetime import datetime, timezone
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 from utils import create_transaction_query_from_filters, req_resp_to_transaction_parser
@@ -196,6 +196,10 @@ def store_transaction(
         message=params["message"],
         error_message=params["error_message"],
         request_time=request_time,
+        generation_speed=params["output_tokens"]
+        / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
+        if params["output_tokens"] > 0
+        else 0,
     )
 
     transaction_repository.add(transaction)

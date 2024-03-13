@@ -1,3 +1,5 @@
+from utils import generate_mock_transactions
+
 test_obj = {
     "name": "Autotest",
     "slug": "autotest1",
@@ -28,7 +30,6 @@ def test_create_project_returns_201(client, application):
     assert_obj = test_obj.copy()
     assert_obj["id"] = response.json()["id"]
     assert_obj["total_transactions"] = response.json()["total_transactions"]
-    assert_obj["total_tokens_usage"] = response.json()["total_tokens_usage"]
     assert response.json() == assert_obj
 
 
@@ -74,9 +75,7 @@ def test_get_project_happy_path(client, application):
 
     # assert
     assert response.status_code == 200
-    assert response.json() == dict(
-        id="project1", total_transactions=0, total_tokens_usage=0, **test_obj
-    )
+    assert response.json() == dict(id="project1", total_transactions=0, **test_obj)
 
 
 def test_update_project(client, application):
@@ -94,7 +93,7 @@ def test_update_project(client, application):
     # assert
     assert response.status_code == 200
     assert response.json() == test_obj | dict(
-        id=project_id, total_transactions=0, total_tokens_usage=0, name="Autotest2"
+        id=project_id, total_transactions=0, name="Autotest2"
     )
 
 
@@ -139,6 +138,92 @@ def test_get_projects(client, application):
 
     # assert
     assert result.status_code == 200
-    assert result.json() == [
-        dict(id=project_id, total_transactions=0, total_tokens_usage=0, **test_obj)
-    ]
+    assert result.json() == [dict(id=project_id, total_transactions=0, **test_obj)]
+
+
+def test_usage_statistics(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        import re
+
+        from transactions.models import Transaction
+
+        repo = ctx["transaction_repository"]
+        transactions = generate_mock_transactions(100)
+        for transaction in transactions:
+            repo.add(Transaction(**transaction))
+
+    # act
+    result = client.get("/api/statistics/usage?project_id=project-test&period=yearly")
+    pricelist = client.get("/api/statistics/pricelist")
+
+    # assert
+    price = [
+        price
+        for price in pricelist.json()
+        if re.match(price["match_pattern"], result.json()[0]["model"])
+    ][0]
+    assert result.status_code == 200
+    assert len(result.json()) == len(
+        set([(res["provider"], res["model"]) for res in result.json()])
+    )
+    assert (
+        result.json()[0]["total_cost"]
+        == (result.json()[0]["input_cumulative_total"] // 1000 + 1)
+        * price["input_price"]
+        + (result.json()[0]["output_cumulative_total"] // 1000 + 1)
+        * price["output_price"]
+        if result.json()[0]["input_cumulative_total"] > 0
+        and result.json()[0]["output_cumulative_total"] > 0
+        else (
+            (
+                result.json()[0]["input_cumulative_total"]
+                + result.json()[0]["output_cumulative_total"]
+            )
+            // 1000
+            + 1
+        )
+        * price["total_price"]
+    )
+
+
+def test_statuses_statistics(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        from transactions.models import Transaction
+
+        repo = ctx["transaction_repository"]
+        transactions = generate_mock_transactions(100)
+        for transaction in transactions:
+            repo.add(Transaction(**transaction))
+
+    # act
+    result = client.get(
+        "/api/statistics/statuses?project_id=project-test&period=yearly"
+    )
+
+    # assert
+    assert result.status_code == 200
+    assert len(result.json()) == len(
+        set([stat["status_code"] for stat in result.json()])
+    )
+
+
+def test_latency_statistics(client, application):
+    # arrange
+    with application.transaction_context() as ctx:
+        from transactions.models import Transaction
+
+        repo = ctx["transaction_repository"]
+        transactions = generate_mock_transactions(100)
+        for transaction in transactions:
+            repo.add(Transaction(**transaction))
+
+    # act
+    result = client.get("/api/statistics/latency?project_id=project-test&period=yearly")
+
+    # assert
+    assert result.status_code == 200
+    assert len(result.json()) == len(
+        set([(res["provider"], res["model"]) for res in result.json()])
+    )

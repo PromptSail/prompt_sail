@@ -22,6 +22,7 @@ class GetTransactionSchema(BaseModel):
     error_message: str | None
     request_time: datetime
     response_time: datetime
+    generation_speed: int | float
     tags: list[str]
 
 
@@ -44,6 +45,7 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     error_message: str | None
     request_time: datetime
     response_time: datetime
+    generation_speed: int | float
     tags: list[str]
 
 
@@ -57,34 +59,33 @@ class StatisticTransactionSchema(BaseModel):
     latency: timedelta
     date: datetime
     total_transactions: int
+    generation_speed: int | float
 
 
 class GetTransactionUsageStatisticsSchema(BaseModel):
-    project_id: str
     provider: str
     model: str
     date: datetime
     total_input_tokens: int
     total_output_tokens: int
+    input_cumulative_total: int
+    output_cumulative_total: int
     total_transactions: int
     total_cost: float
 
 
 class GetTransactionStatusStatisticsSchema(BaseModel):
-    project_id: str
-    provider: str
-    model: str
     date: datetime
     status_code: int
     total_transactions: int
 
 
 class GetTransactionLatencyStatisticsSchema(BaseModel):
-    project_id: str
     provider: str
     model: str
     date: datetime
-    latency: timedelta | int | float
+    mean_latency: timedelta | int | float
+    tokens_per_second: int | float
     total_transactions: int
 
 
