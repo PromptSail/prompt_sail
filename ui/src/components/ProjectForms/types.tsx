@@ -11,6 +11,6 @@ export const FormikValues = {
             provider_name: ''
         }
     ],
-    tags: '',
+    tags: [] as string[],
     org_id: ''
 };

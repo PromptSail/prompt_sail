@@ -1,45 +1,60 @@
-import { Button, Form, InputGroup } from 'react-bootstrap';
-import { SetStateAction, useRef } from 'react';
+import { SetStateAction } from 'react';
 import { TransactionsFilters } from '../../../api/types';
+import { Select, Tag } from 'antd';
 
 interface Props {
-    tags: string | undefined;
-    setFilters: (length: SetStateAction<TransactionsFilters>) => void;
-    setNewParam: (param: { [key: string]: string }) => void;
+    defaultValue: string;
+    setFilters: (args: SetStateAction<TransactionsFilters>) => void;
+    setTags: (tags: string) => void;
 }
 
-const FilterTags: React.FC<Props> = ({ tags, setFilters, setNewParam }) => {
-    const tagsInput = useRef(null);
+const FilterTags: React.FC<Props> = ({ defaultValue, setFilters, setTags }) => {
+    const options = [
+        {
+            value: 'tag1'
+        },
+        {
+            value: 'tag2'
+        },
+        {
+            value: 'tag3'
+        },
+        {
+            value: 'tag4'
+        },
+        {
+            value: 'tag5'
+        },
+        {
+            value: 'tag6'
+        }
+    ];
+    const defaults: typeof options = [];
+    if (defaultValue.length > 0)
+        defaultValue.split(',').map((el) => {
+            defaults.push({ value: el });
+        });
     return (
-        <div className="tags">
-            <InputGroup size="sm">
-                <Form.Control
-                    placeholder="tags"
-                    aria-label="tags"
-                    aria-describedby="basic-addon2"
-                    ref={tagsInput}
-                    defaultValue={tags}
-                />
-                <Button
-                    style={{ background: '#71aaff' }}
-                    variant="primary"
-                    id="tagsSelect"
-                    onClick={() => {
-                        const tags = (
-                            tagsInput.current as unknown as HTMLInputElement
-                        ).value.replace(/ /g, '');
-                        setFilters((old) => ({
-                            ...old,
-                            tags,
-                            page: '1'
-                        }));
-                        setNewParam({ tags });
-                    }}
-                >
-                    Search
-                </Button>
-            </InputGroup>
-        </div>
+        <Select
+            mode="tags"
+            allowClear
+            style={{ width: 250 }}
+            tagRender={({ value, closable, onClose }) => {
+                return (
+                    <Tag color="magenta" closable={closable} onClose={onClose}>
+                        {value}
+                    </Tag>
+                );
+            }}
+            onChange={(e) => {
+                const tags = e.join(',');
+                setFilters((old) => ({ ...old, tags }));
+                setTags(tags);
+            }}
+            placeholder="Select tags"
+            defaultValue={defaults}
+            options={options}
+        />
     );
 };
 export default FilterTags;

@@ -21,15 +21,16 @@ export interface getAllProjects {
     slug: string;
     description: string;
     ai_providers: {
-        api_base: string;
-        slug: string;
-        provider_name: string;
         deployment_name: string;
+        slug: string;
+        api_base: string;
         description: string;
+        provider_name: string;
     }[];
     tags: string[];
     org_id: string | undefined;
     total_transactions: number;
+    total_tokens_usage: number;
 }
 
 export interface getProjectResponse extends getAllProjects {}
