@@ -2,7 +2,9 @@ import { useAddProject } from '../../../api/queries';
 import ProjectForm from '../../../components/ProjectForms/ProjectForm';
 import { FormikValues } from '../../../components/ProjectForms/types';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from 'antd';
+import { Button, Typography } from 'antd';
+
+const { Title } = Typography;
 
 const AddProject: React.FC = () => {
     const addProject = useAddProject();
@@ -22,9 +24,11 @@ const AddProject: React.FC = () => {
             });
     };
     return (
-        <div className="w-full max-w-[800px] m-auto flex flex-col gap-3">
+        <div className="w-full max-w-[800px] mx-auto flex flex-col gap-3">
             <div>
-                <h1>Create project</h1>
+                <Title level={1} className="!m-0">
+                    Create project
+                </Title>
                 <Link to="https://promptsail.github.io/prompt_sail/docs/how-to-create-a-new-project">
                     How to create a new project
                 </Link>

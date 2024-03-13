@@ -17,7 +17,7 @@ const App = () => {
     if (isLogged) {
         return (
             <>
-                <Layout>
+                <Layout className="h-screen">
                     <Sidebar setLoginState={setLoginState} />
                     <Layout style={{ marginLeft: '250px', padding: '0 50px' }}>
                         <Routes>
