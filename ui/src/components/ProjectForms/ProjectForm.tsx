@@ -1,5 +1,5 @@
 import { useFormik } from 'formik';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import ProviderFormAndList from './ProviderFormAndList/ProviderFormAndList';
 import { projectSchema } from '../../api/formSchemas';
 import { useGetAllProjects } from '../../api/queries';
@@ -16,7 +16,6 @@ interface Props {
 
 const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
     const projects = useGetAllProjects();
-    const slugInput = useRef(null);
     const [isSlugGenerated, setSlugGenerate] = useState(true);
     const formik = useFormik({
         initialValues: {
@@ -95,13 +94,14 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
             }
         ];
         return (
-            <div className="forms">
+            <div className="flex flex-col gap-3">
                 <Container header="Project details">
                     <Form
                         name="project_details"
                         id={formId}
                         layout="vertical"
                         onSubmitCapture={formik.handleSubmit}
+                        initialValues={{ tags: formik.values.tags, name: 'asdasd' }}
                         onFinishFailed={() => console.log(formik.errors)}
                         autoComplete="on"
                         noValidate={true}
@@ -138,9 +138,8 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                                 >
                                     <Input
                                         name="slug"
-                                        value={formik.values.slug}
                                         onKeyDown={() => setSlugGenerate(false)}
-                                        ref={slugInput}
+                                        value={formik.values.slug}
                                         onBlur={(e) => {
                                             const val = e.currentTarget.value;
                                             if (val.length < 1) setSlugGenerate(true);
@@ -164,13 +163,13 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                         </Form.Item>
                         <Form.Item<typeof FormikValues>
                             label="Tags"
-                            name="tags"
                             validateStatus={formik.errors.tags ? 'error' : ''}
                             help={formik.errors.tags}
                         >
                             <Select
                                 mode="tags"
                                 allowClear
+                                value={formik.values.tags}
                                 tagRender={({ value, closable, onClose }) => {
                                     return (
                                         <Tag color="magenta" closable={closable} onClose={onClose}>
@@ -185,7 +184,6 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                                             name: 'tags'
                                         }
                                     });
-                                    console.log(formik.values.tags);
                                 }}
                                 options={options}
                             />

@@ -1,21 +1,17 @@
 import { useUpdateProject } from '../../../api/queries';
-import { updateProjectRequest } from '../../../api/interfaces';
 import ProjectForm from '../../../components/ProjectForms/ProjectForm';
 import { FormikValues } from '../../../components/ProjectForms/types';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Button } from 'antd';
 
 const UpdateProject: React.FC = () => {
     const updateProject = useUpdateProject();
     const projectId = useParams().projectId || '';
     const navigate = useNavigate();
     const submit = async (values: typeof FormikValues) => {
-        const reqValues: updateProjectRequest = {
-            ...values,
-            tags: values.tags.replace(/\s/g, '').split(',')
-        };
         updateProject
             .mutateAsync(
-                { id: projectId, data: reqValues },
+                { id: projectId, data: values },
                 {
                     onError: (err) => {
                         alert(`${err.code} ${err.message}`);
@@ -27,12 +23,12 @@ const UpdateProject: React.FC = () => {
             });
     };
     return (
-        <div className="projectForm__update">
+        <div className="w-full max-w-[800px] m-auto flex flex-col gap-3">
             <h1>Update project</h1>
             <ProjectForm formId="ProjectUpdate" submitFunc={submit} projectId={projectId} />
-            <button type="submit" className="mt-2" form="ProjectUpdate">
+            <Button type="primary" htmlType="submit" form="ProjectUpdate" block>
                 Update
-            </button>
+            </Button>
         </div>
     );
 };

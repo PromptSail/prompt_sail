@@ -53,7 +53,10 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                         >
                             Help
                         </Button>
-                        <Button type="primary" onClick={() => navigate('/projects/add')}>
+                        <Button
+                            type="primary"
+                            onClick={() => navigate(`/projects/${data.id}/update`)}
+                        >
                             Edit
                         </Button>
                         <DeleteProject name={data.name} projectId={data.id} />
