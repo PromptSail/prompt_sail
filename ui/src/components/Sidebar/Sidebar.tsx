@@ -1,9 +1,15 @@
 import { Button, Flex, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';
+import { SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { checkLogin } from '../../storage/login';
 const { Text } = Typography;
 
-const Sidebar = () => {
+interface Props {
+    setLoginState: (arg: SetStateAction<boolean>) => void;
+}
+
+const Sidebar: React.FC<Props> = ({ setLoginState }) => {
     const navigate = useNavigate();
     return (
         <Sider
@@ -35,7 +41,15 @@ const Sidebar = () => {
                     </Flex>
                 </Flex>
                 <Flex className="bottom" vertical gap={20} style={{ padding: '10px' }}>
-                    <Button ghost>Log out</Button>
+                    <Button
+                        ghost
+                        onClick={() => {
+                            localStorage.removeItem('login');
+                            setLoginState(checkLogin());
+                        }}
+                    >
+                        Log out
+                    </Button>
                 </Flex>
             </Flex>
         </Sider>

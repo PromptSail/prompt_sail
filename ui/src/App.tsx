@@ -18,7 +18,7 @@ const App = () => {
         return (
             <>
                 <Layout>
-                    <Sidebar />
+                    <Sidebar setLoginState={setLoginState} />
                     <Layout style={{ marginLeft: '250px', padding: '0 50px' }}>
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
@@ -39,10 +39,12 @@ const App = () => {
         );
     } else
         return (
-            <Routes>
-                <Route path="/signin" element={<Signin setLoginState={setLoginState} />} />
-                <Route path="*" element={<Navigate to="/signin" />} />
-            </Routes>
+            <Layout className="h-screen">
+                <Routes>
+                    <Route path="/signin" element={<Signin setLoginState={setLoginState} />} />
+                    <Route path="*" element={<Navigate to="/signin" />} />
+                </Routes>
+            </Layout>
         );
 };
 
