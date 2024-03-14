@@ -1,8 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Project from './pages/Project/Project';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import Transactions from './pages/Transactions';
 import Sidebar from './components/Sidebar/Sidebar';
 
@@ -34,7 +32,6 @@ const App = () => {
                         </Routes>
                     </Layout>
                 </Layout>
-                <ToastContainer />
             </>
         );
     } else
