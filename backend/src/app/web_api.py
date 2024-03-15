@@ -3,7 +3,7 @@ from math import ceil
 from typing import Annotated, Any
 
 import utils
-from _datetime import datetime
+from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
@@ -509,3 +509,34 @@ async def authorize_user(
     ]:
         return {"status": 200, "message": "OK"}
     return {"status": 404, "message": "Not Found"}
+
+
+@app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse)
+async def mock_transactions(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    count: int,
+    days_back: int = 30,
+) -> dict[str, Any]:
+    """
+    API endpoint to mock transactions.
+
+    :param count: How many transactions you want to mock.
+    :param days_back: How many days back from now transactions should be added. 
+    :param ctx: The transaction context dependency.
+    :return: A dictionary containing the status and message (code and latency).
+    """
+    try:
+        time_start = datetime.now(tz=timezone.utc)
+        repo = ctx['transaction_repository']
+        mocked_transactions = utils.generate_mock_transactions(count, days_back)
+        for transaction in mocked_transactions:
+            repo.add(transaction)
+        time_stop = datetime.now(tz=timezone.utc)
+        
+        return {"status_code": 200, "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds."}
+        
+    except Exception as e:
+        return {"status_code": 500, "message": str(e)}
+    
+    
+    

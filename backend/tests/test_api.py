@@ -145,13 +145,11 @@ def test_usage_statistics(client, application):
     # arrange
     with application.transaction_context() as ctx:
         import re
-
-        from transactions.models import Transaction
-
+        
         repo = ctx["transaction_repository"]
         transactions = generate_mock_transactions(100)
         for transaction in transactions:
-            repo.add(Transaction(**transaction))
+            repo.add(transaction)
 
     # act
     result = client.get("/api/statistics/transactions_cost?project_id=project-test&period=yearly")
@@ -190,12 +188,10 @@ def test_usage_statistics(client, application):
 def test_statuses_statistics(client, application):
     # arrange
     with application.transaction_context() as ctx:
-        from transactions.models import Transaction
-
         repo = ctx["transaction_repository"]
         transactions = generate_mock_transactions(100)
         for transaction in transactions:
-            repo.add(Transaction(**transaction))
+            repo.add(transaction)
 
     # act
     result = client.get(
@@ -212,12 +208,10 @@ def test_statuses_statistics(client, application):
 def test_latency_statistics(client, application):
     # arrange
     with application.transaction_context() as ctx:
-        from transactions.models import Transaction
-
         repo = ctx["transaction_repository"]
         transactions = generate_mock_transactions(100)
         for transaction in transactions:
-            repo.add(Transaction(**transaction))
+            repo.add(transaction)
 
     # act
     result = client.get("/api/statistics/transactions_speed?project_id=project-test&period=yearly")
