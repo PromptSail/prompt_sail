@@ -3,7 +3,7 @@ import { getTransactionResponse } from '../../api/interfaces';
 import { Link } from 'react-router-dom';
 import { TagsContainer } from '../../helpers/dataContainer';
 import Container from '../Project/Container';
-import { CaretRightOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, CaretRightOutlined } from '@ant-design/icons';
 
 interface Props {
     data: getTransactionResponse;
@@ -46,19 +46,30 @@ const BasicInfo: React.FC<Props> = ({ data }) => {
             children: toLocalDate(data.response_time)
         },
         {
-            label: 'Rate',
-            children: `[${data.response.content.usage.prompt_tokens}+] [
-                ${data.response.content.usage.completion_tokens}]`
+            label: 'Tokens',
+            children: (
+                <span>
+                    {data.response.content.usage.completion_tokens} <ArrowRightOutlined />{' '}
+                    {data.response.content.usage.prompt_tokens} (Σ{' '}
+                    {data.response.content.usage.total_tokens})
+                </span>
+            )
         },
         {
             label: 'Tags',
             children: <TagsContainer tags={data.tags} />
         },
         {
-            label: 'Creadted by',
-            children: `${data.request.content.messages?.map((el, id) => (
-                <span key={id}>[{id > 0 ? `, ${el.role}` : `${el.role}`}]</span>
-            ))}`
+            label: 'Created by',
+            children: (
+                <>
+                    [
+                    {data.request.content.messages?.map((el, id) => (
+                        <span key={id}>{id > 0 ? `, ${el.role}` : `${el.role}`}</span>
+                    ))}
+                    ]
+                </>
+            )
         }
     ];
 
