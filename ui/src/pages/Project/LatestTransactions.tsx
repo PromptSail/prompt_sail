@@ -1,10 +1,10 @@
-import { Badge, Flex, Space, Table } from 'antd';
+import { Badge, Flex, Table, Tag, Tooltip } from 'antd';
 import { Link } from 'react-router-dom';
 import { TagsContainer } from '../../helpers/dataContainer';
 import { useEffect, useState } from 'react';
 import { DataType, columns } from '../../components/tables/columns';
 import { useGetAllTransactions } from '../../api/queries';
-import { ArrowRightOutlined, LinkOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined } from '@ant-design/icons';
 
 interface Props {
     projectId: string;
@@ -41,6 +41,24 @@ const LatestTransactions: React.FC<Props> = ({ projectId }) => {
                 return {
                     items: data.items.map((tr) => ({
                         key: tr.id,
+                        id: (
+                            <Link
+                                className="link"
+                                target="_blank"
+                                id={tr.id}
+                                to={`/transactions/${tr.id}`}
+                            >
+                                <Tooltip
+                                    placement="top"
+                                    title={tr.id}
+                                    overlayStyle={{ maxWidth: '500px' }}
+                                >
+                                    <Tag color="geekblue" className="m-0">
+                                        {tr.id.length > 10 ? tr.id.substring(0, 10) + '...' : tr.id}
+                                    </Tag>
+                                </Tooltip>
+                            </Link>
+                        ),
                         time: new Date(tr.request_time + 'Z')
                             .toLocaleString('pl-PL')
                             .padStart(20, '0'),
@@ -66,21 +84,12 @@ const LatestTransactions: React.FC<Props> = ({ projectId }) => {
                         model: tr.model,
                         tags: <TagsContainer tags={tr.tags} />,
                         cost: '$ 0.02',
-                        usage: (
-                            <Space>
-                                12 <ArrowRightOutlined /> 34 (Σ 46)
-                            </Space>
-                        ),
-                        more: (
-                            <Link
-                                className="link"
-                                target="_blank"
-                                id={tr.id}
-                                to={`/transactions/${tr.id}`}
-                            >
-                                <span>Details</span>&nbsp;
-                                <LinkOutlined />
-                            </Link>
+                        tokens: (
+                            <span>
+                                {tr.response.content.usage.completion_tokens} <ArrowRightOutlined />{' '}
+                                {tr.response.content.usage.prompt_tokens} (Σ{' '}
+                                {tr.response.content.usage.total_tokens})
+                            </span>
                         )
                     })),
                     page_index: data.page_index,
