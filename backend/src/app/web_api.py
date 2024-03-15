@@ -3,7 +3,7 @@ from math import ceil
 from typing import Annotated, Any
 
 import utils
-from _datetime import datetime, timezone
+from _datetime import datetime, timezone, timedelta
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
@@ -269,10 +269,11 @@ async def get_transaction_usage_statistics_over_time(
     """
 
     try:
-        if isinstance(date_from, str):
+        if isinstance(date_from, str) and len(date_from) == 10:
             date_from = datetime.strptime(date_from, '%Y-%m-%d')
-        if isinstance(date_to, str):
+        if isinstance(date_to, str) and len(date_to) == 10:
             date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
         
         transactions = ctx.call(
             get_list_of_filtered_transactions,
@@ -361,10 +362,11 @@ async def get_transaction_status_statistics_over_time(
         status statistics.\n
     """
     try:
-        if isinstance(date_from, str):
+        if isinstance(date_from, str) and len(date_from) == 10:
             date_from = datetime.strptime(date_from, '%Y-%m-%d')
-        if isinstance(date_to, str):
+        if isinstance(date_to, str) and len(date_to) == 10:
             date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
             
         transactions = ctx.call(
             get_list_of_filtered_transactions,
@@ -422,10 +424,11 @@ async def get_transaction_latency_statistics_over_time(
         total_transactions) representing the generation speed and latency statistics.\n
     """
     try:
-        if isinstance(date_from, str):
+        if isinstance(date_from, str) and len(date_from) == 10:
             date_from = datetime.strptime(date_from, '%Y-%m-%d')
-        if isinstance(date_to, str):
+        if isinstance(date_to, str) and len(date_to) == 10:
             date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
             
         transactions = ctx.call(
             get_list_of_filtered_transactions,

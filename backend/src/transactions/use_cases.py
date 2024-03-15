@@ -223,10 +223,6 @@ def get_list_of_filtered_transactions(
     :param transaction_repository: An instance of TransactionRepository for data retrieval.
     :return: A list of Transaction objects that meet the specified criteria.
     """
-    if date_from is not None and date_to is not None:
-        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-        print('date_from', date_from)
-        print('date_to', date_to)
     query = create_transaction_query_from_filters(
         date_from=date_from, date_to=date_to, project_id=project_id
     )
