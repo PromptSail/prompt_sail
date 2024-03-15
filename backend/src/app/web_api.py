@@ -242,8 +242,8 @@ async def get_transaction_usage_statistics_over_time(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
-    date_from: datetime | str | None = None,
-    date_to: datetime | str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
     period: str | None = "daily",
 ) -> list[GetTransactionUsageStatisticsSchema] | dict[str, str]:
     """
@@ -269,10 +269,7 @@ async def get_transaction_usage_statistics_over_time(
     """
 
     try:
-        if isinstance(date_from, str) and len(date_from) == 10:
-            date_from = datetime.strptime(date_from, '%Y-%m-%d')
-        if isinstance(date_to, str) and len(date_to) == 10:
-            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+        if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
         
         transactions = ctx.call(
@@ -281,6 +278,8 @@ async def get_transaction_usage_statistics_over_time(
             date_from=date_from,
             date_to=date_to,
         )
+        print(transactions)
+        
         transactions = [
             StatisticTransactionSchema(
                 project_id=project_id,
@@ -298,6 +297,8 @@ async def get_transaction_usage_statistics_over_time(
             )
             for transaction in transactions
         ]
+        
+        print(transactions)
 
         stats = utils.token_counter_for_transactions(transactions, period)
         pricelist = get_provider_pricelist(request)
@@ -362,10 +363,7 @@ async def get_transaction_status_statistics_over_time(
         status statistics.\n
     """
     try:
-        if isinstance(date_from, str) and len(date_from) == 10:
-            date_from = datetime.strptime(date_from, '%Y-%m-%d')
-        if isinstance(date_to, str) and len(date_to) == 10:
-            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+        if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
             
         transactions = ctx.call(
@@ -424,10 +422,7 @@ async def get_transaction_latency_statistics_over_time(
         total_transactions) representing the generation speed and latency statistics.\n
     """
     try:
-        if isinstance(date_from, str) and len(date_from) == 10:
-            date_from = datetime.strptime(date_from, '%Y-%m-%d')
-        if isinstance(date_to, str) and len(date_to) == 10:
-            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+        if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
             
         transactions = ctx.call(
