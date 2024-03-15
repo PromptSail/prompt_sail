@@ -145,16 +145,14 @@ def test_usage_statistics(client, application):
     # arrange
     with application.transaction_context() as ctx:
         import re
-
-        from transactions.models import Transaction
-
+        
         repo = ctx["transaction_repository"]
         transactions = generate_mock_transactions(100)
         for transaction in transactions:
-            repo.add(Transaction(**transaction))
+            repo.add(transaction)
 
     # act
-    result = client.get("/api/statistics/usage?project_id=project-test&period=yearly")
+    result = client.get("/api/statistics/transactions_cost?project_id=project-test&period=yearly")
     pricelist = client.get("/api/statistics/pricelist")
 
     # assert
@@ -190,16 +188,14 @@ def test_usage_statistics(client, application):
 def test_statuses_statistics(client, application):
     # arrange
     with application.transaction_context() as ctx:
-        from transactions.models import Transaction
-
         repo = ctx["transaction_repository"]
         transactions = generate_mock_transactions(100)
         for transaction in transactions:
-            repo.add(Transaction(**transaction))
+            repo.add(transaction)
 
     # act
     result = client.get(
-        "/api/statistics/statuses?project_id=project-test&period=yearly"
+        "/api/statistics/transactions_count?project_id=project-test&period=yearly"
     )
 
     # assert
@@ -212,15 +208,13 @@ def test_statuses_statistics(client, application):
 def test_latency_statistics(client, application):
     # arrange
     with application.transaction_context() as ctx:
-        from transactions.models import Transaction
-
         repo = ctx["transaction_repository"]
         transactions = generate_mock_transactions(100)
         for transaction in transactions:
-            repo.add(Transaction(**transaction))
+            repo.add(transaction)
 
     # act
-    result = client.get("/api/statistics/latency?project_id=project-test&period=yearly")
+    result = client.get("/api/statistics/transactions_speed?project_id=project-test&period=yearly")
 
     # assert
     assert result.status_code == 200

@@ -3,7 +3,7 @@ from math import ceil
 from typing import Annotated, Any
 
 import utils
-from _datetime import datetime
+from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
@@ -237,13 +237,13 @@ async def get_paginated_transactions(
     return page_response
 
 
-@app.get("/api/statistics/usage", response_class=JSONResponse)
+@app.get("/api/statistics/transactions_cost", response_class=JSONResponse)
 async def get_transaction_usage_statistics_over_time(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
-    date_from: datetime | None = None,
-    date_to: datetime | None = None,
+    date_from: datetime | str | None = None,
+    date_to: datetime | str | None = None,
     period: str | None = "daily",
 ) -> list[GetTransactionUsageStatisticsSchema] | dict[str, str]:
     """
@@ -269,6 +269,11 @@ async def get_transaction_usage_statistics_over_time(
     """
 
     try:
+        if isinstance(date_from, str):
+            date_from = datetime.strptime(date_from, '%Y-%m-%d')
+        if isinstance(date_to, str):
+            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+        
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -329,7 +334,7 @@ async def get_transaction_usage_statistics_over_time(
         return {"error": str(e)}
 
 
-@app.get("/api/statistics/statuses", response_class=JSONResponse)
+@app.get("/api/statistics/transactions_count", response_class=JSONResponse)
 async def get_transaction_status_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
@@ -356,6 +361,11 @@ async def get_transaction_status_statistics_over_time(
         status statistics.\n
     """
     try:
+        if isinstance(date_from, str):
+            date_from = datetime.strptime(date_from, '%Y-%m-%d')
+        if isinstance(date_to, str):
+            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -386,7 +396,7 @@ async def get_transaction_status_statistics_over_time(
         return {"error": str(e)}
 
 
-@app.get("/api/statistics/latency", response_class=JSONResponse)
+@app.get("/api/statistics/transactions_speed", response_class=JSONResponse)
 async def get_transaction_latency_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
@@ -412,6 +422,11 @@ async def get_transaction_latency_statistics_over_time(
         total_transactions) representing the generation speed and latency statistics.\n
     """
     try:
+        if isinstance(date_from, str):
+            date_from = datetime.strptime(date_from, '%Y-%m-%d')
+        if isinstance(date_to, str):
+            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -494,3 +509,34 @@ async def authorize_user(
     ]:
         return {"status": 200, "message": "OK"}
     return {"status": 404, "message": "Not Found"}
+
+
+@app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse)
+async def mock_transactions(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    count: int,
+    days_back: int = 30,
+) -> dict[str, Any]:
+    """
+    API endpoint to mock transactions.
+
+    :param count: How many transactions you want to mock.
+    :param days_back: How many days back from now transactions should be added. 
+    :param ctx: The transaction context dependency.
+    :return: A dictionary containing the status and message (code and latency).
+    """
+    try:
+        time_start = datetime.now(tz=timezone.utc)
+        repo = ctx['transaction_repository']
+        mocked_transactions = utils.generate_mock_transactions(count, days_back)
+        for transaction in mocked_transactions:
+            repo.add(transaction)
+        time_stop = datetime.now(tz=timezone.utc)
+        
+        return {"status_code": 200, "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds."}
+        
+    except Exception as e:
+        return {"status_code": 500, "message": str(e)}
+    
+    
+    
