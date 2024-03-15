@@ -30,7 +30,6 @@ from transactions.models import generate_uuid
 from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
     GetTransactionPageResponseSchema,
-    GetTransactionSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionUsageStatisticsSchema,
     GetTransactionWithProjectSlugSchema,
@@ -166,7 +165,7 @@ async def delete_existing_project(
 async def get_transaction_details(
     transaction_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
-) -> GetTransactionSchema:
+) -> GetTransactionWithProjectSlugSchema:
     """
     API endpoint to retrieve details of a specific transaction.
 
@@ -174,7 +173,8 @@ async def get_transaction_details(
     :param ctx: The transaction context dependency.
     """
     transaction = ctx.call(get_transaction, transaction_id=transaction_id)
-    transaction = GetTransactionSchema(**transaction.model_dump())
+    project = ctx.call(get_project, project_id=transaction.project_id)
+    transaction = GetTransactionWithProjectSlugSchema(**transaction.model_dump(), project_name=project.name)
     return transaction
 
 
