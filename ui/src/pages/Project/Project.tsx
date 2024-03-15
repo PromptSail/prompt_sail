@@ -70,11 +70,11 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                             <span>1</span>
                         </Flex>
                         <Flex justify="space-between">
-                            <span>Total tranasction:</span>
+                            <span>Total transactions:</span>
                             <span>{data.total_transactions}</span>
                         </Flex>
                         <Flex justify="space-between">
-                            <span>Total const:</span>
+                            <span>Total cost:</span>
                             <span>$ 1.00</span>
                         </Flex>
                         <Flex justify="space-between">
@@ -82,11 +82,11 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                             <TagsContainer tags={data.tags} classname="justify-end" />
                         </Flex>
                     </Container>
-                    <Container header="Ai Providers" classname="w-full">
+                    <Container header="AI Providers" classname="w-full">
                         <AiProvidersTable providers={data.ai_providers} slug={data.slug} />
                     </Container>
                 </Flex>
-                <Container header="Last transactions">
+                <Container header="Latest transactions">
                     <LatestTransactions projectId={data.id} />
                 </Container>
             </>
