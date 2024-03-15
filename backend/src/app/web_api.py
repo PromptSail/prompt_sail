@@ -242,8 +242,8 @@ async def get_transaction_usage_statistics_over_time(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
-    date_from: datetime | None = None,
-    date_to: datetime | None = None,
+    date_from: datetime | str | None = None,
+    date_to: datetime | str | None = None,
     period: str | None = "daily",
 ) -> list[GetTransactionUsageStatisticsSchema] | dict[str, str]:
     """
@@ -269,6 +269,11 @@ async def get_transaction_usage_statistics_over_time(
     """
 
     try:
+        if isinstance(date_from, str):
+            date_from = datetime.strptime(date_from, '%Y-%m-%d')
+        if isinstance(date_to, str):
+            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+        
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -356,6 +361,11 @@ async def get_transaction_status_statistics_over_time(
         status statistics.\n
     """
     try:
+        if isinstance(date_from, str):
+            date_from = datetime.strptime(date_from, '%Y-%m-%d')
+        if isinstance(date_to, str):
+            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -412,6 +422,11 @@ async def get_transaction_latency_statistics_over_time(
         total_transactions) representing the generation speed and latency statistics.\n
     """
     try:
+        if isinstance(date_from, str):
+            date_from = datetime.strptime(date_from, '%Y-%m-%d')
+        if isinstance(date_to, str):
+            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
