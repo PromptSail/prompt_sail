@@ -154,7 +154,7 @@ def test_usage_statistics(client, application):
             repo.add(Transaction(**transaction))
 
     # act
-    result = client.get("/api/statistics/usage?project_id=project-test&period=yearly")
+    result = client.get("/api/statistics/transactions_cost?project_id=project-test&period=yearly")
     pricelist = client.get("/api/statistics/pricelist")
 
     # assert
@@ -199,7 +199,7 @@ def test_statuses_statistics(client, application):
 
     # act
     result = client.get(
-        "/api/statistics/statuses?project_id=project-test&period=yearly"
+        "/api/statistics/transactions_count?project_id=project-test&period=yearly"
     )
 
     # assert
@@ -220,7 +220,7 @@ def test_latency_statistics(client, application):
             repo.add(Transaction(**transaction))
 
     # act
-    result = client.get("/api/statistics/latency?project_id=project-test&period=yearly")
+    result = client.get("/api/statistics/transactions_speed?project_id=project-test&period=yearly")
 
     # assert
     assert result.status_code == 200

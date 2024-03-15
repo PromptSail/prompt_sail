@@ -237,7 +237,7 @@ async def get_paginated_transactions(
     return page_response
 
 
-@app.get("/api/statistics/usage", response_class=JSONResponse)
+@app.get("/api/statistics/transactions_cost", response_class=JSONResponse)
 async def get_transaction_usage_statistics_over_time(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
@@ -329,7 +329,7 @@ async def get_transaction_usage_statistics_over_time(
         return {"error": str(e)}
 
 
-@app.get("/api/statistics/statuses", response_class=JSONResponse)
+@app.get("/api/statistics/transactions_count", response_class=JSONResponse)
 async def get_transaction_status_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
@@ -386,7 +386,7 @@ async def get_transaction_status_statistics_over_time(
         return {"error": str(e)}
 
 
-@app.get("/api/statistics/latency", response_class=JSONResponse)
+@app.get("/api/statistics/transactions_speed", response_class=JSONResponse)
 async def get_transaction_latency_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
