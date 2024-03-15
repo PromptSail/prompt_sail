@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Badge, Flex, Space, Table } from 'antd';
+import { Badge, Flex, Table, Tag, Tooltip } from 'antd';
 import { TagsContainer } from '../../../helpers/dataContainer';
-import { ArrowRightOutlined, LinkOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined } from '@ant-design/icons';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllTransactions } from '../../../api/queries';
@@ -40,6 +40,24 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                 return {
                     items: data.items.map((tr) => ({
                         key: tr.id,
+                        id: (
+                            <Link
+                                className="link"
+                                target="_blank"
+                                id={tr.id}
+                                to={`/transactions/${tr.id}`}
+                            >
+                                <Tooltip
+                                    placement="top"
+                                    title={tr.id}
+                                    overlayStyle={{ maxWidth: '500px' }}
+                                >
+                                    <Tag color="geekblue" className="m-0">
+                                        {tr.id.length > 10 ? tr.id.substring(0, 10) + '...' : tr.id}
+                                    </Tag>
+                                </Tooltip>
+                            </Link>
+                        ),
                         time: new Date(tr.request_time + 'Z')
                             .toLocaleString('pl-PL')
                             .padStart(20, '0'),
@@ -61,25 +79,16 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                         ),
                         status: <Badge status="success" text={tr.status_code} />,
                         project: <Link to={`/projects/${tr.project_id}`}>{tr.project_name}</Link>,
-                        aiProvider: 'OpenAI',
+                        aiProvider: tr.provider,
                         model: tr.model,
                         tags: <TagsContainer tags={tr.tags} />,
                         cost: '$ 0.02',
-                        usage: (
-                            <Space>
-                                12 <ArrowRightOutlined /> 34 (Σ 46)
-                            </Space>
-                        ),
-                        more: (
-                            <Link
-                                className="link"
-                                target="_blank"
-                                id={tr.id}
-                                to={`/transactions/${tr.id}`}
-                            >
-                                <span>Details</span>&nbsp;
-                                <LinkOutlined />
-                            </Link>
+                        tokens: (
+                            <span>
+                                {tr.response.content.usage.completion_tokens} <ArrowRightOutlined />{' '}
+                                {tr.response.content.usage.prompt_tokens} (Σ{' '}
+                                {tr.response.content.usage.total_tokens})
+                            </span>
                         )
                     })),
                     page_index: data.page_index,

@@ -1,5 +1,6 @@
 export interface DataType {
     key: React.Key;
+    id: React.ReactNode;
     time: string;
     latency: string;
     messages: React.ReactNode;
@@ -9,11 +10,16 @@ export interface DataType {
     model: string;
     tags: React.ReactNode;
     cost: string;
-    usage: React.ReactNode;
-    more: React.ReactNode;
+    tokens: React.ReactNode;
 }
 
 export const columns = [
+    {
+        title: 'ID',
+        dataIndex: 'id',
+        key: 'id',
+        width: 120
+    },
     {
         title: 'Time',
         dataIndex: 'time',
@@ -69,15 +75,9 @@ export const columns = [
         width: 100
     },
     {
-        title: 'Usage',
-        dataIndex: 'usage',
-        key: 'usage',
+        title: 'Tokens',
+        dataIndex: 'tokens',
+        key: 'tokens',
         width: 150
-    },
-    {
-        title: 'More',
-        dataIndex: 'more',
-        key: 'more',
-        width: 100
     }
 ];

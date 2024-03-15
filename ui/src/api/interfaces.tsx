@@ -67,6 +67,7 @@ export interface getTransactionResponse {
     response: {
         [key: string]: any;
     };
+    provider: string;
     model: string;
     type: string;
     os: string | null;
