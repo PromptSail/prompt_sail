@@ -6,10 +6,17 @@ import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllTransactions } from '../../../api/queries';
 import { DataType, columns } from '../columns';
+import { SorterResult } from 'antd/es/table/interface';
 
 interface Props {
     filters: TransactionsFilters;
     setFilters: Dispatch<SetStateAction<TransactionsFilters>>;
+}
+
+interface sortWithApiCol extends SorterResult<DataType> {
+    column?: SorterResult<DataType>['column'] & {
+        apiCol: TransactionsFilters['sort_field'];
+    };
 }
 
 const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
@@ -115,6 +122,14 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                 showSizeChanger: true,
                 pageSize: tableData.page_size,
                 pageSizeOptions: [5, 10, 20, 50]
+            }}
+            onChange={(_pagination, _filters, sorter) => {
+                const sortData = sorter as sortWithApiCol;
+                setFilters((old) => ({
+                    ...old,
+                    sort_field: sortData.column ? sortData.column.apiCol : '',
+                    sort_type: sortData.order === 'ascend' ? 'asc' : ''
+                }));
             }}
             scroll={{ y: 'true' }}
             className="overflow-y-hidden"
