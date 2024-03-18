@@ -225,6 +225,8 @@ async def get_paginated_transactions(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    sort_field: str | None = None,
+    sort_type: str | None = None,
 ) -> GetTransactionPageResponseSchema:
     """
     API endpoint to retrieve a paginated list of transactions based on specified filters.
@@ -237,6 +239,8 @@ async def get_paginated_transactions(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
+    :param sort_field: Optional. Field to sort by.
+    :param sort_type: Optional. Ordering method (asc or desc).
     """
     if tags is not None:
         tags = tags.split(",")
@@ -249,6 +253,8 @@ async def get_paginated_transactions(
         date_from=date_from,
         date_to=date_to,
         project_id=project_id,
+        sort_field=sort_field,
+        sort_type=sort_type,
     )
 
     price_list = get_provider_pricelist(request)
