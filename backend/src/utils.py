@@ -168,9 +168,15 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     if "openai.azure.com" in url and "completions" in url:
         transaction_params["type"] = "chat"
         transaction_params["provider"] = "Azure"
-        transaction_params["prompt"] = request_content["messages"][0]["content"]
+        prompt = [
+            message["content"]
+            for message in request_content["messages"]
+            if message["role"] == "user"
+        ][0]
+        transaction_params["prompt"] = (
+            prompt if prompt else request_content["messages"][0]["content"]
+        )
         if response.__dict__["status_code"] > 200:
-            # transaction_params["error_message"] = response_content["message"]
             transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["message"] = None
         else:
@@ -183,7 +189,15 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     if "api.openai.com" in url and "completions" in url:
         transaction_params["type"] = "chat"
         transaction_params["provider"] = "OpenAI"
-        transaction_params["prompt"] = request_content["messages"][0]["content"]
+
+        prompt = [
+            message["content"]
+            for message in request_content["messages"]
+            if message["role"] == "user"
+        ][0]
+        transaction_params["prompt"] = (
+            prompt if prompt else request_content["messages"][0]["content"]
+        )
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["message"] = None
