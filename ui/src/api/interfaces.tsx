@@ -71,7 +71,8 @@ export interface getTransactionResponse {
     model: string;
     type: string;
     os: string | null;
-    token_usage: number;
+    input_tokens: number | null;
+    output_tokens: number | null;
     library: string;
     status_code: number;
     message: string | null;
@@ -79,6 +80,10 @@ export interface getTransactionResponse {
     error_message: string | null;
     request_time: string;
     response_time: string;
+    generation_speed: number;
+    input_cost: number;
+    output_cost: number;
+    total_cost: number;
     tags: string[];
 }
 export interface getAllTransactionResponse {
