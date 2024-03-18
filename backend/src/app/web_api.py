@@ -1,5 +1,4 @@
 import re
-from math import ceil
 from typing import Annotated, Any
 
 import utils
@@ -163,23 +162,39 @@ async def delete_existing_project(
     "/api/transactions/{transaction_id}", response_class=JSONResponse, status_code=200
 )
 async def get_transaction_details(
+    request: Request,
     transaction_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> GetTransactionWithProjectSlugSchema:
     """
     API endpoint to retrieve details of a specific transaction.
 
+    :param request: The incoming request.
     :param transaction_id: The identifier of the transaction.
     :param ctx: The transaction context dependency.
     """
+    price_list = get_provider_pricelist(request)
     transaction = ctx.call(get_transaction, transaction_id=transaction_id)
+    price = [price for price in price_list if re.match(price.match_pattern, transaction.model)]
+    if len(price) > 0:
+        price = price[0]
+        if price.total_price > 0:
+            input_cost, output_cost = 0, 0
+            total_cost = ((transaction.input_tokens / 1000) + (transaction.output_tokens / 1000)) * price.total_price if transaction.input_tokens > 0 and transaction.output_tokens > 0 else 0
+        else:
+            input_cost = (transaction.input_tokens / 1000) * price.input_price if transaction.input_tokens > 0 and price.input_price > 0 else 0
+            output_cost = (transaction.output_tokens / 1000) * price.output_price if transaction.output_tokens > 0 and price.output_price > 0 else 0
+            total_cost = input_cost + output_cost
+    else:
+        input_cost, output_cost, total_cost = 0, 0, 0
     project = ctx.call(get_project, project_id=transaction.project_id)
-    transaction = GetTransactionWithProjectSlugSchema(**transaction.model_dump(), project_name=project.name)
+    transaction = GetTransactionWithProjectSlugSchema(**transaction.model_dump(), project_name=project.name, input_cost=input_cost, output_cost=output_cost, total_cost=total_cost)
     return transaction
 
 
 @app.get("/api/transactions", response_class=JSONResponse, status_code=200)
 async def get_paginated_transactions(
+    request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     page: int = 1,
     page_size: int = 20,
@@ -191,6 +206,7 @@ async def get_paginated_transactions(
     """
     API endpoint to retrieve a paginated list of transactions based on specified filters.
 
+    :param request: The incoming request.
     :param ctx: The transaction context dependency.
     :param page: The page number for pagination.
     :param page_size: The number of transactions per page.
@@ -211,15 +227,41 @@ async def get_paginated_transactions(
         date_to=date_to,
         project_id=project_id,
     )
+    
+    price_list = get_provider_pricelist(request)
     projects = ctx.call(get_all_projects)
     project_id_name_map = {project.id: project.name for project in projects}
-    transactions = [
-        GetTransactionWithProjectSlugSchema(
-            **transaction.model_dump(),
-            project_name=project_id_name_map.get(transaction.project_id, None),
+    new_transactions = []
+    for transaction in transactions:
+        price = [price for price in price_list if re.match(price.match_pattern, transaction.model)]
+        if len(price) > 0:
+            price = price[0]
+            if price.total_price > 0:
+                input_cost, output_cost = 0, 0
+                total_cost = ((transaction.input_tokens / 1000) + (transaction.output_tokens / 1000)) * price.total_price if transaction.input_tokens > 0 and transaction.output_tokens > 0 else 0
+            else:
+                input_cost = (transaction.input_tokens / 1000) * price.input_price if transaction.input_tokens > 0 and price.input_price > 0 else 0
+                output_cost = (transaction.output_tokens / 1000) * price.output_price if transaction.output_tokens > 0 and price.output_price > 0 else 0
+                total_cost = input_cost + output_cost
+        else:
+            input_cost, output_cost, total_cost = 0, 0, 0
+        new_transactions.append(
+            GetTransactionWithProjectSlugSchema(
+                **transaction.model_dump(),
+                project_name=project_id_name_map.get(transaction.project_id, None),
+                input_cost=input_cost,
+                output_cost=output_cost,
+                total_cost=total_cost
+            )
         )
-        for transaction in transactions
-    ]
+    
+    # transactions = [
+    #     GetTransactionWithProjectSlugSchema(
+    #         **transaction.model_dump(),
+    #         project_name=project_id_name_map.get(transaction.project_id, None),
+    #     )
+    #     for transaction in transactions
+    # ]
     count = ctx.call(
         count_transactions,
         tags=tags,
@@ -228,7 +270,7 @@ async def get_paginated_transactions(
         project_id=project_id,
     )
     page_response = GetTransactionPageResponseSchema(
-        items=transactions,
+        items=new_transactions,
         page_index=page,
         page_size=page_size,
         total_elements=count,
@@ -277,9 +319,7 @@ async def get_transaction_usage_statistics_over_time(
             project_id=project_id,
             date_from=date_from,
             date_to=date_to,
-        )
-        print(transactions)
-        
+        )        
         transactions = [
             StatisticTransactionSchema(
                 project_id=project_id,
@@ -297,9 +337,6 @@ async def get_transaction_usage_statistics_over_time(
             )
             for transaction in transactions
         ]
-        
-        print(transactions)
-
         stats = utils.token_counter_for_transactions(transactions, period)
         pricelist = get_provider_pricelist(request)
 
@@ -317,18 +354,17 @@ async def get_transaction_usage_statistics_over_time(
                 )
                 if lastest.input_price > 0 and lastest.output_price > 0:
                     stat.total_cost += (
-                        ceil(stat.input_cumulative_total // 1000 + 1)
+                        (stat.input_cumulative_total / 1000)
                         * lastest.input_price
                     )
                     stat.total_cost += (
-                        ceil(stat.output_cumulative_total // 1000 + 1)
+                        (stat.output_cumulative_total / 1000)
                         * lastest.output_price
                     )
                 else:
                     stat.total_cost = (
                         (stat.input_cumulative_total + stat.output_cumulative_total)
-                        // 1000
-                        + 1
+                        / 1000
                     ) * lastest.total_price
 
         return stats

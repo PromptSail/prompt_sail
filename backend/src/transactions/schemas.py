@@ -46,6 +46,9 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     request_time: datetime
     response_time: datetime
     generation_speed: int | float
+    input_cost: int | float
+    output_cost: int | float
+    total_cost: int | float
     tags: list[str]
 
 
