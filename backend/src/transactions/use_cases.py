@@ -1,6 +1,6 @@
 import json
 
-from _datetime import datetime, timezone, timedelta
+from _datetime import datetime, timezone
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 from utils import create_transaction_query_from_filters, req_resp_to_transaction_parser

@@ -1,5 +1,3 @@
-from utils import generate_mock_transactions
-
 test_obj = {
     "name": "Autotest",
     "slug": "autotest1",
@@ -123,38 +121,39 @@ def test_delete_not_exisitng_project_returns_204(client, application):
     # assert
     assert response.status_code == 204
 
-# TODO: REBUILD STATISTICS TESTS BASED ON STATIC DATASET 
+
+# TODO: REBUILD STATISTICS TESTS BASED ON STATIC DATASET
 # def test_get_projects(client, application):
 #     # arrange
 #     with application.transaction_context() as ctx:
 #         from projects.models import Project
-# 
+#
 #         repo = ctx["project_repository"]
 #         project_id = "project-test"
 #         repo.add(Project(id=project_id, **test_obj))
-# 
+#
 #     # act
 #     result = client.get("/api/projects")
-# 
+#
 #     # assert
 #     assert result.status_code == 200
 #     assert result.json() == [dict(id=project_id, total_transactions=0, **test_obj)]
-# 
-# 
+#
+#
 # def test_usage_statistics(client, application):
 #     # arrange
 #     with application.transaction_context() as ctx:
 #         import re
-#         
+#
 #         repo = ctx["transaction_repository"]
 #         transactions = generate_mock_transactions(100)
 #         for transaction in transactions:
 #             repo.add(transaction)
-# 
+#
 #     # act
 #     result = client.get("/api/statistics/transactions_cost?project_id=project-test&period=yearly")
 #     pricelist = client.get("/api/statistics/pricelist")
-# 
+#
 #     # assert
 #     price = [
 #         price
@@ -183,8 +182,8 @@ def test_delete_not_exisitng_project_returns_204(client, application):
 #         )
 #         * price["total_price"]
 #     )
-# 
-# 
+#
+#
 # def test_statuses_statistics(client, application):
 #     # arrange
 #     with application.transaction_context() as ctx:
@@ -192,19 +191,19 @@ def test_delete_not_exisitng_project_returns_204(client, application):
 #         transactions = generate_mock_transactions(100)
 #         for transaction in transactions:
 #             repo.add(transaction)
-# 
+#
 #     # act
 #     result = client.get(
 #         "/api/statistics/transactions_count?project_id=project-test&period=yearly"
 #     )
-# 
+#
 #     # assert
 #     assert result.status_code == 200
 #     assert len(result.json()) == len(
 #         set([stat["status_code"] for stat in result.json()])
 #     )
-# 
-# 
+#
+#
 # def test_latency_statistics(client, application):
 #     # arrange
 #     with application.transaction_context() as ctx:
@@ -212,10 +211,10 @@ def test_delete_not_exisitng_project_returns_204(client, application):
 #         transactions = generate_mock_transactions(100)
 #         for transaction in transactions:
 #             repo.add(transaction)
-# 
+#
 #     # act
 #     result = client.get("/api/statistics/transactions_speed?project_id=project-test&period=yearly")
-# 
+#
 #     # assert
 #     assert result.status_code == 200
 #     assert len(result.json()) == len(

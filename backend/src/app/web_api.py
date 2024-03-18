@@ -2,7 +2,7 @@ import re
 from typing import Annotated, Any
 
 import utils
-from _datetime import datetime, timezone, timedelta
+from _datetime import datetime, timedelta, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
@@ -175,20 +175,43 @@ async def get_transaction_details(
     """
     price_list = get_provider_pricelist(request)
     transaction = ctx.call(get_transaction, transaction_id=transaction_id)
-    price = [price for price in price_list if re.match(price.match_pattern, transaction.model)]
+    price = [
+        price
+        for price in price_list
+        if re.match(price.match_pattern, transaction.model)
+    ]
     if len(price) > 0:
         price = price[0]
         if price.total_price > 0:
             input_cost, output_cost = 0, 0
-            total_cost = ((transaction.input_tokens / 1000) + (transaction.output_tokens / 1000)) * price.total_price if transaction.input_tokens > 0 and transaction.output_tokens > 0 else 0
+            total_cost = (
+                ((transaction.input_tokens / 1000) + (transaction.output_tokens / 1000))
+                * price.total_price
+                if transaction.input_tokens > 0 and transaction.output_tokens > 0
+                else 0
+            )
         else:
-            input_cost = (transaction.input_tokens / 1000) * price.input_price if transaction.input_tokens > 0 and price.input_price > 0 else 0
-            output_cost = (transaction.output_tokens / 1000) * price.output_price if transaction.output_tokens > 0 and price.output_price > 0 else 0
+            input_cost = (
+                (transaction.input_tokens / 1000) * price.input_price
+                if transaction.input_tokens > 0 and price.input_price > 0
+                else 0
+            )
+            output_cost = (
+                (transaction.output_tokens / 1000) * price.output_price
+                if transaction.output_tokens > 0 and price.output_price > 0
+                else 0
+            )
             total_cost = input_cost + output_cost
     else:
         input_cost, output_cost, total_cost = 0, 0, 0
     project = ctx.call(get_project, project_id=transaction.project_id)
-    transaction = GetTransactionWithProjectSlugSchema(**transaction.model_dump(), project_name=project.name, input_cost=input_cost, output_cost=output_cost, total_cost=total_cost)
+    transaction = GetTransactionWithProjectSlugSchema(
+        **transaction.model_dump(),
+        project_name=project.name,
+        input_cost=input_cost,
+        output_cost=output_cost,
+        total_cost=total_cost,
+    )
     return transaction
 
 
@@ -227,21 +250,41 @@ async def get_paginated_transactions(
         date_to=date_to,
         project_id=project_id,
     )
-    
+
     price_list = get_provider_pricelist(request)
     projects = ctx.call(get_all_projects)
     project_id_name_map = {project.id: project.name for project in projects}
     new_transactions = []
     for transaction in transactions:
-        price = [price for price in price_list if re.match(price.match_pattern, transaction.model)]
+        price = [
+            price
+            for price in price_list
+            if re.match(price.match_pattern, transaction.model)
+        ]
         if len(price) > 0:
             price = price[0]
             if price.total_price > 0:
                 input_cost, output_cost = 0, 0
-                total_cost = ((transaction.input_tokens / 1000) + (transaction.output_tokens / 1000)) * price.total_price if transaction.input_tokens > 0 and transaction.output_tokens > 0 else 0
+                total_cost = (
+                    (
+                        (transaction.input_tokens / 1000)
+                        + (transaction.output_tokens / 1000)
+                    )
+                    * price.total_price
+                    if transaction.input_tokens > 0 and transaction.output_tokens > 0
+                    else 0
+                )
             else:
-                input_cost = (transaction.input_tokens / 1000) * price.input_price if transaction.input_tokens > 0 and price.input_price > 0 else 0
-                output_cost = (transaction.output_tokens / 1000) * price.output_price if transaction.output_tokens > 0 and price.output_price > 0 else 0
+                input_cost = (
+                    (transaction.input_tokens / 1000) * price.input_price
+                    if transaction.input_tokens > 0 and price.input_price > 0
+                    else 0
+                )
+                output_cost = (
+                    (transaction.output_tokens / 1000) * price.output_price
+                    if transaction.output_tokens > 0 and price.output_price > 0
+                    else 0
+                )
                 total_cost = input_cost + output_cost
         else:
             input_cost, output_cost, total_cost = 0, 0, 0
@@ -251,17 +294,10 @@ async def get_paginated_transactions(
                 project_name=project_id_name_map.get(transaction.project_id, None),
                 input_cost=input_cost,
                 output_cost=output_cost,
-                total_cost=total_cost
+                total_cost=total_cost,
             )
         )
-    
-    # transactions = [
-    #     GetTransactionWithProjectSlugSchema(
-    #         **transaction.model_dump(),
-    #         project_name=project_id_name_map.get(transaction.project_id, None),
-    #     )
-    #     for transaction in transactions
-    # ]
+
     count = ctx.call(
         count_transactions,
         tags=tags,
@@ -313,13 +349,13 @@ async def get_transaction_usage_statistics_over_time(
     try:
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-        
+
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
             date_from=date_from,
             date_to=date_to,
-        )        
+        )
         transactions = [
             StatisticTransactionSchema(
                 project_id=project_id,
@@ -354,13 +390,11 @@ async def get_transaction_usage_statistics_over_time(
                 )
                 if lastest.input_price > 0 and lastest.output_price > 0:
                     stat.total_cost += (
-                        (stat.input_cumulative_total / 1000)
-                        * lastest.input_price
-                    )
+                        stat.input_cumulative_total / 1000
+                    ) * lastest.input_price
                     stat.total_cost += (
-                        (stat.output_cumulative_total / 1000)
-                        * lastest.output_price
-                    )
+                        stat.output_cumulative_total / 1000
+                    ) * lastest.output_price
                 else:
                     stat.total_cost = (
                         (stat.input_cumulative_total + stat.output_cumulative_total)
@@ -401,7 +435,7 @@ async def get_transaction_status_statistics_over_time(
     try:
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-            
+
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -460,7 +494,7 @@ async def get_transaction_latency_statistics_over_time(
     try:
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-            
+
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -555,22 +589,22 @@ async def mock_transactions(
     API endpoint to mock transactions.
 
     :param count: How many transactions you want to mock.
-    :param days_back: How many days back from now transactions should be added. 
+    :param days_back: How many days back from now transactions should be added.
     :param ctx: The transaction context dependency.
     :return: A dictionary containing the status and message (code and latency).
     """
     try:
         time_start = datetime.now(tz=timezone.utc)
-        repo = ctx['transaction_repository']
+        repo = ctx["transaction_repository"]
         mocked_transactions = utils.generate_mock_transactions(count, days_back)
         for transaction in mocked_transactions:
             repo.add(transaction)
         time_stop = datetime.now(tz=timezone.utc)
-        
-        return {"status_code": 200, "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds."}
-        
+
+        return {
+            "status_code": 200,
+            "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds.",
+        }
+
     except Exception as e:
         return {"status_code": 500, "message": str(e)}
-    
-    
-    
