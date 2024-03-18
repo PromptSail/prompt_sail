@@ -1,4 +1,4 @@
-import { Badge, Collapse, Descriptions, DescriptionsProps, Flex, theme } from 'antd';
+import { Badge, Collapse, Descriptions, DescriptionsProps, Flex, Tooltip, theme } from 'antd';
 import { getTransactionResponse } from '../../api/interfaces';
 import { Link } from 'react-router-dom';
 import { TagsContainer } from '../../helpers/dataContainer';
@@ -26,16 +26,12 @@ const BasicInfo: React.FC<Props> = ({ data }) => {
         },
         {
             label: 'Cost',
-            children: '$ 1.00'
+            children: `$ ${data.total_cost.toFixed(4)}`
         },
         {
             label: 'Api base',
             children: data.request.url,
             span: 3
-        },
-        {
-            label: 'Response status',
-            children: <Badge status="success" text={data.status_code} />
         },
         {
             label: 'Request time',
@@ -46,6 +42,22 @@ const BasicInfo: React.FC<Props> = ({ data }) => {
             children: toLocalDate(data.response_time)
         },
         {
+            label: (
+                <Tooltip placement="top" title="Tokens per second">
+                    Speed
+                </Tooltip>
+            ),
+            children: data.generation_speed.toFixed(3)
+        },
+        {
+            label: 'Response status',
+            children: <Badge status="success" text={data.status_code} />
+        },
+        {
+            label: 'Tags',
+            children: <TagsContainer tags={data.tags} />
+        },
+        {
             label: 'Tokens',
             children: (
                 <span>
@@ -53,22 +65,6 @@ const BasicInfo: React.FC<Props> = ({ data }) => {
                     {data.response.content.usage.prompt_tokens} (Σ{' '}
                     {data.response.content.usage.total_tokens})
                 </span>
-            )
-        },
-        {
-            label: 'Tags',
-            children: <TagsContainer tags={data.tags} />
-        },
-        {
-            label: 'Created by',
-            children: (
-                <>
-                    [
-                    {data.request.content.messages?.map((el, id) => (
-                        <span key={id}>{id > 0 ? `, ${el.role}` : `${el.role}`}</span>
-                    ))}
-                    ]
-                </>
             )
         }
     ];

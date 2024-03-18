@@ -1,8 +1,11 @@
+import { ArrowRightOutlined } from '@ant-design/icons';
+import { Tooltip } from 'antd';
+
 export interface DataType {
     key: React.Key;
     id: React.ReactNode;
     time: string;
-    latency: string;
+    speed: string;
     messages: React.ReactNode;
     status: React.ReactNode;
     project: React.ReactNode;
@@ -27,9 +30,13 @@ export const columns = [
         width: 175
     },
     {
-        title: 'Latency',
-        dataIndex: 'latency',
-        key: 'latency',
+        title: (
+            <Tooltip placement="top" title="Tokens per second">
+                Speed
+            </Tooltip>
+        ),
+        dataIndex: 'speed',
+        key: 'speed',
         width: 90
     },
     {
@@ -75,7 +82,18 @@ export const columns = [
         width: 100
     },
     {
-        title: 'Tokens',
+        title: (
+            <Tooltip
+                placement="top"
+                title={
+                    <span>
+                        input <ArrowRightOutlined /> output (Σ total)
+                    </span>
+                }
+            >
+                Tokens
+            </Tooltip>
+        ),
         dataIndex: 'tokens',
         key: 'tokens',
         width: 150

@@ -15,9 +15,9 @@ const App = () => {
     if (isLogged) {
         return (
             <>
-                <Layout className="h-screen">
+                <Layout>
                     <Sidebar setLoginState={setLoginState} />
-                    <Layout style={{ marginLeft: '250px', padding: '0 50px' }}>
+                    <Layout className="ms-[250px] px-[50px] h-screen overflow-auto">
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
                             <Route
