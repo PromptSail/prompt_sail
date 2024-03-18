@@ -1,4 +1,5 @@
 from datetime import datetime
+from operator import attrgetter
 
 from seedwork.exceptions import NotFoundException
 from seedwork.repositories import MongoRepository
@@ -49,7 +50,12 @@ class TransactionRepository(MongoRepository):
         return self.find_one({"_id": transaction_id})
 
     def get_paginated_and_filtered(
-        self, page: int, page_size: int, query: dict[str, str | datetime | None] = None
+        self,
+        page: int,
+        page_size: int,
+        query: dict[str, str | datetime | None] = None,
+        sort_field: str | None = None,
+        sort_type: str | None = None,
     ) -> list[Transaction]:
         """
         Retrieve a paginated and filtered list of transactions from the repository.
@@ -57,11 +63,23 @@ class TransactionRepository(MongoRepository):
         :param page: The page number for pagination.
         :param page_size: The number of transactions per page.
         :param query: Optional query parameters to filter transactions.
+        :param sort_field: Optional. Field to sort by.
+        :param sort_type: Optional. Ordering method (asc or desc).
         :return: A paginated and filtered list of Transaction objects based on the specified criteria.
         """
-        return self.find(query)[::-1][
+        transactions = self.find(query)
+        sort = False if sort_type == "asc" else True
+        if sort_field:
+            sorted_transactions = sorted(
+                transactions, key=attrgetter(sort_field), reverse=sort
+            )
+        else:
+            sorted_transactions = transactions[::-1]
+
+        paginated = sorted_transactions[
             (page - 1) * page_size : (page - 1) * page_size + page_size
         ]
+        return paginated
 
     def get_filtered(self, query: dict[str, str | datetime | None]):
         """
