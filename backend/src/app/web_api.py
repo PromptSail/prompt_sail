@@ -355,7 +355,11 @@ async def get_transaction_usage_statistics_over_time(
     try:
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-
+        
+        count = ctx.call(count_transactions, project_id=project_id, date_from=date_from, date_to=date_to)
+        if count == 0:
+            return []
+        
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -379,7 +383,7 @@ async def get_transaction_usage_statistics_over_time(
             )
             for transaction in transactions
         ]
-        stats = utils.token_counter_for_transactions(transactions, period)
+        stats = utils.token_counter_for_transactions(transactions, period, date_from, date_to)
         pricelist = get_provider_pricelist(request)
 
         for stat in stats:
@@ -442,6 +446,10 @@ async def get_transaction_status_statistics_over_time(
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
 
+        count = ctx.call(count_transactions, project_id=project_id, date_from=date_from, date_to=date_to)
+        if count == 0:
+            return []
+        
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -465,7 +473,7 @@ async def get_transaction_status_statistics_over_time(
             )
             for transaction in transactions
         ]
-        stats = utils.status_counter_for_transactions(transactions, period)
+        stats = utils.status_counter_for_transactions(transactions, period, date_from, date_to)
 
         return stats
     except Exception as e:
@@ -501,6 +509,10 @@ async def get_transaction_latency_statistics_over_time(
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
 
+        count = ctx.call(count_transactions, project_id=project_id, date_from=date_from, date_to=date_to)
+        if count == 0:
+            return []
+        
         transactions = ctx.call(
             get_list_of_filtered_transactions,
             project_id=project_id,
@@ -524,7 +536,7 @@ async def get_transaction_latency_statistics_over_time(
             )
             for transaction in transactions
         ]
-        stats = utils.latency_counter_for_transactions(transactions, period)
+        stats = utils.latency_counter_for_transactions(transactions, period, date_from, date_to)
 
         return stats
     except Exception as e:
