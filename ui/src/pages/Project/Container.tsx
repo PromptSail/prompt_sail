@@ -6,18 +6,22 @@ interface Props {
     children: React.ReactNode;
     header: string;
     desc?: string | ReactNode;
-    classname?: string;
+    classname?: {
+        parent?: string;
+        title?: string;
+        box?: string;
+    };
 }
 
 const Container: React.FC<Props> = ({ children, header, desc, classname }) => {
     return (
-        <Flex vertical gap={5}>
-            <Title level={2} style={{ margin: '0 10px' }}>
+        <Flex vertical gap={5} className={`${classname?.parent}`}>
+            <Title level={2} style={{ margin: '0 10px' }} className={`${classname?.title}`}>
                 {header}
             </Title>
             {!!desc && <Paragraph className="ml-[10px] !mb-0">{desc}</Paragraph>}
             <div
-                className={`container bg-white p-[20px] rounded-2xl d-flex flex-col justify-between gap-2.5 grow border border-solid border-[#E5E5E5] ${classname}`}
+                className={`box bg-white p-[20px] rounded-2xl flex flex-col justify-between gap-2.5 grow border border-solid border-[#E5E5E5] ${classname?.box}`}
             >
                 {children}
             </div>

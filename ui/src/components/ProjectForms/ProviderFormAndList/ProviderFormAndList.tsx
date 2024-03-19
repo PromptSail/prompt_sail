@@ -38,7 +38,7 @@ const ProviderFormAndList: React.FC<Props> = ({
             {FormShowed && (
                 <Container
                     header="Provider details"
-                    classname={isError ? '!border-red-500' : ''}
+                    classname={{ box: isError ? '!border-red-500' : '' }}
                     desc={
                         <>
                             <span className={isError ? 'text-red-500 font-bold' : ''}>
