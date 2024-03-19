@@ -149,7 +149,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = prompt
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["message"]
-            transaction_params["message"] = None
+            transaction_params["messages"] = None
         else:
             transaction_params["model"] = response_content["model"]
             if isinstance(response_content["data"][0]["embedding"], list):
@@ -168,37 +168,56 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     if "openai.azure.com" in url and "completions" in url:
         transaction_params["type"] = "chat"
         transaction_params["provider"] = "Azure"
-        transaction_params["prompt"] = request_content["messages"][0]["content"]
+        prompt = [
+            message["content"]
+            for message in request_content["messages"]
+            if message["role"] == "user"
+        ][::-1][0]
+        transaction_params["prompt"] = (
+            prompt if prompt else request_content["messages"][0]["content"]
+        )
         if response.__dict__["status_code"] > 200:
-            # transaction_params["error_message"] = response_content["message"]
             transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["message"] = None
         else:
             transaction_params["model"] = response_content["model"]
-            transaction_params["message"] = response_content["choices"][0]["message"][
-                "content"
-            ]
+            transaction_params["messages"] = request_content["messages"]
+            transaction_params["messages"].append(
+                response_content["choices"][0]["message"]
+            )
             transaction_params["error_message"] = None
 
     if "api.openai.com" in url and "completions" in url:
         transaction_params["type"] = "chat"
         transaction_params["provider"] = "OpenAI"
-        transaction_params["prompt"] = request_content["messages"][0]["content"]
+
+        prompt = [
+            message["content"]
+            for message in request_content["messages"]
+            if message["role"] == "user"
+        ][::-1][0]
+        transaction_params["prompt"] = (
+            prompt if prompt else request_content["messages"][0]["content"]
+        )
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
-            transaction_params["message"] = None
+            transaction_params["messages"] = None
         else:
             transaction_params["model"] = response_headers["openai-model"]
-            transaction_params["message"] = response_content["choices"][0]["message"][
-                "content"
-            ]
+            transaction_params["messages"] = request_content["messages"]
+            transaction_params["messages"].append(
+                response_content["choices"][0]["message"]
+            )
             transaction_params["error_message"] = None
 
     return transaction_params
 
 
 def token_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema], period
+    transactions: list[StatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
 ) -> list[GetTransactionUsageStatisticsSchema]:
     """
     Calculate token usage statistics based on a given period.
@@ -209,11 +228,44 @@ def token_counter_for_transactions(
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
     :param period: A string indicating the aggregation period.
         Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
     :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
+    project_id = data_dicts[0]["project_id"]
+    pairs = set([(data["provider"], data["model"]) for data in data_dicts])
+    if date_from:
+        date_from = str(date_from)[0:9]
+        for pair in pairs:
+            df.loc[pd.Timestamp(date_from)] = {
+                "project_id": project_id,
+                "provider": pair[0],
+                "model": pair[1],
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "status_code": 0,
+                "latency": 0,
+                "total_transactions": 0,
+                "generation_speed": 0,
+            }
+    if date_to:
+        date_to = str(date_to)[0:9]
+        for pair in pairs:
+            df.loc[pd.Timestamp(date_to)] = {
+                "project_id": project_id,
+                "provider": pair[0],
+                "model": pair[1],
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "status_code": 0,
+                "latency": 0,
+                "total_transactions": 0,
+                "generation_speed": 0,
+            }
+
     period = pandas_period_from_string(period)
     result = (
         df.groupby(["provider", "model"])
@@ -265,7 +317,10 @@ def token_counter_for_transactions(
 
 
 def status_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema], period
+    transactions: list[StatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
 ) -> list[GetTransactionStatusStatisticsSchema]:
     """
     Calculate transaction status statistics based on a given period.
@@ -276,6 +331,8 @@ def status_counter_for_transactions(
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
     :param period: A string indicating the aggregation period.
         Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
     :return: A list of GetTransactionStatusStatisticsSchema objects containing status statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
@@ -283,46 +340,69 @@ def status_counter_for_transactions(
         data_dicts[x]["status_code"] = (data_dicts[x]["status_code"] // 100) * 100
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
+
+    if date_from:
+        date_from = str(date_from)[0:9]
+        df.loc[pd.Timestamp(date_from)] = pd.NA
+    if date_to:
+        date_to = str(date_to)[0:9]
+        df.loc[pd.Timestamp(date_to)] = pd.NA
+
     period = pandas_period_from_string(period)
 
-    result = (
-        df.groupby(["status_code"])
-        .resample(period)
-        .agg(
-            {
-                "project_id": "first",
-                "provider": "first",
-                "model": "first",
-                "total_input_tokens": "sum",
-                "total_output_tokens": "sum",
-                "status_code": "first",
-                "latency": "sum",
-                "total_transactions": "sum",
-                "generation_speed": "sum",
-            }
-        )
+    result = df.resample(period).agg(
+        {
+            "project_id": "first",
+            "provider": "first",
+            "model": "first",
+            "total_input_tokens": "sum",
+            "total_output_tokens": "sum",
+            "status_code": [
+                ("status_200", lambda code: (code == 200).sum()),
+                ("status_300", lambda code: (code == 300).sum()),
+                ("status_400", lambda code: (code == 400).sum()),
+                ("status_500", lambda code: (code == 500).sum()),
+            ],
+            "latency": "sum",
+            "total_transactions": "sum",
+            "generation_speed": "sum",
+        }
     )
-
-    del result["status_code"]
-
     result = result.reset_index()
 
     data_dicts = result.to_dict(orient="records")
 
+    new_data_dicts = []
+    for data in data_dicts:
+        new_data = {}
+        for key, value in data.items():
+            if key[0] == "status_code":
+                new_key = key[1]
+            else:
+                new_key = key[0]
+            new_data[new_key] = value
+        new_data_dicts.append(new_data)
+
     result_list = [
         GetTransactionStatusStatisticsSchema(
             date=data["date"],
-            status_code=data["status_code"],
+            status_200=data["status_200"],
+            status_300=data["status_300"],
+            status_400=data["status_400"],
+            status_500=data["status_500"],
             total_transactions=data["total_transactions"],
         )
-        for data in data_dicts
+        for data in new_data_dicts
     ]
 
     return result_list
 
 
 def latency_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema], period
+    transactions: list[StatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
 ) -> list[GetTransactionLatencyStatisticsSchema]:
     """
     Calculate transaction latency statistics based on a given period.
@@ -333,11 +413,45 @@ def latency_counter_for_transactions(
     :param transactions: A list of StatisticTransactionSchema objects representing transactions.
     :param period: A string indicating the aggregation period.
         Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
     :return: A list of GetTransactionLatencyStatisticsSchema objects containing latency statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
+
+    project_id = data_dicts[0]["project_id"]
+    pairs = set([(data["provider"], data["model"]) for data in data_dicts])
+    if date_from:
+        date_from = str(date_from)[0:9]
+        for pair in pairs:
+            df.loc[pd.Timestamp(date_from)] = {
+                "project_id": project_id,
+                "provider": pair[0],
+                "model": pair[1],
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "status_code": 0,
+                "latency": timedelta(0),
+                "total_transactions": 0,
+                "generation_speed": 0,
+            }
+    if date_to:
+        date_to = str(date_to)[0:9]
+        for pair in pairs:
+            df.loc[pd.Timestamp(date_to)] = {
+                "project_id": project_id,
+                "provider": pair[0],
+                "model": pair[1],
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "status_code": 0,
+                "latency": timedelta(0),
+                "total_transactions": 0,
+                "generation_speed": 0,
+            }
+
     period = pandas_period_from_string(period)
     result = (
         df.groupby(["provider", "model"])

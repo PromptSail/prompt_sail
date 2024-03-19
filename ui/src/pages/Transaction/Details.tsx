@@ -1,7 +1,9 @@
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { getTransactionResponse } from '../../api/interfaces';
 import * as styles from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { Typography } from 'antd';
 
+const { Title } = Typography;
 interface Props {
     data: getTransactionResponse;
 }
@@ -9,11 +11,11 @@ interface Props {
 const Details: React.FC<Props> = ({ data }) => {
     return (
         <>
-            <h2 className="text-2xl font-semibold">Request</h2>
+            <Title level={2}>Request</Title>
             <SyntaxHighlighter language="python" style={styles.atomOneDark}>
                 {JSON.stringify(data.request, null, 4)}
             </SyntaxHighlighter>
-            <h3 className="text-2xl font-semibold">Response</h3>
+            <Title level={2}>Response</Title>
             <SyntaxHighlighter language="python" style={styles.atomOneDark}>
                 {JSON.stringify(data.response, null, 4)}
             </SyntaxHighlighter>

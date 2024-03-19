@@ -1,6 +1,6 @@
 import json
 
-from _datetime import datetime, timezone, timedelta
+from _datetime import datetime, timezone
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 from utils import create_transaction_query_from_filters, req_resp_to_transaction_parser
@@ -97,6 +97,8 @@ def get_all_filtered_and_paginated_transactions(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    sort_field: str | None = None,
+    sort_type: str | None = None,
 ) -> list[Transaction]:
     """
     Retrieve a paginated and filtered list of transactions based on specified criteria.
@@ -108,11 +110,13 @@ def get_all_filtered_and_paginated_transactions(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
+    :param sort_field: Optional. Field to sort by.
+    :param sort_type: Optional. Ordering method (asc or desc).
     :return: A paginated and filtered list of Transaction objects based on the specified criteria.
     """
     query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
     transactions = transaction_repository.get_paginated_and_filtered(
-        page, page_size, query
+        page, page_size, query, sort_field, sort_type
     )
     return transactions
 
@@ -193,7 +197,7 @@ def store_transaction(
         output_tokens=params["output_tokens"],
         library=params["library"],
         status_code=params["status_code"],
-        message=params["message"],
+        messages=params["messages"],
         error_message=params["error_message"],
         request_time=request_time,
         generation_speed=params["output_tokens"]

@@ -6,10 +6,17 @@ import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllTransactions } from '../../../api/queries';
 import { DataType, columns } from '../columns';
+import { SorterResult } from 'antd/es/table/interface';
 
 interface Props {
     filters: TransactionsFilters;
     setFilters: Dispatch<SetStateAction<TransactionsFilters>>;
+}
+
+interface sortWithApiCol extends SorterResult<DataType> {
+    column?: SorterResult<DataType>['column'] & {
+        apiCol: TransactionsFilters['sort_field'];
+    };
 }
 
 const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
@@ -61,7 +68,7 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                         time: new Date(tr.request_time + 'Z')
                             .toLocaleString('pl-PL')
                             .padStart(20, '0'),
-                        latency: '2.00s',
+                        speed: tr.generation_speed.toFixed(3),
                         messages: (
                             <Flex vertical>
                                 <div>
@@ -82,11 +89,10 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                         aiProvider: tr.provider,
                         model: tr.model,
                         tags: <TagsContainer tags={tr.tags} />,
-                        cost: '$ 0.02',
+                        cost: `$ ${tr.total_cost.toFixed(4)}`,
                         tokens: (
                             <span>
-                                {tr.response.content.usage.completion_tokens} <ArrowRightOutlined />{' '}
-                                {tr.response.content.usage.prompt_tokens} (Σ{' '}
+                                {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens} (Σ{' '}
                                 {tr.response.content.usage.total_tokens})
                             </span>
                         )
@@ -117,7 +123,16 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                 pageSize: tableData.page_size,
                 pageSizeOptions: [5, 10, 20, 50]
             }}
-            scroll={{ y: 400 }}
+            onChange={(_pagination, _filters, sorter) => {
+                const sortData = sorter as sortWithApiCol;
+                setFilters((old) => ({
+                    ...old,
+                    sort_field: sortData.column ? sortData.column.apiCol : '',
+                    sort_type: sortData.order === 'ascend' ? 'asc' : ''
+                }));
+            }}
+            scroll={{ y: 'true' }}
+            className="overflow-y-hidden"
         />
     );
 };

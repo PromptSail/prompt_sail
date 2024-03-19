@@ -23,7 +23,7 @@ class Transaction(BaseModel):
     output_tokens: int | None
     library: str
     status_code: int
-    message: str | None
+    messages: list[dict[str, Any]] | str | None
     prompt: str
     error_message: str | None
     generation_speed: int | float

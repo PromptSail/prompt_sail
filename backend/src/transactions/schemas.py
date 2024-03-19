@@ -17,7 +17,7 @@ class GetTransactionSchema(BaseModel):
     output_tokens: int | None
     library: str
     status_code: int
-    message: str | None
+    messages: list[dict[str, Any]] | str | None
     prompt: str
     error_message: str | None
     request_time: datetime
@@ -40,12 +40,15 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     output_tokens: int | None
     library: str
     status_code: int
-    message: str | None
+    messages: list[dict[str, Any]] | str | None
     prompt: str
     error_message: str | None
     request_time: datetime
     response_time: datetime
     generation_speed: int | float
+    input_cost: int | float
+    output_cost: int | float
+    total_cost: int | float
     tags: list[str]
 
 
@@ -76,7 +79,10 @@ class GetTransactionUsageStatisticsSchema(BaseModel):
 
 class GetTransactionStatusStatisticsSchema(BaseModel):
     date: datetime
-    status_code: int
+    status_200: int
+    status_300: int
+    status_400: int
+    status_500: int
     total_transactions: int
 
 

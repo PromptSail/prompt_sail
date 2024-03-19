@@ -64,7 +64,10 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                 </Flex>
                 <Paragraph>{data.description}</Paragraph>
                 <Flex gap={10}>
-                    <Container header="Basic info" classname="grow-0 shrink-0 w-[300px]">
+                    <Container
+                        header="Basic info"
+                        classname={{ parent: 'grow-0 shrink-0', box: 'w-[300px]' }}
+                    >
                         <Flex justify="space-between">
                             <span>Members:</span>
                             <span>1</span>
@@ -82,11 +85,11 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                             <TagsContainer tags={data.tags} classname="justify-end" />
                         </Flex>
                     </Container>
-                    <Container header="AI Providers" classname="w-full">
+                    <Container header="AI Providers" classname={{ parent: 'w-full' }}>
                         <AiProvidersTable providers={data.ai_providers} slug={data.slug} />
                     </Container>
                 </Flex>
-                <Container header="Latest transactions">
+                <Container header="Latest transactions" classname={{ parent: 'mt-5' }}>
                     <LatestTransactions projectId={data.id} />
                 </Container>
             </>
