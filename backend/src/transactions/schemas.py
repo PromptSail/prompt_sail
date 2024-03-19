@@ -79,7 +79,10 @@ class GetTransactionUsageStatisticsSchema(BaseModel):
 
 class GetTransactionStatusStatisticsSchema(BaseModel):
     date: datetime
-    status_code: int
+    status_200: int
+    status_300: int
+    status_400: int
+    status_500: int
     total_transactions: int
 
 

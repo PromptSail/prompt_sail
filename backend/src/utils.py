@@ -299,37 +299,49 @@ def status_counter_for_transactions(
     df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
 
-    result = (
-        df.groupby(["status_code"])
-        .resample(period)
-        .agg(
-            {
-                "project_id": "first",
-                "provider": "first",
-                "model": "first",
-                "total_input_tokens": "sum",
-                "total_output_tokens": "sum",
-                "status_code": "first",
-                "latency": "sum",
-                "total_transactions": "sum",
-                "generation_speed": "sum",
-            }
-        )
+    result = df.resample(period).agg(
+        {
+            "project_id": "first",
+            "provider": "first",
+            "model": "first",
+            "total_input_tokens": "sum",
+            "total_output_tokens": "sum",
+            "status_code": [
+                ("status_200", lambda code: (code == 200).sum()),
+                ("status_300", lambda code: (code == 300).sum()),
+                ("status_400", lambda code: (code == 400).sum()),
+                ("status_500", lambda code: (code == 500).sum()),
+            ],
+            "latency": "sum",
+            "total_transactions": "sum",
+            "generation_speed": "sum",
+        }
     )
-
-    del result["status_code"]
-
     result = result.reset_index()
 
     data_dicts = result.to_dict(orient="records")
 
+    new_data_dicts = []
+    for data in data_dicts:
+        new_data = {}
+        for key, value in data.items():
+            if key[0] == "status_code":
+                new_key = key[1]
+            else:
+                new_key = key[0]
+            new_data[new_key] = value
+        new_data_dicts.append(new_data)
+
     result_list = [
         GetTransactionStatusStatisticsSchema(
             date=data["date"],
-            status_code=data["status_code"],
+            status_200=data["status_200"],
+            status_300=data["status_300"],
+            status_400=data["status_400"],
+            status_500=data["status_500"],
             total_transactions=data["total_transactions"],
         )
-        for data in data_dicts
+        for data in new_data_dicts
     ]
 
     return result_list
