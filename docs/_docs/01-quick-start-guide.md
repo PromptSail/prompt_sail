@@ -76,7 +76,7 @@ Folder [examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples) 
 Based on [How to store transactions from OpenAI via OpenAI Python SDK](https://github.com/PromptSail/prompt_sail/blob/examples/examples/openai_sdk_openai.ipynb) notebook.
 
 
-Create .evn file with your OpenAI API key and organization ID.
+Create .env file with your OpenAI API key and organization ID.
 
 ```bash
 OPENAI_API_KEY=sk-xxx
