@@ -1,9 +1,7 @@
-import { Badge, Collapse, Descriptions, DescriptionsProps, Flex, Tooltip, theme } from 'antd';
+import { Collapse, Flex, theme } from 'antd';
 import { getTransactionResponse } from '../../api/interfaces';
-import { Link } from 'react-router-dom';
-import { TagsContainer } from '../../helpers/dataContainer';
 import Container from '../Project/Container';
-import { ArrowRightOutlined, CaretRightOutlined } from '@ant-design/icons';
+import { CaretRightOutlined } from '@ant-design/icons';
 
 interface Props {
     data: getTransactionResponse;
@@ -11,63 +9,6 @@ interface Props {
 
 const BasicInfo: React.FC<Props> = ({ data }) => {
     const { token } = theme.useToken();
-    const toLocalDate = (date: string) => {
-        const local = new Date(date + 'Z');
-        return `${local.toLocaleDateString()} ${local.toLocaleTimeString()}`;
-    };
-    const descItems: DescriptionsProps['items'] = [
-        {
-            label: 'Project',
-            children: <Link to={`/projects/${data.project_id}`}>{data.project_name}</Link>
-        },
-        {
-            label: 'Model',
-            children: data.model
-        },
-        {
-            label: 'Cost',
-            children: `$ ${data.total_cost.toFixed(4)}`
-        },
-        {
-            label: 'Api base',
-            children: data.request.url,
-            span: 3
-        },
-        {
-            label: 'Request time',
-            children: toLocalDate(data.request_time)
-        },
-        {
-            label: 'Response time',
-            children: toLocalDate(data.response_time)
-        },
-        {
-            label: (
-                <Tooltip placement="top" title="Tokens per second">
-                    Speed
-                </Tooltip>
-            ),
-            children: data.generation_speed.toFixed(3)
-        },
-        {
-            label: 'Response status',
-            children: <Badge status="success" text={data.status_code} />
-        },
-        {
-            label: 'Tags',
-            children: <TagsContainer tags={data.tags} />
-        },
-        {
-            label: 'Tokens',
-            children: (
-                <span>
-                    {data.response.content.usage.completion_tokens} <ArrowRightOutlined />{' '}
-                    {data.response.content.usage.prompt_tokens} (Σ{' '}
-                    {data.response.content.usage.total_tokens})
-                </span>
-            )
-        }
-    ];
 
     const collapseItems = [
         {
@@ -83,9 +24,6 @@ const BasicInfo: React.FC<Props> = ({ data }) => {
     ];
     return (
         <Flex vertical gap={20}>
-            <Container header={''}>
-                <Descriptions items={descItems} />
-            </Container>
             <Container header={'Messages'}>
                 <Collapse
                     defaultActiveKey={['1']}
