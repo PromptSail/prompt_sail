@@ -579,4 +579,12 @@ known_ai_providers = [
         "provider_name": "Azure OpenAI",
         "api_base_placeholder": "https://your-deployment-name.openai.azure.com",
     },
+    {
+        "provider_name": "Anthropic",
+        "api_base_placeholder": "https://api.anthropic.com/v1",
+    }, 
+        {
+        "provider_name": "Other",
+        "api_base_placeholder": "https://llmapi.provider.com/v1",
+    }
 ]
