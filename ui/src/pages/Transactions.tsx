@@ -13,7 +13,8 @@ const Transactions = () => {
         tags: params.get('tags') || '',
         date_from: params.get('date_from') || '',
         date_to: params.get('date_to') || '',
-        page_size: params.get('page_size') || '10'
+        page_size: params.get('page_size') || '10',
+        page: params.get('page') || '1'
     });
     const setURLParam = (param: { [key: string]: string }) => {
         const newParam = new URLSearchParams(params);
@@ -31,7 +32,11 @@ const Transactions = () => {
             </Title>
             <Flex vertical gap={25}>
                 <TableFilters filters={filters} setFilters={setFilters} setURLParam={setURLParam} />
-                <TransactionsTable filters={filters} setFilters={setFilters} />
+                <TransactionsTable
+                    filters={filters}
+                    setFilters={setFilters}
+                    setURLParam={setURLParam}
+                />
             </Flex>
         </>
     );

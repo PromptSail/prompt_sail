@@ -102,7 +102,10 @@ const LatestTransactions: React.FC<Props> = ({ projectId }) => {
     return (
         <Table
             dataSource={tableData.items}
-            columns={columns}
+            columns={columns.map((el) => ({
+                ...el,
+                sorter: false
+            }))}
             pagination={false}
             loading={isLoading}
             size="small"

@@ -11,6 +11,7 @@ import { SorterResult } from 'antd/es/table/interface';
 interface Props {
     filters: TransactionsFilters;
     setFilters: Dispatch<SetStateAction<TransactionsFilters>>;
+    setURLParam: (param: { [key: string]: string }) => void;
 }
 
 interface sortWithApiCol extends SorterResult<DataType> {
@@ -19,7 +20,7 @@ interface sortWithApiCol extends SorterResult<DataType> {
     };
 }
 
-const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
+const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }) => {
     const transactions = useGetAllTransactions(filters);
     const [isLoading, setLoading] = useState(true);
     const [tableData, setTableData] = useState<{
@@ -112,13 +113,18 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
             loading={isLoading}
             pagination={{
                 position: ['topRight', 'bottomRight'],
-                onChange: (page) => {
-                    setFilters((old) => ({ ...old, page: `${page}` }));
+                onChange: (page, pageSize) => {
+                    if (filters.page !== `${page}`) {
+                        setFilters((old) => ({ ...old, page: `${page}` }));
+                        setURLParam({ page: `${page}` });
+                    }
+                    if (filters.page_size !== `${pageSize}`) {
+                        setFilters((old) => ({ ...old, page_size: `${pageSize}` }));
+                        setURLParam({ page_size: `${pageSize}` });
+                    }
                 },
-                onShowSizeChange: (_, size) => {
-                    setFilters((old) => ({ ...old, page_size: `${size}` }));
-                },
-                defaultCurrent: tableData.page_index,
+                total: tableData.total_elements,
+                current: tableData.page_index,
                 showSizeChanger: true,
                 pageSize: tableData.page_size,
                 pageSizeOptions: [5, 10, 20, 50]
