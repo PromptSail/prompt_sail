@@ -149,7 +149,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = prompt
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["message"]
-            transaction_params["message"] = None
+            transaction_params["messages"] = None
         else:
             transaction_params["model"] = response_content["model"]
             if isinstance(response_content["data"][0]["embedding"], list):
@@ -172,7 +172,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             message["content"]
             for message in request_content["messages"]
             if message["role"] == "user"
-        ][0]
+        ][::-1][0]
         transaction_params["prompt"] = (
             prompt if prompt else request_content["messages"][0]["content"]
         )
@@ -181,9 +181,10 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["message"] = None
         else:
             transaction_params["model"] = response_content["model"]
-            transaction_params["message"] = response_content["choices"][0]["message"][
-                "content"
-            ]
+            transaction_params["messages"] = request_content["messages"]
+            transaction_params["messages"].append(
+                response_content["choices"][0]["message"]
+            )
             transaction_params["error_message"] = None
 
     if "api.openai.com" in url and "completions" in url:
@@ -194,27 +195,28 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             message["content"]
             for message in request_content["messages"]
             if message["role"] == "user"
-        ][0]
+        ][::-1][0]
         transaction_params["prompt"] = (
             prompt if prompt else request_content["messages"][0]["content"]
         )
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
-            transaction_params["message"] = None
+            transaction_params["messages"] = None
         else:
             transaction_params["model"] = response_headers["openai-model"]
-            transaction_params["message"] = response_content["choices"][0]["message"][
-                "content"
-            ]
+            transaction_params["messages"] = request_content["messages"]
+            transaction_params["messages"].append(
+                response_content["choices"][0]["message"]
+            )
             transaction_params["error_message"] = None
 
     return transaction_params
 
 
 def token_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema], 
-    period: str, 
-    date_from: datetime | None = None, 
+    transactions: list[StatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
     date_to: datetime | None = None,
 ) -> list[GetTransactionUsageStatisticsSchema]:
     """
@@ -233,8 +235,8 @@ def token_counter_for_transactions(
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
-    project_id = data_dicts[0]['project_id']
-    pairs = set([(data['provider'], data['model']) for data in data_dicts])
+    project_id = data_dicts[0]["project_id"]
+    pairs = set([(data["provider"], data["model"]) for data in data_dicts])
     if date_from:
         date_from = str(date_from)[0:9]
         for pair in pairs:
@@ -263,7 +265,7 @@ def token_counter_for_transactions(
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
-    
+
     period = pandas_period_from_string(period)
     result = (
         df.groupby(["provider", "model"])
@@ -315,9 +317,9 @@ def token_counter_for_transactions(
 
 
 def status_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema], 
-    period: str, 
-    date_from: datetime | None = None, 
+    transactions: list[StatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
     date_to: datetime | None = None,
 ) -> list[GetTransactionStatusStatisticsSchema]:
     """
@@ -338,7 +340,7 @@ def status_counter_for_transactions(
         data_dicts[x]["status_code"] = (data_dicts[x]["status_code"] // 100) * 100
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
-    
+
     if date_from:
         date_from = str(date_from)[0:9]
         df.loc[pd.Timestamp(date_from)] = pd.NA
@@ -397,9 +399,9 @@ def status_counter_for_transactions(
 
 
 def latency_counter_for_transactions(
-    transactions: list[StatisticTransactionSchema], 
-    period: str, 
-    date_from: datetime | None = None, 
+    transactions: list[StatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
     date_to: datetime | None = None,
 ) -> list[GetTransactionLatencyStatisticsSchema]:
     """
@@ -419,8 +421,8 @@ def latency_counter_for_transactions(
     df = pd.DataFrame(data_dicts)
     df.set_index("date", inplace=True)
 
-    project_id = data_dicts[0]['project_id']
-    pairs = set([(data['provider'], data['model']) for data in data_dicts])
+    project_id = data_dicts[0]["project_id"]
+    pairs = set([(data["provider"], data["model"]) for data in data_dicts])
     if date_from:
         date_from = str(date_from)[0:9]
         for pair in pairs:
@@ -449,7 +451,7 @@ def latency_counter_for_transactions(
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
-    
+
     period = pandas_period_from_string(period)
     result = (
         df.groupby(["provider", "model"])
