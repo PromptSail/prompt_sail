@@ -75,7 +75,12 @@ export interface getTransactionResponse {
     output_tokens: number | null;
     library: string;
     status_code: number;
-    message: string | null;
+    messages:
+        | {
+              role: string;
+              content: string;
+          }[]
+        | null;
     prompt: string;
     error_message: string | null;
     request_time: string;
