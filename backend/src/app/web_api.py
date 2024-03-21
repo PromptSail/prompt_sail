@@ -41,6 +41,7 @@ from transactions.use_cases import (
     get_all_filtered_and_paginated_transactions,
     get_list_of_filtered_transactions,
     get_transaction,
+    get_transactions_for_project,
 )
 
 from .app import app
@@ -48,42 +49,117 @@ from .app import app
 
 @app.get("/api/projects")
 async def get_projects(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+    request: Request,
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> list[GetProjectSchema]:
     """
     API endpoint to retrieve information about all projects.
 
+    :param request: The incoming request.
     :param ctx: The transaction context dependency.
     :return: A list of GetProjectSchema objects.
     """
     projects = ctx.call(get_all_projects)
-    projects = [
-        GetProjectSchema(
-            **project.model_dump(),
-            total_transactions=ctx.call(count_transactions, project_id=project.id),
+    pricelist = get_provider_pricelist(request)
+
+    dtos = []
+    for project in projects:
+        transactions = ctx.call(get_transactions_for_project, project_id=project.id)
+        cost = 0
+        transaction_count = ctx.call(count_transactions, project_id=project.id)
+        if transaction_count > 0:
+            for transaction in transactions:
+                price = [
+                    price
+                    for price in pricelist
+                    if re.match(price.match_pattern, transaction.model)
+                ][0]
+                if price:
+                    if price.total_price > 0:
+                        cost += (
+                            (
+                                (transaction.input_tokens / 1000)
+                                + (transaction.output_tokens / 1000)
+                            )
+                            * price.total_price
+                            if transaction.input_tokens > 0
+                            and transaction.output_tokens > 0
+                            else 0
+                        )
+                    else:
+                        cost += (
+                            (transaction.input_tokens / 1000) * price.input_price
+                            if transaction.input_tokens > 0 and price.input_price > 0
+                            else 0
+                        )
+                        cost += (
+                            (transaction.output_tokens / 1000) * price.output_price
+                            if transaction.output_tokens > 0 and price.output_price > 0
+                            else 0
+                        )
+        dtos.append(
+            GetProjectSchema(
+                **project.model_dump(),
+                total_transactions=transaction_count,
+                total_cost=cost,
+            )
         )
-        for project in projects
-    ]
-    return projects
+
+    return dtos
 
 
 @app.get("/api/projects/{project_id}", response_class=JSONResponse, status_code=200)
 async def get_project_details(
+    request: Request,
     project_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> GetProjectSchema:
     """
     API endpoint to retrieve details about a specific project.
 
+    :param request: The incoming request.
     :param project_id: The identifier of the project.
     :param ctx: The transaction context dependency.
     :return: A GetProjectSchema object representing the project details.
     """
     project = ctx.call(get_project, project_id=project_id)
+    pricelist = get_provider_pricelist(request)
+    transactions = ctx.call(get_transactions_for_project, project_id=project_id)
+    cost = 0
     transaction_count = ctx.call(count_transactions, project_id=project_id)
+    if transaction_count > 0:
+        for transaction in transactions:
+            price = [
+                price
+                for price in pricelist
+                if re.match(price.match_pattern, transaction.model)
+            ][0]
+            if price:
+                if price.total_price > 0:
+                    cost += (
+                        (
+                            (transaction.input_tokens / 1000)
+                            + (transaction.output_tokens / 1000)
+                        )
+                        * price.total_price
+                        if transaction.input_tokens > 0
+                        and transaction.output_tokens > 0
+                        else 0
+                    )
+                else:
+                    cost += (
+                        (transaction.input_tokens / 1000) * price.input_price
+                        if transaction.input_tokens > 0 and price.input_price > 0
+                        else 0
+                    )
+                    cost += (
+                        (transaction.output_tokens / 1000) * price.output_price
+                        if transaction.output_tokens > 0 and price.output_price > 0
+                        else 0
+                    )
+
     project = GetProjectSchema(
-        **project.model_dump(),
-        total_transactions=transaction_count,
+        **project.model_dump(), total_transactions=transaction_count, total_cost=cost
     )
     return project
 

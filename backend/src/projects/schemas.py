@@ -50,4 +50,5 @@ class GetProjectSchema(BaseModel):
     ai_providers: list[ProjectAIProviderSchema]
     tags: list[str] = []
     org_id: str | None = None
+    total_cost: int | float
     total_transactions: int = 0

@@ -124,7 +124,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         "output_tokens": None,
         "os": request_headers.get("x-stainless-os", None),
         "provider": "Unknown",
-        "last_message": None
+        "last_message": None,
     }
 
     if "usage" in response_content:
@@ -187,7 +187,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
-            transaction_params["last_message"] = response_content["choices"][0]["message"]["content"]
+            transaction_params["last_message"] = response_content["choices"][0][
+                "message"
+            ]["content"]
             transaction_params["error_message"] = None
 
     if "api.openai.com" in url and "completions" in url:
@@ -211,7 +213,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
-            transaction_params["last_message"] = response_content["choices"][0]["message"]["content"]
+            transaction_params["last_message"] = response_content["choices"][0][
+                "message"
+            ]["content"]
             transaction_params["error_message"] = None
 
     return transaction_params
@@ -700,9 +704,9 @@ known_ai_providers = [
     {
         "provider_name": "Anthropic",
         "api_base_placeholder": "https://api.anthropic.com/v1",
-    }, 
-        {
+    },
+    {
         "provider_name": "Other",
         "api_base_placeholder": "https://llmapi.provider.com/v1",
-    }
+    },
 ]
