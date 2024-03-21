@@ -14,7 +14,7 @@ const TableContainer: React.FC<Props> = ({ data }) => {
         name: [el.name, el.description],
         members: 1,
         transactions: el.total_transactions,
-        cost: 1.0,
+        cost: el.total_cost,
         tags: el.tags.map((tag) => ({
             label: tag,
             color: 'magenta'
@@ -49,7 +49,7 @@ const TableContainer: React.FC<Props> = ({ data }) => {
             title: 'Total cost',
             dataIndex: 'cost',
             key: 'cost',
-            render: (text: number) => `$ ${text.toPrecision(3)}`
+            render: (text: number) => `$ ${text.toFixed(4)}`
         },
         {
             title: 'Tags',

@@ -29,8 +29,8 @@ export interface getAllProjects {
     }[];
     tags: string[];
     org_id: string | undefined;
+    total_cost: number;
     total_transactions: number;
-    total_tokens_usage: number;
 }
 
 export interface getProjectResponse extends getAllProjects {}

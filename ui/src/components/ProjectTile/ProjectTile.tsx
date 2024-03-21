@@ -38,7 +38,7 @@ const ProjectTile: React.FC<Props> = ({ isListStyled, data }) => {
                             </Flex>
                             <Flex justify="space-between" gap={5}>
                                 <Text>Total cost:</Text>
-                                <Text>$ 1.00</Text>
+                                <Text>{`$ ${data.total_cost.toFixed(4)}`}</Text>
                             </Flex>
                             <Flex justify="space-between" gap={5}>
                                 <Text>Tags:</Text>
