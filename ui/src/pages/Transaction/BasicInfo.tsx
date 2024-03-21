@@ -10,23 +10,22 @@ interface Props {
 const BasicInfo: React.FC<Props> = ({ data }) => {
     const { token } = theme.useToken();
 
-    const collapseItems = [
-        {
-            key: '1',
-            label: data.prompt,
-            children: <p>{data.message}</p>,
+    const collapseItems =
+        data.messages?.map((el, id) => ({
+            key: id,
+            label: el.role,
+            children: <p>{el.content}</p>,
             style: {
                 background: token.colorFillAlter,
                 borderRadius: token.borderRadiusLG,
                 border: 'none'
             }
-        }
-    ];
+        })) || [];
     return (
         <Flex vertical gap={20}>
             <Container header={'Messages'}>
                 <Collapse
-                    defaultActiveKey={['1']}
+                    defaultActiveKey={[`${collapseItems[collapseItems?.length - 1].key}`]}
                     expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
                     items={collapseItems}
                 />

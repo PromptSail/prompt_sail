@@ -11,6 +11,7 @@ import { SorterResult } from 'antd/es/table/interface';
 interface Props {
     filters: TransactionsFilters;
     setFilters: Dispatch<SetStateAction<TransactionsFilters>>;
+    setURLParam: (param: { [key: string]: string }) => void;
 }
 
 interface sortWithApiCol extends SorterResult<DataType> {
@@ -19,7 +20,7 @@ interface sortWithApiCol extends SorterResult<DataType> {
     };
 }
 
-const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
+const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }) => {
     const transactions = useGetAllTransactions(filters);
     const [isLoading, setLoading] = useState(true);
     const [tableData, setTableData] = useState<{
@@ -45,58 +46,66 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
             setTableData(() => {
                 const data = transactions.data.data;
                 return {
-                    items: data.items.map((tr) => ({
-                        key: tr.id,
-                        id: (
-                            <Link
-                                className="link"
-                                target="_blank"
-                                id={tr.id}
-                                to={`/transactions/${tr.id}`}
-                            >
-                                <Tooltip
-                                    placement="top"
-                                    title={tr.id}
-                                    overlayStyle={{ maxWidth: '500px' }}
+                    items: data.items.map((tr) => {
+                        const lastMessage = tr.messages
+                            ? tr.messages[tr.messages?.length - 1].content
+                            : '';
+
+                        return {
+                            key: tr.id,
+                            id: (
+                                <Link
+                                    className="link"
+                                    target="_blank"
+                                    id={tr.id}
+                                    to={`/transactions/${tr.id}`}
                                 >
-                                    <Tag color="geekblue" className="m-0">
-                                        {tr.id.length > 10 ? tr.id.substring(0, 10) + '...' : tr.id}
-                                    </Tag>
-                                </Tooltip>
-                            </Link>
-                        ),
-                        time: new Date(tr.request_time + 'Z')
-                            .toLocaleString('pl-PL')
-                            .padStart(20, '0'),
-                        speed: tr.generation_speed.toFixed(3),
-                        messages: (
-                            <Flex vertical>
-                                <div>
-                                    <b>Input:</b> {tr.prompt}
-                                </div>
-                                <div>
-                                    <b>Output: </b>{' '}
-                                    {tr.message
-                                        ? tr.message?.length > 25
-                                            ? tr.message?.substring(0, 23) + '...'
-                                            : tr.message
-                                        : tr.error_message}
-                                </div>
-                            </Flex>
-                        ),
-                        status: <Badge status="success" text={tr.status_code} />,
-                        project: <Link to={`/projects/${tr.project_id}`}>{tr.project_name}</Link>,
-                        aiProvider: tr.provider,
-                        model: tr.model,
-                        tags: <TagsContainer tags={tr.tags} />,
-                        cost: `$ ${tr.total_cost.toFixed(4)}`,
-                        tokens: (
-                            <span>
-                                {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens} (Σ{' '}
-                                {tr.response.content.usage.total_tokens})
-                            </span>
-                        )
-                    })),
+                                    <Tooltip
+                                        placement="top"
+                                        title={tr.id}
+                                        overlayStyle={{ maxWidth: '500px' }}
+                                    >
+                                        <Tag color="geekblue" className="m-0">
+                                            {tr.id.length > 10
+                                                ? tr.id.substring(0, 10) + '...'
+                                                : tr.id}
+                                        </Tag>
+                                    </Tooltip>
+                                </Link>
+                            ),
+                            time: new Date(tr.request_time + 'Z')
+                                .toLocaleString('pl-PL')
+                                .padStart(20, '0'),
+                            speed: tr.generation_speed.toFixed(3),
+                            messages: (
+                                <Flex vertical>
+                                    <div>
+                                        <b>Input:</b> {tr.prompt}
+                                    </div>
+                                    <div>
+                                        <b>Output: </b>{' '}
+                                        {lastMessage.length > 25
+                                            ? lastMessage.substring(0, 23) + '...'
+                                            : lastMessage}
+                                    </div>
+                                </Flex>
+                            ),
+                            status: <Badge status="success" text={tr.status_code} />,
+                            project: (
+                                <Link to={`/projects/${tr.project_id}`}>{tr.project_name}</Link>
+                            ),
+                            aiProvider: tr.provider,
+                            model: tr.model,
+                            tags: <TagsContainer tags={tr.tags} />,
+                            cost: `$ ${tr.total_cost.toFixed(4)}`,
+                            tokens: (
+                                <span>
+                                    {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens} (Σ{' '}
+                                    {tr.response.content.usage.total_tokens})
+                                </span>
+                            )
+                        };
+                    }),
                     page_index: data.page_index,
                     page_size: data.page_size,
                     total_elements: data.total_elements
@@ -112,13 +121,18 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
             loading={isLoading}
             pagination={{
                 position: ['topRight', 'bottomRight'],
-                onChange: (page) => {
-                    setFilters((old) => ({ ...old, page: `${page}` }));
+                onChange: (page, pageSize) => {
+                    if (filters.page !== `${page}`) {
+                        setFilters((old) => ({ ...old, page: `${page}` }));
+                        setURLParam({ page: `${page}` });
+                    }
+                    if (filters.page_size !== `${pageSize}`) {
+                        setFilters((old) => ({ ...old, page_size: `${pageSize}` }));
+                        setURLParam({ page_size: `${pageSize}` });
+                    }
                 },
-                onShowSizeChange: (_, size) => {
-                    setFilters((old) => ({ ...old, page_size: `${size}` }));
-                },
-                defaultCurrent: tableData.page_index,
+                total: tableData.total_elements,
+                current: tableData.page_index,
                 showSizeChanger: true,
                 pageSize: tableData.page_size,
                 pageSizeOptions: [5, 10, 20, 50]
