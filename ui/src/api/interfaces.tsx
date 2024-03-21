@@ -81,6 +81,7 @@ export interface getTransactionResponse {
               content: string;
           }[]
         | null;
+    last_message: string;
     prompt: string;
     error_message: string | null;
     request_time: string;
