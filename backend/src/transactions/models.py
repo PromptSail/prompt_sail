@@ -24,6 +24,7 @@ class Transaction(BaseModel):
     library: str
     status_code: int
     messages: list[dict[str, Any]] | str | None
+    last_message: str | None
     prompt: str
     error_message: str | None
     generation_speed: int | float

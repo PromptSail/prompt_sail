@@ -124,6 +124,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         "output_tokens": None,
         "os": request_headers.get("x-stainless-os", None),
         "provider": "Unknown",
+        "last_message": None
     }
 
     if "usage" in response_content:
@@ -162,7 +163,8 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 )
             else:
                 msg = str(response_content["data"][0]["embedding"])
-            transaction_params["message"] = msg
+            transaction_params["messages"] = None
+            transaction_params["last_message"] = msg
             transaction_params["error_message"] = None
 
     if "openai.azure.com" in url and "completions" in url:
@@ -185,6 +187,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
+            transaction_params["last_message"] = response_content["choices"][0]["message"]["content"]
             transaction_params["error_message"] = None
 
     if "api.openai.com" in url and "completions" in url:
@@ -208,6 +211,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
+            transaction_params["last_message"] = response_content["choices"][0]["message"]["content"]
             transaction_params["error_message"] = None
 
     return transaction_params
@@ -651,7 +655,7 @@ def generate_mock_transactions(n: int, days_back: int = 30):
                     output_tokens=output_tokens,
                     library="PostmanRuntime/7.36.3",
                     status_code=status,
-                    message="",
+                    messages=None,
                     prompt="",
                     error_message=None,
                     request_time=start_date,
@@ -676,7 +680,7 @@ def generate_mock_transactions(n: int, days_back: int = 30):
                     output_tokens=0,
                     library="PostmanRuntime/7.36.3",
                     status_code=status,
-                    message="",
+                    messages=None,
                     prompt="",
                     error_message="Error",
                     request_time=start_date,

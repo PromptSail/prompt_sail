@@ -198,6 +198,7 @@ def store_transaction(
         library=params["library"],
         status_code=params["status_code"],
         messages=params["messages"],
+        last_message=params["last_message"],
         error_message=params["error_message"],
         request_time=request_time,
         generation_speed=params["output_tokens"]
