@@ -246,7 +246,7 @@ def token_counter_for_transactions(
     project_id = data_dicts[0]["project_id"]
     pairs = set([(data["provider"], data["model"]) for data in data_dicts])
     if date_from:
-        date_from = str(date_from)[0:9]
+        date_from = str(date_from)[0:10]
         for pair in pairs:
             df.loc[pd.Timestamp(date_from)] = {
                 "project_id": project_id,
@@ -260,7 +260,7 @@ def token_counter_for_transactions(
                 "generation_speed": 0,
             }
     if date_to:
-        date_to = str(date_to)[0:9]
+        date_to = str(date_to)[0:10]
         for pair in pairs:
             df.loc[pd.Timestamp(date_to)] = {
                 "project_id": project_id,
@@ -350,10 +350,10 @@ def status_counter_for_transactions(
     df.set_index("date", inplace=True)
 
     if date_from:
-        date_from = str(date_from)[0:9]
+        date_from = str(date_from)
         df.loc[pd.Timestamp(date_from)] = pd.NA
     if date_to:
-        date_to = str(date_to)[0:9]
+        date_to = str(date_to)
         df.loc[pd.Timestamp(date_to)] = pd.NA
 
     period = pandas_period_from_string(period)
@@ -622,9 +622,9 @@ def pandas_period_from_string(period: str):
     if period == "yearly":
         return "YE"
     if period == "hourly":
-        return "H"
+        return "h"
     if period == "minutely":
-        return "5T"
+        return "5min"
     return "D"
 
 
@@ -661,6 +661,7 @@ def generate_mock_transactions(n: int, days_back: int = 30):
                     status_code=status,
                     messages=None,
                     prompt="",
+                    last_message="",
                     error_message=None,
                     request_time=start_date,
                     response_time=stop_date,
@@ -686,9 +687,76 @@ def generate_mock_transactions(n: int, days_back: int = 30):
                     status_code=status,
                     messages=None,
                     prompt="",
+                    last_message="",
                     error_message="Error",
                     request_time=start_date,
                     response_time=stop_date,
+                    generation_speed=0,
+                )
+            )
+    return transactions
+
+
+def read_transactions_from_csv(
+    path: str = "../test_transactions.csv",
+) -> list[Transaction]:
+    df = pd.read_csv(path, sep=";")
+    data = df.to_dict(orient="records")
+    transactions = []
+    for idx, obj in enumerate(data):
+        transaction_id = f"test-transaction-{idx}"
+        request_time = datetime.fromisoformat(obj["request_time"][:-1] + "+00:00")
+        response_time = datetime.fromisoformat(obj["response_time"][:-1] + "+00:00")
+        latency = response_time - request_time
+        if obj["status_code"] == 200:
+            transactions.append(
+                Transaction(
+                    id=transaction_id,
+                    project_id="project-test",
+                    request={},
+                    response={},
+                    tags=["tag"],
+                    provider=obj["provider"],
+                    model=obj["model"],
+                    type="chat",
+                    os=None,
+                    input_tokens=obj["input_tokens"],
+                    output_tokens=obj["output_tokens"],
+                    library="PostmanRuntime/7.36.3",
+                    status_code=obj["status_code"],
+                    messages=None,
+                    prompt="",
+                    last_message="",
+                    error_message=None,
+                    request_time=request_time,
+                    response_time=response_time,
+                    generation_speed=obj["output_tokens"] / latency.total_seconds()
+                    if latency.total_seconds() > 0
+                    else 0,
+                )
+            )
+        else:
+            transactions.append(
+                Transaction(
+                    id=transaction_id,
+                    project_id="project-test",
+                    request={},
+                    response={},
+                    tags=["tag"],
+                    provider=obj["provider"],
+                    model=obj["model"],
+                    type="chat",
+                    os=None,
+                    input_tokens=0,
+                    output_tokens=0,
+                    library="PostmanRuntime/7.36.3",
+                    status_code=obj["status_code"],
+                    messages=None,
+                    prompt="",
+                    last_message="",
+                    error_message="Error",
+                    request_time=request_time,
+                    response_time=response_time,
                     generation_speed=0,
                 )
             )

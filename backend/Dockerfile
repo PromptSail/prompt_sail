@@ -102,7 +102,7 @@ COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
 
 COPY  src /src/
 COPY  static /static/
-COPY provider_price_list.json ./
+COPY provider_price_list.json test_transactions.csv ./
 WORKDIR /src
 EXPOSE 8000
 # Run the application
