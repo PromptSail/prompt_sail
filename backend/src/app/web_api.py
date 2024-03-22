@@ -429,14 +429,16 @@ async def get_transaction_usage_statistics_over_time(
     """
 
     try:
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        else:
-            date_from = datetime.fromisoformat(date_from)
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
-        else:
-            date_to = datetime.fromisoformat(date_to)
+        if isinstance(date_from, str):
+            if len(date_from) == 10:
+                date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+            else:
+                date_from = datetime.fromisoformat(date_from)
+        if isinstance(date_to, str):
+            if len(date_to) == 10:
+                date_to = datetime.fromisoformat(date_to + "T00:00:00")
+            else:
+                date_to = datetime.fromisoformat(date_to)
 
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
@@ -535,14 +537,16 @@ async def get_transaction_status_statistics_over_time(
         status statistics.\n
     """
     try:
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        else:
-            date_from = datetime.fromisoformat(date_from)
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
-        else:
-            date_to = datetime.fromisoformat(date_to)
+        if isinstance(date_from, str):
+            if len(date_from) == 10:
+                date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+            else:
+                date_from = datetime.fromisoformat(date_from)
+        if isinstance(date_to, str):
+            if len(date_to) == 10:
+                date_to = datetime.fromisoformat(date_to + "T00:00:00")
+            else:
+                date_to = datetime.fromisoformat(date_to)
 
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
@@ -614,14 +618,16 @@ async def get_transaction_latency_statistics_over_time(
         total_transactions) representing the generation speed and latency statistics.\n
     """
     try:
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        else:
-            date_from = datetime.fromisoformat(date_from)
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
-        else:
-            date_to = datetime.fromisoformat(date_to)
+        if isinstance(date_from, str):
+            if len(date_from) == 10:
+                date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+            else:
+                date_from = datetime.fromisoformat(date_from)
+        if isinstance(date_to, str):
+            if len(date_to) == 10:
+                date_to = datetime.fromisoformat(date_to + "T00:00:00")
+            else:
+                date_to = datetime.fromisoformat(date_to)
 
         if date_from is not None and date_to is not None and date_from == date_to:
             date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
