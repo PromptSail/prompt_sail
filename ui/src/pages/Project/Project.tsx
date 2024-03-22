@@ -78,7 +78,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                         </Flex>
                         <Flex justify="space-between">
                             <span>Total cost:</span>
-                            <span>$ 1.00</span>
+                            <span>{`$ ${data.total_cost.toFixed(4)}`}</span>
                         </Flex>
                         <Flex justify="space-between">
                             <span>Tags:</span>
