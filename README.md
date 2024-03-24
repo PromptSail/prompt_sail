@@ -7,7 +7,7 @@
     </a>
   </p>
   <p align="center">
-    LLM’s proxy for prompt and response governance, monitoring, and analysis.
+    LLM’s proxy for prompt and response governance, monitoring, and analysis. 📊🔍
   </p>
 </p>
 
@@ -25,15 +25,14 @@
 </p>
 
 
-## What is Prompt Sail?
+## What is Prompt Sail? 
 
 Prompt Sail is a proxy for Large Language Models (LLMs) API's such as OpenAI GPT models, Azure OpenAI, Anthropic Clude etc. that allows you to record prompts and responses, analyze costs, generation speed, compare and track trends and changes across various models and projects over time.
 
 To learn more about Prompt Sail’s features and capabilities, see 
 
-* [Documentation](https://promptsail.github.io/prompt_sail/).
-
-* [Examples](https://github.com/PromptSail/prompt_sail/tree/main/examples)
+* [Documentation](https://promptsail.github.io/prompt_sail/) 📖
+* [Examples](https://github.com/PromptSail/prompt_sail/tree/main/examples) 💻
     * [OpenAI SDK -> OpenAI API](/examples/openai_sdk_openai.ipynb)
     * [Langchain SDK -> OpenAI API](/examples/langchain_openai.ipynb)
     * [OpenAI SDK -> Azure OpenAI](/examples/openai_sdk_azure_openai.ipynb)
@@ -42,18 +41,18 @@ To learn more about Prompt Sail’s features and capabilities, see
 
 <!-- * [API Reference](https://promptsail.github.io/prompt_sail/api/). -->
 
-## Getting started
+## Getting started 🚀
 
 The simplest way to try Prompt Sail is to create a project on https://try.promptsail.com and integrate it with 
 your code.
 
 If you prefer to install and manage Prompt Sail yourself, you can build or download a docker image and run it locally.
 
-## Run Prompt Sail locally via Docker Compose
+## Run Prompt Sail locally via Docker Compose 🐳
 
 To try out Start Prompt on your own machine, we recommend using docker-compose. Docker images are available from ...
 
-### Requirements
+### Requirements 📋
 
 * installed docker and docker-compose on your machine [Windows](https://docs.docker.com/docker-for-windows/install/) | [Mac](https://docs.docker.com/docker-for-mac/install/) | [Linux](https://docs.docker.com/engine/install/ubuntu/)
 * git clone repository and navigate to main directory
@@ -64,7 +63,7 @@ cd prompt_sail
 
 
 
-### Build docker images 
+### Build docker images 🏗️
 
 Build and run the docker image:
 
@@ -73,12 +72,12 @@ docker-docker-compose up --build
 ```
 
 
-### Create a project
+### Create a project 📝
 
 Navigate to http://localhost:80 and add you AI provider of choice. 
 
 
-### Modify your code to use Prompt Sail proxy
+### Modify your code to use Prompt Sail proxy 👨‍💻
 
 To use Prompt Sail with `openai` Python library, you need to set `OPENAI_API_BASE` environment variable, or
 modify `openai.api_base` parameter to point to your Prompt Sail project.
@@ -146,14 +145,14 @@ chat = ChatOpenAI(
 chat(haiku_prompt)
 ```
 
-## Contact
+## Contact 📞
 
-- Bugs & requests: file a GitHub ticket
-- For business inquiries: email contact@promptsail.com.
-- Our website: [https://promptsail.com](https://promptsail.com)
+- Bugs & requests: file a GitHub ticket 🐞
+- For business inquiries: email contact@promptsail.com. 📧
+- Our website: [https://promptsail.com](https://promptsail.com) 🌐
 
 
-## License
+## License 📜
 
 Prompt Sail is free and open source, under the [MIT license](LICENSE).
 
