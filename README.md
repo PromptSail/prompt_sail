@@ -17,7 +17,7 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
   <img alt="GitHub License" src="https://img.shields.io/github/license/promptsail/prompt_sail">
 <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/promptsail/prompt_sail/docker-publish.yml?label=Build%20and%20Publish%20Docker">
-<img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/promptsail/prompt_sail"/>
+<img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/y/promptsail/prompt_sail"/>
   <img alt="Github Last Commit" src="https://img.shields.io/github/last-commit/promptsail/prompt_sail"/>
 <img alt="Github Contributors" src="https://img.shields.io/github/contributors/promptsail/prompt_sail"/>
   <img alt="GitHub closed issues" src="https://img.shields.io/github/issues-closed/promptsail/prompt_sail"/>
