@@ -664,7 +664,7 @@ async def get_transaction_latency_statistics_over_time(
             )
             for transaction in transactions
         ]
-        stats = utils.latency_counter_for_transactions(
+        stats = utils.speed_counter_for_transactions(
             transactions, period, date_from, date_to
         )
 

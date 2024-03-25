@@ -407,7 +407,7 @@ def status_counter_for_transactions(
     return result_list
 
 
-def latency_counter_for_transactions(
+def speed_counter_for_transactions(
     transactions: list[StatisticTransactionSchema],
     period: str,
     date_from: datetime | None = None,
