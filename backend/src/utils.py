@@ -1,6 +1,7 @@
 import json
 import random
 from collections import OrderedDict
+from enum import Enum
 from urllib.parse import parse_qs, unquote, urlparse
 
 import pandas as pd
@@ -614,16 +615,18 @@ class OrderedSet(OrderedDict):
             self.add(item)
 
 
+
+
 def pandas_period_from_string(period: str):
-    if period == "weekly":
+    if period == PeriodEnum.week:
         return "W-Mon"
-    if period == "monthly":
+    if period == PeriodEnum.month:
         return "ME"
-    if period == "yearly":
+    if period == PeriodEnum.year:
         return "YE"
-    if period == "hourly":
+    if period == PeriodEnum.hour:
         return "h"
-    if period == "minutely":
+    if period == PeriodEnum.minutes:
         return "5min"
     return "D"
 
@@ -762,6 +765,13 @@ def read_transactions_from_csv(
             )
     return transactions
 
+class PeriodEnum(str, Enum):
+    week = 'week'
+    year = 'year'
+    month = 'month' 
+    day = 'day'
+    hour = 'hour' 
+    minutes = '5minutes'
 
 known_ai_providers = [
     {"provider_name": "OpenAI", "api_base_placeholder": "https://api.openai.com/v1"},

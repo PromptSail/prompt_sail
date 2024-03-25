@@ -404,7 +404,7 @@ async def get_transaction_usage_statistics_over_time(
     project_id: str,
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
-    period: str | None = "daily",
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
 ) -> list[GetTransactionUsageStatisticsSchema] | dict[str, str]:
     """
     Retrieve transaction usage statistics over a specified time period.\n
@@ -421,8 +421,8 @@ async def get_transaction_usage_statistics_over_time(
         beginning of the project's existence).\n
     :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
-        (default is "daily").\n
+    :param period: The time period for grouping statistics - can be year, month, week, day, hour or minute (5 minutes).
+        (default is "day").\n
     :return: A list of GetTransactionUsageStatisticsSchema (provider, model, date, total_input_tokens,
         total_output_tokens, input_cumulative_total, output_cumulative_total, total_transactions, total_cost)
         representing the usage statistics.\n
@@ -516,7 +516,7 @@ async def get_transaction_status_statistics_over_time(
     project_id: str,
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
-    period: str | None = "daily",
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
 ) -> list[GetTransactionStatusStatisticsSchema] | dict[str, str]:
     """
     Retrieve transaction status statistics over a specified time period.\n
@@ -531,8 +531,8 @@ async def get_transaction_status_statistics_over_time(
         beginning of the project's existence).\n
     :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
-        (default is "daily").\n
+    :param period: The time period for grouping statistics - can be year, month, week, day, hour or minute (5 minutes).
+        (default is "day").\n
     :return: A list of GetTransactionStatusStatisticsSchema (date, status_code, total_transactions) representing the
         status statistics.\n
     """
@@ -598,7 +598,7 @@ async def get_transaction_latency_statistics_over_time(
     project_id: str,
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
-    period: str | None = "daily",
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
 ) -> list[GetTransactionLatencyStatisticsSchema] | dict[str, str]:
     """
     Retrieve transaction generation speed and latency statistics over a specified time period.\n
@@ -612,8 +612,8 @@ async def get_transaction_latency_statistics_over_time(
         beginning of the project's existence).\n
     :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
-        (default is "daily").\n
+    :param period: The time period for grouping statistics - can be year, month, week, day, hour or minute (5 minutes).
+        (default is "day").\n
     :return: A list of GetTransactionLatencyStatisticsSchema (provider, model, date, mean_latency, tokens_per_second,
         total_transactions) representing the generation speed and latency statistics.\n
     """
