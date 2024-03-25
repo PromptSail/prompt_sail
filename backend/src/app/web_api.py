@@ -601,10 +601,9 @@ async def get_transaction_latency_statistics_over_time(
     period: utils.PeriodEnum = utils.PeriodEnum.day,
 ) -> list[GetTransactionLatencyStatisticsSchema] | dict[str, str]:
     """
-    Retrieve transaction generation speed and latency statistics over a specified time period.\n
+    Compute mean transactions generation speed and latency statistics over a specified time period.\n
 
-    This endpoint fetches transaction data based on the specified project ID,
-    date range, and period. It then processes the data to generate values of latency and generation speed.\n
+    Endpoint fetches transaction data for the project (project ID) and specified date range (date from, date to). Next, it aggregates the generation speed by the provided granularity (monthly, weekly, daily, hourly or by minutes).\n
 
     :param ctx: The transaction context, providing access to dependencies (automatically applied).\n
     :param project_id: The unique identifier of the project.\n
