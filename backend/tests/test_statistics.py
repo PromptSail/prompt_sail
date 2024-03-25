@@ -11,7 +11,7 @@ def test_transaction_count_min_5min(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:04:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T12:04:59.000"
     )
 
     # assert
@@ -29,7 +29,7 @@ def test_transaction_count_min_30min(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:29:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T12:29:59.999"
     )
 
     # assert
@@ -47,7 +47,7 @@ def test_transaction_count_min_1h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:59:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T12:59:59.999"
     )
 
     # assert
@@ -65,7 +65,7 @@ def test_transaction_count_min_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-10-01&date_to=2023-10-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-10-01T00:00.000&date_to=2023-10-31T00:00.000"
     )
 
     # assert
@@ -101,7 +101,7 @@ def test_transaction_count_hour_1h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-11-01T12:00:00&date_to=2023-11-01T13:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T13:00:00.000"
     )
 
     # assert
@@ -119,7 +119,7 @@ def test_transaction_count_hour_24h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-11-01T12:00:00&date_to=2023-11-02T11:59:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-11-01T12:00:00.000&date_to=2023-11-02T11:59:59.999"
     )
 
     # assert
@@ -137,7 +137,7 @@ def test_transaction_count_hour_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-10-01&date_to=2023-10-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-10-01T00:00.000&date_to=2023-10-31T00:00.000"
     )
 
     # assert
@@ -155,7 +155,7 @@ def test_transaction_count_day_6h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00&date_to=2023-11-01T18:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T18:00:00.000"
     )
 
     # assert
@@ -173,7 +173,7 @@ def test_transaction_count_day_1d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01&date_to=2023-11-01"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T00:00.000&date_to=2023-11-01T00:00.000"
     )
 
     # assert
@@ -191,7 +191,7 @@ def test_transaction_count_day_24h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T13:00:00&date_to=2023-11-02T13:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T13:00:00.000&date_to=2023-11-02T13:00:00.000"
     )
 
     # assert
@@ -209,7 +209,7 @@ def test_transaction_count_day_7d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00&date_to=2023-11-07T11:59:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00.000&date_to=2023-11-07T11:59:59.999"
     )
 
     # assert
@@ -227,7 +227,7 @@ def test_transaction_count_day_1mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00&date_to=2023-11-30T12:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00.000&date_to=2023-11-30T12:00:00.000"
     )
 
     # assert
@@ -245,7 +245,7 @@ def test_transaction_count_week_3d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00&date_to=2023-11-03T12:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00.000&date_to=2023-11-03T12:00:00.000"
     )
 
     # assert
@@ -263,7 +263,7 @@ def test_transaction_count_week_7d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00&date_to=2023-11-07T12:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00.000&date_to=2023-11-07T12:00:00.000"
     )
 
     # assert
@@ -281,7 +281,7 @@ def test_transaction_count_week_2mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00&date_to=2023-12-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00.000&date_to=2023-12-31T00:00:00.000"
     )
 
     # assert
@@ -299,7 +299,7 @@ def test_transaction_count_week_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2024-03-29&date_to=2024-04-30"
+        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2024-03-29T00:00:00.000&date_to=2024-04-30T00:00:00.000"
     )
 
     # assert
@@ -335,7 +335,7 @@ def test_transaction_count_month_1mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2023-11-01&date_to=2023-11-30"
+        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2023-11-01T12:00:00.000&date_to=2023-11-30T12:00:00.000"
     )
 
     # assert
@@ -353,7 +353,7 @@ def test_transaction_count_month_6mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2023-10-01&date_to=2024-03-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2023-10-01T12:00:00.000&date_to=2024-03-31T12:00:00.000"
     )
 
     # assert
@@ -371,7 +371,7 @@ def test_transaction_count_month_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2024-05-01&date_to=2024-06-01"
+        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2024-05-01T12:00:00.000&date_to=2024-06-01T12:00:00.000"
     )
 
     # assert
@@ -389,7 +389,7 @@ def test_transaction_count_year_2mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2023-11-01&date_to=2023-12-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2023-11-01T12:00:00.000&date_to=2023-12-31T12:00:00.000"
     )
 
     # assert
@@ -407,7 +407,7 @@ def test_transaction_count_year_2y(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2023-11-01&date_to=2024-03-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2023-11-01T12:00:00.000&date_to=2024-03-31T12:00:00.000"
     )
 
     # assert
@@ -425,7 +425,7 @@ def test_transaction_count_year_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2024-03-31&date_to=2024-12-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2024-03-31T12:00:00.000&date_to=2024-12-31T12:00:00.000"
     )
 
     # assert

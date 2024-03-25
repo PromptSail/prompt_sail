@@ -708,8 +708,8 @@ def read_transactions_from_csv(
     transactions = []
     for idx, obj in enumerate(data):
         transaction_id = f"test-transaction-{idx}"
-        request_time = datetime.fromisoformat(obj["request_time"][:-1] + "+00:00")
-        response_time = datetime.fromisoformat(obj["response_time"][:-1] + "+00:00")
+        request_time = datetime.fromisoformat(obj["request_time"].replace("Z", "+00:00"))
+        response_time = datetime.fromisoformat(obj["response_time"].replace("Z", "+00:00"))
         latency = response_time - request_time
         if obj["status_code"] == 200:
             transactions.append(
@@ -765,6 +765,7 @@ def read_transactions_from_csv(
             )
     return transactions
 
+
 class PeriodEnum(str, Enum):
     week = 'week'
     year = 'year'
@@ -772,6 +773,7 @@ class PeriodEnum(str, Enum):
     day = 'day'
     hour = 'hour' 
     minutes = '5minutes'
+
 
 known_ai_providers = [
     {"provider_name": "OpenAI", "api_base_placeholder": "https://api.openai.com/v1"},
