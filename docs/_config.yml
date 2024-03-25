@@ -1,16 +1,16 @@
-remote_theme             : "mmistakes/minimal-mistakes@4.24.0"
-title                    : "Prompt Sail"
-title_separator          : "-"
-subtitle                 : "LLM Proxy"
-description              : &description  "LLM's proxy for prompt and response governance, monitoring, and analysis"
-url                      : https://promptsail.github.io/prompt_sail/
-baseurl                  : "/prompt_sail" # the subpath of your site, e.g. "/blog"
-repository               : "mmistakes/minimal-mistakes"
-teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
-logo                     : "/assets/images/prompt_sail_logo200.jpg" # path of logo image to display in the masthead, e.g. "/assets/images/88x88.png"
-masthead_title           : # overrides the website title displayed in the masthead, use " " for no title
+remote_theme: "mmistakes/minimal-mistakes@4.24.0"
+title: "Prompt Sail"
+title_separator: "-"
+subtitle: "LLM Proxy"
+description: &description "LLM's proxy for prompt and response governance, monitoring, and analysis"
+url: https://promptsail.github.io/prompt_sail/
+baseurl: "/prompt_sail" # the subpath of your site, e.g. "/blog"
+repository: "mmistakes/minimal-mistakes"
+teaser: # path of fallback teaser image, e.g. "/assets/images/500x300.png"
+logo: "/assets/images/prompt_sail_logo_teal.png" # path of logo image to display in the masthead, e.g. "/assets/images/88x88.png"
+masthead_title: # overrides the website title displayed in the masthead, use " " for no title
 # breadcrumbs            : false # true, false (default)
-words_per_minute         : 200
+words_per_minute: 200
 
 footer:
   links:
@@ -26,7 +26,6 @@ footer:
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
       url: "https://github.com/PromptSail/prompt_sail"
-
 
 # Site Author
 # author:
@@ -89,14 +88,12 @@ keep_files:
 encoding: "utf-8"
 markdown_ext: "markdown,mkdown,mkdn,mkd,md"
 
-
 # Conversion
 markdown: kramdown
 highlighter: rouge
 lsi: false
 excerpt_separator: "\n\n"
 incremental: false
-
 
 # Markdown Processing
 kramdown:
@@ -108,7 +105,6 @@ kramdown:
   toc_levels: 1..6
   smart_quotes: lsquo,rsquo,ldquo,rdquo
   enable_coderay: false
-
 
 # Collections
 collections:
@@ -149,19 +145,16 @@ defaults:
       sidebar:
         nav: "docs"
 
-
 # Sass/SCSS
 sass:
   sass_dir: _sass
   style: compressed # http://sass-lang.com/documentation/file.SASS_REFERENCE.html#output_style
-
 
 # Outputting
 permalink: /:categories/:title/
 # paginate: 5 # amount of posts to show
 # paginate_path: /page:num/
 timezone: Europe/Warsaw # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-
 
 # Plugins (previously gems:)
 plugins:
@@ -180,7 +173,6 @@ whitelist:
   - jekyll-feed
   - jemoji
   - jekyll-include-cache
-
 
 # Archives
 #  Type
@@ -209,7 +201,6 @@ tag_archive:
 #   permalinks:
 #     category: /categories/:name/
 #     tag: /tags/:name/
-
 
 # HTML Compression
 # - http://jch.penibelst.de/
