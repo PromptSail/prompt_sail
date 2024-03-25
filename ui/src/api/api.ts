@@ -6,6 +6,7 @@ import {
     getAllTransactionResponse,
     getProjectResponse,
     getProviders,
+    getStatisticsTransactionsCount,
     getTransactionResponse,
     updateProjectRequest
 } from './interfaces';
@@ -34,6 +35,11 @@ const api = {
     },
     getProviders: (): Promise<AxiosResponse<getProviders[]>> => {
         return client.get('/api/providers');
+    },
+    getStatistics_TransactionsCount: (
+        params: string
+    ): Promise<AxiosResponse<getStatisticsTransactionsCount[]>> => {
+        return client.get(`/api/statistics/transactions_count${params}`);
     }
 };
 

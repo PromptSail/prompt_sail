@@ -10,3 +10,10 @@ export type TransactionsFilters = {
     sort_field?: keyof getTransactionResponse | '';
     sort_type?: 'asc' | '';
 };
+
+export type Statistics_TransactionsCount = {
+    project_id: string;
+    date_from?: string;
+    date_to?: string;
+    peroid?: 'monthly' | 'weekly' | 'daily' | 'hourly' | 'minutely';
+};

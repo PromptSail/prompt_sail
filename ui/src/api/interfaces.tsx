@@ -103,3 +103,11 @@ export interface getProviders {
     provider_name: string;
     api_base_placeholder: string;
 }
+export interface getStatisticsTransactionsCount {
+    date: string;
+    status_200: number;
+    status_300: number;
+    status_400: number;
+    status_500: number;
+    total_transactions: number;
+}

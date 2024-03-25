@@ -11,6 +11,7 @@ import { TagsContainer } from '../../helpers/dataContainer';
 import AiProvidersTable from './AiProvidersTable';
 import LatestTransactions from './LatestTransactions';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
+import TransactionsCountChart from './TransactionsCountChart';
 const { Title, Paragraph } = Typography;
 
 const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
@@ -89,7 +90,9 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                         <AiProvidersTable providers={data.ai_providers} slug={data.slug} />
                     </Container>
                 </Flex>
-                <Container header="Latest transactions" classname={{ parent: 'mt-5' }}>
+
+                <TransactionsCountChart projectId={data.id} />
+                <Container header="Latest transactions" classname={{ parent: 'my-5' }}>
                     <LatestTransactions projectId={data.id} />
                 </Container>
             </>

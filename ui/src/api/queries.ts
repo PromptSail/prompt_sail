@@ -9,10 +9,23 @@ import {
     getProjectResponse,
     updateProjectRequest,
     getTransactionResponse,
-    getProviders
+    getProviders,
+    getStatisticsTransactionsCount
 } from './interfaces';
-import { TransactionsFilters } from './types';
+import { Statistics_TransactionsCount, TransactionsFilters } from './types';
 import { notification } from 'antd';
+
+const linkParamsParser = <T extends { [key: string]: string }>(params: T): string => {
+    let paramsStr = '?';
+    Object.keys(params).forEach((key) => {
+        const val = params[key as keyof T];
+        if (`${val}`.length > 0) {
+            if (paramsStr.length > 1) paramsStr += '&';
+            paramsStr += `${key}=${val}`;
+        }
+    });
+    return paramsStr;
+};
 
 export const useGetAllProjects = (): UseQueryResult<getAllProjects[], AxiosError> => {
     return useQuery(
@@ -65,18 +78,10 @@ export const useGetTransaction = (
 export const useGetAllTransactions = (
     filters: TransactionsFilters
 ): UseQueryResult<AxiosResponse<getAllTransactionResponse>, AxiosError> => {
-    let filters_str = '?';
-    Object.keys(filters).forEach((key) => {
-        const val = filters[key as keyof TransactionsFilters];
-        if (`${val}`.length > 0) {
-            if (filters_str.length > 1) filters_str += '&';
-            filters_str += `${key}=${val}`;
-        }
-    });
     return useQuery(
         ['transactions', filters],
         async () => {
-            return await api.getTransactions(filters_str);
+            return await api.getTransactions(linkParamsParser(filters));
         },
         {
             enabled: !!filters,
@@ -171,6 +176,23 @@ export const useGetProviders = (): UseQueryResult<AxiosResponse<getProviders[]>,
             retry: false,
             cacheTime: 0,
             refetchOnWindowFocus: false
+        }
+    );
+};
+export const useGetStatistics_TransactionsCount = (
+    params: Statistics_TransactionsCount
+): UseQueryResult<AxiosResponse<getStatisticsTransactionsCount[]>, AxiosError> => {
+    return useQuery(
+        ['statistics_transactionsCount', params],
+        async () => {
+            return await api.getStatistics_TransactionsCount(linkParamsParser(params));
+        },
+        {
+            enabled: !!params,
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
         }
     );
 };
