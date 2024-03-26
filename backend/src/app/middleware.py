@@ -1,6 +1,11 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
+from traceback import print_exception
+
+from fastapi.responses import JSONResponse
 
 from .app import app
+from .dependencies import get_logger
+
 
 # @app.middleware("detect_subdomain")
 # async def __call__(request: Request, call_next):
@@ -40,6 +45,34 @@ async def __call__(request: Request, call_next):
     response = await call_next(request)
     ctx.__exit__(None, None, None)
     return response
+
+
+@app.middleware("exception_handler")
+async def __call__(request: Request, call_next):
+    """
+    Middleware for managing exception handling.
+
+    :param request: The incoming request.
+    :param call_next: The callable representing the next middleware or endpoint in the chain.
+    :return: The response from the middleware or endpoint.
+    """
+    logger = get_logger(request)
+    try:
+        return await call_next(request)
+    except HTTPException as http_exception:
+        return JSONResponse(
+            status_code=http_exception.status_code,
+            content={
+                'error': "Client Error",
+                'messages': str(http_exception.detail),
+            }
+        )
+    except Exception as e:
+        logger.exception(f"Error message: {e.__class__.__name__}. Args: {e.args}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Internal Server Error", "message": "An unexpected error occurred."},
+        )
 
 
 @app.middleware("proxy_tunnel")
