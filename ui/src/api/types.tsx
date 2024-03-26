@@ -15,5 +15,5 @@ export type Statistics_TransactionsCount = {
     project_id: string;
     date_from?: string;
     date_to?: string;
-    peroid?: 'monthly' | 'weekly' | 'daily' | 'hourly' | 'minutely';
+    period?: 'monthly' | 'weekly' | 'daily' | 'hourly' | 'minutely';
 };
