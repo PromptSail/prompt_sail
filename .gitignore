@@ -166,3 +166,4 @@ cython_debug/
 .vscode/settings.json
 backend/poetry.lock
 **/.env
+private_examples/*
