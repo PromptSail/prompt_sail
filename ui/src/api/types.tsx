@@ -1,3 +1,4 @@
+import { Period } from '../pages/Project/Statistics/Statistics';
 import { getTransactionResponse } from './interfaces';
 
 export type TransactionsFilters = {
@@ -11,9 +12,9 @@ export type TransactionsFilters = {
     sort_type?: 'asc' | '';
 };
 
-export type Statistics_TransactionsCount = {
+export type StatisticsParams = {
     project_id: string;
     date_from?: string;
     date_to?: string;
-    period?: 'monthly' | 'weekly' | 'daily' | 'hourly' | 'minutely';
+    period?: Period;
 };

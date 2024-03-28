@@ -1,7 +1,7 @@
 import { DatePicker, Flex, Select, Typography } from 'antd';
 import Container from '../Container';
 import dayjs from 'dayjs';
-import { Statistics_TransactionsCount } from '../../../api/types';
+import { StatisticsParams } from '../../../api/types';
 import { useState } from 'react';
 import TransactionsCountChart from './TransactionsCountChart';
 import TransactionsCostChart from './TransactionsCostChart';
@@ -12,35 +12,23 @@ interface Params {
     projectId: string;
 }
 
+export enum Period {
+    Yearly = 'year',
+    Monthly = 'month',
+    Weekly = 'week',
+    Daily = 'day',
+    Hourly = 'hour',
+    Minutely = '5minutes'
+}
+
 const Statistics: React.FC<Params> = ({ projectId }) => {
-    const [statisticsParams, setStatisticsParams] = useState<Statistics_TransactionsCount>({
+    const [statisticsParams, setStatisticsParams] = useState<StatisticsParams>({
         project_id: projectId
     });
-    const periodOptions: Array<{
-        value: Statistics_TransactionsCount['period'];
-        label: Statistics_TransactionsCount['period'];
-    }> = [
-        {
-            value: 'minutely',
-            label: 'minutely'
-        },
-        {
-            value: 'hourly',
-            label: 'hourly'
-        },
-        {
-            value: 'daily',
-            label: 'daily'
-        },
-        {
-            value: 'weekly',
-            label: 'weekly'
-        },
-        {
-            value: 'monthly',
-            label: 'monthly'
-        }
-    ];
+    const periodOptions = Object.keys(Period).map((el) => ({
+        label: el,
+        value: Period[el as keyof typeof Period]
+    }));
     return (
         <Container
             header={
@@ -100,10 +88,10 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                         />
                         <Select
                             options={periodOptions}
-                            onChange={(val: Statistics_TransactionsCount['period']) => {
-                                setStatisticsParams((old) => ({ ...old, peroid: val }));
+                            onChange={(val: Period) => {
+                                setStatisticsParams((old) => ({ ...old, period: val }));
                             }}
-                            defaultValue={'daily'}
+                            defaultValue={Period.Daily}
                             className="w-[100px]"
                         />
                     </div>

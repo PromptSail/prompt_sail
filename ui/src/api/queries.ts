@@ -13,7 +13,7 @@ import {
     getStatisticsTransactionsCount,
     getStatisticsTransactionsCost
 } from './interfaces';
-import { Statistics_TransactionsCount, TransactionsFilters } from './types';
+import { StatisticsParams, TransactionsFilters } from './types';
 import { notification } from 'antd';
 
 const linkParamsParser = <T extends { [key: string]: string }>(params: T): string => {
@@ -181,7 +181,7 @@ export const useGetProviders = (): UseQueryResult<AxiosResponse<getProviders[]>,
     );
 };
 export const useGetStatistics_TransactionsCount = (
-    params: Statistics_TransactionsCount
+    params: StatisticsParams
 ): UseQueryResult<AxiosResponse<getStatisticsTransactionsCount[]>, AxiosError> => {
     return useQuery(
         ['statistics_transactionsCount', params],
@@ -198,7 +198,7 @@ export const useGetStatistics_TransactionsCount = (
     );
 };
 export const useGetStatistics_TransactionsCost = (
-    params: Statistics_TransactionsCount
+    params: StatisticsParams
 ): UseQueryResult<AxiosResponse<getStatisticsTransactionsCost[]>, AxiosError> => {
     return useQuery(
         ['statistics_transactionsCost', params],

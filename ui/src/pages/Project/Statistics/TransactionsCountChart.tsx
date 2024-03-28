@@ -10,10 +10,10 @@ import {
 } from 'recharts';
 import { useGetStatistics_TransactionsCount } from '../../../api/queries';
 import { Spin, Typography } from 'antd';
-import { Statistics_TransactionsCount } from '../../../api/types';
+import { StatisticsParams } from '../../../api/types';
 const { Title } = Typography;
 interface Params {
-    statisticsParams: Statistics_TransactionsCount;
+    statisticsParams: StatisticsParams;
 }
 
 const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
