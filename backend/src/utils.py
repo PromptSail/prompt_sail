@@ -127,7 +127,6 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         "provider": "Unknown",
         "messages": None,
         "last_message": None,
-
     }
 
     if "usage" in response_content:
