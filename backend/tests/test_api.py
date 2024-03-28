@@ -114,7 +114,7 @@ def test_delete_project(client, application):
     assert response.status_code == 204
 
 
-def test_delete_not_exisitng_project_returns_204(client, application):
+def test_delete_not_existing_project_returns_204(client, application):
     # arrange
     ...
 

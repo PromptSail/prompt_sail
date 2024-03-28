@@ -2,7 +2,7 @@ import re
 from typing import Annotated, Any
 
 import utils
-from _datetime import datetime, timedelta, timezone
+from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
@@ -73,8 +73,9 @@ async def get_projects(
                     price
                     for price in pricelist
                     if re.match(price.match_pattern, transaction.model)
-                ][0]
-                if price:
+                ]
+                if len(price) > 0:
+                    price = price[0]
                     if price.total_price > 0:
                         cost += (
                             (
@@ -133,8 +134,9 @@ async def get_project_details(
                 price
                 for price in pricelist
                 if re.match(price.match_pattern, transaction.model)
-            ][0]
-            if price:
+            ]
+            if len(price) > 0:
+                price = price[0]
                 if price.total_price > 0:
                     cost += (
                         (
@@ -404,8 +406,8 @@ async def get_transaction_usage_statistics_over_time(
     project_id: str,
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
-    period: str | None = "daily",
-) -> list[GetTransactionUsageStatisticsSchema] | dict[str, str]:
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
+) -> list[GetTransactionUsageStatisticsSchema]:
     """
     Retrieve transaction usage statistics over a specified time period.\n
 
@@ -421,93 +423,74 @@ async def get_transaction_usage_statistics_over_time(
         beginning of the project's existence).\n
     :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
-        (default is "daily").\n
+    :param period: The time period for grouping statistics - can be year, month, week, day, hour or minute (5 minutes).
+        (default is "day").\n
     :return: A list of GetTransactionUsageStatisticsSchema (provider, model, date, total_input_tokens,
         total_output_tokens, input_cumulative_total, output_cumulative_total, total_transactions, total_cost)
         representing the usage statistics.\n
     """
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+    
+    count = ctx.call(
+        count_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    if count == 0:
+        return []
 
-    try:
-        if isinstance(date_from, str):
-            if len(date_from) == 10:
-                date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-            else:
-                date_from = datetime.fromisoformat(date_from)
-        if isinstance(date_to, str):
-            if len(date_to) == 10:
-                date_to = datetime.fromisoformat(date_to + "T00:00:00")
-            else:
-                date_to = datetime.fromisoformat(date_to)
-
-        if date_from is not None and date_to is not None and date_from == date_to:
-            date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-
-        count = ctx.call(
-            count_transactions,
+    transactions = ctx.call(
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    transactions = [
+        StatisticTransactionSchema(
             project_id=project_id,
-            date_from=date_from,
-            date_to=date_to,
+            provider=transaction.provider,
+            model=transaction.model,
+            total_input_tokens=transaction.input_tokens or 0,
+            total_output_tokens=transaction.output_tokens or 0,
+            status_code=transaction.status_code,
+            date=transaction.response_time,
+            latency=(
+                transaction.response_time - transaction.request_time
+            ).total_seconds(),
+            generation_speed=transaction.generation_speed,
+            total_transactions=1,
         )
-        if count == 0:
-            return []
+        for transaction in transactions
+    ]
+    stats = utils.token_counter_for_transactions(
+        transactions, period, date_from, date_to
+    )
+    pricelist = get_provider_pricelist(request)
 
-        transactions = ctx.call(
-            get_list_of_filtered_transactions,
-            project_id=project_id,
-            date_from=date_from,
-            date_to=date_to,
-        )
-        transactions = [
-            StatisticTransactionSchema(
-                project_id=project_id,
-                provider=transaction.provider,
-                model=transaction.model,
-                total_input_tokens=transaction.input_tokens or 0,
-                total_output_tokens=transaction.output_tokens or 0,
-                status_code=transaction.status_code,
-                date=transaction.response_time,
-                latency=(
-                    transaction.response_time - transaction.request_time
-                ).total_seconds(),
-                generation_speed=transaction.generation_speed,
-                total_transactions=1,
-            )
-            for transaction in transactions
+    for stat in stats:
+        possible_prices = [
+            price for price in pricelist if re.match(price.match_pattern, stat.model)
         ]
-        stats = utils.token_counter_for_transactions(
-            transactions, period, date_from, date_to
-        )
-        pricelist = get_provider_pricelist(request)
+        if len(possible_prices) > 0:
+            # TODO: Counting by date instead of by lastest
+            lastest = max(
+                possible_prices,
+                key=lambda x: x.start_date if x.start_date else datetime.min,
+            )
+            if lastest.input_price > 0 and lastest.output_price > 0:
+                stat.total_cost += (
+                    stat.input_cumulative_total / 1000
+                ) * lastest.input_price
+                stat.total_cost += (
+                    stat.output_cumulative_total / 1000
+                ) * lastest.output_price
+            else:
+                stat.total_cost = (
+                    (stat.input_cumulative_total + stat.output_cumulative_total) / 1000
+                ) * lastest.total_price
 
-        for stat in stats:
-            possible_prices = [
-                price
-                for price in pricelist
-                if re.match(price.match_pattern, stat.model)
-            ]
-            if len(possible_prices) > 0:
-                # TODO: Counting by date instead of by lastest
-                lastest = max(
-                    possible_prices,
-                    key=lambda x: x.start_date if x.start_date else datetime.min,
-                )
-                if lastest.input_price > 0 and lastest.output_price > 0:
-                    stat.total_cost += (
-                        stat.input_cumulative_total / 1000
-                    ) * lastest.input_price
-                    stat.total_cost += (
-                        stat.output_cumulative_total / 1000
-                    ) * lastest.output_price
-                else:
-                    stat.total_cost = (
-                        (stat.input_cumulative_total + stat.output_cumulative_total)
-                        / 1000
-                    ) * lastest.total_price
-
-        return stats
-    except Exception as e:
-        return {"error": str(e)}
+    return stats
 
 
 @app.get("/api/statistics/transactions_count", response_class=JSONResponse)
@@ -516,8 +499,8 @@ async def get_transaction_status_statistics_over_time(
     project_id: str,
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
-    period: str | None = "daily",
-) -> list[GetTransactionStatusStatisticsSchema] | dict[str, str]:
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
+) -> list[GetTransactionStatusStatisticsSchema]:
     """
     Retrieve transaction status statistics over a specified time period.\n
 
@@ -531,65 +514,50 @@ async def get_transaction_status_statistics_over_time(
         beginning of the project's existence).\n
     :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
-        (default is "daily").\n
+    :param period: The time period for grouping statistics - can be year, month, week, day, hour or minute (5 minutes).
+        (default is "day").\n
     :return: A list of GetTransactionStatusStatisticsSchema (date, status_code, total_transactions) representing the
         status statistics.\n
     """
-    try:
-        if isinstance(date_from, str):
-            if len(date_from) == 10:
-                date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-            else:
-                date_from = datetime.fromisoformat(date_from)
-        if isinstance(date_to, str):
-            if len(date_to) == 10:
-                date_to = datetime.fromisoformat(date_to + "T00:00:00")
-            else:
-                date_to = datetime.fromisoformat(date_to)
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
 
-        if date_from is not None and date_to is not None and date_from == date_to:
-            date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+    count = ctx.call(
+        count_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    if count == 0:
+        return []
 
-        count = ctx.call(
-            count_transactions,
+    transactions = ctx.call(
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    transactions = [
+        StatisticTransactionSchema(
             project_id=project_id,
-            date_from=date_from,
-            date_to=date_to,
+            provider=transaction.provider,
+            model=transaction.model,
+            total_input_tokens=transaction.input_tokens or 0,
+            total_output_tokens=transaction.output_tokens or 0,
+            status_code=transaction.status_code,
+            date=transaction.response_time,
+            latency=(
+                transaction.response_time - transaction.request_time
+            ).total_seconds(),
+            generation_speed=transaction.generation_speed,
+            total_transactions=1,
         )
-        if count == 0:
-            return []
+        for transaction in transactions
+    ]
+    stats = utils.status_counter_for_transactions(
+        transactions, period, date_from, date_to
+    )
 
-        transactions = ctx.call(
-            get_list_of_filtered_transactions,
-            project_id=project_id,
-            date_from=date_from,
-            date_to=date_to,
-        )
-        transactions = [
-            StatisticTransactionSchema(
-                project_id=project_id,
-                provider=transaction.provider,
-                model=transaction.model,
-                total_input_tokens=transaction.input_tokens or 0,
-                total_output_tokens=transaction.output_tokens or 0,
-                status_code=transaction.status_code,
-                date=transaction.response_time,
-                latency=(
-                    transaction.response_time - transaction.request_time
-                ).total_seconds(),
-                generation_speed=transaction.generation_speed,
-                total_transactions=1,
-            )
-            for transaction in transactions
-        ]
-        stats = utils.status_counter_for_transactions(
-            transactions, period, date_from, date_to
-        )
-
-        return stats
-    except Exception as e:
-        return {"error": str(e)}
+    return stats
 
 
 @app.get("/api/statistics/transactions_speed", response_class=JSONResponse)
@@ -598,8 +566,8 @@ async def get_transaction_latency_statistics_over_time(
     project_id: str,
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
-    period: str | None = "daily",
-) -> list[GetTransactionLatencyStatisticsSchema] | dict[str, str]:
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
+) -> list[GetTransactionLatencyStatisticsSchema]:
     """
     Compute mean transactions generation speed and latency statistics over a specified time period.\n
 
@@ -611,65 +579,50 @@ async def get_transaction_latency_statistics_over_time(
         beginning of the project's existence).\n
     :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
         present time).\n
-    :param period: The time period for grouping statistics - can be yearly, monthly, weekly, daily, hourly or minutely.
-        (default is "daily").\n
+    :param period: The time period for grouping statistics - can be year, month, week, day, hour or minute (5 minutes).
+        (default is "day").\n
     :return: A list of GetTransactionLatencyStatisticsSchema (provider, model, date, mean_latency, tokens_per_second,
         total_transactions) representing the generation speed and latency statistics.\n
     """
-    try:
-        if isinstance(date_from, str):
-            if len(date_from) == 10:
-                date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-            else:
-                date_from = datetime.fromisoformat(date_from)
-        if isinstance(date_to, str):
-            if len(date_to) == 10:
-                date_to = datetime.fromisoformat(date_to + "T00:00:00")
-            else:
-                date_to = datetime.fromisoformat(date_to)
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
 
-        if date_from is not None and date_to is not None and date_from == date_to:
-            date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+    count = ctx.call(
+        count_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    if count == 0:
+        return []
 
-        count = ctx.call(
-            count_transactions,
+    transactions = ctx.call(
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    transactions = [
+        StatisticTransactionSchema(
             project_id=project_id,
-            date_from=date_from,
-            date_to=date_to,
+            provider=transaction.provider,
+            model=transaction.model,
+            total_input_tokens=transaction.input_tokens or 0,
+            total_output_tokens=transaction.output_tokens or 0,
+            status_code=transaction.status_code,
+            date=transaction.response_time,
+            latency=(
+                transaction.response_time - transaction.request_time
+            ).total_seconds(),
+            generation_speed=transaction.generation_speed,
+            total_transactions=1,
         )
-        if count == 0:
-            return []
+        for transaction in transactions
+    ]
+    stats = utils.speed_counter_for_transactions(
+        transactions, period, date_from, date_to
+    )
 
-        transactions = ctx.call(
-            get_list_of_filtered_transactions,
-            project_id=project_id,
-            date_from=date_from,
-            date_to=date_to,
-        )
-        transactions = [
-            StatisticTransactionSchema(
-                project_id=project_id,
-                provider=transaction.provider,
-                model=transaction.model,
-                total_input_tokens=transaction.input_tokens or 0,
-                total_output_tokens=transaction.output_tokens or 0,
-                status_code=transaction.status_code,
-                date=transaction.response_time,
-                latency=(
-                    transaction.response_time - transaction.request_time
-                ).total_seconds(),
-                generation_speed=transaction.generation_speed,
-                total_transactions=1,
-            )
-            for transaction in transactions
-        ]
-        stats = utils.latency_counter_for_transactions(
-            transactions, period, date_from, date_to
-        )
-
-        return stats
-    except Exception as e:
-        return {"error": str(e)}
+    return stats
 
 
 @app.get("/api/statistics/pricelist", response_class=JSONResponse)
@@ -740,18 +693,14 @@ async def mock_transactions(
     :param ctx: The transaction context dependency.
     :return: A dictionary containing the status and message (code and latency).
     """
-    try:
-        time_start = datetime.now(tz=timezone.utc)
-        repo = ctx["transaction_repository"]
-        mocked_transactions = utils.generate_mock_transactions(count, days_back)
-        for transaction in mocked_transactions:
-            repo.add(transaction)
-        time_stop = datetime.now(tz=timezone.utc)
+    time_start = datetime.now(tz=timezone.utc)
+    repo = ctx["transaction_repository"]
+    mocked_transactions = utils.generate_mock_transactions(count, days_back)
+    for transaction in mocked_transactions:
+        repo.add(transaction)
+    time_stop = datetime.now(tz=timezone.utc)
 
-        return {
-            "status_code": 200,
-            "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds.",
-        }
-
-    except Exception as e:
-        return {"status_code": 500, "message": str(e)}
+    return {
+        "status_code": 200,
+        "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds.",
+    }
