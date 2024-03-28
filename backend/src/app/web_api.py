@@ -731,18 +731,14 @@ async def mock_transactions(
     :param ctx: The transaction context dependency.
     :return: A dictionary containing the status and message (code and latency).
     """
-    try:
-        time_start = datetime.now(tz=timezone.utc)
-        repo = ctx["transaction_repository"]
-        mocked_transactions = utils.generate_mock_transactions(count, days_back)
-        for transaction in mocked_transactions:
-            repo.add(transaction)
-        time_stop = datetime.now(tz=timezone.utc)
+    time_start = datetime.now(tz=timezone.utc)
+    repo = ctx["transaction_repository"]
+    mocked_transactions = utils.generate_mock_transactions(count, days_back)
+    for transaction in mocked_transactions:
+        repo.add(transaction)
+    time_stop = datetime.now(tz=timezone.utc)
 
-        return {
-            "status_code": 200,
-            "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds.",
-        }
-
-    except Exception as e:
-        return {"status_code": 500, "message": str(e)}
+    return {
+        "status_code": 200,
+        "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds.",
+    }
