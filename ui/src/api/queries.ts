@@ -1,7 +1,6 @@
 import { UseMutationResult, UseQueryResult, useMutation, useQuery } from 'react-query';
 import api from './api';
 import { AxiosError, AxiosResponse } from 'axios';
-import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import {
     getAllTransactionResponse,
@@ -13,6 +12,7 @@ import {
     getProviders
 } from './interfaces';
 import { TransactionsFilters } from './types';
+import { notification } from 'antd';
 
 export const useGetAllProjects = (): UseQueryResult<getAllProjects[], AxiosError> => {
     return useQuery(
@@ -99,10 +99,11 @@ export const useAddProject = (): UseMutationResult<
         },
         {
             onSuccess: () => {
-                toast.success('Project successfully added', {
-                    position: 'bottom-left',
-                    autoClose: 1000,
-                    theme: 'colored'
+                notification.success({
+                    message: 'Success',
+                    description: 'Project successfully added',
+                    placement: 'bottomRight',
+                    duration: 5
                 });
             },
             onError: (err) => {
@@ -123,10 +124,11 @@ export const useUpdateProject = (): UseMutationResult<
         },
         {
             onSuccess: () => {
-                toast.success('Project successfully edited', {
-                    position: 'bottom-left',
-                    theme: 'colored',
-                    autoClose: 1000
+                notification.success({
+                    message: 'Success',
+                    description: 'Project successfully edited',
+                    placement: 'bottomRight',
+                    duration: 5
                 });
             },
             onError: (err) => {
@@ -144,10 +146,11 @@ export const useDeleteProject = (): UseMutationResult<AxiosResponse, AxiosError,
         },
         {
             onSuccess: () => {
-                toast.info('Project successfully deleted', {
-                    position: 'bottom-left',
-                    theme: 'colored',
-                    autoClose: 1000
+                notification.warning({
+                    message: 'Success',
+                    description: 'Project successfully deleted',
+                    placement: 'bottomRight',
+                    duration: 5
                 });
                 navigate('/');
             },

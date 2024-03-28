@@ -7,15 +7,15 @@ class SettingsNotFoundException(NotFoundException):
     """
     Exception raised when organization settings are not found.
     """
-    pass
 
 
 class SettingsRepository(MongoRepository):
     """
     Repository for managing and accessing organization settings.
-    
+
     Inherits from MongoRepository and is specific to the OrganizationSettings model.
     """
+
     model_class = OrganizationSettings
 
     def add(self, doc):

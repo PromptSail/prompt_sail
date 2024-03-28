@@ -15,6 +15,7 @@ class MongoRepository:
 
     Provides basic CRUD operations and data retrieval methods.
     """
+
     model_class = BaseModel
 
     def __init__(self, db_client, collection_name):
@@ -126,7 +127,6 @@ class MongoRepository:
         :return: The result of the delete operation for all documents.
         """
         return self._collection.delete_many({})
-    
+
     # def exists(self, filter_by=None) -> bool:
     #     return self._collection.find_one(filter_by or {}) is not None
-

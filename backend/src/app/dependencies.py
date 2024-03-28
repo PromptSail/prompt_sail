@@ -31,3 +31,7 @@ def get_logger(request: Request):
     :return: The logger instance.
     """
     return request.app.container.application().dependency_provider["logger"]
+
+
+def get_provider_pricelist(request: Request):
+    return request.app.container.application().dependency_provider["provider_pricelist"]

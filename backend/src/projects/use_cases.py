@@ -8,7 +8,7 @@ def get_project(
 ) -> Project:
     """
     Retrieve a project by its unique identifier.
-    
+
     :param project_id: The unique identifier of the project to be retrieved.
     :param project_repository: An instance of ProjectRepository used for accessing project data.
     :return: The Project object corresponding to the specified identifier.
@@ -23,7 +23,7 @@ def get_project_by_slug(
 ) -> Project:
     """
     Retrieve a project by its slug.
-    
+
     :param slug: The unique slug of the project to be retrieved.
     :param project_repository: An instance of ProjectRepository used for accessing project data.
     :return: The Project object corresponding to the specified slug.
@@ -35,7 +35,7 @@ def get_project_by_slug(
 def get_all_projects(project_repository: ProjectRepository) -> list[Project]:
     """
     Retrieve a list of all projects.
-    
+
     :param project_repository: An instance of ProjectRepository used for accessing project data.
     :return: A list of all Project objects stored in the repository.
     """
@@ -49,7 +49,7 @@ def add_project(
 ) -> Project:
     """
     Add a new project to the repository.
-    
+
     :param project: The Project object to be added.
     :param project_repository: An instance of ProjectRepository used for storing project data.
     :return: The newly added Project object.
@@ -63,7 +63,7 @@ def update_project(
 ) -> Project:
     """
     Update a project with specified fields.
-    
+
     :param project_repository: An instance of ProjectRepository used for accessing project data.
     :param project_id: The unique identifier of the project to be updated.
     :param fields_to_update: A dictionary containing the fields and values to update in the project.

@@ -1,47 +1,38 @@
 import { SetStateAction } from 'react';
+import dayjs from 'dayjs';
 import { TransactionsFilters } from '../../../api/types';
-import { SetURLSearchParams } from 'react-router-dom';
-import { DateRangePicker } from 'rsuite';
+import { DatePicker } from 'antd';
+const { RangePicker } = DatePicker;
 
 interface Props {
-    params: URLSearchParams;
-    setParams: SetURLSearchParams;
-    setFilters: (length: SetStateAction<TransactionsFilters>) => void;
-    setNewParam: (param: { [key: string]: string }) => void;
+    defaultValues: [string, string];
+    setFilters: (args: SetStateAction<TransactionsFilters>) => void;
+    setDates: (date_from: string, date_to: string) => void;
 }
 
-const FilterDates: React.FC<Props> = ({ params, setParams, setFilters, setNewParam }) => {
+const FilterDates: React.FC<Props> = ({ defaultValues, setFilters, setDates }) => {
     return (
-        <DateRangePicker
-            format="yyyy-MM-dd HH:mm:ss"
-            placeholder="Select date range"
-            defaultValue={(() => {
-                if (params.get('date_from') && params.get('date_to')) {
-                    const from = new Date(`${params.get('date_from')}`);
-                    const to = new Date(`${params.get('date_to')}`);
-                    return [new Date(from.getTime()), new Date(to.getTime())];
-                } else return null;
-            })()}
-            onChange={(v) => {
-                if (v != null) {
-                    setFilters((old) => ({
-                        ...old,
-                        date_from: v[0].toISOString(),
-                        date_to: v[1].toISOString(),
-                        page: '1'
-                    }));
-                    setNewParam({
-                        date_from: v[0].toISOString(),
-                        date_to: v[1].toISOString()
-                    });
-                } else {
-                    setFilters((old) => ({ ...old, date_from: '', date_to: '' }));
-                    const deleteDates = new URLSearchParams(params);
-                    deleteDates.delete('date_from');
-                    deleteDates.delete('date_to');
-                    setParams(deleteDates);
+        <RangePicker
+            onChange={(_, dates) => {
+                let dateStart = '';
+                let dateEnd = '';
+                if (dates[0].length > 0 && dates[1].length > 0) {
+                    dateStart = new Date(dates[0]).toISOString();
+                    dateEnd = new Date(dates[1]).toISOString();
                 }
+                setFilters((old) => ({
+                    ...old,
+                    date_from: dateStart,
+                    date_to: dateEnd
+                }));
+                setDates(dateStart, dateEnd);
             }}
+            defaultValue={
+                defaultValues[0].length > 1
+                    ? [dayjs(defaultValues[0]), dayjs(defaultValues[1])]
+                    : undefined
+            }
+            showTime
         />
     );
 };

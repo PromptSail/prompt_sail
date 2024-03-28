@@ -1,4 +1,5 @@
 from datetime import datetime
+from operator import attrgetter
 
 from seedwork.exceptions import NotFoundException
 from seedwork.repositories import MongoRepository
@@ -9,7 +10,6 @@ class TransactionNotFoundException(NotFoundException):
     """
     Exception raised when a transaction is not found.
     """
-    pass
 
 
 class TransactionRepository(MongoRepository):
@@ -18,12 +18,13 @@ class TransactionRepository(MongoRepository):
 
     Inherits from MongoRepository and is specific to the Transaction model.
     """
+
     model_class = Transaction
 
     def add(self, doc):
         """
         Add a document to the repository.
-        
+
         :param doc: The document to be added to the repository.
         :return: The result of the add operation.
         """
@@ -35,7 +36,7 @@ class TransactionRepository(MongoRepository):
         Retrieve a list of transactions associated with a specific project.
 
         :param project_id: The identifier of the project for which transactions are retrieved.
-        :return: A list of Transaction objects associated with the specified project. 
+        :return: A list of Transaction objects associated with the specified project.
         """
         return self.find({"project_id": project_id})
 
@@ -49,7 +50,12 @@ class TransactionRepository(MongoRepository):
         return self.find_one({"_id": transaction_id})
 
     def get_paginated_and_filtered(
-        self, page: int, page_size: int, query: dict[str, str | datetime | None] = None
+        self,
+        page: int,
+        page_size: int,
+        query: dict[str, str | datetime | None] = None,
+        sort_field: str | None = None,
+        sort_type: str | None = None,
     ) -> list[Transaction]:
         """
         Retrieve a paginated and filtered list of transactions from the repository.
@@ -57,16 +63,36 @@ class TransactionRepository(MongoRepository):
         :param page: The page number for pagination.
         :param page_size: The number of transactions per page.
         :param query: Optional query parameters to filter transactions.
+        :param sort_field: Optional. Field to sort by.
+        :param sort_type: Optional. Ordering method (asc or desc).
         :return: A paginated and filtered list of Transaction objects based on the specified criteria.
         """
-        return self.find(query)[::-1][
+        transactions = self.find(query)
+        sort = False if sort_type == "asc" else True
+        if sort_field:
+            sorted_transactions = sorted(
+                transactions, key=attrgetter(sort_field), reverse=sort
+            )
+        else:
+            sorted_transactions = transactions[::-1]
+
+        paginated = sorted_transactions[
             (page - 1) * page_size : (page - 1) * page_size + page_size
         ]
+        return paginated
+
+    def get_filtered(self, query: dict[str, str | datetime | None]):
+        """
+        Retrieve a paginated and filtered list of transactions from the repository.
+        :param query: Query parameters to filter transactions.
+        :return: A filtered list of Transaction objects based on the specified criteria.
+        """
+        return self.find(query)
 
     def delete_cascade(self, project_id: str):
         """
         Delete multiple transactions and related data for a specific project using cascading deletion.
-        
+
         :param project_id: The Project ID for which transactions and related data will be deleted.
         :return: The result of the cascading deletion operation.
         """

@@ -21,14 +21,15 @@ export interface getAllProjects {
     slug: string;
     description: string;
     ai_providers: {
-        api_base: string;
-        slug: string;
-        provider_name: string;
         deployment_name: string;
+        slug: string;
+        api_base: string;
         description: string;
+        provider_name: string;
     }[];
     tags: string[];
     org_id: string | undefined;
+    total_cost: number;
     total_transactions: number;
 }
 
@@ -66,17 +67,29 @@ export interface getTransactionResponse {
     response: {
         [key: string]: any;
     };
+    provider: string;
     model: string;
     type: string;
     os: string | null;
-    token_usage: number;
+    input_tokens: number | null;
+    output_tokens: number | null;
     library: string;
     status_code: number;
-    message: string | null;
+    messages:
+        | {
+              role: string;
+              content: string;
+          }[]
+        | null;
+    last_message: string;
     prompt: string;
     error_message: string | null;
     request_time: string;
     response_time: string;
+    generation_speed: number;
+    input_cost: number;
+    output_cost: number;
+    total_cost: number;
     tags: string[];
 }
 export interface getAllTransactionResponse {

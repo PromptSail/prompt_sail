@@ -15,15 +15,19 @@ class Transaction(BaseModel):
     request: dict[str, Any]
     response: dict[str, Any]
     tags: list[str]
+    provider: str
     model: str | None
     type: str
     os: str | None
-    token_usage: int | None
+    input_tokens: int | None
+    output_tokens: int | None
     library: str
     status_code: int
-    message: str | None
+    messages: list[dict[str, Any]] | str | None
+    last_message: str | None
     prompt: str
     error_message: str | None
+    generation_speed: int | float
     request_time: datetime
     response_time: datetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc)

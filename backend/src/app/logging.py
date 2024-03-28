@@ -9,6 +9,7 @@ class LoggingContext:
 
     Uses ContextVar to store and retrieve correlation ID.
     """
+
     _correlation_id = ContextVar("correlation_id", default=None)
 
     @property
@@ -39,6 +40,7 @@ class ContextFilter(logging.Filter):
 
     Inherits from logging.Filter.
     """
+
     def filter(self, record):
         """
         Filter method to add correlation ID to log records.

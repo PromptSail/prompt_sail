@@ -7,14 +7,12 @@ class ProjectNotFoundException(NotFoundException):
     """
     Exception raised when a project is not found.
     """
-    pass
 
 
 class SlugAlreadyExistsException(AlreadyExistsException):
     """
     Exception raised when a slug already exists for a project.
     """
-    pass
 
 
 class ProjectRepository(MongoRepository):
@@ -23,6 +21,7 @@ class ProjectRepository(MongoRepository):
 
     Inherits from MongoRepository and is specific to the Project model.
     """
+
     model_class = Project
 
     def add(self, doc):

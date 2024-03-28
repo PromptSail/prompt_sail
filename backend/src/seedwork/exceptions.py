@@ -2,6 +2,7 @@ class NotFoundException(Exception):
     """
     Exception raised when an entity is not found.
     """
+
     def __init__(self, message: str = None):
         """
         Initialize the NotFoundException with an optional error message.
@@ -16,6 +17,7 @@ class AlreadyExistsException(Exception):
     """
     Exception raised when an entity already exists.
     """
+
     def __init__(self, message: str = None):
         """
         Initialize the AlreadyExistsException with an optional error message.

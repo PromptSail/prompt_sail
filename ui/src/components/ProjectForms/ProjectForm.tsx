@@ -1,28 +1,13 @@
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
-import { Form } from 'react-bootstrap';
-import ProviderFormAndList from './ProviderFormAndList';
+import ProviderFormAndList from './ProviderFormAndList/ProviderFormAndList';
 import { projectSchema } from '../../api/formSchemas';
 import { useGetAllProjects } from '../../api/queries';
 import { toSlug } from '../../helpers/aiProvider';
-import Helper from './helper';
+import { Col, Form, Input, Row, Select, Tag } from 'antd';
+import Container from '../../pages/Project/Container';
+import { FormikValues } from './types';
 
-const FormikValues = {
-    name: '',
-    slug: '',
-    description: '',
-    ai_providers: [
-        {
-            deployment_name: '',
-            slug: '',
-            api_base: '',
-            description: '',
-            provider_name: ''
-        }
-    ],
-    tags: '',
-    org_id: ''
-};
 interface Props {
     submitFunc: (values: typeof FormikValues) => Promise<void>;
     formId: string;
@@ -33,7 +18,10 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
     const projects = useGetAllProjects();
     const [isSlugGenerated, setSlugGenerate] = useState(true);
     const formik = useFormik({
-        initialValues: { ...FormikValues, ai_providers: [] as typeof FormikValues.ai_providers },
+        initialValues: {
+            ...FormikValues,
+            ai_providers: [] as typeof FormikValues.ai_providers
+        },
         onSubmit: async (values) => {
             if (projects.isSuccess) {
                 const noEditedProjects = projects.data.filter((e) => e.id !== (projectId || ''));
@@ -67,11 +55,10 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
         if (projects.isSuccess && projectId) {
             const project = projects.data.filter((e) => e.id === projectId)[0];
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { id, total_transactions, tags, org_id, ...rest } = project;
+            const { id, total_transactions, org_id, ...rest } = project;
             setSlugGenerate(!project);
             const value = {
                 ...rest,
-                tags: tags.join(', '),
                 org_id: org_id || ''
             };
             formik.setValues((old) => ({ ...old, ...value }));
@@ -85,96 +72,124 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
             </>
         );
     if (projects.isLoading) return <div>Loading...</div>;
-    if (projects.isSuccess)
+    if (projects.isSuccess) {
+        const options = [
+            {
+                value: 'tag1'
+            },
+            {
+                value: 'tag2'
+            },
+            {
+                value: 'tag3'
+            },
+            {
+                value: 'tag4'
+            },
+            {
+                value: 'tag5'
+            },
+            {
+                value: 'tag6'
+            }
+        ];
         return (
-            <div className="forms">
-                <div className="project-form">
-                    <h2 className="header">Project details</h2>
-                    <form className={`box`} id={formId} onSubmit={formik.handleSubmit} noValidate>
-                        <div className="double-inputs">
-                            <Form.Group className="labeled-input">
-                                <Form.Label>Name</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="name"
-                                    onChange={formik.handleChange}
-                                    value={formik.values.name}
-                                    onKeyUp={(e) => {
-                                        const val = e.currentTarget.value;
-                                        if (isSlugGenerated)
-                                            formik.setValues((old) => ({
-                                                ...old,
-                                                slug: toSlug(val)
-                                            }));
-                                    }}
-                                    isInvalid={!!formik.errors.name}
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {formik.errors.name}
-                                </Form.Control.Feedback>
-                            </Form.Group>
-                            <Form.Group className="labeled-input">
-                                <Form.Label>
-                                    Slug
-                                    <Helper>
-                                        Slug is a unique name used to identify a project in the
-                                        proxy URL
-                                    </Helper>
-                                </Form.Label>
-
-                                <Form.Control
-                                    type="text"
-                                    name="slug"
-                                    onKeyDown={() => setSlugGenerate(false)}
-                                    onBlur={(e) => {
-                                        const val = e.currentTarget.value;
-                                        if (val.length < 1) setSlugGenerate(true);
-                                        e.currentTarget.value = toSlug(val);
-                                    }}
-                                    onChange={formik.handleChange}
-                                    value={formik.values.slug}
-                                    isInvalid={!!formik.errors.slug}
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {formik.errors.slug}
-                                </Form.Control.Feedback>
-                            </Form.Group>
-                        </div>
-                        <Form.Group className="labeled-input">
-                            <Form.Label>
-                                Description{' '}
-                                <span style={{ color: 'var(--bs-gray-500)' }}>(optional)</span>
-                            </Form.Label>
-                            <Form.Control
-                                as="textarea"
+            <div className="flex flex-col gap-3">
+                <Container header="Project details">
+                    <Form
+                        name="project_details"
+                        id={formId}
+                        layout="vertical"
+                        onSubmitCapture={formik.handleSubmit}
+                        initialValues={{ tags: formik.values.tags, name: 'asdasd' }}
+                        onFinishFailed={() => console.log(formik.errors)}
+                        autoComplete="on"
+                        noValidate={true}
+                    >
+                        <Row gutter={12}>
+                            <Col span={12}>
+                                <Form.Item<typeof FormikValues>
+                                    label="Name"
+                                    rules={[{ required: true }]}
+                                    help={formik.errors.name}
+                                    validateStatus={formik.errors.name ? 'error' : ''}
+                                >
+                                    <Input
+                                        name="name"
+                                        value={formik.values.name}
+                                        onKeyUp={(e) => {
+                                            const val = e.currentTarget.value;
+                                            if (isSlugGenerated)
+                                                formik.setValues((old) => ({
+                                                    ...old,
+                                                    slug: toSlug(val)
+                                                }));
+                                        }}
+                                        onChange={formik.handleChange}
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item<typeof FormikValues>
+                                    label="slug"
+                                    rules={[{ required: true }]}
+                                    help={formik.errors.slug}
+                                    validateStatus={formik.errors.slug ? 'error' : ''}
+                                >
+                                    <Input
+                                        name="slug"
+                                        onKeyDown={() => setSlugGenerate(false)}
+                                        value={formik.values.slug}
+                                        onBlur={(e) => {
+                                            const val = e.currentTarget.value;
+                                            if (val.length < 1) setSlugGenerate(true);
+                                            e.currentTarget.value = toSlug(val);
+                                        }}
+                                        onChange={formik.handleChange}
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Form.Item<typeof FormikValues>
+                            label="Description"
+                            help={formik.errors.description}
+                            validateStatus={formik.errors.description ? 'error' : ''}
+                        >
+                            <Input.TextArea
                                 name="description"
-                                onChange={formik.handleChange}
                                 value={formik.values.description}
-                                rows={4}
-                                cols={50}
-                                maxLength={280}
-                                isInvalid={!!formik.errors.description}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {formik.errors.description}
-                            </Form.Control.Feedback>
-                        </Form.Group>
-                        <Form.Group className="labeled-input">
-                            <Form.Label>
-                                Tags <span style={{ color: 'var(--bs-gray-500)' }}>(optional)</span>
-                            </Form.Label>
-                            <Form.Control
-                                name="tags"
                                 onChange={formik.handleChange}
-                                value={formik.values.tags}
-                                isInvalid={!!formik.errors.tags}
                             />
-                            <Form.Control.Feedback type="invalid">
-                                {formik.errors.tags}
-                            </Form.Control.Feedback>
-                        </Form.Group>
-                    </form>
-                </div>
+                        </Form.Item>
+                        <Form.Item<typeof FormikValues>
+                            label="Tags"
+                            validateStatus={formik.errors.tags ? 'error' : ''}
+                            help={formik.errors.tags}
+                        >
+                            <Select
+                                mode="tags"
+                                allowClear
+                                value={formik.values.tags}
+                                tagRender={({ value, closable, onClose }) => {
+                                    return (
+                                        <Tag color="magenta" closable={closable} onClose={onClose}>
+                                            {value}
+                                        </Tag>
+                                    );
+                                }}
+                                onChange={(val) => {
+                                    formik.handleChange({
+                                        target: {
+                                            value: val,
+                                            name: 'tags'
+                                        }
+                                    });
+                                }}
+                                options={options}
+                            />
+                        </Form.Item>
+                    </Form>
+                </Container>
                 <ProviderFormAndList
                     ProvidersList={formik.values.ai_providers}
                     setProvidersList={(list: typeof FormikValues.ai_providers) =>
@@ -182,10 +197,11 @@ const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
                     }
                     projectSlug={formik.values.slug}
                     isProjects={!!projectId}
-                    errorMessage={formik.errors.ai_providers as string}
+                    isError={!!formik.errors.ai_providers}
                 />
             </div>
         );
+    }
 };
 
 export default ProjectForm;

@@ -1,22 +1,19 @@
-import { useUpdateProject } from '../../api/queries';
-import { updateProjectRequest } from '../../api/interfaces';
-import ProjectForm from './ProjectForm';
-import { FormikValues } from './types';
+import { useUpdateProject } from '../../../api/queries';
+import ProjectForm from '../../../components/ProjectForms/ProjectForm';
+import { FormikValues } from '../../../components/ProjectForms/types';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from 'react-bootstrap';
+import { Button, Typography } from 'antd';
+
+const { Title } = Typography;
 
 const UpdateProject: React.FC = () => {
     const updateProject = useUpdateProject();
     const projectId = useParams().projectId || '';
     const navigate = useNavigate();
     const submit = async (values: typeof FormikValues) => {
-        const reqValues: updateProjectRequest = {
-            ...values,
-            tags: values.tags.replace(/\s/g, '').split(',')
-        };
         updateProject
             .mutateAsync(
-                { id: projectId, data: reqValues },
+                { id: projectId, data: values },
                 {
                     onError: (err) => {
                         alert(`${err.code} ${err.message}`);
@@ -28,10 +25,12 @@ const UpdateProject: React.FC = () => {
             });
     };
     return (
-        <div className="projectForm__update">
-            <h1>Update project</h1>
+        <div className="w-full max-w-[800px] mx-auto flex flex-col gap-3">
+            <Title level={1} className="!mt-0">
+                Update project
+            </Title>
             <ProjectForm formId="ProjectUpdate" submitFunc={submit} projectId={projectId} />
-            <Button type="submit" variant="primary" size="lg" className="mt-2" form="ProjectUpdate">
+            <Button type="primary" htmlType="submit" form="ProjectUpdate" block>
                 Update
             </Button>
         </div>
