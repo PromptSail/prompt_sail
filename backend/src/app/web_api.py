@@ -2,7 +2,7 @@ import re
 from typing import Annotated, Any
 
 import utils
-from _datetime import datetime, timedelta, timezone
+from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
@@ -468,9 +468,7 @@ async def get_transaction_usage_statistics_over_time(
 
     for stat in stats:
         possible_prices = [
-            price
-            for price in pricelist
-            if re.match(price.match_pattern, stat.model)
+            price for price in pricelist if re.match(price.match_pattern, stat.model)
         ]
         if len(possible_prices) > 0:
             # TODO: Counting by date instead of by lastest
@@ -487,8 +485,7 @@ async def get_transaction_usage_statistics_over_time(
                 ) * lastest.output_price
             else:
                 stat.total_cost = (
-                    (stat.input_cumulative_total + stat.output_cumulative_total)
-                    / 1000
+                    (stat.input_cumulative_total + stat.output_cumulative_total) / 1000
                 ) * lastest.total_price
 
     return stats

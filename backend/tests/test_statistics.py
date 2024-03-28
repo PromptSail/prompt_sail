@@ -17,8 +17,10 @@ def test_transaction_count_min_5min(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500']) 
-            for stat in response.json()] == [(3, 1, 2, 0)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(3, 1, 2, 0)]
 
 
 def test_transaction_count_min_30min(client, application):
@@ -37,8 +39,17 @@ def test_transaction_count_min_30min(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 6
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500']) for stat in
-            response.json()] == [(3, 1, 2, 0), (2, 0, 0, 0), (0, 0, 0, 0), (1, 0, 1, 0), (2, 1, 0, 0), (3, 0, 0, 2)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (3, 1, 2, 0),
+        (2, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 1, 0),
+        (2, 1, 0, 0),
+        (3, 0, 0, 2),
+    ]
 
 
 def test_transaction_count_min_1h(client, application):
@@ -57,9 +68,23 @@ def test_transaction_count_min_1h(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 12
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500']) for stat in
-            response.json()] == [(3, 1, 2, 0), (2, 0, 0, 0), (0, 0, 0, 0), (1, 0, 1, 0), (2, 1, 0, 0), (3, 0, 0, 2), 
-                                 (0, 0, 0, 0), (1, 0, 0, 0), (2, 0, 0, 0), (0, 0, 0, 0), (5, 0, 2, 0), (4, 1, 2, 0)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (3, 1, 2, 0),
+        (2, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 1, 0),
+        (2, 1, 0, 0),
+        (3, 0, 0, 2),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (2, 0, 0, 0),
+        (0, 0, 0, 0),
+        (5, 0, 2, 0),
+        (4, 1, 2, 0),
+    ]
 
 
 def test_transaction_count_min_empty(client, application):
@@ -96,8 +121,10 @@ def test_transaction_count_hour_30min(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500']) for stat in
-            response.json()] == [(11, 2, 3, 2)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(11, 2, 3, 2)]
 
 
 def test_transaction_count_hour_1h(client, application):
@@ -116,8 +143,10 @@ def test_transaction_count_hour_1h(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 2
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500']) for stat in
-            response.json()] == [(23, 3, 7, 2), (0, 0, 0, 0)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(23, 3, 7, 2), (0, 0, 0, 0)]
 
 
 def test_transaction_count_hour_24h(client, application):
@@ -136,12 +165,36 @@ def test_transaction_count_hour_24h(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 24
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500']) for stat in
-            response.json()] == [(23, 3, 7, 2), (1, 0, 0, 0), (1, 0, 2, 0), (1, 1, 0, 0), (0, 0, 0, 0), (1, 0, 0, 0), 
-                                 (0, 0, 0, 0), (0, 0, 0, 0), (2, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), 
-                                 (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (2, 0, 0, 2), (0, 0, 0, 0), 
-                                 (0, 0, 0, 0), (0, 0, 0, 0), (4, 0, 0, 0), (0, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0)]
-    
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (23, 3, 7, 2),
+        (1, 0, 0, 0),
+        (1, 0, 2, 0),
+        (1, 1, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (2, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (2, 0, 0, 2),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (4, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (1, 0, 0, 0),
+    ]
+
 
 def test_transaction_count_hour_empty(client, application):
     # arrange
@@ -177,8 +230,10 @@ def test_transaction_count_day_6h(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500']) 
-            for stat in response.json()] == [(27, 4, 9, 2)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(27, 4, 9, 2)]
 
 
 def test_transaction_count_day_1d(client, application):
@@ -197,8 +252,10 @@ def test_transaction_count_day_1d(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(29, 4, 9, 2)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(29, 4, 9, 2)]
 
 
 def test_transaction_count_day_24h(client, application):
@@ -217,8 +274,10 @@ def test_transaction_count_day_24h(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 2
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(6, 1, 2, 0), (9, 0, 0, 2)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(6, 1, 2, 0), (9, 0, 0, 2)]
 
 
 def test_transaction_count_day_7d(client, application):
@@ -237,9 +296,18 @@ def test_transaction_count_day_7d(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 7
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(29, 4, 9, 2), (10, 0, 0, 2), (0, 0, 0, 0), (0, 0, 0, 0), 
-                                             (0, 0, 0, 0), (1, 1, 1, 0), (0, 0, 0, 0)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (29, 4, 9, 2),
+        (10, 0, 0, 2),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 1, 1, 0),
+        (0, 0, 0, 0),
+    ]
 
 
 def test_transaction_count_day_1mo(client, application):
@@ -258,13 +326,41 @@ def test_transaction_count_day_1mo(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 30
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(29, 4, 9, 2), (10, 0, 0, 2), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0),
-                                             (1, 1, 1, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0),
-                                             (0, 0, 0, 0), (3, 0, 0, 0), (1, 0, 0, 0), (0, 0, 2, 0), (0, 0, 0, 0),
-                                             (0, 0, 0, 0), (1, 0, 0, 0), (0, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0),
-                                             (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (1, 0, 0, 1),
-                                             (0, 0, 0, 0), (0, 0, 0, 0), (1, 0, 0, 0), (0, 0, 0, 0), (1, 0, 0, 0)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (29, 4, 9, 2),
+        (10, 0, 0, 2),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 1, 1, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (3, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 2, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 1),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+    ]
 
 
 def test_transaction_count_week_3d(client, application):
@@ -283,8 +379,10 @@ def test_transaction_count_week_3d(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(39, 4, 9, 4)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(39, 4, 9, 4)]
 
 
 def test_transaction_count_week_7d(client, application):
@@ -303,8 +401,10 @@ def test_transaction_count_week_7d(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 2
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(40, 5, 10, 4), (0, 0, 0, 0)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(40, 5, 10, 4), (0, 0, 0, 0)]
 
 
 def test_transaction_count_week_2mo(client, application):
@@ -323,8 +423,20 @@ def test_transaction_count_week_2mo(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 9
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(40, 5, 10, 4), (4, 0, 0, 0), (3, 0, 2, 0), (1, 0, 0, 1), (5, 1, 0, 0), (3, 0, 0, 0), (2, 0, 0, 0), (0, 3, 0, 0), (0, 0, 0, 0)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (40, 5, 10, 4),
+        (4, 0, 0, 0),
+        (3, 0, 2, 0),
+        (1, 0, 0, 1),
+        (5, 1, 0, 0),
+        (3, 0, 0, 0),
+        (2, 0, 0, 0),
+        (0, 3, 0, 0),
+        (0, 0, 0, 0),
+    ]
 
 
 def test_transaction_count_week_empty(client, application):
@@ -361,8 +473,10 @@ def test_transaction_count_month_7d(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(40, 5, 10, 4)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(40, 5, 10, 4)]
 
 
 def test_transaction_count_month_1mo(client, application):
@@ -381,8 +495,10 @@ def test_transaction_count_month_1mo(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(50, 5, 12, 5)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(50, 5, 12, 5)]
 
 
 def test_transaction_count_month_6mo(client, application):
@@ -401,9 +517,17 @@ def test_transaction_count_month_6mo(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 6
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(0, 0, 0, 0), (50, 5, 12, 5), (10, 4, 0, 0), 
-                                             (6, 1, 1, 1), (0, 0, 0, 0), (7, 4, 4, 1)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (0, 0, 0, 0),
+        (50, 5, 12, 5),
+        (10, 4, 0, 0),
+        (6, 1, 1, 1),
+        (0, 0, 0, 0),
+        (7, 4, 4, 1),
+    ]
 
 
 def test_transaction_count_month_empty(client, application):
@@ -440,8 +564,10 @@ def test_transaction_count_year_2mo(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(59, 9, 12, 5)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(59, 9, 12, 5)]
 
 
 def test_transaction_count_year_2y(client, application):
@@ -460,8 +586,10 @@ def test_transaction_count_year_2y(client, application):
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 2
-    assert [(stat['status_200'], stat['status_300'], stat['status_400'], stat['status_500'])
-            for stat in response.json()] == [(60, 9, 12, 5), (13, 5, 5, 2)]
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(60, 9, 12, 5), (13, 5, 5, 2)]
 
 
 def test_transaction_count_year_empty(client, application):

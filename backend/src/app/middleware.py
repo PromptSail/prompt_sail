@@ -1,11 +1,9 @@
-from fastapi import Request, HTTPException
-from traceback import print_exception
-
-from fastapi.responses import JSONResponse
 from config import config
+from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
+
 from .app import app
 from .dependencies import get_logger
-
 
 # @app.middleware("detect_subdomain")
 # async def __call__(request: Request, call_next):
@@ -30,6 +28,7 @@ from .dependencies import get_logger
 
 
 if config.DEBUG:
+
     @app.middleware("exception_handler")
     async def __call__(request: Request, call_next):
         """
@@ -46,15 +45,18 @@ if config.DEBUG:
             return JSONResponse(
                 status_code=http_exception.status_code,
                 content={
-                    'error': "Client Error",
-                    'messages': str(http_exception.detail),
-                }
+                    "error": "Client Error",
+                    "messages": str(http_exception.detail),
+                },
             )
         except Exception as e:
             logger.exception(f"Error message: {e.__class__.__name__}. Args: {e.args}")
             return JSONResponse(
                 status_code=500,
-                content={"error": "Internal Server Error", "message": "An unexpected error occurred."},
+                content={
+                    "error": "Internal Server Error",
+                    "message": "An unexpected error occurred.",
+                },
             )
 
 
