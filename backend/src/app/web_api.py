@@ -73,8 +73,9 @@ async def get_projects(
                     price
                     for price in pricelist
                     if re.match(price.match_pattern, transaction.model)
-                ][0]
-                if price:
+                ]
+                if len(price) > 0:
+                    price = price[0]
                     if price.total_price > 0:
                         cost += (
                             (
@@ -133,8 +134,9 @@ async def get_project_details(
                 price
                 for price in pricelist
                 if re.match(price.match_pattern, transaction.model)
-            ][0]
-            if price:
+            ]
+            if len(price) > 0:
+                price = price[0]
                 if price.total_price > 0:
                     cost += (
                         (
@@ -428,7 +430,7 @@ async def get_transaction_usage_statistics_over_time(
         representing the usage statistics.\n
     """
     date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
-
+    
     count = ctx.call(
         count_transactions,
         project_id=project_id,

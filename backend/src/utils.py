@@ -121,12 +121,13 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         "library": request_headers["user-agent"],
         "status_code": response.__dict__["status_code"],
         "model": request_content.get("model", None),
-        "input_tokens": None,
-        "output_tokens": None,
+        "input_tokens": 0,
+        "output_tokens": 0,
         "os": request_headers.get("x-stainless-os", None),
         "provider": "Unknown",
         "messages": None,
         "last_message": None,
+
     }
 
     if "usage" in response_content:
