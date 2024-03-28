@@ -78,7 +78,7 @@ class GetTransactionUsageStatisticsSchema(BaseModel):
     total_transactions: int
     total_cost: float
 
-    
+
 class GetTransactionUsageStatisticsWithoutDateSchema(BaseModel):
     provider: str
     model: str
@@ -89,7 +89,7 @@ class GetTransactionUsageStatisticsWithoutDateSchema(BaseModel):
     total_transactions: int
     total_cost: float
 
-    
+
 class GetTransactionsUsageStatisticsSchema(BaseModel):
     date: datetime
     records: list[GetTransactionUsageStatisticsWithoutDateSchema]
