@@ -768,6 +768,31 @@ def read_transactions_from_csv(
     return transactions
 
 
+def check_dates_for_statistics(
+    date_from: datetime | str | None, 
+    date_to: datetime | str | None
+) -> tuple[datetime | None, datetime | None]:
+    if isinstance(date_from, str):
+        if len(date_from) == 10:
+            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+        elif date_from.endswith('Z'):
+            date_from = datetime.fromisoformat(str(date_from)[:-1])
+        else:
+            date_from = datetime.fromisoformat(date_from)
+    if isinstance(date_to, str):
+        if len(date_to) == 10:
+            date_to = datetime.fromisoformat(date_to + "T00:00:00")
+        elif date_to.endswith('Z'):
+            date_to = datetime.fromisoformat(str(date_to)[:-1])
+        else:
+            date_to = datetime.fromisoformat(date_to)
+
+    if date_from is not None and date_to is not None and date_from == date_to:
+        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+    
+    return date_from, date_to
+
+
 class PeriodEnum(str, Enum):
     week = 'week'
     year = 'year'
