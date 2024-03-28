@@ -1,3 +1,4 @@
+from _datetime import datetime
 from pydantic import BaseModel
 
 
@@ -12,6 +13,15 @@ class ProjectAIProviderSchema(BaseModel):
 class GetAIProviderSchema(BaseModel):
     provider_name: str
     api_base_placeholder: str
+
+
+class GetAIProviderPriceSchema(BaseModel):
+    model_name: str
+    start_date: datetime | str | None
+    match_pattern: str
+    input_price: int | float
+    output_price: int | float
+    total_price: int | float
 
 
 class CreateProjectSchema(BaseModel):
@@ -40,5 +50,5 @@ class GetProjectSchema(BaseModel):
     ai_providers: list[ProjectAIProviderSchema]
     tags: list[str] = []
     org_id: str | None = None
+    total_cost: int | float = 0
     total_transactions: int = 0
-    total_tokens_usage: int = 0

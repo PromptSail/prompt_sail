@@ -1,6 +1,6 @@
 import json
-from datetime import datetime
 
+from _datetime import datetime, timezone
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 from utils import create_transaction_query_from_filters, req_resp_to_transaction_parser
@@ -97,6 +97,8 @@ def get_all_filtered_and_paginated_transactions(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    sort_field: str | None = None,
+    sort_type: str | None = None,
 ) -> list[Transaction]:
     """
     Retrieve a paginated and filtered list of transactions based on specified criteria.
@@ -108,11 +110,13 @@ def get_all_filtered_and_paginated_transactions(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
+    :param sort_field: Optional. Field to sort by.
+    :param sort_type: Optional. Ordering method (asc or desc).
     :return: A paginated and filtered list of Transaction objects based on the specified criteria.
     """
     query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
     transactions = transaction_repository.get_paginated_and_filtered(
-        page, page_size, query
+        page, page_size, query, sort_field, sort_type
     )
     return transactions
 
@@ -122,7 +126,7 @@ def delete_multiple_transactions(
 ) -> None:
     """
      Delete multiple transactions and related data for a specific project.
-    
+
     :param transaction_repository: An instance of TransactionRepository used for accessing transaction data.
     :param project_id: The Project ID for which transactions and related data will be deleted.
     :return: None
@@ -184,16 +188,48 @@ def store_transaction(
             encoding=response.encoding,
         ),
         tags=tags,
+        provider=params["provider"],
         model=params["model"],
         prompt=params["prompt"],
         type=params["type"],
         os=params["os"],
-        token_usage=params["token_usage"],
+        input_tokens=params["input_tokens"],
+        output_tokens=params["output_tokens"],
         library=params["library"],
         status_code=params["status_code"],
-        message=params["message"],
+        messages=params["messages"],
+        last_message=params["last_message"],
         error_message=params["error_message"],
         request_time=request_time,
+        generation_speed=params["output_tokens"]
+        / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
+        if (params["output_tokens"] is not None and params["output_tokens"] > 0)
+        else 0,
     )
 
     transaction_repository.add(transaction)
+
+
+def get_list_of_filtered_transactions(
+    project_id: str,
+    date_from: datetime,
+    date_to: datetime,
+    transaction_repository: TransactionRepository,
+) -> list[Transaction]:
+    """
+    Retrieve a list of transactions filtered by project ID and date range.
+
+    This function queries the transaction repository using the specified project ID
+    and date range to retrieve a list of transactions that match the given criteria.
+
+    :param project_id: The unique identifier of the project.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
+    :param transaction_repository: An instance of TransactionRepository for data retrieval.
+    :return: A list of Transaction objects that meet the specified criteria.
+    """
+    query = create_transaction_query_from_filters(
+        date_from=date_from, date_to=date_to, project_id=project_id
+    )
+    transactions = transaction_repository.get_filtered(query)
+    return transactions

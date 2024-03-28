@@ -1,16 +1,14 @@
+body
+  margin: 0
+  overflow: hidden
+    
 @import './func.sass'
 
 @tailwind base
 @tailwind components
 @tailwind utilities
 
-@import './bootstrap/index'
-@import './components/tables/tables'
-
-@import './pages/Dashboard/styles'
-@import './pages/Project/styles'
-@import './components/ProjectTile/styles'
-@import './components/Sidebar/styles'
 @import './components/Sign/styles'
-@import './components/ProjectForms/styles'
-@import './components/tables/filters/style'
+
+.ant-table-body
+  overflow-y: hidden !important

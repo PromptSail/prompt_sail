@@ -1,32 +1,23 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Project from './pages/Project/Project';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import Transaction from './pages/Transaction';
+import Transactions from './pages/Transactions';
 import Sidebar from './components/Sidebar/Sidebar';
-import AllTransactions from './pages/AllTransactions';
-import { useRef, useState } from 'react';
+
+import { useState } from 'react';
 import Signin from './pages/Signin';
 import { checkLogin } from './storage/login';
+import { Layout } from 'antd';
+import Transaction from './pages/Transaction/Transaction';
 
 const App = () => {
-    const page = useRef(null);
     const [isLogged, setLoginState] = useState(checkLogin());
     if (isLogged) {
         return (
             <>
-                <div className="h-screen">
-                    <Sidebar pageRef={page} setLoginState={setLoginState}></Sidebar>
-                    <div
-                        ref={page}
-                        style={{
-                            marginLeft: '250px',
-                            height: '100%',
-                            background: '#eef4fa',
-                            overflowY: 'auto'
-                        }}
-                    >
+                <Layout>
+                    <Sidebar setLoginState={setLoginState} />
+                    <Layout className="ms-[250px] px-[50px] h-screen overflow-auto">
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
                             <Route
@@ -35,23 +26,22 @@ const App = () => {
                             />
                             <Route path="/projects/:projectId" element={<Project />} />
                             <Route path="/projects/add" element={<Project.Add />} />
-                            <Route path="/transactions" element={<AllTransactions />} />
+                            <Route path="/transactions" element={<Transactions />} />
                             <Route path="/transactions/:transactionId" element={<Transaction />} />
                             <Route path="*" element={<Navigate to="/" />} />
                         </Routes>
-                    </div>
-                </div>
-                <ToastContainer />
+                    </Layout>
+                </Layout>
             </>
         );
     } else
         return (
-            <>
+            <Layout className="h-screen">
                 <Routes>
                     <Route path="/signin" element={<Signin setLoginState={setLoginState} />} />
                     <Route path="*" element={<Navigate to="/signin" />} />
                 </Routes>
-            </>
+            </Layout>
         );
 };
 

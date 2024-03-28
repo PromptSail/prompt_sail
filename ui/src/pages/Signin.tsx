@@ -1,8 +1,10 @@
 import { useFormik } from 'formik';
 import { SetStateAction } from 'react';
-import { Button, FloatingLabel, Form } from 'react-bootstrap';
 import { checkLogin } from '../storage/login';
 import Logo from '../assets/imgs/prompt_sail_logo200.jpg';
+import { Button, Flex, Form, Input, Space, Typography } from 'antd';
+
+const { Title, Paragraph } = Typography;
 const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }> = ({
     setLoginState
 }) => {
@@ -17,45 +19,36 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
         }
     });
     return (
-        <>
-            <div className="signin">
-                <div className="formContainer">
-                    <div className="form">
-                        <h2>Welcome to Ermlab</h2>
-                        <h5>Sign in to continue</h5>
-                        <form onSubmit={formik.handleSubmit}>
-                            <div className="inputs">
-                                <FloatingLabel label="Email">
-                                    <Form.Control
-                                        type="email"
-                                        name="email"
-                                        placeholder="email@example.com"
-                                        value={formik.values['email']}
-                                        onChange={formik.handleChange}
-                                        autoComplete="login email"
-                                    />
-                                </FloatingLabel>
-                                <FloatingLabel label="Password">
-                                    <Form.Control
-                                        type="password"
-                                        name="password"
-                                        placeholder="$tronGP@s$word"
-                                        value={formik.values['password']}
-                                        onChange={formik.handleChange}
-                                        autoComplete="login current-password"
-                                    />
-                                </FloatingLabel>
-                            </div>
-                            <Button type="submit">Log In</Button>
-                        </form>
-                    </div>
-                    <div>
-                        <img src={Logo} />
-                        <h4>Prompt Sail</h4>
-                    </div>
-                </div>
-            </div>
-        </>
+        <Flex justify="center" align="center" className="h-screen">
+            <Space direction="vertical" className="signin text-center">
+                <Title level={1} className="!m-0">
+                    Welcome to Ermlab
+                </Title>
+                <Title level={2} className="!m-0">
+                    Log in to continue
+                </Title>
+                <Form
+                    layout="vertical"
+                    onSubmitCapture={formik.handleSubmit}
+                    autoComplete="on"
+                    noValidate={true}
+                >
+                    <Form.Item label="Email" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Password" rules={[{ required: true }]}>
+                        <Input.Password />
+                    </Form.Item>
+                    <Button type="primary" htmlType="submit" block>
+                        Log In
+                    </Button>
+                </Form>
+                <Space direction="vertical" className="mt-5">
+                    <img className="logo" src={Logo} />
+                    <Paragraph className="font-bold">Prompt Sail</Paragraph>
+                </Space>
+            </Space>
+        </Flex>
     );
 };
 

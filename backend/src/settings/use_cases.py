@@ -7,7 +7,7 @@ def add_settings(
 ) -> OrganizationSettings:
     """
     Add organization settings to the repository.
-    
+
     :param settings: The OrganizationSettings object to be added.
     :param settings_repository: An instance of SettingsRepository used for storing organization settings.
     :return: The newly added OrganizationSettings object.
