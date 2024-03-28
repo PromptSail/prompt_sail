@@ -30,9 +30,10 @@ from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
     GetTransactionPageResponseSchema,
     GetTransactionStatusStatisticsSchema,
-    GetTransactionUsageStatisticsSchema,
+    GetTransactionsUsageStatisticsSchema,
+    GetTransactionUsageStatisticsWithoutDateSchema,
     GetTransactionWithProjectSlugSchema,
-    StatisticTransactionSchema, GetTransactionsUsageStatisticsSchema, GetTransactionUsageStatisticsWithoutDateSchema,
+    StatisticTransactionSchema,
 )
 from transactions.use_cases import (
     count_token_usage_for_project,
@@ -430,7 +431,7 @@ async def get_transaction_usage_statistics_over_time(
         representing the usage statistics.\n
     """
     date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
-    
+
     count = ctx.call(
         count_transactions,
         project_id=project_id,
@@ -495,21 +496,23 @@ async def get_transaction_usage_statistics_over_time(
         for_date = []
         for stat in stats:
             if stat.date == date:
-                for_date.append(GetTransactionUsageStatisticsWithoutDateSchema(
-                    provider=stat.provider,
-                    model=stat.model,
-                    total_input_tokens=stat.total_input_tokens,
-                    total_output_tokens=stat.total_output_tokens,
-                    input_cumulative_total=stat.input_cumulative_total,
-                    output_cumulative_total=stat.output_cumulative_total,
-                    total_transactions=stat.total_transactions,
-                    total_cost=stat.total_cost
-                ))
-        new_stats.append(GetTransactionsUsageStatisticsSchema(
-            date=date,
-            records=for_date
-        ))
-        
+                for_date.append(
+                    GetTransactionUsageStatisticsWithoutDateSchema(
+                        provider=stat.provider,
+                        model=stat.model,
+                        total_input_tokens=stat.total_input_tokens,
+                        total_output_tokens=stat.total_output_tokens,
+                        input_cumulative_total=stat.input_cumulative_total,
+                        output_cumulative_total=stat.output_cumulative_total,
+                        total_transactions=stat.total_transactions,
+                        total_cost=stat.total_cost,
+                    )
+                )
+        new_stats.append(
+            GetTransactionsUsageStatisticsSchema(date=date, records=for_date)
+        )
+    new_stats.sort(key=lambda statistic: statistic.date)
+
     return new_stats
 
 
