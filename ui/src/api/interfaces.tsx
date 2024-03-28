@@ -111,3 +111,16 @@ export interface getStatisticsTransactionsCount {
     status_500: number;
     total_transactions: number;
 }
+export interface getStatisticsTransactionsCost {
+    date: string;
+    records: {
+        provider: string;
+        model: string;
+        total_input_tokens: number;
+        total_output_tokens: number;
+        input_cumulative_total: number;
+        output_cumulative_total: number;
+        total_transactions: number;
+        total_cost: number;
+    }[];
+}

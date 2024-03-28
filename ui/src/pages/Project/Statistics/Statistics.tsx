@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { Statistics_TransactionsCount } from '../../../api/types';
 import { useState } from 'react';
 import TransactionsCountChart from './TransactionsCountChart';
+import TransactionsCostChart from './TransactionsCostChart';
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
@@ -108,9 +109,10 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                     </div>
                 </Flex>
             }
-            classname={{ parent: 'mt-5', box: 'relative h-[500px]' }}
+            classname={{ parent: 'mt-5', box: 'relative h-[600px]' }}
         >
             <TransactionsCountChart statisticsParams={statisticsParams} />
+            <TransactionsCostChart statisticsParams={statisticsParams} />
         </Container>
     );
 };

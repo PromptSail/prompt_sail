@@ -6,6 +6,7 @@ import {
     getAllTransactionResponse,
     getProjectResponse,
     getProviders,
+    getStatisticsTransactionsCost,
     getStatisticsTransactionsCount,
     getTransactionResponse,
     updateProjectRequest
@@ -40,6 +41,11 @@ const api = {
         params: string
     ): Promise<AxiosResponse<getStatisticsTransactionsCount[]>> => {
         return client.get(`/api/statistics/transactions_count${params}`);
+    },
+    getStatistics_TransactionsCost: (
+        params: string
+    ): Promise<AxiosResponse<getStatisticsTransactionsCost[]>> => {
+        return client.get(`/api/statistics/transactions_cost${params}`);
     }
 };
 

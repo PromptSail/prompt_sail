@@ -10,7 +10,8 @@ import {
     updateProjectRequest,
     getTransactionResponse,
     getProviders,
-    getStatisticsTransactionsCount
+    getStatisticsTransactionsCount,
+    getStatisticsTransactionsCost
 } from './interfaces';
 import { Statistics_TransactionsCount, TransactionsFilters } from './types';
 import { notification } from 'antd';
@@ -186,6 +187,23 @@ export const useGetStatistics_TransactionsCount = (
         ['statistics_transactionsCount', params],
         async () => {
             return await api.getStatistics_TransactionsCount(linkParamsParser(params));
+        },
+        {
+            enabled: !!params,
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
+        }
+    );
+};
+export const useGetStatistics_TransactionsCost = (
+    params: Statistics_TransactionsCount
+): UseQueryResult<AxiosResponse<getStatisticsTransactionsCost[]>, AxiosError> => {
+    return useQuery(
+        ['statistics_transactionsCost', params],
+        async () => {
+            return await api.getStatistics_TransactionsCost(linkParamsParser(params));
         },
         {
             enabled: !!params,
