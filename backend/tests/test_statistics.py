@@ -11,12 +11,16 @@ def test_transaction_count_min_5min(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=minutely&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:04:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T12:04:59.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(3, 1, 2, 0)]
 
 
 def test_transaction_count_min_30min(client, application):
@@ -29,12 +33,23 @@ def test_transaction_count_min_30min(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=minutely&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:29:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T12:29:59.999"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 6
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (3, 1, 2, 0),
+        (2, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 1, 0),
+        (2, 1, 0, 0),
+        (3, 0, 0, 2),
+    ]
 
 
 def test_transaction_count_min_1h(client, application):
@@ -47,12 +62,29 @@ def test_transaction_count_min_1h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=minutely&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:59:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T12:59:59.999"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 12
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (3, 1, 2, 0),
+        (2, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 1, 0),
+        (2, 1, 0, 0),
+        (3, 0, 0, 2),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (2, 0, 0, 0),
+        (0, 0, 0, 0),
+        (5, 0, 2, 0),
+        (4, 1, 2, 0),
+    ]
 
 
 def test_transaction_count_min_empty(client, application):
@@ -65,7 +97,7 @@ def test_transaction_count_min_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=minutely&date_from=2023-10-01&date_to=2023-10-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=5minutes&date_from=2023-10-01T00:00.000&date_to=2023-10-31T00:00.000"
     )
 
     # assert
@@ -83,12 +115,16 @@ def test_transaction_count_hour_30min(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=hourly&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:30:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:30:00"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(11, 2, 3, 2)]
 
 
 def test_transaction_count_hour_1h(client, application):
@@ -101,12 +137,16 @@ def test_transaction_count_hour_1h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=hourly&date_from=2023-11-01T12:00:00&date_to=2023-11-01T13:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T13:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 2
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(23, 3, 7, 2), (0, 0, 0, 0)]
 
 
 def test_transaction_count_hour_24h(client, application):
@@ -119,12 +159,41 @@ def test_transaction_count_hour_24h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=hourly&date_from=2023-11-01T12:00:00&date_to=2023-11-02T11:59:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-11-01T12:00:00.000&date_to=2023-11-02T11:59:59.999"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 24
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (23, 3, 7, 2),
+        (1, 0, 0, 0),
+        (1, 0, 2, 0),
+        (1, 1, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (2, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (2, 0, 0, 2),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (4, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (1, 0, 0, 0),
+    ]
 
 
 def test_transaction_count_hour_empty(client, application):
@@ -137,7 +206,7 @@ def test_transaction_count_hour_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=hourly&date_from=2023-10-01&date_to=2023-10-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=hour&date_from=2023-10-01T00:00.000&date_to=2023-10-31T00:00.000"
     )
 
     # assert
@@ -155,12 +224,16 @@ def test_transaction_count_day_6h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=daily&date_from=2023-11-01T12:00:00&date_to=2023-11-01T18:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00.000&date_to=2023-11-01T18:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(27, 4, 9, 2)]
 
 
 def test_transaction_count_day_1d(client, application):
@@ -173,12 +246,16 @@ def test_transaction_count_day_1d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=daily&date_from=2023-11-01&date_to=2023-11-01"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T00:00.000&date_to=2023-11-01T00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(29, 4, 9, 2)]
 
 
 def test_transaction_count_day_24h(client, application):
@@ -191,12 +268,16 @@ def test_transaction_count_day_24h(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=daily&date_from=2023-11-01T13:00:00&date_to=2023-11-02T13:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T13:00:00.000&date_to=2023-11-02T13:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 2
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(6, 1, 2, 0), (9, 0, 0, 2)]
 
 
 def test_transaction_count_day_7d(client, application):
@@ -209,12 +290,24 @@ def test_transaction_count_day_7d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=daily&date_from=2023-11-01T12:00:00&date_to=2023-11-07T11:59:59"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00.000&date_to=2023-11-07T11:59:59.999"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 7
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (29, 4, 9, 2),
+        (10, 0, 0, 2),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 1, 1, 0),
+        (0, 0, 0, 0),
+    ]
 
 
 def test_transaction_count_day_1mo(client, application):
@@ -227,12 +320,47 @@ def test_transaction_count_day_1mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=daily&date_from=2023-11-01T12:00:00&date_to=2023-11-30T12:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=day&date_from=2023-11-01T12:00:00.000&date_to=2023-11-30T12:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 30
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (29, 4, 9, 2),
+        (10, 0, 0, 2),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 1, 1, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (3, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 2, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 1),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+        (0, 0, 0, 0),
+        (1, 0, 0, 0),
+    ]
 
 
 def test_transaction_count_week_3d(client, application):
@@ -245,12 +373,16 @@ def test_transaction_count_week_3d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=weekly&date_from=2023-11-01T12:00:00&date_to=2023-11-03T12:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00.000&date_to=2023-11-03T12:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(39, 4, 9, 4)]
 
 
 def test_transaction_count_week_7d(client, application):
@@ -263,12 +395,16 @@ def test_transaction_count_week_7d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=weekly&date_from=2023-11-01T12:00:00&date_to=2023-11-07T12:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00.000&date_to=2023-11-07T12:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 2
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(40, 5, 10, 4), (0, 0, 0, 0)]
 
 
 def test_transaction_count_week_2mo(client, application):
@@ -281,12 +417,26 @@ def test_transaction_count_week_2mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=weekly&date_from=2023-11-01T12:00:00&date_to=2023-12-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2023-11-01T12:00:00.000&date_to=2023-12-31T00:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 9
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (40, 5, 10, 4),
+        (4, 0, 0, 0),
+        (3, 0, 2, 0),
+        (1, 0, 0, 1),
+        (5, 1, 0, 0),
+        (3, 0, 0, 0),
+        (2, 0, 0, 0),
+        (0, 3, 0, 0),
+        (0, 0, 0, 0),
+    ]
 
 
 def test_transaction_count_week_empty(client, application):
@@ -299,7 +449,7 @@ def test_transaction_count_week_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=weekly&date_from=2024-03-29&date_to=2024-04-30"
+        "/api/statistics/transactions_count?project_id=project-test&period=week&date_from=2024-03-29T00:00:00.000&date_to=2024-04-30T00:00:00.000"
     )
 
     # assert
@@ -317,12 +467,16 @@ def test_transaction_count_month_7d(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=monthly&date_from=2023-11-01T12:00:00&date_to=2023-11-07T12:00:00"
+        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2023-11-01T12:00:00&date_to=2023-11-07T12:00:00"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(40, 5, 10, 4)]
 
 
 def test_transaction_count_month_1mo(client, application):
@@ -335,12 +489,16 @@ def test_transaction_count_month_1mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=monthly&date_from=2023-11-01&date_to=2023-11-30"
+        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2023-11-01T12:00:00.000&date_to=2023-11-30T12:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(50, 5, 12, 5)]
 
 
 def test_transaction_count_month_6mo(client, application):
@@ -353,12 +511,23 @@ def test_transaction_count_month_6mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=monthly&date_from=2023-10-01&date_to=2024-03-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2023-10-01T12:00:00.000&date_to=2024-03-31T12:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 6
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [
+        (0, 0, 0, 0),
+        (50, 5, 12, 5),
+        (10, 4, 0, 0),
+        (6, 1, 1, 1),
+        (0, 0, 0, 0),
+        (7, 4, 4, 1),
+    ]
 
 
 def test_transaction_count_month_empty(client, application):
@@ -371,7 +540,7 @@ def test_transaction_count_month_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=monthly&date_from=2024-05-01&date_to=2024-06-01"
+        "/api/statistics/transactions_count?project_id=project-test&period=month&date_from=2024-05-01T12:00:00.000&date_to=2024-06-01T12:00:00.000"
     )
 
     # assert
@@ -389,12 +558,16 @@ def test_transaction_count_year_2mo(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=yearly&date_from=2023-11-01&date_to=2023-12-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2023-11-01T12:00:00.000&date_to=2023-12-31T12:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 1
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(59, 9, 12, 5)]
 
 
 def test_transaction_count_year_2y(client, application):
@@ -407,12 +580,16 @@ def test_transaction_count_year_2y(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=yearly&date_from=2023-11-01&date_to=2024-03-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2023-11-01T12:00:00.000&date_to=2024-03-31T12:00:00.000"
     )
 
     # assert
     assert response.status_code == 200
     assert len(response.json()) == 2
+    assert [
+        (stat["status_200"], stat["status_300"], stat["status_400"], stat["status_500"])
+        for stat in response.json()
+    ] == [(60, 9, 12, 5), (13, 5, 5, 2)]
 
 
 def test_transaction_count_year_empty(client, application):
@@ -425,7 +602,7 @@ def test_transaction_count_year_empty(client, application):
 
     # act
     response = client.get(
-        "/api/statistics/transactions_count?project_id=project-test&period=yearly&date_from=2024-03-31&date_to=2024-12-31"
+        "/api/statistics/transactions_count?project_id=project-test&period=year&date_from=2024-03-31T12:00:00.000&date_to=2024-12-31T12:00:00.000"
     )
 
     # assert
