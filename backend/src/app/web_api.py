@@ -32,7 +32,7 @@ from transactions.schemas import (
     GetTransactionStatusStatisticsSchema,
     GetTransactionUsageStatisticsSchema,
     GetTransactionWithProjectSlugSchema,
-    StatisticTransactionSchema,
+    StatisticTransactionSchema, GetTransactionsUsageStatisticsSchema, GetTransactionUsageStatisticsWithoutDateSchema,
 )
 from transactions.use_cases import (
     count_token_usage_for_project,
@@ -407,7 +407,7 @@ async def get_transaction_usage_statistics_over_time(
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
     period: utils.PeriodEnum = utils.PeriodEnum.day,
-) -> list[GetTransactionUsageStatisticsSchema]:
+) -> list[GetTransactionsUsageStatisticsSchema]:
     """
     Retrieve transaction usage statistics over a specified time period.\n
 
@@ -467,8 +467,9 @@ async def get_transaction_usage_statistics_over_time(
         transactions, period, date_from, date_to
     )
     pricelist = get_provider_pricelist(request)
-
+    dates = []
     for stat in stats:
+        dates.append(stat.date)
         possible_prices = [
             price for price in pricelist if re.match(price.match_pattern, stat.model)
         ]
@@ -489,8 +490,27 @@ async def get_transaction_usage_statistics_over_time(
                 stat.total_cost = (
                     (stat.input_cumulative_total + stat.output_cumulative_total) / 1000
                 ) * lastest.total_price
-
-    return stats
+    new_stats = []
+    for date in set(dates):
+        for_date = []
+        for stat in stats:
+            if stat.date == date:
+                for_date.append(GetTransactionUsageStatisticsWithoutDateSchema(
+                    provider=stat.provider,
+                    model=stat.model,
+                    total_input_tokens=stat.total_input_tokens,
+                    total_output_tokens=stat.total_output_tokens,
+                    input_cumulative_total=stat.input_cumulative_total,
+                    output_cumulative_total=stat.output_cumulative_total,
+                    total_transactions=stat.total_transactions,
+                    total_cost=stat.total_cost
+                ))
+        new_stats.append(GetTransactionsUsageStatisticsSchema(
+            date=date,
+            records=for_date
+        ))
+        
+    return new_stats
 
 
 @app.get("/api/statistics/transactions_count", response_class=JSONResponse)
