@@ -706,19 +706,27 @@ async def authorize_user(
 async def mock_transactions(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     count: int,
-    days_back: int = 30,
+    date_from: datetime,
+    date_to: datetime,
 ) -> dict[str, Any]:
     """
     API endpoint to mock transactions.
 
     :param count: How many transactions you want to mock.
-    :param days_back: How many days back from now transactions should be added.
+    :param date_from: The start date from which transactions should be added.
+    :param date_to: The end date till which transactions should be added.
     :param ctx: The transaction context dependency.
     :return: A dictionary containing the status and message (code and latency).
     """
     time_start = datetime.now(tz=timezone.utc)
     repo = ctx["transaction_repository"]
-    mocked_transactions = utils.generate_mock_transactions(count, days_back)
+
+    # Delete all transactions for project-test in order to avoid duplicates transations keys
+    repo.delete_cascade(project_id="project-test")
+
+
+    #generate random transactions, with different models and providers
+    mocked_transactions = utils.generate_mock_transactions(count, date_from, date_to)
     for transaction in mocked_transactions:
         repo.add(transaction)
     time_stop = datetime.now(tz=timezone.utc)

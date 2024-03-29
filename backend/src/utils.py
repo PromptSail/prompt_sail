@@ -631,7 +631,7 @@ def pandas_period_from_string(period: str):
     return "D"
 
 
-def generate_mock_transactions(n: int, days_back: int = 30):
+def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
     """
     Generate a list of mock transactions.
 
@@ -641,8 +641,8 @@ def generate_mock_transactions(n: int, days_back: int = 30):
 
     Parameters:
     n (int): The number of transactions to generate.
-    days_back (int, optional): The number of days in the past from which to start 
-                               generating transaction dates. Default is 30.
+    date_from (datetime): The start date from which transactions should be added.
+    date_to (datetime): The end date till which transactions should be added.
 
     Returns:
     list: A list of Transaction objects.
@@ -658,19 +658,24 @@ def generate_mock_transactions(n: int, days_back: int = 30):
         transaction_id = f"transaction-{x}"
         input_tokens = random.randint(5, 25)
         output_tokens = random.randint(200, 800)
-        new_timedelta = random.randint(0, days_back)
-        start_date = datetime.now(tz=timezone.utc) - timedelta(days=new_timedelta)
+
+
+        # Generate random date within date_from and date_to
+        time_between_dates = date_to - date_from
+        days_between_dates = time_between_dates.days
+        random_number_of_days = random.randrange(days_between_dates)
+        random_date = date_from + timedelta(days=random_number_of_days)
+        start_date = random_date
         stop_date = start_date + timedelta(seconds=random.randint(1, 6), milliseconds=random.randint(0,999))
+
+        # Generate random status code according to the distribution, the most common status code is 200, rest is less probable
         status = random.choices(status_codes, [0.75, 0.15, 0.05, 0.05])[0]
 
-        error_message = None
-        generation_speed = output_tokens / (stop_date - start_date).total_seconds() 
-
         # If status is not 200, set input/output tokens to 0 and error message to "Error"
-        if status != 200: 
-            output_tokens = 0
-            error_message = "Error"
-            generation_speed = 0
+        error_message = None if status == 200 else "Error"
+        generation_speed = output_tokens / (stop_date - start_date).total_seconds() if status == 200 else 0
+        output_tokens = output_tokens if status == 200 else 0
+
 
         transactions.append(
             Transaction(
@@ -698,6 +703,33 @@ def generate_mock_transactions(n: int, days_back: int = 30):
         )
         
     return transactions
+
+
+
+
+
+def check_dates_for_statistics(
+    date_from: datetime | str | None, date_to: datetime | str | None
+) -> tuple[datetime | None, datetime | None]:
+    if isinstance(date_from, str):
+        if len(date_from) == 10:
+            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+        elif date_from.endswith("Z"):
+            date_from = datetime.fromisoformat(str(date_from)[:-1])
+        else:
+            date_from = datetime.fromisoformat(date_from)
+    if isinstance(date_to, str):
+        if len(date_to) == 10:
+            date_to = datetime.fromisoformat(date_to + "T00:00:00")
+        elif date_to.endswith("Z"):
+            date_to = datetime.fromisoformat(str(date_to)[:-1])
+        else:
+            date_to = datetime.fromisoformat(date_to)
+
+    if date_from is not None and date_to is not None and date_from == date_to:
+        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+
+    return date_from, date_to
 
 
 def read_transactions_from_csv(
@@ -768,31 +800,6 @@ def read_transactions_from_csv(
                 )
             )
     return transactions
-
-
-def check_dates_for_statistics(
-    date_from: datetime | str | None, date_to: datetime | str | None
-) -> tuple[datetime | None, datetime | None]:
-    if isinstance(date_from, str):
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        elif date_from.endswith("Z"):
-            date_from = datetime.fromisoformat(str(date_from)[:-1])
-        else:
-            date_from = datetime.fromisoformat(date_from)
-    if isinstance(date_to, str):
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
-        elif date_to.endswith("Z"):
-            date_to = datetime.fromisoformat(str(date_to)[:-1])
-        else:
-            date_to = datetime.fromisoformat(date_to)
-
-    if date_from is not None and date_to is not None and date_from == date_to:
-        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-
-    return date_from, date_to
-
 
 class PeriodEnum(str, Enum):
     week = "week"
