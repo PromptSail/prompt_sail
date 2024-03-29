@@ -48,7 +48,7 @@ Invoke-WebRequest -Method POST -Body @{} -Uri "http://localhost:8000/api/only_fo
 During:
 Test date: 2024-03-29 13:20:03 
 
-Tested code commit:  1c7b3b7
+Tested code commit: [df33567781bf489b039293345d38e4197f2532aa](https://github.com/PromptSail/prompt_sail/tree/df33567781bf489b039293345d38e4197f2532aa)
 
 count=1000
 date_from=2023-09-01
