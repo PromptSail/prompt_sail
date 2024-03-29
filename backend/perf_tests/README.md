@@ -16,7 +16,8 @@ Follow the steps below to run performance tests:
 You can generate fake transaction data using a dedicated endpoint. This allows you to add a specified number of transactions to the database (a test database is recommended).
 
 Use the following link to generate mock transactions: 
-`http://localhost:8000/api/only_for_purpose/mock_transactions?count=100000&days_back=30`
+
+`http://localhost:8000/api/only_for_purpose/mock_transactions?count=10&date_from=2024-03-01&date_to=2024-03-31`
 
 - **count**: The number of transactions you want to add.
 - **days_back**: The number of days in the past to start generating transaction dates from.
@@ -41,18 +42,25 @@ Invoke-WebRequest -Method POST -Body @{} -Uri "http://localhost:8000/api/only_fo
 ## Performance Test Results
 
 
-
-
 ### Test 1: 20 users, 1000 transactions 
 
-During:
-Test date: 2024-03-29 13:20:03 
 
-Tested code commit: [df33567781bf489b039293345d38e4197f2532aa](https://github.com/PromptSail/prompt_sail/tree/df33567781bf489b039293345d38e4197f2532aa)
+Test specification:
 
-count=1000
-date_from=2023-09-01
-date_to=2024-03-31
+
+* **Machine:**
+    * Windows 11
+    * AMD Ryzen 9 5900X
+* Dockerized backend app 1 core
+    * CMD uvicorn app:app --proxy-headers --host 0.0.0.0 --port=${PORT:-8000}
+* **Test date:** 2024-03-29 13:20:03 
+* **Tested code commit:** [df33567781bf489b039293345d38e4197f2532aa](https://github.com/PromptSail/prompt_sail/tree/df33567781bf489b039293345d38e4197f2532aa)
+* **Data**
+    * 20 users
+    * 1000 transactions
+    * 2023-09-01 to 2024-03-31
+
+
 
 ```
 curl -X POST 'http://localhost:8000/api/only_for_purpose/mock_transactions?count=1000&date_from=2023-09-01&date_to=2024-03-31'
@@ -63,10 +71,6 @@ locust --config locust.conf CountStatisticsUser
 locust --config locust.conf CostStatisticsUser
 locust --config locust.conf SpeedStatisticsUser
 ```
-
-
-#add image.png from perf_tests folder
-
 
 
 
@@ -92,11 +96,11 @@ locust --config locust.conf SpeedStatisticsUser
 
 ### Request per second and response time for /api/statistics/transactions_count
 
-![Test for transaction count for 20 user and 1k transactions](./1k_20_users_transactions_count_20240329.png)
+![Test for transaction count for 20 user and 1k transactions](./results/1k_20_users_transactions_count_20240329.png)
 
 ### Request per second and response time for /api/statistics/transactions_cost
-![Test for transaction cost for 20 user and 1k transactions](./1k_20_users_transactions_costs_20240329.png)
+![Test for transaction cost for 20 user and 1k transactions](./results/1k_20_users_transactions_costs_20240329.png)
 
 ### Request per second and response time for /api/statistics/transactions_speed
 
-![Test for transaction speed for 20 user and 1k transactions](./1k_20_users_transactions_speed_20240329.png)
+![Test for transaction speed for 20 user and 1k transactions](./results/1k_20_users_transactions_speed_20240329.png)
