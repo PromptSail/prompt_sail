@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Config(BaseSettings):
-    DEBUG: bool = os.getenv("DEBUG", 'False').lower() in ('true', '1', 't')
+    DEBUG: bool = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
     MONGO_URL: str = os.getenv("MONGO_URL", "mongodb://localhost:27017")
     DATABASE_NAME: str = "prompt_sail"
     BASE_URL: str = "http://localhost:8000"

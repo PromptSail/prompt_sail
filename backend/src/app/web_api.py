@@ -2,7 +2,7 @@ import re
 from typing import Annotated, Any
 
 import utils
-from _datetime import datetime, timedelta, timezone
+from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
@@ -30,7 +30,8 @@ from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
     GetTransactionPageResponseSchema,
     GetTransactionStatusStatisticsSchema,
-    GetTransactionUsageStatisticsSchema,
+    GetTransactionsUsageStatisticsSchema,
+    GetTransactionUsageStatisticsWithoutDateSchema,
     GetTransactionWithProjectSlugSchema,
     StatisticTransactionSchema,
 )
@@ -73,8 +74,9 @@ async def get_projects(
                     price
                     for price in pricelist
                     if re.match(price.match_pattern, transaction.model)
-                ][0]
-                if price:
+                ]
+                if len(price) > 0:
+                    price = price[0]
                     if price.total_price > 0:
                         cost += (
                             (
@@ -133,8 +135,9 @@ async def get_project_details(
                 price
                 for price in pricelist
                 if re.match(price.match_pattern, transaction.model)
-            ][0]
-            if price:
+            ]
+            if len(price) > 0:
+                price = price[0]
                 if price.total_price > 0:
                     cost += (
                         (
@@ -405,7 +408,7 @@ async def get_transaction_usage_statistics_over_time(
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
     period: utils.PeriodEnum = utils.PeriodEnum.day,
-) -> list[GetTransactionUsageStatisticsSchema]:
+) -> list[GetTransactionsUsageStatisticsSchema]:
     """
     Retrieve transaction usage statistics over a specified time period.\n
 
@@ -427,19 +430,7 @@ async def get_transaction_usage_statistics_over_time(
         total_output_tokens, input_cumulative_total, output_cumulative_total, total_transactions, total_cost)
         representing the usage statistics.\n
     """
-    if isinstance(date_from, str):
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        else:
-            date_from = datetime.fromisoformat(date_from)
-    if isinstance(date_to, str):
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
-        else:
-            date_to = datetime.fromisoformat(date_to)
-
-    if date_from is not None and date_to is not None and date_from == date_to:
-        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
 
     count = ctx.call(
         count_transactions,
@@ -477,12 +468,11 @@ async def get_transaction_usage_statistics_over_time(
         transactions, period, date_from, date_to
     )
     pricelist = get_provider_pricelist(request)
-
+    dates = []
     for stat in stats:
+        dates.append(stat.date)
         possible_prices = [
-            price
-            for price in pricelist
-            if re.match(price.match_pattern, stat.model)
+            price for price in pricelist if re.match(price.match_pattern, stat.model)
         ]
         if len(possible_prices) > 0:
             # TODO: Counting by date instead of by lastest
@@ -499,11 +489,31 @@ async def get_transaction_usage_statistics_over_time(
                 ) * lastest.output_price
             else:
                 stat.total_cost = (
-                    (stat.input_cumulative_total + stat.output_cumulative_total)
-                    / 1000
+                    (stat.input_cumulative_total + stat.output_cumulative_total) / 1000
                 ) * lastest.total_price
+    new_stats = []
+    for date in set(dates):
+        for_date = []
+        for stat in stats:
+            if stat.date == date:
+                for_date.append(
+                    GetTransactionUsageStatisticsWithoutDateSchema(
+                        provider=stat.provider,
+                        model=stat.model,
+                        total_input_tokens=stat.total_input_tokens,
+                        total_output_tokens=stat.total_output_tokens,
+                        input_cumulative_total=stat.input_cumulative_total,
+                        output_cumulative_total=stat.output_cumulative_total,
+                        total_transactions=stat.total_transactions,
+                        total_cost=stat.total_cost,
+                    )
+                )
+        new_stats.append(
+            GetTransactionsUsageStatisticsSchema(date=date, records=for_date)
+        )
+    new_stats.sort(key=lambda statistic: statistic.date)
 
-    return stats
+    return new_stats
 
 
 @app.get("/api/statistics/transactions_count", response_class=JSONResponse)
@@ -532,19 +542,7 @@ async def get_transaction_status_statistics_over_time(
     :return: A list of GetTransactionStatusStatisticsSchema (date, status_code, total_transactions) representing the
         status statistics.\n
     """
-    if isinstance(date_from, str):
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        else:
-            date_from = datetime.fromisoformat(date_from)
-    if isinstance(date_to, str):
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
-        else:
-            date_to = datetime.fromisoformat(date_to)
-
-    if date_from is not None and date_to is not None and date_from == date_to:
-        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
 
     count = ctx.call(
         count_transactions,
@@ -609,20 +607,7 @@ async def get_transaction_latency_statistics_over_time(
     :return: A list of GetTransactionLatencyStatisticsSchema (provider, model, date, mean_latency, tokens_per_second,
         total_transactions) representing the generation speed and latency statistics.\n
     """
-
-    if isinstance(date_from, str):
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        else:
-            date_from = datetime.fromisoformat(date_from)
-    if isinstance(date_to, str):
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
-        else:
-            date_to = datetime.fromisoformat(date_to)
-
-    if date_from is not None and date_to is not None and date_from == date_to:
-        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
 
     count = ctx.call(
         count_transactions,

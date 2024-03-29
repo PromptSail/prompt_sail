@@ -121,8 +121,8 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         "library": request_headers["user-agent"],
         "status_code": response.__dict__["status_code"],
         "model": request_content.get("model", None),
-        "input_tokens": None,
-        "output_tokens": None,
+        "input_tokens": 0,
+        "output_tokens": 0,
         "os": request_headers.get("x-stainless-os", None),
         "provider": "Unknown",
         "messages": None,
@@ -617,8 +617,6 @@ class OrderedSet(OrderedDict):
             self.add(item)
 
 
-
-
 def pandas_period_from_string(period: str):
     if period == PeriodEnum.week:
         return "W-Mon"
@@ -710,8 +708,12 @@ def read_transactions_from_csv(
     transactions = []
     for idx, obj in enumerate(data):
         transaction_id = f"test-transaction-{idx}"
-        request_time = datetime.fromisoformat(obj["request_time"].replace("Z", "+00:00"))
-        response_time = datetime.fromisoformat(obj["response_time"].replace("Z", "+00:00"))
+        request_time = datetime.fromisoformat(
+            obj["request_time"].replace("Z", "+00:00")
+        )
+        response_time = datetime.fromisoformat(
+            obj["response_time"].replace("Z", "+00:00")
+        )
         latency = response_time - request_time
         if obj["status_code"] == 200:
             transactions.append(
@@ -768,13 +770,37 @@ def read_transactions_from_csv(
     return transactions
 
 
+def check_dates_for_statistics(
+    date_from: datetime | str | None, date_to: datetime | str | None
+) -> tuple[datetime | None, datetime | None]:
+    if isinstance(date_from, str):
+        if len(date_from) == 10:
+            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+        elif date_from.endswith("Z"):
+            date_from = datetime.fromisoformat(str(date_from)[:-1])
+        else:
+            date_from = datetime.fromisoformat(date_from)
+    if isinstance(date_to, str):
+        if len(date_to) == 10:
+            date_to = datetime.fromisoformat(date_to + "T00:00:00")
+        elif date_to.endswith("Z"):
+            date_to = datetime.fromisoformat(str(date_to)[:-1])
+        else:
+            date_to = datetime.fromisoformat(date_to)
+
+    if date_from is not None and date_to is not None and date_from == date_to:
+        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+
+    return date_from, date_to
+
+
 class PeriodEnum(str, Enum):
-    week = 'week'
-    year = 'year'
-    month = 'month' 
-    day = 'day'
-    hour = 'hour' 
-    minutes = '5minutes'
+    week = "week"
+    year = "year"
+    month = "month"
+    day = "day"
+    hour = "hour"
+    minutes = "5minutes"
 
 
 known_ai_providers = [

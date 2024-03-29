@@ -1,3 +1,4 @@
+import { Period } from '../pages/Project/Statistics/Statistics';
 import { getTransactionResponse } from './interfaces';
 
 export type TransactionsFilters = {
@@ -9,4 +10,11 @@ export type TransactionsFilters = {
     project_id?: string;
     sort_field?: keyof getTransactionResponse | '';
     sort_type?: 'asc' | '';
+};
+
+export type StatisticsParams = {
+    project_id: string;
+    date_from?: string;
+    date_to?: string;
+    period?: Period;
 };

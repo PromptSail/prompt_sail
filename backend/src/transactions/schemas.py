@@ -79,6 +79,22 @@ class GetTransactionUsageStatisticsSchema(BaseModel):
     total_cost: float
 
 
+class GetTransactionUsageStatisticsWithoutDateSchema(BaseModel):
+    provider: str
+    model: str
+    total_input_tokens: int
+    total_output_tokens: int
+    input_cumulative_total: int
+    output_cumulative_total: int
+    total_transactions: int
+    total_cost: float
+
+
+class GetTransactionsUsageStatisticsSchema(BaseModel):
+    date: datetime
+    records: list[GetTransactionUsageStatisticsWithoutDateSchema]
+
+
 class GetTransactionStatusStatisticsSchema(BaseModel):
     date: datetime
     status_200: int
