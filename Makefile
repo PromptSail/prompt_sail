@@ -12,8 +12,8 @@ test:
 test-windows:
 	 @set DATABASE_NAME=prompt_sail_test&& cd backend\src && pytest ..\tests -vv
  
-pen-test:
-	cd backend/pentests && locust --config locust.conf
+perf-tests:
+	cd backend/perf_tests && locust --config locust.conf
 
 build:
 	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)

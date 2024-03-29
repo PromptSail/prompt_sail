@@ -634,6 +634,22 @@ def pandas_period_from_string(period: str):
 
 
 def generate_mock_transactions(n: int, days_back: int = 30):
+    """
+    Generate a list of mock transactions.
+
+    This function creates a list of transaction objects for testing purposes.
+    The transactions are either successful (status code 200) with randomly 
+    generated input and output tokens or unsuccessful with no input/output tokens.
+
+    Parameters:
+    n (int): The number of transactions to generate.
+    days_back (int, optional): The number of days in the past from which to start 
+                               generating transaction dates. Default is 30.
+
+    Returns:
+    list: A list of Transaction objects.
+
+    """
     providers = ["Azure", "OpenAI"]
     models = ["gpt-3.5-turbo", "gpt-4", "text-davinci-001"]
     status_codes = [200, 300, 400, 500]
@@ -646,59 +662,43 @@ def generate_mock_transactions(n: int, days_back: int = 30):
         output_tokens = random.randint(200, 800)
         new_timedelta = random.randint(0, days_back)
         start_date = datetime.now(tz=timezone.utc) - timedelta(days=new_timedelta)
-        stop_date = start_date + timedelta(seconds=random.randint(1, 6))
-        status = random.choice(status_codes)
-        if status == 200:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag1", "tag2", "tag3"],
-                    provider=random.choice(providers),
-                    model=random.choice(models),
-                    type="chat",
-                    os=None,
-                    input_tokens=input_tokens,
-                    output_tokens=output_tokens,
-                    library="PostmanRuntime/7.36.3",
-                    status_code=status,
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message=None,
-                    request_time=start_date,
-                    response_time=stop_date,
-                    generation_speed=output_tokens
-                    / (stop_date - start_date).total_seconds(),
-                )
+        stop_date = start_date + timedelta(seconds=random.randint(1, 6), milliseconds=random.randint(0,999))
+        status = random.choices(status_codes, [0.75, 0.15, 0.05, 0.05])[0]
+
+        error_message = None
+        generation_speed = output_tokens / (stop_date - start_date).total_seconds() 
+
+        # If status is not 200, set input/output tokens to 0 and error message to "Error"
+        if status != 200: 
+            output_tokens = 0
+            error_message = "Error"
+            generation_speed = 0
+
+        transactions.append(
+            Transaction(
+                id=transaction_id,
+                project_id="project-test",
+                request={},
+                response={},
+                tags=["tag1", "tag2", "tag3"],
+                provider=random.choice(providers),
+                model=random.choice(models),
+                type="chat",
+                os=None,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                library="PostmanRuntime/7.36.3",
+                status_code=status,
+                messages=None,
+                prompt="",
+                last_message="",
+                error_message=error_message,
+                request_time=start_date,
+                response_time=stop_date,
+                generation_speed=generation_speed,
             )
-        else:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag1", "tag2", "tag3"],
-                    provider=random.choice(providers),
-                    model=random.choice(models),
-                    type="chat",
-                    os=None,
-                    input_tokens=0,
-                    output_tokens=0,
-                    library="PostmanRuntime/7.36.3",
-                    status_code=status,
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message="Error",
-                    request_time=start_date,
-                    response_time=stop_date,
-                    generation_speed=0,
-                )
-            )
+        )
+        
     return transactions
 
 
