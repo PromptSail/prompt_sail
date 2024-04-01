@@ -710,7 +710,7 @@ async def mock_transactions(
     date_to: datetime,
 ) -> dict[str, Any]:
     """
-    API endpoint to mock transactions.
+    API endpoint to generate a set of mock transactions. Warining! This endpoint is only for testing purposes and will delete all transactions for project-test.
 
     :param count: How many transactions you want to mock.
     :param date_from: The start date from which transactions should be added.
