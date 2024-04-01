@@ -631,7 +631,23 @@ def pandas_period_from_string(period: str):
     return "D"
 
 
-def generate_mock_transactions(n: int, days_back: int = 30):
+def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
+    """
+    Generate a list of mock transactions.
+
+    This function creates a list of transaction objects for testing purposes.
+    The transactions are either successful (status code 200) with randomly 
+    generated input and output tokens or unsuccessful with no input/output tokens.
+
+    Parameters:
+    n (int): The number of transactions to generate.
+    date_from (datetime): The start date from which transactions should be added.
+    date_to (datetime): The end date till which transactions should be added.
+
+    Returns:
+    list: A list of Transaction objects.
+
+    """
     providers = ["Azure", "OpenAI"]
     models = ["gpt-3.5-turbo", "gpt-4", "text-davinci-001"]
     status_codes = [200, 300, 400, 500]
@@ -642,62 +658,78 @@ def generate_mock_transactions(n: int, days_back: int = 30):
         transaction_id = f"transaction-{x}"
         input_tokens = random.randint(5, 25)
         output_tokens = random.randint(200, 800)
-        new_timedelta = random.randint(0, days_back)
-        start_date = datetime.now(tz=timezone.utc) - timedelta(days=new_timedelta)
-        stop_date = start_date + timedelta(seconds=random.randint(1, 6))
-        status = random.choice(status_codes)
-        if status == 200:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag1", "tag2", "tag3"],
-                    provider=random.choice(providers),
-                    model=random.choice(models),
-                    type="chat",
-                    os=None,
-                    input_tokens=input_tokens,
-                    output_tokens=output_tokens,
-                    library="PostmanRuntime/7.36.3",
-                    status_code=status,
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message=None,
-                    request_time=start_date,
-                    response_time=stop_date,
-                    generation_speed=output_tokens
-                    / (stop_date - start_date).total_seconds(),
-                )
+
+
+        # Generate random date within date_from and date_to
+        time_between_dates = date_to - date_from
+        days_between_dates = time_between_dates.days
+        random_number_of_days = random.randrange(days_between_dates)
+        random_date = date_from + timedelta(days=random_number_of_days)
+        start_date = random_date
+        stop_date = start_date + timedelta(seconds=random.randint(1, 6), milliseconds=random.randint(0,999))
+
+        # Generate random status code according to the distribution, the most common status code is 200, rest is less probable
+        status = random.choices(status_codes, [0.75, 0.15, 0.05, 0.05])[0]
+
+        # If status is not 200, set input/output tokens to 0 and error message to "Error"
+        error_message = None if status == 200 else "Error"
+        generation_speed = output_tokens / (stop_date - start_date).total_seconds() if status == 200 else 0
+        output_tokens = output_tokens if status == 200 else 0
+
+
+        transactions.append(
+            Transaction(
+                id=transaction_id,
+                project_id="project-test",
+                request={},
+                response={},
+                tags=["tag1", "tag2", "tag3"],
+                provider=random.choice(providers),
+                model=random.choice(models),
+                type="chat",
+                os=None,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                library="PostmanRuntime/7.36.3",
+                status_code=status,
+                messages=None,
+                prompt="",
+                last_message="",
+                error_message=error_message,
+                request_time=start_date,
+                response_time=stop_date,
+                generation_speed=generation_speed,
             )
-        else:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag1", "tag2", "tag3"],
-                    provider=random.choice(providers),
-                    model=random.choice(models),
-                    type="chat",
-                    os=None,
-                    input_tokens=0,
-                    output_tokens=0,
-                    library="PostmanRuntime/7.36.3",
-                    status_code=status,
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message="Error",
-                    request_time=start_date,
-                    response_time=stop_date,
-                    generation_speed=0,
-                )
-            )
+        )
+        
     return transactions
+
+
+
+
+
+def check_dates_for_statistics(
+    date_from: datetime | str | None, date_to: datetime | str | None
+) -> tuple[datetime | None, datetime | None]:
+    if isinstance(date_from, str):
+        if len(date_from) == 10:
+            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+        elif date_from.endswith("Z"):
+            date_from = datetime.fromisoformat(str(date_from)[:-1])
+        else:
+            date_from = datetime.fromisoformat(date_from)
+    if isinstance(date_to, str):
+        if len(date_to) == 10:
+            date_to = datetime.fromisoformat(date_to + "T00:00:00")
+        elif date_to.endswith("Z"):
+            date_to = datetime.fromisoformat(str(date_to)[:-1])
+        else:
+            date_to = datetime.fromisoformat(date_to)
+
+    if date_from is not None and date_to is not None and date_from == date_to:
+        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+
+    return date_from, date_to
 
 
 def read_transactions_from_csv(
@@ -768,31 +800,6 @@ def read_transactions_from_csv(
                 )
             )
     return transactions
-
-
-def check_dates_for_statistics(
-    date_from: datetime | str | None, date_to: datetime | str | None
-) -> tuple[datetime | None, datetime | None]:
-    if isinstance(date_from, str):
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        elif date_from.endswith("Z"):
-            date_from = datetime.fromisoformat(str(date_from)[:-1])
-        else:
-            date_from = datetime.fromisoformat(date_from)
-    if isinstance(date_to, str):
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
-        elif date_to.endswith("Z"):
-            date_to = datetime.fromisoformat(str(date_to)[:-1])
-        else:
-            date_to = datetime.fromisoformat(date_to)
-
-    if date_from is not None and date_to is not None and date_from == date_to:
-        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-
-    return date_from, date_to
-
 
 class PeriodEnum(str, Enum):
     week = "week"

@@ -20,6 +20,7 @@ lato = "^0.8.0"
 python-slugify = "^8.0.4"
 
 
+
 [tool.poetry.group.dev]
 
 
@@ -27,6 +28,7 @@ python-slugify = "^8.0.4"
 pytest = "^7.4.2"
 pre-commit = "^3.5.0"
 requests-mock = "^1.11.0"
+locust = "^2.24.1"
 
 
 [tool.poetry.group.examples]

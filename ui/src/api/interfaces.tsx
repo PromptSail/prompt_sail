@@ -103,3 +103,24 @@ export interface getProviders {
     provider_name: string;
     api_base_placeholder: string;
 }
+export interface getStatisticsTransactionsCount {
+    date: string;
+    status_200: number;
+    status_300: number;
+    status_400: number;
+    status_500: number;
+    total_transactions: number;
+}
+export interface getStatisticsTransactionsCost {
+    date: string;
+    records: {
+        provider: string;
+        model: string;
+        total_input_tokens: number;
+        total_output_tokens: number;
+        input_cumulative_total: number;
+        output_cumulative_total: number;
+        total_transactions: number;
+        total_cost: number;
+    }[];
+}
