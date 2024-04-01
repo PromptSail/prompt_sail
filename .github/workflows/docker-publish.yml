@@ -143,8 +143,9 @@ jobs:
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.run_number }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ env.NOW }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.event.release.tag_name || 'non-release' }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.event.release.tag_name  && 'latest'|| 'non-release' }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev' }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.event.release.tag_name || 'non-prod' }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -232,8 +233,9 @@ jobs:
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.sha }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.run_number }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ env.NOW }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name || 'non-release' }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name  && 'latest'|| 'non-release' }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev' }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name || 'non-prod' }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
