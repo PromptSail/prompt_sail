@@ -126,8 +126,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5 # v5.0.0
         with:
-          #images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          images: ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          #images: ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}
           
 
       # Build and push Docker image with Buildx (don't push on PR)
