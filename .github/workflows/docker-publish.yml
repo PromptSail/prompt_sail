@@ -22,7 +22,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   IMAGE_NAME_BACKEND: promptsail-backend
   IMAGE_NAME_UI: promptsail-ui
-  IMAGE_URI: ghcr.io/${{ github.repository_owner }}
+  IMAGE_URI: ghcr.io/${{ github.repository_owner | lower}}
 
 jobs:
 
@@ -140,6 +140,7 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
+          ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.run_number }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ env.NOW }}
