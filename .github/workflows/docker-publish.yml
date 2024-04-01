@@ -140,7 +140,6 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-          ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.run_number }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ env.NOW }}
