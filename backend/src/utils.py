@@ -432,7 +432,7 @@ def speed_counter_for_transactions(
     project_id = data_dicts[0]["project_id"]
     pairs = set([(data["provider"], data["model"]) for data in data_dicts])
     if date_from:
-        date_from = str(date_from)[0:9]
+        date_from = str(date_from)[0:10]
         for pair in pairs:
             df.loc[pd.Timestamp(date_from)] = {
                 "project_id": project_id,
@@ -446,7 +446,7 @@ def speed_counter_for_transactions(
                 "generation_speed": 0,
             }
     if date_to:
-        date_to = str(date_to)[0:9]
+        date_to = str(date_to)[0:10]
         for pair in pairs:
             df.loc[pd.Timestamp(date_to)] = {
                 "project_id": project_id,
