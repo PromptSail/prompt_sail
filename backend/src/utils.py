@@ -255,7 +255,7 @@ def token_counter_for_transactions(
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
                 "status_code": 0,
-                "latency": 0,
+                "latency": timedelta(0),
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
@@ -269,7 +269,7 @@ def token_counter_for_transactions(
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
                 "status_code": 0,
-                "latency": 0,
+                "latency": timedelta(0),
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
