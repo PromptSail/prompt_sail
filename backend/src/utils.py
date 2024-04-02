@@ -4,6 +4,7 @@ from collections import OrderedDict
 from enum import Enum
 from urllib.parse import parse_qs, unquote, urlparse
 
+import numpy as np
 import pandas as pd
 from _datetime import datetime, timedelta, timezone
 from transactions.models import Transaction
@@ -461,7 +462,10 @@ def speed_counter_for_transactions(
 
     period = pandas_period_from_string(period)
     result = (
-        df.groupby(["provider", "model"])
+        df.assign(
+            transactions_code_200=lambda x: np.where(x['status_code'] == 200, 1, 0)
+        )
+        .groupby(["provider", "model"])
         .resample(period)
         .agg(
             {
@@ -474,6 +478,7 @@ def speed_counter_for_transactions(
                 "latency": "sum",
                 "total_transactions": "sum",
                 "generation_speed": "sum",
+                "transactions_code_200": "sum"
             }
         )
     )
@@ -492,8 +497,8 @@ def speed_counter_for_transactions(
             mean_latency=data["latency"].total_seconds() / data["total_transactions"]
             if data["latency"].total_seconds() > 0
             else 0,
-            tokens_per_second=data["generation_speed"] / data["total_transactions"]
-            if data["generation_speed"] > 0 and data["total_transactions"] > 0
+            tokens_per_second=data["generation_speed"] / data["transactions_code_200"]
+            if data["generation_speed"] > 0 and data["transactions_code_200"] > 0
             else 0,
             total_transactions=data["total_transactions"],
         )
