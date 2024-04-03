@@ -29,7 +29,7 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
     if (TransactionsCount.isSuccess) {
         const data = TransactionsCount.data.data;
         return (
-            <>
+            <div className="relative h-[255px]">
                 {data.length < 1 && (
                     <Title className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
                         No data found
@@ -98,7 +98,7 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
                         </BarChart>
                     </ResponsiveContainer>
                 )}
-            </>
+            </div>
         );
     }
 };

@@ -67,7 +67,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                 <Flex gap={10}>
                     <Container
                         header="Basic info"
-                        classname={{ parent: 'grow-0 shrink-0', box: 'w-[300px]' }}
+                        classname={{ parent: 'grow-0 shrink-0', box: 'w-[300px] gap-2.5' }}
                     >
                         <Flex justify="space-between">
                             <span>Members:</span>
