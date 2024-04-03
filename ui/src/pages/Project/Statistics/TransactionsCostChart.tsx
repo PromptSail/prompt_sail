@@ -9,8 +9,9 @@ import {
     YAxis
 } from 'recharts';
 import { useGetStatistics_TransactionsCost } from '../../../api/queries';
-import { Spin, Typography } from 'antd';
+import { Flex, Radio, Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
+import { useState } from 'react';
 const { Title, Paragraph } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
@@ -18,6 +19,7 @@ interface Params {
 
 const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
     const TransactionsCost = useGetStatistics_TransactionsCost(statisticsParams);
+    const [TokensOrCost, setTokensOrCost] = useState<'tokens' | 'cost'>('cost');
     if (TransactionsCost.isLoading) {
         return (
             <Spin
@@ -44,13 +46,25 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
 
                 record[`tokens_${rec.model}`] =
                     rec.input_cumulative_total + rec.output_cumulative_total;
+                record[`cost_${rec.model}`] = rec.total_cost;
             });
 
             chartData.records.push(record);
         });
         return (
             <div className="relative h-[255px]">
-                <Paragraph className="mt-2 !mb-0">Transactions cost</Paragraph>
+                <Flex gap={10}>
+                    <Paragraph className="mt-2 !mb-0">Transactions cost</Paragraph>
+                    <Radio.Group
+                        options={[
+                            { label: 'Cost', value: 'cost' },
+                            { label: 'Tokens', value: 'tokens' }
+                        ]}
+                        onChange={(e) => setTokensOrCost(e.target.value)}
+                        value={TokensOrCost}
+                        optionType="button"
+                    />
+                </Flex>
                 {data.length < 1 && (
                     <Title className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
                         No data found
@@ -94,7 +108,7 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
                                         <Area
                                             key={el}
                                             type="monotone"
-                                            dataKey={`tokens_${el}`}
+                                            dataKey={`${TokensOrCost}_${el}`}
                                             name={el}
                                             stackId="1"
                                             stroke={`hsl(${random}, 100%, 40%)`}
