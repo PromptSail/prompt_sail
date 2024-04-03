@@ -242,16 +242,16 @@ def token_counter_for_transactions(
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index("date", inplace=True)
     project_id = data_dicts[0]["project_id"]
-    pairs = set([(data["provider"], data["model"]) for data in data_dicts])
+    pairs = list(set([(data["provider"], data["model"]) for data in data_dicts]))
     if date_from:
         date_from = str(date_from)[0:10]
-        for pair in pairs:
-            df.loc[pd.Timestamp(date_from)] = {
+        for pair_idx in range(len(pairs)):
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
                 "project_id": project_id,
-                "provider": pair[0],
-                "model": pair[1],
+                "provider": pairs[pair_idx][0],
+                "model": pairs[pair_idx][1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
                 "status_code": 0,
@@ -262,7 +262,8 @@ def token_counter_for_transactions(
     if date_to:
         date_to = str(date_to)[0:10]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_to)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
@@ -274,6 +275,7 @@ def token_counter_for_transactions(
                 "generation_speed": 0,
             }
 
+    df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
     result = (
         df.groupby(["provider", "model"])
@@ -427,14 +429,13 @@ def speed_counter_for_transactions(
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index("date", inplace=True)
-
     project_id = data_dicts[0]["project_id"]
     pairs = set([(data["provider"], data["model"]) for data in data_dicts])
     if date_from:
         date_from = str(date_from)[0:10]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_from)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
@@ -448,7 +449,8 @@ def speed_counter_for_transactions(
     if date_to:
         date_to = str(date_to)[0:10]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_to)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
@@ -459,7 +461,7 @@ def speed_counter_for_transactions(
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
-
+    df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
     result = (
         df.assign(
