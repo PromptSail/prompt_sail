@@ -1,6 +1,7 @@
 import { DatePicker, Flex, Select, Typography } from 'antd';
 import Container from '../Container';
 import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import { StatisticsParams } from '../../../api/types';
 import { useState } from 'react';
 import TransactionsCountChart from './TransactionsCountChart';
@@ -24,6 +25,10 @@ export enum Period {
 const Statistics: React.FC<Params> = ({ projectId }) => {
     const [statisticsParams, setStatisticsParams] = useState<StatisticsParams>({
         project_id: projectId
+    });
+    const [dates, setDates] = useState<{ start: Dayjs | null; end: Dayjs | null }>({
+        start: null,
+        end: null
     });
     const periodOptions = Object.keys(Period).map((el) => ({
         label: el,
@@ -83,7 +88,20 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                                     date_from: dateStart,
                                     date_to: dateEnd
                                 }));
+                                setDates({
+                                    start: dateStart.length > 0 ? dayjs(dateStart) : null,
+                                    end: dateEnd.length > 0 ? dayjs(dateEnd) : null
+                                });
                             }}
+                            onOk={(v) => {
+                                setDates({ start: v[0], end: v[1] });
+                                setStatisticsParams((old) => ({
+                                    ...old,
+                                    date_from: v[0] ? v[0].toISOString().substring(0, 19) : '',
+                                    date_to: v[1] ? v[1]?.toISOString().substring(0, 19) : ''
+                                }));
+                            }}
+                            value={[dates.start, dates.end]}
                             showTime
                         />
                         <Select
