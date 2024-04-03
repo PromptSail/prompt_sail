@@ -49,7 +49,8 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
             chartData.records.push(record);
         });
         return (
-            <>
+            <div className="relative h-[255px]">
+                <Paragraph className="mt-2 !mb-0">Transactions cost</Paragraph>
                 {data.length < 1 && (
                     <Title className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
                         No data found
@@ -57,7 +58,6 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
                 )}
                 {data.length > 0 && (
                     <>
-                        <Paragraph className="mt-2 !mb-0">Transactions cost</Paragraph>
                         <ResponsiveContainer>
                             <AreaChart
                                 width={500}
@@ -90,7 +90,6 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
                                 <Legend />
                                 {chartData.legend.map((el) => {
                                     const random = Math.round(Math.random() * 360);
-                                    console.log(random);
                                     return (
                                         <Area
                                             key={el}
@@ -107,7 +106,7 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
                         </ResponsiveContainer>
                     </>
                 )}
-            </>
+            </div>
         );
     }
 };
