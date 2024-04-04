@@ -5,7 +5,7 @@ import type { Dayjs } from 'dayjs';
 import { StatisticsParams } from '../../../api/types';
 import { useState } from 'react';
 import TransactionsCountChart from './TransactionsCountChart';
-import TransactionsCostChart from './TransactionsCostChart';
+import TransactionsCostAndTokensChart from './TransactionsCostAndTokensChart';
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
@@ -115,10 +115,10 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                     </div>
                 </Flex>
             }
-            classname={{ parent: 'mt-5', box: 'relative h-[600px]' }}
+            classname={{ parent: 'mt-5', box: 'relative gap-5' }}
         >
             <TransactionsCountChart statisticsParams={statisticsParams} />
-            <TransactionsCostChart statisticsParams={statisticsParams} />
+            <TransactionsCostAndTokensChart statisticsParams={statisticsParams} />
         </Container>
     );
 };

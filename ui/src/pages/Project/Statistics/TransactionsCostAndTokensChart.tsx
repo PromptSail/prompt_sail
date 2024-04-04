@@ -2,6 +2,7 @@ import {
     Area,
     AreaChart,
     CartesianGrid,
+    Label,
     Legend,
     ResponsiveContainer,
     Tooltip,
@@ -12,12 +13,13 @@ import { useGetStatistics_TransactionsCost } from '../../../api/queries';
 import { Flex, Radio, Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
 import { useState } from 'react';
+import { dateFormatter } from './formatters';
 const { Title, Paragraph } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
 }
 
-const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
+const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) => {
     const TransactionsCost = useGetStatistics_TransactionsCost(statisticsParams);
     const [TokensOrCost, setTokensOrCost] = useState<'tokens' | 'cost'>('cost');
     if (TransactionsCost.isLoading) {
@@ -52,10 +54,13 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
             chartData.records.push(record);
         });
         return (
-            <div className="relative h-[255px]">
-                <Flex gap={10}>
-                    <Paragraph className="mt-2 !mb-0">Transactions cost</Paragraph>
+            <div className="relativ flex flex-col">
+                <Flex vertical>
+                    <Paragraph className="mt-0 !mb-0 text-lg text-center font-semibold">
+                        {TokensOrCost === 'tokens' ? 'Used tokens ' : 'Transactions cost '} by model
+                    </Paragraph>
                     <Radio.Group
+                        className="self-center"
                         options={[
                             { label: 'Cost', value: 'cost' },
                             { label: 'Tokens', value: 'tokens' }
@@ -72,34 +77,31 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
                 )}
                 {data.length > 0 && (
                     <>
-                        <ResponsiveContainer>
+                        <ResponsiveContainer height={200}>
                             <AreaChart
-                                width={500}
-                                height={400}
                                 data={chartData.records}
                                 margin={{
                                     top: 10,
                                     right: 30,
-                                    left: 0,
+                                    left: -50,
                                     bottom: 0
                                 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis
                                     dataKey="date"
-                                    angle={60}
-                                    tickMargin={40}
-                                    tickFormatter={(val) => {
-                                        const date = new Date(val).toLocaleString('en-US', {
-                                            month: 'short',
-                                            day: '2-digit',
-                                            year: 'numeric'
-                                        });
-                                        return `${date}`;
-                                    }}
-                                    height={100}
+                                    angle={0}
+                                    tickMargin={10}
+                                    tickFormatter={dateFormatter}
+                                    fontSize={12}
+                                    height={30}
                                 />
-                                <YAxis />
+                                <YAxis width={135}>
+                                    <Label
+                                        value={TokensOrCost === 'cost' ? 'Cost ($)' : 'Tokens'}
+                                        angle={-90}
+                                    />
+                                </YAxis>
                                 <Tooltip isAnimationActive={false} />
                                 <Legend />
                                 {chartData.legend.map((el) => {
@@ -125,4 +127,4 @@ const TransactionsCostChart: React.FC<Params> = ({ statisticsParams }) => {
     }
 };
 
-export default TransactionsCostChart;
+export default TransactionsCostAndTokensChart;
