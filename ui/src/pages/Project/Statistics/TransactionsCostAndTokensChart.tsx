@@ -14,6 +14,7 @@ import { Flex, Radio, Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
 import { useState } from 'react';
 import { dateFormatter } from './formatters';
+import { schemeCategory10 as colors } from 'd3-scale-chromatic';
 const { Title, Paragraph } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
@@ -104,8 +105,7 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                 </YAxis>
                                 <Tooltip isAnimationActive={false} />
                                 <Legend />
-                                {chartData.legend.map((el) => {
-                                    const random = Math.round(Math.random() * 360);
+                                {chartData.legend.map((el, id) => {
                                     return (
                                         <Area
                                             key={el}
@@ -113,8 +113,8 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                             dataKey={`${TokensOrCost}_${el}`}
                                             name={el}
                                             stackId="1"
-                                            stroke={`hsl(${random}, 100%, 40%)`}
-                                            fill={`hsl(${random}, 100%, 40%)`}
+                                            stroke={colors[id % colors.length]}
+                                            fill={colors[id % colors.length]}
                                         />
                                     );
                                 })}
