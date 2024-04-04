@@ -42,13 +42,13 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
             };
 
             el.records.map((rec) => {
-                if (!chartData.legend.includes(rec.model)) {
-                    chartData.legend.push(rec.model);
+                const legendName = `${rec.provider.substring(0, 2).toUpperCase()}-${rec.model}`;
+                if (!chartData.legend.includes(legendName)) {
+                    chartData.legend.push(legendName);
                 }
-
-                record[`tokens_${rec.model}`] =
+                record[`tokens_${legendName}`] =
                     rec.input_cumulative_total + rec.output_cumulative_total;
-                record[`cost_${rec.model}`] = rec.total_cost;
+                record[`cost_${legendName}`] = rec.total_cost;
             });
 
             chartData.records.push(record);
