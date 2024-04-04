@@ -23,12 +23,14 @@ export enum Period {
 }
 
 const Statistics: React.FC<Params> = ({ projectId }) => {
-    const [statisticsParams, setStatisticsParams] = useState<StatisticsParams>({
-        project_id: projectId
-    });
     const [dates, setDates] = useState<{ start: Dayjs | null; end: Dayjs | null }>({
-        start: null,
-        end: null
+        start: dayjs().add(-30, 'd').startOf('day'),
+        end: dayjs()
+    });
+    const [statisticsParams, setStatisticsParams] = useState<StatisticsParams>({
+        project_id: projectId,
+        date_from: (dates.start || dayjs().add(-30, 'd')).toISOString().substring(0, 19),
+        date_to: (dates.end || dayjs()).toISOString().substring(0, 19)
     });
     const periodOptions = Object.keys(Period).map((el) => ({
         label: el,
@@ -103,6 +105,8 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                             }}
                             value={[dates.start, dates.end]}
                             showTime
+                            allowClear={false}
+                            allowEmpty={false}
                         />
                         <Select
                             options={periodOptions}

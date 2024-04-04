@@ -54,7 +54,7 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
             chartData.records.push(record);
         });
         return (
-            <div className="relativ flex flex-col">
+            <div className="relative flex flex-col min-h-[200px]">
                 <Flex vertical>
                     <Paragraph className="mt-0 !mb-0 text-lg text-center font-semibold">
                         {TokensOrCost === 'tokens' ? 'Used tokens ' : 'Transactions cost '} by model
@@ -71,7 +71,7 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                     />
                 </Flex>
                 {data.length < 1 && (
-                    <Title className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
+                    <Title className="absolute top-2/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
                         No data found
                     </Title>
                 )}

@@ -30,7 +30,7 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
     if (TransactionsCount.isSuccess) {
         const data = TransactionsCount.data.data;
         return (
-            <div className="relativ flex flex-col">
+            <div className="relative flex flex-col min-h-[200px]">
                 <Paragraph className="mt-0 !mb-1 text-lg text-center font-semibold">
                     Transactions by response status
                 </Paragraph>
