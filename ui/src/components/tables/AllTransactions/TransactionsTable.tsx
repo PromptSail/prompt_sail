@@ -73,7 +73,7 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }
                             time: new Date(tr.request_time + 'Z')
                                 .toLocaleString('pl-PL')
                                 .padStart(20, '0'),
-                            speed: tr.generation_speed.toFixed(3),
+                            speed: tr.status_code < 300 ? tr.generation_speed.toFixed(3) : 'null',
                             messages: (
                                 <Flex vertical>
                                     <div>
@@ -87,20 +87,34 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }
                                     </div>
                                 </Flex>
                             ),
-                            status: <Badge status="success" text={tr.status_code} />,
+                            status: (
+                                <Badge
+                                    status={
+                                        tr.status_code >= 300
+                                            ? tr.status_code >= 400
+                                                ? 'error'
+                                                : 'warning'
+                                            : 'success'
+                                    }
+                                    text={tr.status_code}
+                                />
+                            ),
                             project: (
                                 <Link to={`/projects/${tr.project_id}`}>{tr.project_name}</Link>
                             ),
                             aiProvider: tr.provider,
                             model: tr.model,
                             tags: <TagsContainer tags={tr.tags} />,
-                            cost: `$ ${tr.total_cost.toFixed(4)}`,
-                            tokens: (
-                                <span>
-                                    {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens} (Σ{' '}
-                                    {tr.response.content.usage.total_tokens})
-                                </span>
-                            )
+                            cost: tr.status_code < 300 ? `$ ${tr.total_cost.toFixed(4)}` : 'null',
+                            tokens:
+                                tr.status_code < 300 ? (
+                                    <span>
+                                        {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens}{' '}
+                                        (Σ {tr.response.content.usage.total_tokens})
+                                    </span>
+                                ) : (
+                                    <span>null</span>
+                                )
                         };
                     }),
                     page_index: data.page_index,
