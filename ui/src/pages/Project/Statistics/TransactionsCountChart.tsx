@@ -11,7 +11,8 @@ import {
 import { useGetStatistics_TransactionsCount } from '../../../api/queries';
 import { Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
-const { Title } = Typography;
+import { dateFormatter } from './formatters';
+const { Title, Paragraph } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
 }
@@ -29,18 +30,19 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
     if (TransactionsCount.isSuccess) {
         const data = TransactionsCount.data.data;
         return (
-            <div className="relative h-[255px]">
+            <div className="relative flex flex-col min-h-[200px]">
+                <Paragraph className="mt-0 !mb-1 text-lg text-center font-semibold">
+                    Transactions by response status
+                </Paragraph>
                 {data.length < 1 && (
                     <Title className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
                         No data found
                     </Title>
                 )}
                 {data.length > 0 && (
-                    <ResponsiveContainer>
+                    <ResponsiveContainer height={200}>
                         <BarChart
                             title="Transactions count"
-                            width={500}
-                            height={300}
                             data={data}
                             margin={{
                                 top: 0,
@@ -52,17 +54,11 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
                             <CartesianGrid strokeDasharray="3" />
                             <XAxis
                                 dataKey="date"
-                                angle={60}
-                                tickMargin={40}
-                                tickFormatter={(val) => {
-                                    const date = new Date(val).toLocaleString('en-US', {
-                                        month: 'short',
-                                        day: '2-digit',
-                                        year: 'numeric'
-                                    });
-                                    return `${date}`;
-                                }}
-                                height={100}
+                                angle={0}
+                                tickMargin={10}
+                                tickFormatter={dateFormatter}
+                                fontSize={12}
+                                height={30}
                             />
                             <YAxis width={40} allowDecimals={false} />
                             <Tooltip isAnimationActive={false} />
