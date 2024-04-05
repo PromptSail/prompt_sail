@@ -184,11 +184,14 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = (
             prompt if prompt else request_content["messages"][0]["content"]
         )
+        transaction_params["messages"] = request_content.get("messages", [])
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
+            transaction_params["messages"].append(
+                response_content["error"]["message"]
+            )
         else:
             transaction_params["model"] = response_content["model"]
-            transaction_params["messages"] = request_content["messages"]
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
@@ -209,11 +212,15 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = (
             prompt if prompt else request_content["messages"][0]["content"]
         )
+        transaction_params["messages"] = request_content.get("messages", [])
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
+            transaction_params["messages"].append(
+                {'role': 'error', 'content': response_content["error"]["message"]}
+            )
         else:
             transaction_params["model"] = response_headers["openai-model"]
-            transaction_params["messages"] = request_content["messages"]
+            
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
