@@ -446,6 +446,7 @@ async def get_transaction_usage_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
+        status_code=200
     )
     transactions = [
         StatisticTransactionSchema(
@@ -623,6 +624,7 @@ async def get_transaction_latency_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
+        status_code=200
     )
     transactions = [
         StatisticTransactionSchema(
