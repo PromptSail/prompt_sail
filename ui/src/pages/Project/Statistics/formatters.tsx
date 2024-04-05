@@ -6,3 +6,10 @@ export const dateFormatter = (val: string) => {
     });
     return `${date}`;
 };
+
+export const costFormatter = (val: number) => {
+    return '$ ' + val.toFixed(4);
+};
+export const costTooltip = (val: number) => {
+    return '$ ' + val.toFixed(4);
+};

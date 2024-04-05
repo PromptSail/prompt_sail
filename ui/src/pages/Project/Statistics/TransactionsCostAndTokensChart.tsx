@@ -2,7 +2,6 @@ import {
     Area,
     AreaChart,
     CartesianGrid,
-    Label,
     Legend,
     ResponsiveContainer,
     Tooltip,
@@ -13,7 +12,7 @@ import { useGetStatistics_TransactionsCost } from '../../../api/queries';
 import { Flex, Radio, Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
 import { useState } from 'react';
-import { dateFormatter } from './formatters';
+import { costFormatter, costTooltip, dateFormatter } from './formatters';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
 const { Title, Paragraph } = Typography;
 interface Params {
@@ -97,13 +96,16 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                     fontSize={12}
                                     height={30}
                                 />
-                                <YAxis width={135}>
-                                    <Label
-                                        value={TokensOrCost === 'cost' ? 'Cost ($)' : 'Tokens'}
-                                        angle={-90}
-                                    />
-                                </YAxis>
-                                <Tooltip isAnimationActive={false} />
+                                <YAxis
+                                    width={110}
+                                    tickFormatter={
+                                        TokensOrCost === 'cost' ? costFormatter : undefined
+                                    }
+                                />
+                                <Tooltip
+                                    isAnimationActive={false}
+                                    formatter={TokensOrCost === 'cost' ? costTooltip : undefined}
+                                />
                                 <Legend />
                                 {chartData.legend.map((el, id) => {
                                     return (
