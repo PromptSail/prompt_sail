@@ -12,7 +12,7 @@ import { useGetStatistics_TransactionsCost } from '../../../api/queries';
 import { Flex, Radio, Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
 import { useState } from 'react';
-import { costFormatter, costTooltip, dateFormatter } from './formatters';
+import { costFormatter, costTooltip, customSorter, dateFormatter } from './formatters';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
 const { Title, Paragraph } = Typography;
 interface Params {
@@ -105,6 +105,7 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                 <Tooltip
                                     isAnimationActive={false}
                                     formatter={TokensOrCost === 'cost' ? costTooltip : undefined}
+                                    itemSorter={customSorter}
                                 />
                                 <Legend />
                                 {chartData.legend.map((el, id) => {

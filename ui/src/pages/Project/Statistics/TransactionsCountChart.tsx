@@ -11,7 +11,7 @@ import {
 import { useGetStatistics_TransactionsCount } from '../../../api/queries';
 import { Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
-import { dateFormatter } from './formatters';
+import { customSorter, dateFormatter } from './formatters';
 const { Title, Paragraph } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
@@ -61,7 +61,7 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
                                 height={30}
                             />
                             <YAxis width={40} allowDecimals={false} />
-                            <Tooltip isAnimationActive={false} />
+                            <Tooltip itemSorter={customSorter} isAnimationActive={false} />
                             <Legend />
                             <Bar
                                 dataKey="status_200"
