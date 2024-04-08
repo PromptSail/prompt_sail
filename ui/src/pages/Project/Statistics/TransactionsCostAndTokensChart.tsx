@@ -42,7 +42,7 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
             };
 
             el.records.map((rec) => {
-                const legendName = `${rec.provider.substring(0, 2).toUpperCase()}-${rec.model}`;
+                const legendName = `${rec.provider.substring(0, 2)}-${rec.model}`;
                 if (!chartData.legend.includes(legendName)) {
                     chartData.legend.push(legendName);
                 }
