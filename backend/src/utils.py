@@ -189,7 +189,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["last_message"] = response_content["error"]["message"]
             transaction_params["messages"].append(
-                response_content["error"]["message"]
+                {'role': 'error', 'content': response_content["error"]["message"]}
             )
         else:
             transaction_params["model"] = response_content["model"]
