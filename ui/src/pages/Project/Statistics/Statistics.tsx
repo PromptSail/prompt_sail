@@ -32,9 +32,32 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
         date_from: (dates.start || dayjs().add(-30, 'd')).toISOString().substring(0, 19),
         date_to: (dates.end || dayjs()).toISOString().substring(0, 19)
     });
-    const periodOptions = Object.keys(Period).map((el) => ({
+    const PeriodKeys = Object.keys(Period);
+    const periodOptions = PeriodKeys.map((el) => ({
         label: el,
-        value: Period[el as keyof typeof Period]
+        value: Period[el as keyof typeof Period],
+        disabled: (() => {
+            const { start, end } = dates;
+            if (start == null || end == null) return false;
+            else {
+                switch (el) {
+                    case PeriodKeys[0]: // year
+                        return end.diff(start, 'y', true) < 1;
+                    case PeriodKeys[1]: // month
+                        return end.diff(start, 'M', true) < 2 || end.diff(start, 'y', true) > 2;
+                    case PeriodKeys[2]: // week
+                        return end.diff(start, 'w', true) < 2 || end.diff(start, 'M', true) > 6;
+                    case PeriodKeys[3]: // day
+                        return end.diff(start, 'd', true) < 2 || end.diff(start, 'M', true) > 1;
+                    case PeriodKeys[4]: // hour
+                        return end.diff(start, 'h', true) < 2 || end.diff(start, 'h', true) > 24;
+                    case PeriodKeys[5]: // minutes
+                        return end.diff(start, 'h', true) > 2;
+                    default:
+                        return false;
+                }
+            }
+        })()
     }));
     return (
         <Container
@@ -45,6 +68,7 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                     </Title>
                     <div className="mt-auto">
                         <RangePicker
+                            maxDate={dayjs()}
                             presets={[
                                 {
                                     label: 'Last 30 minutes',
