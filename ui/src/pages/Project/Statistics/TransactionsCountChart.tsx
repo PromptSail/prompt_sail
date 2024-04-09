@@ -56,7 +56,7 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
                                 dataKey="date"
                                 angle={0}
                                 tickMargin={10}
-                                tickFormatter={dateFormatter}
+                                tickFormatter={(v) => dateFormatter(v, statisticsParams.period)}
                                 fontSize={12}
                                 height={30}
                             />
