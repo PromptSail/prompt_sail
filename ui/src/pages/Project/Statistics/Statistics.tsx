@@ -27,38 +27,74 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
         start: dayjs().add(-30, 'd').startOf('day'),
         end: dayjs()
     });
+    const [granularity, setGranularity] = useState<Period>(Period.Daily);
     const [statisticsParams, setStatisticsParams] = useState<StatisticsParams>({
         project_id: projectId,
         date_from: (dates.start || dayjs().add(-30, 'd')).toISOString().substring(0, 19),
-        date_to: (dates.end || dayjs()).toISOString().substring(0, 19)
+        date_to: (dates.end || dayjs()).toISOString().substring(0, 19),
+        period: granularity
     });
-    const PeriodKeys = Object.keys(Period);
-    const periodOptions = PeriodKeys.map((el) => ({
-        label: el,
-        value: Period[el as keyof typeof Period],
-        disabled: (() => {
-            const { start, end } = dates;
-            if (start == null || end == null) return false;
-            else {
-                switch (el) {
-                    case PeriodKeys[0]: // year
-                        return end.diff(start, 'y', true) < 1;
-                    case PeriodKeys[1]: // month
-                        return end.diff(start, 'M', true) < 2 || end.diff(start, 'y', true) > 2;
-                    case PeriodKeys[2]: // week
-                        return end.diff(start, 'w', true) < 2 || end.diff(start, 'M', true) > 6;
-                    case PeriodKeys[3]: // day
-                        return end.diff(start, 'd', true) < 2 || end.diff(start, 'M', true) > 1;
-                    case PeriodKeys[4]: // hour
-                        return end.diff(start, 'h', true) < 2 || end.diff(start, 'h', true) > 24;
-                    case PeriodKeys[5]: // minutes
-                        return end.diff(start, 'h', true) > 2;
+    const getEnablePeriodOptions = (start: Dayjs | null, end: Dayjs | null) => {
+        const options: Array<Period> = [];
+        if (start == null || end == null) return options;
+        else {
+            Object.keys(Period).map((_, id) => {
+                switch (id) {
+                    case 0: // year
+                        if (end.diff(start, 'y', true) >= 1) options.push(Period.Yearly);
+                        break;
+                    case 1: // month
+                        if (end.diff(start, 'M', true) >= 2 && end.diff(start, 'y', true) <= 2)
+                            options.push(Period.Monthly);
+                        break;
+                    case 2: // week
+                        if (end.diff(start, 'w', true) >= 2 && end.diff(start, 'M', true) <= 6)
+                            options.push(Period.Weekly);
+                        break;
+                    case 3: // day
+                        if (end.diff(start, 'd', true) >= 2 && end.diff(start, 'M', true) <= 1)
+                            options.push(Period.Daily);
+                        break;
+                    case 4: // hour
+                        if (end.diff(start, 'h', true) >= 2 && end.diff(start, 'h', true) <= 24)
+                            options.push(Period.Hourly);
+                        break;
+                    case 5: // minutes
+                        if (end.diff(start, 'h', true) <= 2) options.push(Period.Minutely);
+                        break;
                     default:
-                        return false;
+                        break;
                 }
-            }
-        })()
-    }));
+            });
+            return options;
+        }
+    };
+    const setGranularityAndUpdateApi = (start: Dayjs | null, end: Dayjs | null) => {
+        const enablePeriod = getEnablePeriodOptions(start, end);
+        const properGranularity = enablePeriod.includes(granularity)
+            ? granularity
+            : enablePeriod[0];
+        setGranularity(properGranularity);
+        setStatisticsParams((old) => ({
+            ...old,
+            date_from: start ? start.toISOString().substring(0, 19) : '',
+            date_to: end ? end?.toISOString().substring(0, 19) : '',
+            period: properGranularity
+        }));
+    };
+    const enablePeriod = getEnablePeriodOptions(dates.start, dates.end);
+    const periodOptions = Object.keys(Period).map((el) => {
+        return {
+            label: el,
+            value: Period[el as keyof typeof Period],
+            disabled:
+                enablePeriod.length > 0
+                    ? enablePeriod.includes(Period[el as keyof typeof Period])
+                        ? false
+                        : true
+                    : true
+        };
+    });
     return (
         <Container
             header={
@@ -109,23 +145,15 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                                         .toISOString()
                                         .substring(0, 19);
                                 }
-                                setStatisticsParams((old) => ({
-                                    ...old,
-                                    date_from: dateStart,
-                                    date_to: dateEnd
-                                }));
                                 setDates({
                                     start: dateStart.length > 0 ? dayjs(dateStart) : null,
                                     end: dateEnd.length > 0 ? dayjs(dateEnd) : null
                                 });
+                                setGranularityAndUpdateApi(dayjs(dateStart), dayjs(dateEnd));
                             }}
                             onOk={(v) => {
                                 setDates({ start: v[0], end: v[1] });
-                                setStatisticsParams((old) => ({
-                                    ...old,
-                                    date_from: v[0] ? v[0].toISOString().substring(0, 19) : '',
-                                    date_to: v[1] ? v[1]?.toISOString().substring(0, 19) : ''
-                                }));
+                                setGranularityAndUpdateApi(v[0], v[1]);
                             }}
                             value={[dates.start, dates.end]}
                             showTime
@@ -134,7 +162,9 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                         />
                         <Select
                             options={periodOptions}
+                            value={granularity}
                             onChange={(val: Period) => {
+                                setGranularity(val);
                                 setStatisticsParams((old) => ({ ...old, period: val }));
                             }}
                             defaultValue={Period.Daily}
