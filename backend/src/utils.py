@@ -186,10 +186,10 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         )
         transaction_params["messages"] = request_content["messages"]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["error"]["message"]
-            transaction_params["last_message"] = response_content["error"]["message"]
+            transaction_params["error_message"] = response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']
+            transaction_params["last_message"] = response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']
             transaction_params["messages"].append(
-                {'role': 'error', 'content': response_content["error"]["message"]}
+                {'role': 'error', 'content': response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']}
             )
         else:
             transaction_params["model"] = response_content["model"]
@@ -594,8 +594,8 @@ class ApiURLBuilder:
             if prov.slug == deployment_slug
         ][0]
         if path == "":
-            path = unquote(target_path) if target_path is not None else ""
-
+            path = unquote(unquote(target_path)) if target_path is not None else ""
+        
         url = api_base + f"/{path}".replace("//", "/")
         if api_base.endswith("/"):
             url = api_base + f"{path}".replace("//", "/")
