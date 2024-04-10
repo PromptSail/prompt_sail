@@ -736,7 +736,7 @@ def check_dates_for_statistics(
             date_from = datetime.fromisoformat(date_from)
     if isinstance(date_to, str):
         if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
+            date_to = datetime.fromisoformat(date_to + "T23:59:59")
         elif date_to.endswith("Z"):
             date_to = datetime.fromisoformat(str(date_to)[:-1])
         else:
