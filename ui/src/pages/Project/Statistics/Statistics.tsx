@@ -30,8 +30,8 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
     const [granularity, setGranularity] = useState<Period>(Period.Daily);
     const [statisticsParams, setStatisticsParams] = useState<StatisticsParams>({
         project_id: projectId,
-        date_from: (dates.start || dayjs().add(-30, 'd')).toISOString().substring(0, 19),
-        date_to: (dates.end || dayjs()).toISOString().substring(0, 19),
+        date_from: dates.start?.toISOString().substring(0, 19) || undefined,
+        date_to: dates.end?.toISOString().substring(0, 19) || undefined,
         period: granularity
     });
     const getEnablePeriodOptions = (start: Dayjs | null, end: Dayjs | null) => {

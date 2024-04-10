@@ -2,7 +2,7 @@ import { Payload, NameType } from 'recharts/types/component/DefaultTooltipConten
 import { Period } from './Statistics';
 
 export const dateFormatter = (val: string, granularity: Period | undefined) => {
-    const date = new Date(val).toLocaleString(
+    const date = new Date(val + 'Z').toLocaleString(
         'en-US',
         granularity == Period.Hourly || granularity == Period.Minutely
             ? {
