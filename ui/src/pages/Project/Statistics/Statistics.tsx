@@ -34,7 +34,7 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
         date_to: dates.end?.toISOString().substring(0, 19) || undefined,
         period: granularity
     });
-    const rangeOKRef = useRef(true);
+    const rangeOKRef = useRef(false);
     const getEnablePeriodOptions = (start: Dayjs | null, end: Dayjs | null) => {
         const options: Array<Period> = [];
         if (start == null || end == null) return options;
@@ -45,19 +45,19 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                         if (end.diff(start, 'y', true) >= 1) options.push(Period.Yearly);
                         break;
                     case 1: // month
-                        if (end.diff(start, 'M', true) >= 2 && end.diff(start, 'y', true) <= 2)
+                        if (end.diff(start, 'M', true) >= 1 && end.diff(start, 'y', true) <= 2)
                             options.push(Period.Monthly);
                         break;
                     case 2: // week
-                        if (end.diff(start, 'w', true) >= 2 && end.diff(start, 'M', true) <= 6)
+                        if (end.diff(start, 'w', true) >= 1 && end.diff(start, 'M', true) <= 6)
                             options.push(Period.Weekly);
                         break;
                     case 3: // day
-                        if (end.diff(start, 'd', true) >= 2 && end.diff(start, 'M', true) <= 1)
+                        if (end.diff(start, 'd', true) >= 1 && end.diff(start, 'M', true) <= 1)
                             options.push(Period.Daily);
                         break;
                     case 4: // hour
-                        if (end.diff(start, 'h', true) >= 2 && end.diff(start, 'h', true) <= 24)
+                        if (end.diff(start, 'h', true) >= 1 && end.diff(start, 'h', true) <= 24)
                             options.push(Period.Hourly);
                         break;
                     case 5: // minutes
@@ -136,11 +136,9 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                                 }
                             ]}
                             onChange={(_, dates) => {
-                                console.log(rangeOKRef.current);
                                 if (!rangeOKRef.current) {
                                     let dateStart = '';
                                     let dateEnd = '';
-                                    console.log(dates);
                                     if (dates[0].length > 0 && dates[1].length > 0) {
                                         dateStart = new Date(dates[0] + 'Z')
                                             .toISOString()
