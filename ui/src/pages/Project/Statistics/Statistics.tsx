@@ -3,7 +3,7 @@ import Container from '../Container';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import { StatisticsParams } from '../../../api/types';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import TransactionsCountChart from './TransactionsCountChart';
 import TransactionsCostAndTokensChart from './TransactionsCostAndTokensChart';
 const { Title } = Typography;
@@ -34,6 +34,7 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
         date_to: dates.end?.toISOString().substring(0, 19) || undefined,
         period: granularity
     });
+    const rangeOKRef = useRef(true);
     const getEnablePeriodOptions = (start: Dayjs | null, end: Dayjs | null) => {
         const options: Array<Period> = [];
         if (start == null || end == null) return options;
@@ -79,7 +80,7 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
             ...old,
             date_from: start ? start.toISOString().substring(0, 19) : '',
             date_to: end ? end?.toISOString().substring(0, 19) : '',
-            period: properGranularity
+            period: properGranularity || Period.Daily
         }));
     };
     const enablePeriod = getEnablePeriodOptions(dates.start, dates.end);
@@ -135,25 +136,31 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                                 }
                             ]}
                             onChange={(_, dates) => {
-                                let dateStart = '';
-                                let dateEnd = '';
-                                if (dates[0].length > 0 && dates[1].length > 0) {
-                                    dateStart = new Date(dates[0] + 'Z')
-                                        .toISOString()
-                                        .substring(0, 19);
-                                    dateEnd = new Date(dates[1] + 'Z')
-                                        .toISOString()
-                                        .substring(0, 19);
+                                console.log(rangeOKRef.current);
+                                if (!rangeOKRef.current) {
+                                    let dateStart = '';
+                                    let dateEnd = '';
+                                    console.log(dates);
+                                    if (dates[0].length > 0 && dates[1].length > 0) {
+                                        dateStart = new Date(dates[0] + 'Z')
+                                            .toISOString()
+                                            .substring(0, 19);
+                                        dateEnd = new Date(dates[1] + 'Z')
+                                            .toISOString()
+                                            .substring(0, 19);
+                                    }
+                                    setDates({
+                                        start: dateStart.length > 0 ? dayjs(dateStart) : null,
+                                        end: dateEnd.length > 0 ? dayjs(dateEnd) : null
+                                    });
+                                    setGranularityAndUpdateApi(dayjs(dateStart), dayjs(dateEnd));
                                 }
-                                setDates({
-                                    start: dateStart.length > 0 ? dayjs(dateStart) : null,
-                                    end: dateEnd.length > 0 ? dayjs(dateEnd) : null
-                                });
-                                setGranularityAndUpdateApi(dayjs(dateStart), dayjs(dateEnd));
+                                rangeOKRef.current = false;
                             }}
                             onOk={(v) => {
                                 setDates({ start: v[0], end: v[1] });
                                 setGranularityAndUpdateApi(v[0], v[1]);
+                                rangeOKRef.current = true;
                             }}
                             value={[dates.start, dates.end]}
                             showTime
