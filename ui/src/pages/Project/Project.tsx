@@ -92,7 +92,24 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                 </Flex>
 
                 <Statistics projectId={data.id} />
-                <Container header="Latest transactions" classname={{ parent: 'my-5' }}>
+                <Container
+                    header={
+                        <Flex justify="space-between">
+                            <Title level={2} style={{ margin: '0 10px' }}>
+                                Latest transactions
+                            </Title>
+                            <Button
+                                type="primary"
+                                className="!bg-white my-auto"
+                                onClick={() => navigate(`/transactions?project_id=${data.id}`)}
+                                ghost
+                            >
+                                View all transactions
+                            </Button>
+                        </Flex>
+                    }
+                    classname={{ parent: 'my-5' }}
+                >
                     <LatestTransactions projectId={data.id} />
                 </Container>
             </>
