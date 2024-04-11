@@ -215,6 +215,7 @@ def get_list_of_filtered_transactions(
     date_from: datetime,
     date_to: datetime,
     transaction_repository: TransactionRepository,
+    status_code: int | None = None,
 ) -> list[Transaction]:
     """
     Retrieve a list of transactions filtered by project ID and date range.
@@ -226,10 +227,11 @@ def get_list_of_filtered_transactions(
     :param date_from: The starting date for the filter.
     :param date_to: The ending date for the filter.
     :param transaction_repository: An instance of TransactionRepository for data retrieval.
+    :param status_code: The transactions' status code.
     :return: A list of Transaction objects that meet the specified criteria.
     """
     query = create_transaction_query_from_filters(
-        date_from=date_from, date_to=date_to, project_id=project_id
+        date_from=date_from, date_to=date_to, project_id=project_id, status_code=status_code
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions

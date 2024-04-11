@@ -24,7 +24,7 @@ const Container: React.FC<Props> = ({ children, header, desc, classname }) => {
             {typeof header !== typeof '' && header}
             {!!desc && <Paragraph className="ml-[10px] !mb-0">{desc}</Paragraph>}
             <div
-                className={`box bg-white p-[20px] rounded-2xl flex flex-col justify-between gap-2.5 grow border border-solid border-[#E5E5E5] ${classname?.box}`}
+                className={`box bg-white p-[20px] rounded-2xl flex flex-col grow border border-solid border-[#E5E5E5] ${classname?.box}`}
             >
                 {children}
             </div>

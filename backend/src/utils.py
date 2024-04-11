@@ -4,6 +4,7 @@ from collections import OrderedDict
 from enum import Enum
 from urllib.parse import parse_qs, unquote, urlparse
 
+import numpy as np
 import pandas as pd
 from _datetime import datetime, timedelta, timezone
 from transactions.models import Transaction
@@ -66,6 +67,7 @@ def create_transaction_query_from_filters(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    status_code: int | None = None,
 ) -> dict:
     """
     Create a MongoDB query dictionary based on specified filters for transactions.
@@ -74,6 +76,7 @@ def create_transaction_query_from_filters(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
+    :param status_code: Optional. Status code of the transactions.
     :return: MongoDB query dictionary representing the specified filters.
     """
     query = {}
@@ -87,6 +90,8 @@ def create_transaction_query_from_filters(
         query["response_time"]["$gte"] = date_from
     if date_to is not None:
         query["response_time"]["$lte"] = date_to
+    if status_code is not None:
+        query["status_code"] = status_code
     return query
 
 
@@ -179,11 +184,15 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = (
             prompt if prompt else request_content["messages"][0]["content"]
         )
+        transaction_params["messages"] = request_content["messages"]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["error"]["message"]
+            transaction_params["error_message"] = response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']
+            transaction_params["last_message"] = response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']
+            transaction_params["messages"].append(
+                {'role': 'error', 'content': response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']}
+            )
         else:
             transaction_params["model"] = response_content["model"]
-            transaction_params["messages"] = request_content["messages"]
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
@@ -204,11 +213,16 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = (
             prompt if prompt else request_content["messages"][0]["content"]
         )
+        transaction_params["messages"] = request_content["messages"]
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
+            transaction_params["last_message"] = response_content["error"]["message"]
+            transaction_params["messages"].append(
+                {'role': 'error', 'content': response_content["error"]["message"]}
+            )
         else:
             transaction_params["model"] = response_headers["openai-model"]
-            transaction_params["messages"] = request_content["messages"]
+            
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
@@ -241,38 +255,38 @@ def token_counter_for_transactions(
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index("date", inplace=True)
     project_id = data_dicts[0]["project_id"]
-    pairs = set([(data["provider"], data["model"]) for data in data_dicts])
+    pairs = list(set([(data["provider"], data["model"]) for data in data_dicts]))
     if date_from:
-        date_from = str(date_from)[0:10]
-        for pair in pairs:
-            df.loc[pd.Timestamp(date_from)] = {
+        for pair_idx in range(len(pairs)):
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
                 "project_id": project_id,
-                "provider": pair[0],
-                "model": pair[1],
+                "provider": pairs[pair_idx][0],
+                "model": pairs[pair_idx][1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
                 "status_code": 0,
-                "latency": 0,
+                "latency": timedelta(0),
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
     if date_to:
-        date_to = str(date_to)[0:10]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_to)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
                 "status_code": 0,
-                "latency": 0,
+                "latency": timedelta(0),
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
 
+    df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
     result = (
         df.groupby(["provider", "model"])
@@ -426,14 +440,12 @@ def speed_counter_for_transactions(
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index("date", inplace=True)
-
     project_id = data_dicts[0]["project_id"]
     pairs = set([(data["provider"], data["model"]) for data in data_dicts])
     if date_from:
-        date_from = str(date_from)[0:9]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_from)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
@@ -445,9 +457,9 @@ def speed_counter_for_transactions(
                 "generation_speed": 0,
             }
     if date_to:
-        date_to = str(date_to)[0:9]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_to)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
@@ -458,10 +470,13 @@ def speed_counter_for_transactions(
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
-
+    df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
     result = (
-        df.groupby(["provider", "model"])
+        df.assign(
+            transactions_code_200=lambda x: np.where(x['status_code'] == 200, 1, 0)
+        )
+        .groupby(["provider", "model"])
         .resample(period)
         .agg(
             {
@@ -474,6 +489,7 @@ def speed_counter_for_transactions(
                 "latency": "sum",
                 "total_transactions": "sum",
                 "generation_speed": "sum",
+                "transactions_code_200": "sum"
             }
         )
     )
@@ -492,8 +508,8 @@ def speed_counter_for_transactions(
             mean_latency=data["latency"].total_seconds() / data["total_transactions"]
             if data["latency"].total_seconds() > 0
             else 0,
-            tokens_per_second=data["generation_speed"] / data["total_transactions"]
-            if data["generation_speed"] > 0 and data["total_transactions"] > 0
+            tokens_per_second=data["generation_speed"] / data["transactions_code_200"]
+            if data["generation_speed"] > 0 and data["transactions_code_200"] > 0
             else 0,
             total_transactions=data["total_transactions"],
         )
@@ -578,8 +594,8 @@ class ApiURLBuilder:
             if prov.slug == deployment_slug
         ][0]
         if path == "":
-            path = unquote(target_path) if target_path is not None else ""
-
+            path = unquote(unquote(target_path)) if target_path is not None else ""
+        
         url = api_base + f"/{path}".replace("//", "/")
         if api_base.endswith("/"):
             url = api_base + f"{path}".replace("//", "/")
@@ -720,7 +736,7 @@ def check_dates_for_statistics(
             date_from = datetime.fromisoformat(date_from)
     if isinstance(date_to, str):
         if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T00:00:00")
+            date_to = datetime.fromisoformat(date_to + "T23:59:59")
         elif date_to.endswith("Z"):
             date_to = datetime.fromisoformat(str(date_to)[:-1])
         else:

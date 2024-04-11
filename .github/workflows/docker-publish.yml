@@ -91,6 +91,19 @@ jobs:
     steps:
       - name: set datetime  env
         run: echo "NOW=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+    
+      - name: Set RELEASE_TAG based on branch name and release tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "RELEASE_TAG=release_candidate" >> $GITHUB_ENV
+          elif [[ "${{ github.event.release.tag_name }}" != "" ]]; then
+            echo "RELEASE_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=non-release" >> $GITHUB_ENV
+          fi
+    
+      - name: Use RELEASE_TAG
+        run: echo "RELEASE_TAG is ${{ env.RELEASE_TAG }}"
 
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -142,10 +155,8 @@ jobs:
           tags: |
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.run_number }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ env.NOW }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.event.release.tag_name || 'non-release' }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.event.release.tag_name  && 'latest'|| 'non-release' }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev' }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.event.release.tag_name || env.RELEASE_TAG }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ env.RELEASE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -183,6 +194,19 @@ jobs:
 
       - name: set datetime  env
         run: echo "NOW=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+
+      - name: Set RELEASE_TAG based on branch name and release tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "RELEASE_TAG=release_candidate" >> $GITHUB_ENV
+          elif [[ "${{ github.event.release.tag_name }}" != "" ]]; then
+            echo "RELEASE_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=non-release" >> $GITHUB_ENV
+          fi
+    
+      - name: Use RELEASE_TAG
+        run: echo "RELEASE_TAG is ${{ env.RELEASE_TAG }}"
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -232,10 +256,8 @@ jobs:
           tags: |
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.sha }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.run_number }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ env.NOW }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name || 'non-release' }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name  && 'latest'|| 'non-release' }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev' }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name || env.RELEASE_TAG }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ env.RELEASE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

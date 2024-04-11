@@ -10,17 +10,27 @@ interface Props {
 const BasicInfo: React.FC<Props> = ({ data }) => {
     const { token } = theme.useToken();
 
-    const collapseItems =
-        data.messages?.map((el, id) => ({
-            key: id,
-            label: el.role,
-            children: <p>{el.content}</p>,
+    const collapseItems = data.messages?.map((el, id) => ({
+        key: id,
+        label: el.role,
+        children: <p>{el.content}</p>,
+        style: {
+            background: token.colorFillAlter,
+            borderRadius: token.borderRadiusLG,
+            border: 'none'
+        }
+    })) || [
+        {
+            key: 0,
+            label: data.error_message,
+            children: '',
             style: {
                 background: token.colorFillAlter,
                 borderRadius: token.borderRadiusLG,
                 border: 'none'
             }
-        })) || [];
+        }
+    ];
     return (
         <Flex vertical gap={20}>
             <Container header={'Messages'}>

@@ -27,13 +27,13 @@ from settings.use_cases import get_organization_name, get_users_for_organization
 from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
-    GetTransactionLatencyStatisticsSchema,
     GetTransactionPageResponseSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionsUsageStatisticsSchema,
     GetTransactionUsageStatisticsWithoutDateSchema,
     GetTransactionWithProjectSlugSchema,
-    StatisticTransactionSchema,
+    StatisticTransactionSchema, GetTransactionsLatencyStatisticsSchema, 
+    GetTransactionLatencyStatisticsWithoutDateSchema,
 )
 from transactions.use_cases import (
     count_token_usage_for_project,
@@ -446,6 +446,7 @@ async def get_transaction_usage_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
+        status_code=200
     )
     transactions = [
         StatisticTransactionSchema(
@@ -590,7 +591,7 @@ async def get_transaction_latency_statistics_over_time(
     date_from: datetime | str | None = None,
     date_to: datetime | str | None = None,
     period: utils.PeriodEnum = utils.PeriodEnum.day,
-) -> list[GetTransactionLatencyStatisticsSchema]:
+) -> list[GetTransactionsLatencyStatisticsSchema]:
     """
     Compute mean transactions generation speed and latency statistics over a specified time period.\n
 
@@ -623,6 +624,7 @@ async def get_transaction_latency_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
+        status_code=200
     )
     transactions = [
         StatisticTransactionSchema(
@@ -644,8 +646,28 @@ async def get_transaction_latency_statistics_over_time(
     stats = utils.speed_counter_for_transactions(
         transactions, period, date_from, date_to
     )
+    
+    dates = [stat.date for stat in stats]
+    new_stats = []
+    for date in set(dates):
+        for_date = []
+        for stat in stats:
+            if stat.date == date:
+                for_date.append(
+                    GetTransactionLatencyStatisticsWithoutDateSchema(
+                        provider=stat.provider,
+                        model=stat.model,
+                        mean_latency=stat.mean_latency,
+                        tokens_per_second=stat.tokens_per_second,
+                        total_transactions=stat.total_transactions
+                    )
+                )
+        new_stats.append(
+            GetTransactionsLatencyStatisticsSchema(date=date, records=for_date)
+        )
+    new_stats.sort(key=lambda statistic: statistic.date)
 
-    return stats
+    return new_stats
 
 
 @app.get("/api/statistics/pricelist", response_class=JSONResponse)
