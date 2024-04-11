@@ -53,6 +53,7 @@ def count_transactions(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    status_code: int | None = None,
 ) -> int:
     """
     Count the number of transactions based on specified filters.
@@ -62,9 +63,12 @@ def count_transactions(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
+    :param status_code: Optional. Status code to filter transactions by.
     :return: The count of transactions that meet the specified filtering criteria.
     """
-    query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
+    query = create_transaction_query_from_filters(
+        tags, date_from, date_to, project_id, status_code
+    )
     return transaction_repository.count(query)
 
 
@@ -231,7 +235,10 @@ def get_list_of_filtered_transactions(
     :return: A list of Transaction objects that meet the specified criteria.
     """
     query = create_transaction_query_from_filters(
-        date_from=date_from, date_to=date_to, project_id=project_id, status_code=status_code
+        date_from=date_from,
+        date_to=date_to,
+        project_id=project_id,
+        status_code=status_code,
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions

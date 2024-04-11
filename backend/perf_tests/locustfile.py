@@ -6,7 +6,6 @@ project_id = "project-test"  # Project with fake data
 
 class CountStatisticsUser(HttpUser):
 
-
     # def on_start(self):
 
     #     count=1000
@@ -36,7 +35,6 @@ class CountStatisticsUser(HttpUser):
         self.client.get(
             f"/api/statistics/transactions_count?project_id={project_id}&period=day"
         )
-
 
 
 class CostStatisticsUser(HttpUser):
@@ -79,6 +77,7 @@ class SpeedStatisticsUser(HttpUser):
         self.client.get(
             f"/api/statistics/transactions_speed?project_id={project_id}&period=month"
         )
+
     @task
     def transaction_speed_statistics_weekly(self):
         self.client.get(

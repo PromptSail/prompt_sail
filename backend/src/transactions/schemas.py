@@ -103,7 +103,7 @@ class GetTransactionStatusStatisticsSchema(BaseModel):
     status_500: int
     total_transactions: int
 
-    
+
 class GetTransactionLatencyStatisticsSchema(BaseModel):
     provider: str
     model: str

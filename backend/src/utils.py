@@ -6,7 +6,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import numpy as np
 import pandas as pd
-from _datetime import datetime, timedelta, timezone
+from _datetime import datetime, timedelta
 from transactions.models import Transaction
 from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
@@ -186,10 +186,23 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         )
         transaction_params["messages"] = request_content["messages"]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']
-            transaction_params["last_message"] = response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']
+            transaction_params["error_message"] = (
+                response_content["error"]["message"]
+                if "error" in response_content.keys()
+                else response_content["message"]
+            )
+            transaction_params["last_message"] = (
+                response_content["error"]["message"]
+                if "error" in response_content.keys()
+                else response_content["message"]
+            )
             transaction_params["messages"].append(
-                {'role': 'error', 'content': response_content["error"]["message"] if "error" in response_content.keys() else response_content['message']}
+                {
+                    "role": "error",
+                    "content": response_content["error"]["message"]
+                    if "error" in response_content.keys()
+                    else response_content["message"],
+                }
             )
         else:
             transaction_params["model"] = response_content["model"]
@@ -218,11 +231,11 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["error_message"] = response_content["error"]["message"]
             transaction_params["last_message"] = response_content["error"]["message"]
             transaction_params["messages"].append(
-                {'role': 'error', 'content': response_content["error"]["message"]}
+                {"role": "error", "content": response_content["error"]["message"]}
             )
         else:
             transaction_params["model"] = response_headers["openai-model"]
-            
+
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
@@ -474,7 +487,7 @@ def speed_counter_for_transactions(
     period = pandas_period_from_string(period)
     result = (
         df.assign(
-            transactions_code_200=lambda x: np.where(x['status_code'] == 200, 1, 0)
+            transactions_code_200=lambda x: np.where(x["status_code"] == 200, 1, 0)
         )
         .groupby(["provider", "model"])
         .resample(period)
@@ -489,7 +502,7 @@ def speed_counter_for_transactions(
                 "latency": "sum",
                 "total_transactions": "sum",
                 "generation_speed": "sum",
-                "transactions_code_200": "sum"
+                "transactions_code_200": "sum",
             }
         )
     )
@@ -595,7 +608,7 @@ class ApiURLBuilder:
         ][0]
         if path == "":
             path = unquote(unquote(target_path)) if target_path is not None else ""
-        
+
         url = api_base + f"/{path}".replace("//", "/")
         if api_base.endswith("/"):
             url = api_base + f"{path}".replace("//", "/")
@@ -652,7 +665,7 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
     Generate a list of mock transactions.
 
     This function creates a list of transaction objects for testing purposes.
-    The transactions are either successful (status code 200) with randomly 
+    The transactions are either successful (status code 200) with randomly
     generated input and output tokens or unsuccessful with no input/output tokens.
 
     Parameters:
@@ -675,23 +688,27 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
         input_tokens = random.randint(5, 25)
         output_tokens = random.randint(200, 800)
 
-
         # Generate random date within date_from and date_to
         time_between_dates = date_to - date_from
         days_between_dates = time_between_dates.days
         random_number_of_days = random.randrange(days_between_dates)
         random_date = date_from + timedelta(days=random_number_of_days)
         start_date = random_date
-        stop_date = start_date + timedelta(seconds=random.randint(1, 6), milliseconds=random.randint(0,999))
+        stop_date = start_date + timedelta(
+            seconds=random.randint(1, 6), milliseconds=random.randint(0, 999)
+        )
 
         # Generate random status code according to the distribution, the most common status code is 200, rest is less probable
         status = random.choices(status_codes, [0.75, 0.15, 0.05, 0.05])[0]
 
         # If status is not 200, set input/output tokens to 0 and error message to "Error"
         error_message = None if status == 200 else "Error"
-        generation_speed = output_tokens / (stop_date - start_date).total_seconds() if status == 200 else 0
+        generation_speed = (
+            output_tokens / (stop_date - start_date).total_seconds()
+            if status == 200
+            else 0
+        )
         output_tokens = output_tokens if status == 200 else 0
-
 
         transactions.append(
             Transaction(
@@ -717,11 +734,8 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
                 generation_speed=generation_speed,
             )
         )
-        
+
     return transactions
-
-
-
 
 
 def check_dates_for_statistics(
@@ -816,6 +830,7 @@ def read_transactions_from_csv(
                 )
             )
     return transactions
+
 
 class PeriodEnum(str, Enum):
     week = "week"

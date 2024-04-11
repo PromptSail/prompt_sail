@@ -27,13 +27,14 @@ from settings.use_cases import get_organization_name, get_users_for_organization
 from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
+    GetTransactionLatencyStatisticsWithoutDateSchema,
     GetTransactionPageResponseSchema,
+    GetTransactionsLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionsUsageStatisticsSchema,
     GetTransactionUsageStatisticsWithoutDateSchema,
     GetTransactionWithProjectSlugSchema,
-    StatisticTransactionSchema, GetTransactionsLatencyStatisticsSchema, 
-    GetTransactionLatencyStatisticsWithoutDateSchema,
+    StatisticTransactionSchema,
 )
 from transactions.use_cases import (
     count_token_usage_for_project,
@@ -437,6 +438,7 @@ async def get_transaction_usage_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
+        status_code=200,
     )
     if count == 0:
         return []
@@ -446,7 +448,7 @@ async def get_transaction_usage_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200
+        status_code=200,
     )
     transactions = [
         StatisticTransactionSchema(
@@ -615,6 +617,7 @@ async def get_transaction_latency_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
+        status_code=200,
     )
     if count == 0:
         return []
@@ -624,7 +627,7 @@ async def get_transaction_latency_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200
+        status_code=200,
     )
     transactions = [
         StatisticTransactionSchema(
@@ -646,7 +649,7 @@ async def get_transaction_latency_statistics_over_time(
     stats = utils.speed_counter_for_transactions(
         transactions, period, date_from, date_to
     )
-    
+
     dates = [stat.date for stat in stats]
     new_stats = []
     for date in set(dates):
@@ -659,7 +662,7 @@ async def get_transaction_latency_statistics_over_time(
                         model=stat.model,
                         mean_latency=stat.mean_latency,
                         tokens_per_second=stat.tokens_per_second,
-                        total_transactions=stat.total_transactions
+                        total_transactions=stat.total_transactions,
                     )
                 )
         new_stats.append(
@@ -746,8 +749,7 @@ async def mock_transactions(
     # Delete all transactions for project-test in order to avoid duplicates transations keys
     repo.delete_cascade(project_id="project-test")
 
-
-    #generate random transactions, with different models and providers
+    # generate random transactions, with different models and providers
     mocked_transactions = utils.generate_mock_transactions(count, date_from, date_to)
     for transaction in mocked_transactions:
         repo.add(transaction)
