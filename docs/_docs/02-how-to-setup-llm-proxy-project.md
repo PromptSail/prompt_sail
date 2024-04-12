@@ -33,4 +33,4 @@ After entering the necessary information, click Add AI Provider to add it to the
 
 ## Complete Project Creation
 
-Once all necessary information is provided, click the "Create" button to finalize project creation. The new project will then be visible in the [Organization Dashboard](https://promptsail.github.io/prompt_sail/docs/organization-dashboard/).
+Once all necessary information is provided, click the "Create" button to finalize project creation. The new project will then be visible in the [Organization Dashboard](https://promptsail.github.io/prompt_sail/docs/organization-dashboard/) and now you can [make your first LLM API call](https://promptsail.github.io/prompt_sail/docs/quick-start-guide/#make-your-first-api-call)
