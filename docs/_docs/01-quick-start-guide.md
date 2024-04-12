@@ -100,7 +100,8 @@ openai_key = os.getenv("OPENAI_API_KEY")
 openai_org_id = os.getenv("OPENAI_ORG_ID")
 ```
 
-Make an API call to OpenAI via Prompt Sail without tagging.
+Make an API call to OpenAI via Prompt Sail without tagging. 
+What is and how to create **api_base** [see here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
 
 ```python
 
@@ -130,7 +131,9 @@ pprint(response.choices[0].message)
 
 ```
 
-Make an API call to OpenAI via Prompt Sail adding some tags for the transaction.
+
+Make an API call to OpenAI via Prompt Sail adding some tags for the transaction. 
+How to create **api_base** with tags [see here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
 
 ```python
 
