@@ -144,6 +144,7 @@ def store_transaction(
     buffer,
     project_id,
     tags,
+    ai_model_version,
     request_time,
     transaction_repository: TransactionRepository,
 ):
@@ -156,6 +157,7 @@ def store_transaction(
     :param project_id: The Project ID associated with the transaction.
     :param tags: The tags associated with the transaction.
     :param request_time: The timestamp of the request.
+    :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
     :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
     :return: None
     """
@@ -193,7 +195,7 @@ def store_transaction(
         ),
         tags=tags,
         provider=params["provider"],
-        model=params["model"],
+        model=ai_model_version if ai_model_version is not None else params["model"],
         prompt=params["prompt"],
         type=params["type"],
         os=params["os"],

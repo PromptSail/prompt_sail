@@ -601,6 +601,7 @@ class ApiURLBuilder:
         :param target_path: The target path to be appended to the base path.
         :return: The constructed API URL.
         """
+
         api_base = [
             prov.api_base
             for prov in project.ai_providers
@@ -608,6 +609,10 @@ class ApiURLBuilder:
         ][0]
         if path == "":
             path = unquote(unquote(target_path)) if target_path is not None else ""
+            if len(path.split("/")[1:]) > 5:
+                new_path = path.split("/")[1:]
+                new_path = new_path[0:3] + new_path[5:7]
+                path = "/" + "/".join(new_path)
 
         url = api_base + f"/{path}".replace("//", "/")
         if api_base.endswith("/"):

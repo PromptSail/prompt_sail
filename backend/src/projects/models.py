@@ -1,6 +1,6 @@
+from _datetime import datetime, timezone
 from pydantic import BaseModel, Field
 from transactions.models import generate_uuid
-from _datetime import datetime, timezone
 
 
 class AIProvider(BaseModel):

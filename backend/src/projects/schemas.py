@@ -42,7 +42,7 @@ class UpdateProjectSchema(BaseModel):
     tags: list[str] | None = None
     org_id: str | None = None
     owner: str | None = None
-    
+
 
 class GetProjectSchema(BaseModel):
     id: str
