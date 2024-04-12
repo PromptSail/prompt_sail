@@ -14,27 +14,30 @@ toc: true
 
 Prompt Sail stores transactions by acting as a proxy for libraries and capturing the request and response data. This is done in the **store_transaction** function in the **src\transactions\use_cases.py** file.
 
-All the magic happens thanks to properly prepared **base_url** (in UI Prompt Sail called proxy url) with points to the  prompt sail backend as a proxy
+All the magic happens thanks to properly prepared **api_base** (aka **proxy_url**) with points to the  prompt sail backend as a proxy
 
-The url structure is as follows:
+### The **proxy_url** structure is as follows:
 
 ```
-http://<prompt_sail_backend_url>/project_slug/deployment_name/
+http://localhost:8000/project_slug/deployment_name/
 ```
 
 where: 
 * **project_slug** is a slugified project name, configured in the UI while creating a project
 * **deployment_name** is a slugified AI deployment name, configured in the project settings with the target AI provider api url eg. https://api.openai.com/v1/, you can configure multiple AI deployments for a single project
 
-Through the url, it is also possible to tag transactions. The url structure for passing the tags is as follows:
+Through the **proxy_url**, it is also possible to tag transactions. 
+
+### The **proxy_url** structure for passing the tags is as follows:
 
 ```
-http://<prompt_sail_backend_url>/project_slug/deployment_name/?tags=tag1,tag2,tag3&target_path=/
+http://localhost:8000/project_slug/deployment_name/?tags=tag1,tag2,tag3&target_path=
 ```
 
 where:
 * **tags** is a comma-separated list of tags. This is optional and can be used to tag a transaction eg. with a specific user_id, 
 department_name, prompting_technique etc. Tags can help you filter and analyze transactions in the UI.
+* **target_path**
 
 
 Proxy on your behalf make a call to the configured AI API and log the request and response data in the database.
