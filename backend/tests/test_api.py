@@ -13,6 +13,7 @@ test_obj = {
     ],
     "tags": ["tag1", "tag2"],
     "org_id": "organization",
+    "owner": "owner",
 }
 
 
@@ -29,6 +30,7 @@ def test_create_project_returns_201(client, application):
     assert_obj["id"] = response.json()["id"]
     assert_obj["total_transactions"] = response.json()["total_transactions"]
     assert_obj["total_cost"] = response.json()["total_cost"]
+    assert_obj["created_at"] = response.json()["created_at"]
     assert response.json() == assert_obj
 
 
@@ -75,7 +77,11 @@ def test_get_project_happy_path(client, application):
     # assert
     assert response.status_code == 200
     assert response.json() == dict(
-        id="project1", total_transactions=0, total_cost=0, **test_obj
+        id="project1",
+        total_transactions=0,
+        total_cost=0,
+        created_at=response.json()["created_at"],
+        **test_obj,
     )
 
 
@@ -94,7 +100,11 @@ def test_update_project(client, application):
     # assert
     assert response.status_code == 200
     assert response.json() == test_obj | dict(
-        id=project_id, total_transactions=0, total_cost=0, name="Autotest2"
+        id=project_id,
+        total_transactions=0,
+        total_cost=0,
+        name="Autotest2",
+        created_at=response.json()["created_at"],
     )
 
 
@@ -140,5 +150,11 @@ def test_get_projects(client, application):
     # assert
     assert result.status_code == 200
     assert result.json() == [
-        dict(id=project_id, total_transactions=0, total_cost=0, **test_obj)
+        dict(
+            id=project_id,
+            total_transactions=0,
+            total_cost=0,
+            created_at=result.json()[0]["created_at"],
+            **test_obj,
+        )
     ]
