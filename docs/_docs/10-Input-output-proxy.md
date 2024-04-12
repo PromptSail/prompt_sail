@@ -37,10 +37,10 @@ http://localhost:8000/project_slug/deployment_name/?tags=tag1,tag2,tag3&target_p
 where:
 * **tags** is a comma-separated list of tags. This is optional and can be used to tag a transaction eg. with a specific user_id, 
 department_name, prompting_technique etc. Tags can help you filter and analyze transactions in the UI.
-* **target_path** is required in proxy url when tags are added to it and is used for capturing target path of particular requests. If you send requests by Python libraries, target_path should be empty (like this: /target_path=). In such cases it will be filled by external python packages (eg. Langchain, OpenAI).  
+* **target_path** is required in proxy url when tags are added to it and is used for capturing the target path of particular requests. If you send requests by Python libraries, target_path should be empty (like this: target_path=). In such cases, it will be filled by external Python packages (eg. Langchain, OpenAI).  
 
 
-Proxy on your behalf make a call to the configured AI API and log the request and response data in the database.
+Proxy on your behalf makes a call to the configured AI API and log the request and response data in the database.
 
 Transaction object is created with the following fields:
 
