@@ -147,7 +147,7 @@ chat(haiku_prompt)
 
 ## Contact 📞
 
-- Bugs & requests: file a GitHub ticket 🐞
+- Bugs & requests: [file a GitHub ticket](https://github.com/PromptSail/prompt_sail/issues/new/choose) 🐞
 - For business inquiries: email contact@promptsail.com. 📧
 - Our website: [https://promptsail.com](https://promptsail.com) 🌐
 
