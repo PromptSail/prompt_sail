@@ -6,6 +6,7 @@ import { StatisticsParams } from '../../../api/types';
 import { useRef, useState } from 'react';
 import TransactionsCountChart from './TransactionsCountChart';
 import TransactionsCostAndTokensChart from './TransactionsCostAndTokensChart';
+import TransactionsSpeedChart from './TransactionsSpeedChart';
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
@@ -13,6 +14,7 @@ interface Params {
     projectId: string;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export enum Period {
     Yearly = 'year',
     Monthly = 'month',
@@ -182,6 +184,7 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
         >
             <TransactionsCountChart statisticsParams={statisticsParams} />
             <TransactionsCostAndTokensChart statisticsParams={statisticsParams} />
+            <TransactionsSpeedChart statisticsParams={statisticsParams} />
         </Container>
     );
 };

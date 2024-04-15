@@ -1,8 +1,9 @@
 import { Payload, NameType } from 'recharts/types/component/DefaultTooltipContent';
 import { Period } from './Statistics';
 
-export const dateFormatter = (val: string, granularity: Period | undefined) => {
-    const date = new Date(val + 'Z').toLocaleString(
+export const dateFormatter = (val: string | number, granularity: Period | undefined) => {
+    const date = new Date(val);
+    const convertedDate = new Date(date + 'Z').toLocaleString(
         'en-US',
         granularity == Period.Hourly || granularity == Period.Minutely
             ? {
@@ -11,7 +12,7 @@ export const dateFormatter = (val: string, granularity: Period | undefined) => {
               }
             : { month: '2-digit', day: '2-digit', year: '2-digit' }
     );
-    return `${date}`;
+    return `${convertedDate}`;
 };
 
 export const costFormatter = (val: number) => {

@@ -124,3 +124,13 @@ export interface getStatisticsTransactionsCost {
         total_cost: number;
     }[];
 }
+export interface getStatisticsTransactionsSpeed {
+    date: string;
+    records: {
+        provider: string;
+        model: string;
+        mean_latency: number;
+        tokens_per_second: number;
+        total_transactions: number;
+    }[];
+}
