@@ -41,6 +41,7 @@ async def fastapi_lifespan(app: FastAPI):
                 ],
                 tags=["tag1", "tag2"],
                 org_id="organization",
+                owner="admin",
             )
             data2 = Project(
                 name="Project 2",
@@ -57,6 +58,7 @@ async def fastapi_lifespan(app: FastAPI):
                 ],
                 tags=["tag1", "tag2", "tag3"],
                 org_id="organization",
+                owner="admin",
             )
             ctx.call(add_project, data1)
             ctx.call(add_project, data2)
