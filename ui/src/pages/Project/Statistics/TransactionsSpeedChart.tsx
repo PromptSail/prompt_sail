@@ -12,7 +12,7 @@ import {
 import { useGetStatistics_TransactionsSpeed } from '../../../api/queries';
 import { Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
-import { dateFormatter } from './formatters';
+import { dataRounding, dateFormatter } from './formatters';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
 import { Segment } from 'recharts/types/cartesian/ReferenceLine';
 import createTrend from 'trendline';
@@ -100,6 +100,7 @@ const TransactionsSpeedChart: React.FC<Params> = ({ statisticsParams }) => {
                                             year: '2-digit'
                                         });
                                     }}
+                                    formatter={(v) => dataRounding(v as number, 2)}
                                 />
                                 <Legend />
 
