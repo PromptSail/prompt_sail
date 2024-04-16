@@ -163,15 +163,38 @@ def store_transaction(
     """
     decoder = response._get_content_decoder()
     buf = b"".join(buffer)
-    response_content = decoder.decode(buf)
-
-    response_content = json.loads(response_content)
-
+    
+    try:
+        response_content = decoder.decode(buf)
+        response_content = json.loads(response_content)
+    except json.JSONDecodeError:
+        content = []
+        chunks = buf.decode().replace('data: ', '').split("\n\n")[::-1][3:][::-1]
+        for i in chunks:
+            content.append(json.loads(i)['choices'][0]['delta']['content'].replace('\n', ' '))
+        content = "".join(content)
+        example = json.loads(chunks[0])
+        response_content = dict(
+            id=example["id"], 
+            object="chat.completion", 
+            created=example["created"], 
+            model=example["model"],
+            choices=[
+                dict(
+                    index=0,
+                    message=dict(role="assistant",content=content),
+                    logprobs=None,
+                    finish_reason="stop",
+                )
+            ],
+            system_fingerprint=example["system_fingerprint"],
+        )
+    
     params = req_resp_to_transaction_parser(request, response, response_content)
 
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response
-        response_content["usage"] = dict(prompt_tokens=0, completion_tokens=0)
+        response_content["usage"] = dict(prompt_tokens=0, completion_tokens=0, total_tokens=0)
 
     transaction = Transaction(
         project_id=project_id,
