@@ -14,12 +14,8 @@ export const dateFormatter = (val: string | number, granularity: Period | undefi
     );
     return `${convertedDate}`;
 };
-
-export const costFormatter = (val: number) => {
-    return '$ ' + val.toFixed(4);
-};
-export const costTooltip = (val: number) => {
-    return '$ ' + val.toFixed(4);
+export const dataRounding = (val: number, round: number) => {
+    return val.toFixed(round);
 };
 
 export const customSorter = (item: Payload<number, NameType>) => {
