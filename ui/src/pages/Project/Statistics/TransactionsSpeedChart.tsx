@@ -70,7 +70,7 @@ const TransactionsSpeedChart: React.FC<Params> = ({ statisticsParams }) => {
         return (
             <div className="relative flex flex-col min-h-[200px]">
                 <Paragraph className="mt-0 !mb-1 text-lg text-center font-semibold">
-                    Transactions speed
+                    Response generation speed by model (tokens/s)
                 </Paragraph>
                 {data.length < 1 && (
                     <Title className="absolute top-2/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
