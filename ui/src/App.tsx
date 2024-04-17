@@ -7,17 +7,18 @@ import Sidebar from './components/Sidebar/Sidebar';
 import { useState } from 'react';
 import Signin from './pages/Signin';
 import { checkLogin } from './storage/login';
-import { Layout } from 'antd';
+import { ConfigProvider, Layout } from 'antd';
 import Transaction from './pages/Transaction/Transaction';
+import theme from './theme-light';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
-    if (isLogged) {
-        return (
-            <>
+    return (
+        <ConfigProvider theme={theme}>
+            {isLogged && (
                 <Layout>
                     <Sidebar setLoginState={setLoginState} />
-                    <Layout className="ms-[250px] px-[50px] h-screen overflow-auto">
+                    <Layout className="px-[50px] h-screen overflow-auto">
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
                             <Route
@@ -32,17 +33,17 @@ const App = () => {
                         </Routes>
                     </Layout>
                 </Layout>
-            </>
-        );
-    } else
-        return (
-            <Layout className="h-screen">
-                <Routes>
-                    <Route path="/signin" element={<Signin setLoginState={setLoginState} />} />
-                    <Route path="*" element={<Navigate to="/signin" />} />
-                </Routes>
-            </Layout>
-        );
+            )}
+            {!isLogged && (
+                <Layout className="h-screen">
+                    <Routes>
+                        <Route path="/signin" element={<Signin setLoginState={setLoginState} />} />
+                        <Route path="*" element={<Navigate to="/signin" />} />
+                    </Routes>
+                </Layout>
+            )}
+        </ConfigProvider>
+    );
 };
 
 export default App;
