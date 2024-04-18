@@ -12,6 +12,7 @@ def generate_uuid() -> str:
 class Transaction(BaseModel):
     id: str = Field(default_factory=generate_uuid)
     project_id: str
+    deployment: str
     request: dict[str, Any]
     response: dict[str, Any]
     tags: list[str]

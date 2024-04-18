@@ -143,6 +143,7 @@ def store_transaction(
     response,
     buffer,
     project_id,
+    deployment,
     tags,
     ai_model_version,
     request_time,
@@ -155,6 +156,7 @@ def store_transaction(
     :param response: The response object.
     :param buffer: The buffer containing the response content.
     :param project_id: The Project ID associated with the transaction.
+    :param deployment: The AI provider slug.
     :param tags: The tags associated with the transaction.
     :param request_time: The timestamp of the request.
     :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
@@ -203,6 +205,7 @@ def store_transaction(
 
     transaction = Transaction(
         project_id=project_id,
+        deployment=deployment,
         request=dict(
             method=request.method,
             url=str(request.url),

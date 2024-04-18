@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class GetTransactionSchema(BaseModel):
     id: str
     project_id: str
+    deployment: str
     request: dict[str, Any]
     response: dict[str, Any]
     provider: str
@@ -31,6 +32,7 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     id: str
     project_id: str
     project_name: str
+    deployment: str
     request: dict[str, Any]
     response: dict[str, Any]
     provider: str

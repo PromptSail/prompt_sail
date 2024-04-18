@@ -30,6 +30,7 @@ async def iterate_stream(response, buffer):
 async def close_stream(
     app: Application,
     project_id,
+    deployment,
     request,
     response,
     buffer,
@@ -42,6 +43,7 @@ async def close_stream(
 
     :param app: The Application instance.
     :param project_id: The Project ID.
+    :param deployment: The AI provider slug.
     :param request: The incoming request.
     :param response: The response object.
     :param buffer: The buffer containing accumulated chunks.
@@ -54,6 +56,7 @@ async def close_stream(
         ctx.call(
             store_transaction,
             project_id=project_id,
+            deployment=deployment,
             request=request,
             response=response,
             buffer=buffer,
@@ -134,6 +137,7 @@ async def reverse_proxy(
             close_stream,
             ctx["app"],
             project.id,
+            provider_slug,
             rp_req,
             rp_resp,
             buffer,
