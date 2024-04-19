@@ -214,10 +214,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             ]["content"]
             transaction_params["error_message"] = None
 
-    if "api.openai.com" in url and "completions" in url:
+    if "api.openai.com" in url and "chat" in url and "completions" in url:
         transaction_params["type"] = "chat"
         transaction_params["provider"] = "OpenAI"
-
         prompt = [
             message["content"]
             for message in request_content["messages"]
@@ -234,7 +233,11 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 {"role": "error", "content": response_content["error"]["message"]}
             )
         else:
-            transaction_params["model"] = response_headers["openai-model"]
+            transaction_params["model"] = (
+                response_headers["openai-model"]
+                if "openai-model" in response_headers
+                else response_content["model"]
+            )
 
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
@@ -242,6 +245,28 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params["last_message"] = response_content["choices"][0][
                 "message"
             ]["content"]
+            transaction_params["error_message"] = None
+
+    if "api.openai.com" in url and "completions" in url and "chat" not in url:
+        transaction_params["type"] = "completion"
+        transaction_params["provider"] = "OpenAI"
+        transaction_params["prompt"] = request_content["prompt"]
+        transaction_params["messages"] = [
+            {"role": "user", "content": request_content["prompt"]}
+        ]
+
+        if response.__dict__["status_code"] > 200:
+            transaction_params["error_message"] = response_content["error"]["message"]
+            transaction_params["last_message"] = response_content["error"]["message"]
+            transaction_params["messages"].append(
+                {"role": "error", "content": response_content["error"]["message"]}
+            )
+        else:
+            transaction_params["model"] = response_headers["openai-model"]
+            transaction_params["messages"].append(
+                {"role": "assistant", "content": response_content["choices"][0]["text"]}
+            )
+            transaction_params["last_message"] = response_content["choices"][0]["text"]
             transaction_params["error_message"] = None
 
     return transaction_params
