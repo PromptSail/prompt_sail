@@ -9,8 +9,10 @@ import pandas as pd
 from _datetime import datetime, timedelta
 from transactions.models import Transaction
 from transactions.schemas import (
+    GetTransactionLatencyStatisticsByDeploymentSchema,
     GetTransactionLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
+    GetTransactionUsageByDeploymentStatisticsSchema,
     GetTransactionUsageStatisticsSchema,
     StatisticTransactionSchema,
 )
@@ -375,6 +377,121 @@ def token_counter_for_transactions(
     return result_list
 
 
+def token_counter_for_transactions_by_deployment(
+    transactions: list[StatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> list[GetTransactionUsageByDeploymentStatisticsSchema]:
+    """
+    Calculate token usage statistics based on a given period.
+
+    This function takes a list of transactions and calculates token usage statistics
+    aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
+
+    :param transactions: A list of StatisticTransactionSchema objects representing transactions.
+    :param period: A string indicating the aggregation period.
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
+    :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
+    """
+    data_dicts = [dto.model_dump() for dto in transactions]
+    df = pd.DataFrame(data_dicts)
+    project_id = data_dicts[0]["project_id"]
+    pairs = list(
+        set(
+            [
+                (data["deployment"], data["provider"], data["model"])
+                for data in data_dicts
+            ]
+        )
+    )
+    if date_from:
+        for pair_idx in range(len(pairs)):
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
+                "project_id": project_id,
+                "deployment": pairs[pair_idx][0],
+                "provider": pairs[pair_idx][1],
+                "model": pairs[pair_idx][2],
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "status_code": 0,
+                "latency": timedelta(0),
+                "total_transactions": 0,
+                "generation_speed": 0,
+            }
+    if date_to:
+        for pair in pairs:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
+                "project_id": project_id,
+                "deployment": pair[0],
+                "provider": pair[1],
+                "model": pair[2],
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "status_code": 0,
+                "latency": timedelta(0),
+                "total_transactions": 0,
+                "generation_speed": 0,
+            }
+
+    df.set_index("date", inplace=True)
+    period = pandas_period_from_string(period)
+    result = (
+        df.groupby(["deployment", "provider", "model"])
+        .resample(period)
+        .agg(
+            {
+                "project_id": "first",
+                "deployment": "first",
+                "provider": "first",
+                "model": "first",
+                "total_input_tokens": "sum",
+                "total_output_tokens": "sum",
+                "status_code": "sum",
+                "latency": "sum",
+                "total_transactions": "sum",
+                "generation_speed": "sum",
+            }
+        )
+    )
+
+    del result["provider"]
+    del result["model"]
+    del result["deployment"]
+
+    result = result.reset_index()
+
+    result["output_cumulative_total"] = result.groupby(
+        ["deployment", "provider", "model"]
+    )["total_output_tokens"].cumsum()
+    result["input_cumulative_total"] = result.groupby(
+        ["deployment", "provider", "model"]
+    )["total_input_tokens"].cumsum()
+    data_dicts = result.to_dict(orient="records")
+
+    result_list = [
+        GetTransactionUsageByDeploymentStatisticsSchema(
+            deployment=data["deployment"],
+            provider=data["provider"],
+            model=data["model"],
+            date=data["date"],
+            total_input_tokens=data["total_input_tokens"],
+            total_output_tokens=data["total_output_tokens"],
+            input_cumulative_total=data["input_cumulative_total"],
+            output_cumulative_total=data["output_cumulative_total"],
+            total_transactions=data["total_transactions"],
+            total_cost=0,
+        )
+        for data in data_dicts
+    ]
+
+    return result_list
+
+
 def status_counter_for_transactions(
     transactions: list[StatisticTransactionSchema],
     period: str,
@@ -540,6 +657,113 @@ def speed_counter_for_transactions(
     data_dicts = result.to_dict(orient="records")
     result_list = [
         GetTransactionLatencyStatisticsSchema(
+            provider=data["provider"],
+            model=data["model"],
+            date=data["date"],
+            mean_latency=data["latency"].total_seconds() / data["total_transactions"]
+            if data["latency"].total_seconds() > 0
+            else 0,
+            tokens_per_second=data["generation_speed"] / data["transactions_code_200"]
+            if data["generation_speed"] > 0 and data["transactions_code_200"] > 0
+            else 0,
+            total_transactions=data["total_transactions"],
+        )
+        for data in data_dicts
+    ]
+
+    return result_list
+
+
+def speed_counter_for_transactions_by_deployment(
+    transactions: list[StatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> list[GetTransactionLatencyStatisticsByDeploymentSchema]:
+    """
+    Calculate transaction latency statistics based on a given period.
+
+    This function takes a list of transactions and calculates statistics
+    on transaction latency aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
+
+    :param transactions: A list of StatisticTransactionSchema objects representing transactions.
+    :param period: A string indicating the aggregation period.
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
+    :return: A list of GetTransactionLatencyStatisticsSchema objects containing latency statistics.
+    """
+    data_dicts = [dto.model_dump() for dto in transactions]
+    df = pd.DataFrame(data_dicts)
+    project_id = data_dicts[0]["project_id"]
+    pairs = set(
+        [(data["deployment"], data["provider"], data["model"]) for data in data_dicts]
+    )
+    if date_from:
+        for pair in pairs:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
+                "project_id": project_id,
+                "deployment": pair[0],
+                "provider": pair[1],
+                "model": pair[2],
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "status_code": 0,
+                "latency": timedelta(0),
+                "total_transactions": 0,
+                "generation_speed": 0,
+            }
+    if date_to:
+        for pair in pairs:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
+                "project_id": project_id,
+                "deployment": pair[0],
+                "provider": pair[1],
+                "model": pair[2],
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "status_code": 0,
+                "latency": timedelta(0),
+                "total_transactions": 0,
+                "generation_speed": 0,
+            }
+    df.set_index("date", inplace=True)
+    period = pandas_period_from_string(period)
+    result = (
+        df.assign(
+            transactions_code_200=lambda x: np.where(x["status_code"] == 200, 1, 0)
+        )
+        .groupby(["deployment", "provider", "model"])
+        .resample(period)
+        .agg(
+            {
+                "project_id": "first",
+                "deployment": "first",
+                "provider": "first",
+                "model": "first",
+                "total_input_tokens": "sum",
+                "total_output_tokens": "sum",
+                "status_code": "first",
+                "latency": "sum",
+                "total_transactions": "sum",
+                "generation_speed": "sum",
+                "transactions_code_200": "sum",
+            }
+        )
+    )
+
+    del result["provider"]
+    del result["model"]
+    del result["deployment"]
+
+    result = result.reset_index()
+
+    data_dicts = result.to_dict(orient="records")
+    result_list = [
+        GetTransactionLatencyStatisticsByDeploymentSchema(
+            deployment=data["deployment"],
             provider=data["provider"],
             model=data["model"],
             date=data["date"],
@@ -812,6 +1036,7 @@ def read_transactions_from_csv(
                 Transaction(
                     id=transaction_id,
                     project_id="project-test",
+                    deployment="test-deployment",
                     request={},
                     response={},
                     tags=["tag"],
@@ -839,6 +1064,7 @@ def read_transactions_from_csv(
                 Transaction(
                     id=transaction_id,
                     project_id="project-test",
+                    deployment="test-deployment",
                     request={},
                     response={},
                     tags=["tag"],

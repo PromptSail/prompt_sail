@@ -27,14 +27,17 @@ from settings.use_cases import get_organization_name, get_users_for_organization
 from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
+    GetTransactionLatencyStatisticsWithoutDateByDeploymentSchema,
     GetTransactionLatencyStatisticsWithoutDateSchema,
     GetTransactionPageResponseSchema,
     GetTransactionsLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionsUsageStatisticsSchema,
+    GetTransactionUsageStatisticsByDeploymentWithoutDateSchema,
     GetTransactionUsageStatisticsWithoutDateSchema,
     GetTransactionWithProjectSlugSchema,
     StatisticTransactionSchema,
+    StatisticTransactionWithDeploymentSchema,
 )
 from transactions.use_cases import (
     count_token_usage_for_project,
@@ -519,6 +522,128 @@ async def get_transaction_usage_statistics_over_time(
     return new_stats
 
 
+@app.get("/api/statistics/transactions_cost_by_deployment", response_class=JSONResponse)
+async def get_transaction_usage_statistics_over_time_by_deployment(
+    request: Request,
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    project_id: str,
+    date_from: datetime | str | None = None,
+    date_to: datetime | str | None = None,
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
+) -> list[GetTransactionsUsageStatisticsSchema]:
+    """
+    Retrieve transaction usage statistics over a specified time period.\n
+
+    This endpoint fetches transaction data based on the specified project ID,
+    date range, and period. It then processes the data to generate usage statistics
+    including total input tokens, total output tokens, cumulative input tokens, cumulative output tokens as well as
+    total cost calculated based on cumulative values for the best possible representation of costs over time.\n
+
+    :param request: The FastAPI Request object (automatically applied).\n
+    :param ctx: The transaction context, providing access to dependencies (automatically applied).\n
+    :param project_id: The unique identifier of the project.\n
+    :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the
+        beginning of the project's existence).\n
+    :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
+        present time).\n
+    :param period: The time period for grouping statistics - can be year, month, week, day, hour or minute (5 minutes).
+        (default is "day").\n
+    :return: A list of GetTransactionUsageStatisticsSchema (provider, model, date, total_input_tokens,
+        total_output_tokens, input_cumulative_total, output_cumulative_total, total_transactions, total_cost)
+        representing the usage statistics.\n
+    """
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+
+    count = ctx.call(
+        count_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+        status_code=200,
+    )
+    if count == 0:
+        return []
+
+    transactions = ctx.call(
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+        status_code=200,
+    )
+
+    transactions = [
+        StatisticTransactionWithDeploymentSchema(
+            project_id=project_id,
+            deployment=transaction.deployment,
+            provider=transaction.provider,
+            model=transaction.model,
+            total_input_tokens=transaction.input_tokens or 0,
+            total_output_tokens=transaction.output_tokens or 0,
+            status_code=transaction.status_code,
+            date=transaction.response_time,
+            latency=(
+                transaction.response_time - transaction.request_time
+            ).total_seconds(),
+            generation_speed=transaction.generation_speed,
+            total_transactions=1,
+        )
+        for transaction in transactions
+    ]
+
+    stats = utils.token_counter_for_transactions_by_deployment(
+        transactions, period, date_from, date_to
+    )
+    pricelist = get_provider_pricelist(request)
+    dates = []
+    for stat in stats:
+        dates.append(stat.date)
+        possible_prices = [
+            price for price in pricelist if re.match(price.match_pattern, stat.model)
+        ]
+        if len(possible_prices) > 0:
+            # TODO: Counting by date instead of by lastest
+            lastest = max(
+                possible_prices,
+                key=lambda x: x.start_date if x.start_date else datetime.min,
+            )
+            if lastest.input_price > 0 and lastest.output_price > 0:
+                stat.total_cost += (
+                    stat.input_cumulative_total / 1000
+                ) * lastest.input_price
+                stat.total_cost += (
+                    stat.output_cumulative_total / 1000
+                ) * lastest.output_price
+            else:
+                stat.total_cost = (
+                    (stat.input_cumulative_total + stat.output_cumulative_total) / 1000
+                ) * lastest.total_price
+
+    new_stats = []
+    for date in set(dates):
+        for_date = []
+        for stat in stats:
+            if stat.date == date:
+                for_date.append(
+                    GetTransactionUsageStatisticsByDeploymentWithoutDateSchema(
+                        deployment=stat.deployment,
+                        total_input_tokens=stat.total_input_tokens,
+                        total_output_tokens=stat.total_output_tokens,
+                        input_cumulative_total=stat.input_cumulative_total,
+                        output_cumulative_total=stat.output_cumulative_total,
+                        total_transactions=stat.total_transactions,
+                        total_cost=stat.total_cost,
+                    )
+                )
+
+        new_stats.append(
+            GetTransactionsUsageStatisticsSchema(date=date, records=for_date)
+        )
+    new_stats.sort(key=lambda statistic: statistic.date)
+
+    return new_stats
+
+
 @app.get("/api/statistics/transactions_count", response_class=JSONResponse)
 async def get_transaction_status_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
@@ -565,6 +690,7 @@ async def get_transaction_status_statistics_over_time(
     transactions = [
         StatisticTransactionSchema(
             project_id=project_id,
+            deployment=transaction.deployment,
             provider=transaction.provider,
             model=transaction.model,
             total_input_tokens=transaction.input_tokens or 0,
@@ -660,6 +786,95 @@ async def get_transaction_latency_statistics_over_time(
                     GetTransactionLatencyStatisticsWithoutDateSchema(
                         provider=stat.provider,
                         model=stat.model,
+                        mean_latency=stat.mean_latency,
+                        tokens_per_second=stat.tokens_per_second,
+                        total_transactions=stat.total_transactions,
+                    )
+                )
+        new_stats.append(
+            GetTransactionsLatencyStatisticsSchema(date=date, records=for_date)
+        )
+    new_stats.sort(key=lambda statistic: statistic.date)
+
+    return new_stats
+
+
+@app.get(
+    "/api/statistics/transactions_speed_by_deployment", response_class=JSONResponse
+)
+async def get_transaction_latency_statistics_over_time_by_deployment(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    project_id: str,
+    date_from: datetime | str | None = None,
+    date_to: datetime | str | None = None,
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
+) -> list[GetTransactionsLatencyStatisticsSchema]:
+    """
+    Compute mean transactions generation speed and latency statistics over a specified time period.\n
+
+    Endpoint fetches transaction data for the project (project ID) and specified date range (date from, date to). Next, it aggregates the generation speed by the provided granularity (monthly, weekly, daily, hourly or by minutes).\n
+
+    :param ctx: The transaction context, providing access to dependencies (automatically applied).\n
+    :param project_id: The unique identifier of the project.\n
+    :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the
+        beginning of the project's existence).\n
+    :param date_to: End point of the time interval (optional - when empty, then the interval is counted up to the
+        present time).\n
+    :param period: The time period for grouping statistics - can be year, month, week, day, hour or minute (5 minutes).
+        (default is "day").\n
+    :return: A list of GetTransactionLatencyStatisticsSchema (provider, model, date, mean_latency, tokens_per_second,
+        total_transactions) representing the generation speed and latency statistics.\n
+    """
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+
+    count = ctx.call(
+        count_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+        status_code=200,
+    )
+    if count == 0:
+        return []
+
+    transactions = ctx.call(
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from,
+        date_to=date_to,
+        status_code=200,
+    )
+    transactions = [
+        StatisticTransactionWithDeploymentSchema(
+            project_id=project_id,
+            deployment=transaction.deployment,
+            provider=transaction.provider,
+            model=transaction.model,
+            total_input_tokens=transaction.input_tokens or 0,
+            total_output_tokens=transaction.output_tokens or 0,
+            status_code=transaction.status_code,
+            date=transaction.response_time,
+            latency=(
+                transaction.response_time - transaction.request_time
+            ).total_seconds(),
+            generation_speed=transaction.generation_speed,
+            total_transactions=1,
+        )
+        for transaction in transactions
+    ]
+    stats = utils.speed_counter_for_transactions_by_deployment(
+        transactions, period, date_from, date_to
+    )
+
+    dates = [stat.date for stat in stats]
+    new_stats = []
+    for date in set(dates):
+        for_date = []
+        for stat in stats:
+            if stat.date == date:
+                for_date.append(
+                    GetTransactionLatencyStatisticsWithoutDateByDeploymentSchema(
+                        deployment=stat.deployment,
                         mean_latency=stat.mean_latency,
                         tokens_per_second=stat.tokens_per_second,
                         total_transactions=stat.total_transactions,

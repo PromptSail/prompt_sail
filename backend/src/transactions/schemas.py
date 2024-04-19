@@ -69,7 +69,34 @@ class StatisticTransactionSchema(BaseModel):
     generation_speed: int | float
 
 
+class StatisticTransactionWithDeploymentSchema(BaseModel):
+    project_id: str
+    deployment: str
+    provider: str
+    model: str
+    total_input_tokens: int
+    total_output_tokens: int
+    status_code: int
+    latency: timedelta
+    date: datetime
+    total_transactions: int
+    generation_speed: int | float
+
+
 class GetTransactionUsageStatisticsSchema(BaseModel):
+    provider: str
+    model: str
+    date: datetime
+    total_input_tokens: int
+    total_output_tokens: int
+    input_cumulative_total: int
+    output_cumulative_total: int
+    total_transactions: int
+    total_cost: float
+
+
+class GetTransactionUsageByDeploymentStatisticsSchema(BaseModel):
+    deployment: str
     provider: str
     model: str
     date: datetime
@@ -92,9 +119,22 @@ class GetTransactionUsageStatisticsWithoutDateSchema(BaseModel):
     total_cost: float
 
 
+class GetTransactionUsageStatisticsByDeploymentWithoutDateSchema(BaseModel):
+    deployment: str
+    total_input_tokens: int
+    total_output_tokens: int
+    input_cumulative_total: int
+    output_cumulative_total: int
+    total_transactions: int
+    total_cost: float
+
+
 class GetTransactionsUsageStatisticsSchema(BaseModel):
     date: datetime
-    records: list[GetTransactionUsageStatisticsWithoutDateSchema]
+    records: list[
+        GetTransactionUsageStatisticsWithoutDateSchema
+        | GetTransactionUsageStatisticsByDeploymentWithoutDateSchema
+    ]
 
 
 class GetTransactionStatusStatisticsSchema(BaseModel):
@@ -115,6 +155,16 @@ class GetTransactionLatencyStatisticsSchema(BaseModel):
     total_transactions: int
 
 
+class GetTransactionLatencyStatisticsByDeploymentSchema(BaseModel):
+    deployment: str
+    provider: str
+    model: str
+    date: datetime
+    mean_latency: timedelta | int | float
+    tokens_per_second: int | float
+    total_transactions: int
+
+
 class GetTransactionLatencyStatisticsWithoutDateSchema(BaseModel):
     provider: str
     model: str
@@ -123,9 +173,19 @@ class GetTransactionLatencyStatisticsWithoutDateSchema(BaseModel):
     total_transactions: int
 
 
+class GetTransactionLatencyStatisticsWithoutDateByDeploymentSchema(BaseModel):
+    deployment: str
+    mean_latency: timedelta | int | float
+    tokens_per_second: int | float
+    total_transactions: int
+
+
 class GetTransactionsLatencyStatisticsSchema(BaseModel):
     date: datetime
-    records: list[GetTransactionLatencyStatisticsWithoutDateSchema]
+    records: list[
+        GetTransactionLatencyStatisticsWithoutDateSchema
+        | GetTransactionLatencyStatisticsWithoutDateByDeploymentSchema
+    ]
 
 
 class GetTransactionPageResponseSchema(BaseModel):
