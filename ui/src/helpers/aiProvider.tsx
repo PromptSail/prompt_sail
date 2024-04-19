@@ -9,7 +9,5 @@ export const toSlug = (text: string) => {
 };
 
 export const makeUrl = (slug: string, name: string) => {
-    return `${window.location.host + '/api' || import.meta.env.BACKEND_URL}/${
-        toSlug(slug) || '<slug>'
-    }/${toSlug(name) || '<name>'}`;
+    return `${import.meta.env.BACKEND_URL}/${toSlug(slug) || '<slug>'}/${toSlug(name) || '<name>'}`;
 };
