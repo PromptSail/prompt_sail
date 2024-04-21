@@ -18,7 +18,7 @@ feature_row:
     - image_path: #/assets/images/mm-customizable-feature.png
       alt: "Easy Integration"
       title: "Easy Integration"
-      excerpt: "Engineered as a transparent Proxy for your LLM calls, it seamlessly integrates into your existing workflow, irrespective of the LLM framework."
+      excerpt: "Engineered as a transparent Proxy for your LLM calls, it seamlessly integrates into your existing workflow, and your LLM framework."
       url: "/docs/quick-start-guide/"
       btn_class: "btn--primary"
       btn_label: "Learn more"
