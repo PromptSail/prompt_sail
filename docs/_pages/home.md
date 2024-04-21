@@ -40,6 +40,9 @@ feature_row:
 
 {% include feature_row %}
 
+![LLM deployments project dashboards with charts: budgets and transactions]({{ site.url }}{{ site.baseurl }}assets/images/LLM_Project_dashboard_budget.png){: .align-center}
+
+
 ## What is Prompt Sail?
 
 1. **Transparent Logging** 
@@ -64,4 +67,3 @@ All prompts and responses are stored in a MongoDB, making finding and analyzing 
 Simple and intuitive UI lets you easily view and filter your transactions (prompts and responses) by project, API provider, LLM model, or tags.
 
 
-![LLM deployments project dashboards with charts: budgets and transactions]({{ site.url }}{{ site.baseurl }}assets/images/LLM_Project_dashboard_budget.png){: .align-center}
