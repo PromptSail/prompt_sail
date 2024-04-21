@@ -179,24 +179,24 @@
         "model_name": "gpt-3.5-turbo",
         "start_date": "2023-11-06",
         "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo)$",
-        "input_price": 0.0005,
-        "output_price": 0.0015,
+        "input_price": 0.0010,
+        "output_price": 0.0020,
         "total_price": 0
     },
     {
         "model_name": "gpt-3.5-turbo",
         "start_date": "2023-06-27",
         "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo)$",
-        "input_price": 0.0005,
-        "output_price": 0.0015,
+        "input_price": 0.0015,
+        "output_price": 0.0020,
         "total_price": 0
     },
     {
         "model_name": "gpt-3.5-turbo",
         "start_date": "",
         "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo)$",
-        "input_price": 0.0005,
-        "output_price": 0.0015,
+        "input_price": 0.0015,
+        "output_price": 0.0020,
         "total_price": 0
     },
     {
@@ -211,8 +211,8 @@
         "model_name": "gpt-3.5-turbo-0301",
         "start_date": "",
         "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-0301)$",
-        "input_price": 0.002,
-        "output_price": 0.002,
+        "input_price": 0.0015,
+        "output_price": 0.0020,
         "total_price": 0
     },
     {
@@ -229,14 +229,6 @@
         "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-1106)$",
         "input_price": 0.001,
         "output_price": 0.002,
-        "total_price": 0
-    },
-    {
-        "model_name": "gpt-3.5-turbo-16k",
-        "start_date": "2024-02-16",
-        "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-16k)$",
-        "input_price": 0.0005,
-        "output_price": 0.0015,
         "total_price": 0
     },
     {

@@ -41,7 +41,7 @@ const FilterTags: React.FC<Props> = ({ defaultValue, setFilters, setTags }) => {
             style={{ width: 250 }}
             tagRender={({ value, closable, onClose }) => {
                 return (
-                    <Tag color="magenta" closable={closable} onClose={onClose}>
+                    <Tag color="blue" closable={closable} onClose={onClose}>
                         {value}
                     </Tag>
                 );

@@ -46,56 +46,77 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }
             setTableData(() => {
                 const data = transactions.data.data;
                 return {
-                    items: data.items.map((tr) => ({
-                        key: tr.id,
-                        id: (
-                            <Link
-                                className="link"
-                                target="_blank"
-                                id={tr.id}
-                                to={`/transactions/${tr.id}`}
-                            >
-                                <Tooltip
-                                    placement="top"
-                                    title={tr.id}
-                                    overlayStyle={{ maxWidth: '500px' }}
+                    items: data.items.map((tr) => {
+                        const rightMessage = tr.error_message || tr.last_message;
+                        return {
+                            key: tr.id,
+                            id: (
+                                <Link
+                                    className="link"
+                                    target="_blank"
+                                    id={tr.id}
+                                    to={`/transactions/${tr.id}`}
                                 >
-                                    <Tag color="geekblue" className="m-0">
-                                        {tr.id.length > 10 ? tr.id.substring(0, 10) + '...' : tr.id}
-                                    </Tag>
-                                </Tooltip>
-                            </Link>
-                        ),
-                        time: new Date(tr.request_time + 'Z')
-                            .toLocaleString('pl-PL')
-                            .padStart(20, '0'),
-                        speed: tr.generation_speed.toFixed(3),
-                        messages: (
-                            <Flex vertical>
-                                <div>
-                                    <b>Input:</b> {tr.prompt}
-                                </div>
-                                <div>
-                                    <b>Output: </b>{' '}
-                                    {tr.last_message.length > 25
-                                        ? tr.last_message.substring(0, 23) + '...'
-                                        : tr.last_message}
-                                </div>
-                            </Flex>
-                        ),
-                        status: <Badge status="success" text={tr.status_code} />,
-                        project: <Link to={`/projects/${tr.project_id}`}>{tr.project_name}</Link>,
-                        aiProvider: tr.provider,
-                        model: tr.model,
-                        tags: <TagsContainer tags={tr.tags} />,
-                        cost: `$ ${tr.total_cost.toFixed(4)}`,
-                        tokens: (
-                            <span>
-                                {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens} (Σ{' '}
-                                {tr.response.content.usage.total_tokens})
-                            </span>
-                        )
-                    })),
+                                    <Tooltip
+                                        placement="top"
+                                        title={tr.id}
+                                        overlayStyle={{ maxWidth: '500px' }}
+                                    >
+                                        <Tag color="geekblue" className="m-0">
+                                            {tr.id.length > 10
+                                                ? tr.id.substring(0, 10) + '...'
+                                                : tr.id}
+                                        </Tag>
+                                    </Tooltip>
+                                </Link>
+                            ),
+                            time: new Date(tr.request_time + 'Z')
+                                .toLocaleString('pl-PL')
+                                .padStart(20, '0'),
+                            speed: tr.status_code < 300 ? tr.generation_speed.toFixed(3) : 'null',
+                            messages: (
+                                <Flex vertical>
+                                    <div>
+                                        <b>Input:</b> {tr.prompt}
+                                    </div>
+                                    <div>
+                                        <b>Output: </b>{' '}
+                                        {rightMessage.length > 25
+                                            ? rightMessage.substring(0, 23) + '...'
+                                            : rightMessage}
+                                    </div>
+                                </Flex>
+                            ),
+                            status: (
+                                <Badge
+                                    status={
+                                        tr.status_code >= 300
+                                            ? tr.status_code >= 400
+                                                ? 'error'
+                                                : 'warning'
+                                            : 'success'
+                                    }
+                                    text={tr.status_code}
+                                />
+                            ),
+                            project: (
+                                <Link to={`/projects/${tr.project_id}`}>{tr.project_name}</Link>
+                            ),
+                            aiProvider: tr.provider,
+                            model: tr.model,
+                            tags: <TagsContainer tags={tr.tags} />,
+                            cost: tr.status_code < 300 ? `$ ${tr.total_cost.toFixed(4)}` : 'null',
+                            tokens:
+                                tr.status_code < 300 ? (
+                                    <span>
+                                        {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens}{' '}
+                                        (Σ {tr.response.content.usage.total_tokens})
+                                    </span>
+                                ) : (
+                                    <span>null</span>
+                                )
+                        };
+                    }),
                     page_index: data.page_index,
                     page_size: data.page_size,
                     total_elements: data.total_elements

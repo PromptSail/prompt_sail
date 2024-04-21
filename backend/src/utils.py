@@ -1,10 +1,12 @@
 import json
 import random
 from collections import OrderedDict
+from enum import Enum
 from urllib.parse import parse_qs, unquote, urlparse
 
+import numpy as np
 import pandas as pd
-from _datetime import datetime, timedelta, timezone
+from _datetime import datetime, timedelta
 from transactions.models import Transaction
 from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
@@ -65,6 +67,7 @@ def create_transaction_query_from_filters(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    status_code: int | None = None,
 ) -> dict:
     """
     Create a MongoDB query dictionary based on specified filters for transactions.
@@ -73,6 +76,7 @@ def create_transaction_query_from_filters(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
+    :param status_code: Optional. Status code of the transactions.
     :return: MongoDB query dictionary representing the specified filters.
     """
     query = {}
@@ -86,6 +90,8 @@ def create_transaction_query_from_filters(
         query["response_time"]["$gte"] = date_from
     if date_to is not None:
         query["response_time"]["$lte"] = date_to
+    if status_code is not None:
+        query["status_code"] = status_code
     return query
 
 
@@ -120,10 +126,11 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         "library": request_headers["user-agent"],
         "status_code": response.__dict__["status_code"],
         "model": request_content.get("model", None),
-        "input_tokens": None,
-        "output_tokens": None,
+        "input_tokens": 0,
+        "output_tokens": 0,
         "os": request_headers.get("x-stainless-os", None),
         "provider": "Unknown",
+        "messages": None,
         "last_message": None,
     }
 
@@ -150,7 +157,6 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = prompt
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["message"]
-            transaction_params["messages"] = None
         else:
             transaction_params["model"] = response_content["model"]
             if isinstance(response_content["data"][0]["embedding"], list):
@@ -178,12 +184,28 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = (
             prompt if prompt else request_content["messages"][0]["content"]
         )
+        transaction_params["messages"] = request_content["messages"]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["error"]["message"]
-            transaction_params["message"] = None
+            transaction_params["error_message"] = (
+                response_content["error"]["message"]
+                if "error" in response_content.keys()
+                else response_content["message"]
+            )
+            transaction_params["last_message"] = (
+                response_content["error"]["message"]
+                if "error" in response_content.keys()
+                else response_content["message"]
+            )
+            transaction_params["messages"].append(
+                {
+                    "role": "error",
+                    "content": response_content["error"]["message"]
+                    if "error" in response_content.keys()
+                    else response_content["message"],
+                }
+            )
         else:
             transaction_params["model"] = response_content["model"]
-            transaction_params["messages"] = request_content["messages"]
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
@@ -192,10 +214,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             ]["content"]
             transaction_params["error_message"] = None
 
-    if "api.openai.com" in url and "completions" in url:
+    if "api.openai.com" in url and "chat" in url and "completions" in url:
         transaction_params["type"] = "chat"
         transaction_params["provider"] = "OpenAI"
-
         prompt = [
             message["content"]
             for message in request_content["messages"]
@@ -204,18 +225,48 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params["prompt"] = (
             prompt if prompt else request_content["messages"][0]["content"]
         )
+        transaction_params["messages"] = request_content["messages"]
         if response.__dict__["status_code"] > 200:
             transaction_params["error_message"] = response_content["error"]["message"]
-            transaction_params["messages"] = None
+            transaction_params["last_message"] = response_content["error"]["message"]
+            transaction_params["messages"].append(
+                {"role": "error", "content": response_content["error"]["message"]}
+            )
         else:
-            transaction_params["model"] = response_headers["openai-model"]
-            transaction_params["messages"] = request_content["messages"]
+            transaction_params["model"] = (
+                response_headers["openai-model"]
+                if "openai-model" in response_headers
+                else response_content["model"]
+            )
+
             transaction_params["messages"].append(
                 response_content["choices"][0]["message"]
             )
             transaction_params["last_message"] = response_content["choices"][0][
                 "message"
             ]["content"]
+            transaction_params["error_message"] = None
+
+    if "api.openai.com" in url and "completions" in url and "chat" not in url:
+        transaction_params["type"] = "completion"
+        transaction_params["provider"] = "OpenAI"
+        transaction_params["prompt"] = request_content["prompt"]
+        transaction_params["messages"] = [
+            {"role": "user", "content": request_content["prompt"]}
+        ]
+
+        if response.__dict__["status_code"] > 200:
+            transaction_params["error_message"] = response_content["error"]["message"]
+            transaction_params["last_message"] = response_content["error"]["message"]
+            transaction_params["messages"].append(
+                {"role": "error", "content": response_content["error"]["message"]}
+            )
+        else:
+            transaction_params["model"] = response_headers["openai-model"]
+            transaction_params["messages"].append(
+                {"role": "assistant", "content": response_content["choices"][0]["text"]}
+            )
+            transaction_params["last_message"] = response_content["choices"][0]["text"]
             transaction_params["error_message"] = None
 
     return transaction_params
@@ -242,38 +293,38 @@ def token_counter_for_transactions(
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index("date", inplace=True)
     project_id = data_dicts[0]["project_id"]
-    pairs = set([(data["provider"], data["model"]) for data in data_dicts])
+    pairs = list(set([(data["provider"], data["model"]) for data in data_dicts]))
     if date_from:
-        date_from = str(date_from)[0:10]
-        for pair in pairs:
-            df.loc[pd.Timestamp(date_from)] = {
+        for pair_idx in range(len(pairs)):
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
                 "project_id": project_id,
-                "provider": pair[0],
-                "model": pair[1],
+                "provider": pairs[pair_idx][0],
+                "model": pairs[pair_idx][1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
                 "status_code": 0,
-                "latency": 0,
+                "latency": timedelta(0),
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
     if date_to:
-        date_to = str(date_to)[0:10]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_to)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
                 "status_code": 0,
-                "latency": 0,
+                "latency": timedelta(0),
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
 
+    df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
     result = (
         df.groupby(["provider", "model"])
@@ -406,7 +457,7 @@ def status_counter_for_transactions(
     return result_list
 
 
-def latency_counter_for_transactions(
+def speed_counter_for_transactions(
     transactions: list[StatisticTransactionSchema],
     period: str,
     date_from: datetime | None = None,
@@ -427,14 +478,12 @@ def latency_counter_for_transactions(
     """
     data_dicts = [dto.model_dump() for dto in transactions]
     df = pd.DataFrame(data_dicts)
-    df.set_index("date", inplace=True)
-
     project_id = data_dicts[0]["project_id"]
     pairs = set([(data["provider"], data["model"]) for data in data_dicts])
     if date_from:
-        date_from = str(date_from)[0:9]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_from)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
@@ -446,9 +495,9 @@ def latency_counter_for_transactions(
                 "generation_speed": 0,
             }
     if date_to:
-        date_to = str(date_to)[0:9]
         for pair in pairs:
-            df.loc[pd.Timestamp(date_to)] = {
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
                 "project_id": project_id,
                 "provider": pair[0],
                 "model": pair[1],
@@ -459,10 +508,13 @@ def latency_counter_for_transactions(
                 "total_transactions": 0,
                 "generation_speed": 0,
             }
-
+    df.set_index("date", inplace=True)
     period = pandas_period_from_string(period)
     result = (
-        df.groupby(["provider", "model"])
+        df.assign(
+            transactions_code_200=lambda x: np.where(x["status_code"] == 200, 1, 0)
+        )
+        .groupby(["provider", "model"])
         .resample(period)
         .agg(
             {
@@ -475,6 +527,7 @@ def latency_counter_for_transactions(
                 "latency": "sum",
                 "total_transactions": "sum",
                 "generation_speed": "sum",
+                "transactions_code_200": "sum",
             }
         )
     )
@@ -493,8 +546,8 @@ def latency_counter_for_transactions(
             mean_latency=data["latency"].total_seconds() / data["total_transactions"]
             if data["latency"].total_seconds() > 0
             else 0,
-            tokens_per_second=data["generation_speed"] / data["total_transactions"]
-            if data["generation_speed"] > 0 and data["total_transactions"] > 0
+            tokens_per_second=data["generation_speed"] / data["transactions_code_200"]
+            if data["generation_speed"] > 0 and data["transactions_code_200"] > 0
             else 0,
             total_transactions=data["total_transactions"],
         )
@@ -573,14 +626,23 @@ class ApiURLBuilder:
         :param target_path: The target path to be appended to the base path.
         :return: The constructed API URL.
         """
+
         api_base = [
             prov.api_base
             for prov in project.ai_providers
             if prov.slug == deployment_slug
         ][0]
         if path == "":
-            path = unquote(target_path) if target_path is not None else ""
+            path = unquote(unquote(target_path)) if target_path is not None else ""
+            if len(path.split("/")[1:]) > 5:
+                new_path = path.split("/")[1:]
+                new_path = new_path[0:3] + new_path[5:7]
+                path = "/" + "/".join(new_path)
+
         url = api_base + f"/{path}".replace("//", "/")
+        if api_base.endswith("/"):
+            url = api_base + f"{path}".replace("//", "/")
+
         return url
 
 
@@ -615,20 +677,36 @@ class OrderedSet(OrderedDict):
 
 
 def pandas_period_from_string(period: str):
-    if period == "weekly":
+    if period == PeriodEnum.week:
         return "W-Mon"
-    if period == "monthly":
+    if period == PeriodEnum.month:
         return "ME"
-    if period == "yearly":
+    if period == PeriodEnum.year:
         return "YE"
-    if period == "hourly":
+    if period == PeriodEnum.hour:
         return "h"
-    if period == "minutely":
+    if period == PeriodEnum.minutes:
         return "5min"
     return "D"
 
 
-def generate_mock_transactions(n: int, days_back: int = 30):
+def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
+    """
+    Generate a list of mock transactions.
+
+    This function creates a list of transaction objects for testing purposes.
+    The transactions are either successful (status code 200) with randomly
+    generated input and output tokens or unsuccessful with no input/output tokens.
+
+    Parameters:
+    n (int): The number of transactions to generate.
+    date_from (datetime): The start date from which transactions should be added.
+    date_to (datetime): The end date till which transactions should be added.
+
+    Returns:
+    list: A list of Transaction objects.
+
+    """
     providers = ["Azure", "OpenAI"]
     models = ["gpt-3.5-turbo", "gpt-4", "text-davinci-001"]
     status_codes = [200, 300, 400, 500]
@@ -639,62 +717,79 @@ def generate_mock_transactions(n: int, days_back: int = 30):
         transaction_id = f"transaction-{x}"
         input_tokens = random.randint(5, 25)
         output_tokens = random.randint(200, 800)
-        new_timedelta = random.randint(0, days_back)
-        start_date = datetime.now(tz=timezone.utc) - timedelta(days=new_timedelta)
-        stop_date = start_date + timedelta(seconds=random.randint(1, 6))
-        status = random.choice(status_codes)
-        if status == 200:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag1", "tag2", "tag3"],
-                    provider=random.choice(providers),
-                    model=random.choice(models),
-                    type="chat",
-                    os=None,
-                    input_tokens=input_tokens,
-                    output_tokens=output_tokens,
-                    library="PostmanRuntime/7.36.3",
-                    status_code=status,
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message=None,
-                    request_time=start_date,
-                    response_time=stop_date,
-                    generation_speed=output_tokens
-                    / (stop_date - start_date).total_seconds(),
-                )
+
+        # Generate random date within date_from and date_to
+        time_between_dates = date_to - date_from
+        days_between_dates = time_between_dates.days
+        random_number_of_days = random.randrange(days_between_dates)
+        random_date = date_from + timedelta(days=random_number_of_days)
+        start_date = random_date
+        stop_date = start_date + timedelta(
+            seconds=random.randint(1, 6), milliseconds=random.randint(0, 999)
+        )
+
+        # Generate random status code according to the distribution, the most common status code is 200, rest is less probable
+        status = random.choices(status_codes, [0.75, 0.15, 0.05, 0.05])[0]
+
+        # If status is not 200, set input/output tokens to 0 and error message to "Error"
+        error_message = None if status == 200 else "Error"
+        generation_speed = (
+            output_tokens / (stop_date - start_date).total_seconds()
+            if status == 200
+            else 0
+        )
+        output_tokens = output_tokens if status == 200 else 0
+
+        transactions.append(
+            Transaction(
+                id=transaction_id,
+                project_id="project-test",
+                request={},
+                response={},
+                tags=["tag1", "tag2", "tag3"],
+                provider=random.choice(providers),
+                model=random.choice(models),
+                type="chat",
+                os=None,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                library="PostmanRuntime/7.36.3",
+                status_code=status,
+                messages=None,
+                prompt="",
+                last_message="",
+                error_message=error_message,
+                request_time=start_date,
+                response_time=stop_date,
+                generation_speed=generation_speed,
             )
-        else:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag1", "tag2", "tag3"],
-                    provider=random.choice(providers),
-                    model=random.choice(models),
-                    type="chat",
-                    os=None,
-                    input_tokens=0,
-                    output_tokens=0,
-                    library="PostmanRuntime/7.36.3",
-                    status_code=status,
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message="Error",
-                    request_time=start_date,
-                    response_time=stop_date,
-                    generation_speed=0,
-                )
-            )
+        )
+
     return transactions
+
+
+def check_dates_for_statistics(
+    date_from: datetime | str | None, date_to: datetime | str | None
+) -> tuple[datetime | None, datetime | None]:
+    if isinstance(date_from, str):
+        if len(date_from) == 10:
+            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+        elif date_from.endswith("Z"):
+            date_from = datetime.fromisoformat(str(date_from)[:-1])
+        else:
+            date_from = datetime.fromisoformat(date_from)
+    if isinstance(date_to, str):
+        if len(date_to) == 10:
+            date_to = datetime.fromisoformat(date_to + "T23:59:59")
+        elif date_to.endswith("Z"):
+            date_to = datetime.fromisoformat(str(date_to)[:-1])
+        else:
+            date_to = datetime.fromisoformat(date_to)
+
+    if date_from is not None and date_to is not None and date_from == date_to:
+        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+
+    return date_from, date_to
 
 
 def read_transactions_from_csv(
@@ -705,8 +800,12 @@ def read_transactions_from_csv(
     transactions = []
     for idx, obj in enumerate(data):
         transaction_id = f"test-transaction-{idx}"
-        request_time = datetime.fromisoformat(obj["request_time"][:-1] + "+00:00")
-        response_time = datetime.fromisoformat(obj["response_time"][:-1] + "+00:00")
+        request_time = datetime.fromisoformat(
+            obj["request_time"].replace("Z", "+00:00")
+        )
+        response_time = datetime.fromisoformat(
+            obj["response_time"].replace("Z", "+00:00")
+        )
         latency = response_time - request_time
         if obj["status_code"] == 200:
             transactions.append(
@@ -761,6 +860,15 @@ def read_transactions_from_csv(
                 )
             )
     return transactions
+
+
+class PeriodEnum(str, Enum):
+    week = "week"
+    year = "year"
+    month = "month"
+    day = "day"
+    hour = "hour"
+    minutes = "5minutes"
 
 
 known_ai_providers = [

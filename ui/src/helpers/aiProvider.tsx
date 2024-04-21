@@ -9,5 +9,5 @@ export const toSlug = (text: string) => {
 };
 
 export const makeUrl = (slug: string, name: string) => {
-    return `http://localhost:8000/${toSlug(slug) || '<slug>'}/${toSlug(name) || '<name>'}`;
+    return `${import.meta.env.BACKEND_URL}/${toSlug(slug) || '<slug>'}/${toSlug(name) || '<name>'}`;
 };

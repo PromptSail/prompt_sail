@@ -11,6 +11,7 @@ import { TagsContainer } from '../../helpers/dataContainer';
 import AiProvidersTable from './AiProvidersTable';
 import LatestTransactions from './LatestTransactions';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
+import Statistics from './Statistics/Statistics';
 const { Title, Paragraph } = Typography;
 
 const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
@@ -66,7 +67,7 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                 <Flex gap={10}>
                     <Container
                         header="Basic info"
-                        classname={{ parent: 'grow-0 shrink-0', box: 'w-[300px]' }}
+                        classname={{ parent: 'grow-0 shrink-0', box: 'w-[300px] gap-2.5' }}
                     >
                         <Flex justify="space-between">
                             <span>Members:</span>
@@ -89,7 +90,26 @@ const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
                         <AiProvidersTable providers={data.ai_providers} slug={data.slug} />
                     </Container>
                 </Flex>
-                <Container header="Latest transactions" classname={{ parent: 'mt-5' }}>
+
+                <Statistics projectId={data.id} />
+                <Container
+                    header={
+                        <Flex justify="space-between">
+                            <Title level={2} style={{ margin: '0 10px' }}>
+                                Latest transactions
+                            </Title>
+                            <Button
+                                type="primary"
+                                className="!bg-white my-auto"
+                                onClick={() => navigate(`/transactions?project_id=${data.id}`)}
+                                ghost
+                            >
+                                View all transactions
+                            </Button>
+                        </Flex>
+                    }
+                    classname={{ parent: 'my-5' }}
+                >
                     <LatestTransactions projectId={data.id} />
                 </Container>
             </>

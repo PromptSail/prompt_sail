@@ -9,6 +9,7 @@ on:
   push:
     branches: 
         - dev
+        - main
     # Publish semver tags as releases.
     #tags: [ 'v*.*.*' ]
   release:
@@ -19,6 +20,9 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME_BACKEND: promptsail-backend
+  IMAGE_NAME_UI: promptsail-ui
+  IMAGE_URI: ghcr.io/promptsail
 
 jobs:
 
@@ -87,6 +91,19 @@ jobs:
     steps:
       - name: set datetime  env
         run: echo "NOW=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+    
+      - name: Set RELEASE_TAG based on branch name and release tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "RELEASE_TAG=release_candidate" >> $GITHUB_ENV
+          elif [[ "${{ github.event.release.tag_name }}" != "" ]]; then
+            echo "RELEASE_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=non-release" >> $GITHUB_ENV
+          fi
+    
+      - name: Use RELEASE_TAG
+        run: echo "RELEASE_TAG is ${{ env.RELEASE_TAG }}"
 
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -123,6 +140,8 @@ jobs:
         uses: docker/metadata-action@v5 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          #images: ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}
+          
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -132,8 +151,12 @@ jobs:
         with:
           context: ./backend
           file: ./backend/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/promptsail/promptsail-backend:${{ github.ref_name }}, ghcr.io/promptsail/promptsail-backend:${{ env.NOW }}, ghcr.io/promptsail/promptsail-backend:latest
+          push: true
+          tags: |
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.run_number }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.event.release.tag_name || env.RELEASE_TAG }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ env.RELEASE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -171,6 +194,19 @@ jobs:
 
       - name: set datetime  env
         run: echo "NOW=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+
+      - name: Set RELEASE_TAG based on branch name and release tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "RELEASE_TAG=release_candidate" >> $GITHUB_ENV
+          elif [[ "${{ github.event.release.tag_name }}" != "" ]]; then
+            echo "RELEASE_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=non-release" >> $GITHUB_ENV
+          fi
+    
+      - name: Use RELEASE_TAG
+        run: echo "RELEASE_TAG is ${{ env.RELEASE_TAG }}"
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -205,8 +241,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5 # v5.0.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
+          #images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
@@ -215,11 +251,17 @@ jobs:
         with:
           context: ./ui
           file: ./ui/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/promptsail/promptsail-ui:${{ github.ref_name }}, ghcr.io/promptsail/promptsail-ui:${{ env.NOW }}, ghcr.io/promptsail/promptsail-ui:latest
+          push: true
+  
+          tags: |
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.sha }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.run_number }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name || env.RELEASE_TAG }}
+            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ env.RELEASE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker

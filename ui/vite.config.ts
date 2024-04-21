@@ -11,7 +11,11 @@ const createProxy = (url: string) => ({
 });
 
 export default defineConfig(({ mode }) => {
-    const env = dotenv.config({ path: `.env.${mode}` }).parsed;
+    const env = {
+        ...dotenv.config({ path: `.env.${mode}` }).parsed,
+        ...process.env
+    };
+    console.log('using env', env);
     return {
         plugins: [react()],
         server: {
@@ -21,6 +25,9 @@ export default defineConfig(({ mode }) => {
         preview: {
             port: parseInt(env.PORT),
             proxy: createProxy(env.BACKEND_URL)
+        },
+        define: {
+            'import.meta.env.BACKEND_URL': new String(env.BACKEND_URL)
         }
     };
 });
