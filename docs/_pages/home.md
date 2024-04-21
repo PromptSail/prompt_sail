@@ -64,9 +64,4 @@ All prompts and responses are stored in a MongoDB, making finding and analyzing 
 Simple and intuitive UI lets you easily view and filter your transactions (prompts and responses) by project, API provider, LLM model, or tags.
 
 
-![LLM deployments project dashboards with charts: budgets and transactions](/docs/assets/images/LLM_Project_dashboard_budget.png)
-
-
-### new way
-
-{% raw %}<img src="{{ site.url }}{{ site.baseurl }}/assets/images/LLM_Project_dashboard_budget.png" alt="LLM deployments project dashboards with charts: budgets and transactions">{% endraw %}
+![LLM deployments project dashboards with charts: budgets and transactions]({{ site.url }}{{ site.baseurl }}/docs/assets/images/LLM_Project_dashboard_budget.png){: .align-center}
