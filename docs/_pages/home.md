@@ -18,14 +18,14 @@ feature_row:
     - image_path: #/assets/images/mm-customizable-feature.png
       alt: "Easy Integration"
       title: "Easy Integration"
-      excerpt: "Designed to be easily integrated into your existing workflow, whatever LLM framework or library you use."
+      excerpt: "Engineered to function as a transparent Proxy for your LLM calls, it seamlessly integrates into your existing workflow, irrespective of the LLM framework or library you're currently utilizing."
       url: "/docs/quick-start-guide/"
       btn_class: "btn--primary"
       btn_label: "Learn more"
     - image_path: #/assets/images/mm-responsive-feature.png
       alt: "fully responsive"
-      title: "Monitoring, and Analysis"
-      excerpt: "Build for monitoring your prompts and responses, and analyzing them for better performance and cost control."
+      title: "Monitoring and Budgeting"
+      excerpt: "Provides a comprehensive dashboard for tracking your usage and budgeting your LLM API calls."
       url: "/docs/layouts/"
       btn_class: "btn--primary"
       btn_label: "Learn more"
