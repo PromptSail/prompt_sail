@@ -1,9 +1,9 @@
 import json
-import re
 import random
-from typing import Any
+import re
 from collections import OrderedDict
 from enum import Enum
+from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
 import numpy as np
@@ -108,73 +108,84 @@ def parse_headers_to_dict(headers: list[tuple[bytes]]) -> dict:
 
 
 class TransactionParamsBuilder:
-    transaction_params: dict[str, Any] = {
-        "library": None,
-        "status_code": None,
-        "model": None,
-        "type": None,
-        "prompt": None,
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "os": None,
-        "provider": "Unknown",
-        "messages": None,
-        "last_message": None,
-        "error_message": None,
-    }
-    
+    library: str | None = None
+    status_code: int | None = None
+    model: str | None = None
+    model_type: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    prompt: str | None = None
+    os: str | None = None
+    provider: str | None = None
+    messages: list[dict[str, Any]] | str | None = None
+    last_message: str | None = None
+    error_message: str | None = None
+
     def add_library(self, library: str):
-        self.transaction_params["library"] = library
+        self.library = library
         return self
-    
+
     def add_status_code(self, status_code: int):
-        self.transaction_params["status_code"] = status_code
+        self.status_code = status_code
         return self
-    
+
     def add_model(self, model: str):
-        self.transaction_params["model"] = model
+        self.model = model
         return self
-    
+
     def add_type(self, model_type: str):
-        self.transaction_params["type"] = model_type
+        self.model_type = model_type
         return self
-    
+
     def add_prompt(self, prompt: str):
-        self.transaction_params["prompt"] = prompt
+        self.prompt = prompt
         return self
-    
+
     def add_input_tokens(self, input_tokens: int):
-        self.transaction_params["input_tokens"] = input_tokens
+        self.input_tokens = input_tokens
         return self
-    
+
     def add_output_tokens(self, output_tokens: int):
-        self.transaction_params["output_tokens"] = output_tokens
+        self.output_tokens = output_tokens
         return self
-    
-    def add_os(self, os: str):
-        self.transaction_params["os"] = os
+
+    def add_os(self, os: str | None):
+        self.os = os
         return self
-    
+
     def add_provider(self, provider: str):
-        self.transaction_params["provider"] = provider
+        self.provider = provider
         return self
-    
+
     def add_messages(self, messages: list[dict[str, str]]):
-        self.transaction_params["messages"] = messages
+        self.messages = messages
         return self
-    
-    def add_last_message(self, last_message: str):
-        self.transaction_params["last_message"] = last_message
+
+    def add_last_message(self, last_message: str | None):
+        self.last_message = last_message
         return self
-    
+
     def add_error_message(self, error_message: str):
-        self.transaction_params["error_message"] = error_message
+        self.error_message = error_message
         return self
-    
+
     def build(self):
-        return self.transaction_params
-    
-    
+        return {
+            "library": self.library,
+            "status_code": self.status_code,
+            "model": self.model,
+            "type": self.model_type,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "prompt": self.prompt,
+            "os": self.os,
+            "provider": self.provider,
+            "messages": self.messages,
+            "last_message": self.last_message,
+            "error_message": self.error_message,
+        }
+
+
 def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     """
     Parse information from a request, response, and response content into a dictionary representing a transaction.
@@ -184,26 +195,43 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     :param response_content: The content of the response.
     :return: A dictionary containing parsed information from the request, response, and response content.
     """
-    response_headers = parse_headers_to_dict(response.__dict__["headers"].__dict__["_list"])
-    request_headers = parse_headers_to_dict(request.__dict__["headers"].__dict__["_list"])
+    response_headers = parse_headers_to_dict(
+        response.__dict__["headers"].__dict__["_list"]
+    )
+    request_headers = parse_headers_to_dict(
+        request.__dict__["headers"].__dict__["_list"]
+    )
     request_content = json.loads(request.__dict__["_content"].decode("utf8"))
     url = str(request.__dict__["url"])
 
     azure_embeddings_pattern = re.compile(r".*openai\.azure\.com.*embeddings.*")
     azure_completions_pattern = re.compile(r".*openai\.azure\.com.*completions.*")
-    openai_chat_completions_pattern = re.compile(r".*api\.openai\.com.*chat.*completions.*")
-    openai_completions_pattern = re.compile(r".*api\.openai\.com(?!.*chat).*\/completions.*")
-    
+    openai_chat_completions_pattern = re.compile(
+        r".*api\.openai\.com.*chat.*completions.*"
+    )
+    openai_completions_pattern = re.compile(
+        r".*api\.openai\.com(?!.*chat).*\/completions.*"
+    )
+    openai_embeddings_pattern = re.compile(r".*api\.openai\.com.*embeddings.*")
+
     transaction_params = TransactionParamsBuilder()
-    transaction_params.add_library(request_headers["user-agent"]).add_status_code(response.__dict__["status_code"]).add_model(request_content.get("model", None)).add_os(request_headers.get("x-stainless-os", None))
-    
+    transaction_params.add_library(request_headers["user-agent"]).add_status_code(
+        response.__dict__["status_code"]
+    ).add_model(request_content.get("model", None)).add_os(
+        request_headers.get("x-stainless-os", None)
+    )
+
     if "usage" in response_content:
-        transaction_params.add_input_tokens(response_content["usage"].get("prompt_tokens", 0)).add_output_tokens(response_content["usage"].get("completion_tokens", 0))
+        transaction_params.add_input_tokens(
+            response_content["usage"].get("prompt_tokens", 0)
+        ).add_output_tokens(response_content["usage"].get("completion_tokens", 0))
 
     if azure_embeddings_pattern.match(url):
         transaction_params.add_type("embedding").add_provider("Azure")
         if isinstance(request_content["input"], list):
-            transaction_params.add_prompt("[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]")
+            transaction_params.add_prompt(
+                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+            )
         else:
             transaction_params.add_prompt(request_content["input"])
         if response.__dict__["status_code"] > 200:
@@ -211,22 +239,38 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         else:
             transaction_params.add_model(response_content["model"])
             if isinstance(response_content["data"][0]["embedding"], list):
-                transaction_params.add_last_message("[" + ", ".join(map(lambda x: str(x), response_content["data"][0]["embedding"])) + "]")
+                transaction_params.add_last_message(
+                    "["
+                    + ", ".join(
+                        map(lambda x: str(x), response_content["data"][0]["embedding"])
+                    )
+                    + "]"
+                )
             else:
-                transaction_params.add_last_message(response_content["data"][0]["embedding"])
-                
+                transaction_params.add_last_message(
+                    response_content["data"][0]["embedding"]
+                )
+
     if azure_completions_pattern.match(url):
-        prompt = [message["content"] for message in request_content["messages"] if message["role"] == "user"][::-1][0]
-        transaction_params.add_type("completions").add_provider("Azure").add_prompt(prompt if prompt else request_content["messages"][0]["content"])
+        prompt = [
+            message["content"]
+            for message in request_content["messages"]
+            if message["role"] == "user"
+        ][::-1][0]
+        transaction_params.add_type("completions").add_provider("Azure").add_prompt(
+            prompt if prompt else request_content["messages"][0]["content"]
+        )
         messages = request_content["messages"]
         if response.__dict__["status_code"] > 200:
-            messages.append({
-                "role": "error",
-                "content": response_content["error"]["message"]
-                if "error" in response_content.keys()
-                else response_content["message"],
-            })
-            
+            messages.append(
+                {
+                    "role": "error",
+                    "content": response_content["error"]["message"]
+                    if "error" in response_content.keys()
+                    else response_content["message"],
+                }
+            )
+
             transaction_params.add_error_message(
                 response_content["error"]["message"]
                 if "error" in response_content.keys()
@@ -235,42 +279,91 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 response_content["error"]["message"]
                 if "error" in response_content.keys()
                 else response_content["message"]
-            ).add_messages(messages)
-        else:
-            messages.append(
-                response_content["choices"][0]["message"]
+            ).add_messages(
+                messages
             )
-            
-            transaction_params.add_messages(messages).add_model(response_content["model"]).add_last_message(response_content["choices"][0]["message"]["content"])
-
-    if openai_chat_completions_pattern.match(url):
-        prompt = [message["content"] for message in request_content["messages"] if message["role"] == "user"][::-1][0]
-        transaction_params.add_type("chat completions").add_provider("OpenAI").add_prompt(prompt if prompt else request_content["messages"][0]["content"])
-        messages = request_content["messages"]
-        if response.__dict__["status_code"] > 200:
-            messages.append({
-                "role": "error",
-                "content": response_content["error"]["message"]
-            })
-            transaction_params.add_error_message(response_content["error"]["message"]).add_last_message(response_content["error"]["message"]).add_messages(messages)
-        else:
-            messages.append(
-                response_content["choices"][0]["message"]
-            )
-            transaction_params.add_messages(messages).add_model(response_headers["openai-model"] if "openai-model" in response_headers else response_content["model"]).add_last_message(response_content["choices"][0]["message"]["content"])
-        
-    if openai_completions_pattern.match(url):
-        transaction_params.add_type("completions").add_provider("OpenAI").add_prompt(request_content["prompt"])
-        messages = [{"role": "user", "content": request_content["prompt"]}]
-        if response.__dict__["status_code"] > 200:
-            messages.append({
-                "role": "error",
-                "content": response_content["error"]["message"]
-            })
-            transaction_params.add_error_message(response_content["error"]["message"]).add_last_message(response_content["error"]["message"]).add_messages(messages)
         else:
             messages.append(response_content["choices"][0]["message"])
-            transaction_params.add_messages(messages).add_model(response_headers["openai-model"] if "openai-model" in response_headers else response_content["model"]).add_last_message(response_content["choices"][0]["message"]["content"])
+
+            transaction_params.add_messages(messages).add_model(
+                response_content["model"]
+            ).add_last_message(response_content["choices"][0]["message"]["content"])
+
+    if openai_chat_completions_pattern.match(url):
+        prompt = [
+            message["content"]
+            for message in request_content["messages"]
+            if message["role"] == "user"
+        ][::-1][0]
+        transaction_params.add_type("chat completions").add_provider(
+            "OpenAI"
+        ).add_prompt(prompt if prompt else request_content["messages"][0]["content"])
+        messages = request_content["messages"]
+        if response.__dict__["status_code"] > 200:
+            messages.append(
+                {"role": "error", "content": response_content["error"]["message"]}
+            )
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(response_content["error"]["message"]).add_messages(
+                messages
+            )
+        else:
+            messages.append(response_content["choices"][0]["message"])
+            transaction_params.add_messages(messages).add_model(
+                response_headers["openai-model"]
+                if "openai-model" in response_headers
+                else response_content["model"]
+            ).add_last_message(response_content["choices"][0]["message"]["content"])
+
+    if openai_completions_pattern.match(url):
+        transaction_params.add_type("completions").add_provider("OpenAI").add_prompt(
+            request_content["prompt"]
+        )
+        messages = [{"role": "user", "content": request_content["prompt"]}]
+        if response.__dict__["status_code"] > 200:
+            messages.append(
+                {"role": "error", "content": response_content["error"]["message"]}
+            )
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(response_content["error"]["message"]).add_messages(
+                messages
+            )
+        else:
+            messages.append(response_content["choices"][0]["message"])
+            transaction_params.add_messages(messages).add_model(
+                response_headers["openai-model"]
+                if "openai-model" in response_headers
+                else response_content["model"]
+            ).add_last_message(response_content["choices"][0]["message"]["content"])
+
+    if openai_embeddings_pattern.match(url):
+        transaction_params.add_type("embedding").add_provider("OpenAI")
+        if isinstance(request_content["input"], list):
+            transaction_params.add_prompt(
+                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+            )
+        else:
+            transaction_params.add_prompt(request_content["input"])
+        if response.__dict__["status_code"] > 200:
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(None)
+        else:
+            transaction_params.add_model(response_content["model"])
+            if isinstance(response_content["data"][0]["embedding"], list):
+                transaction_params.add_last_message(
+                    "["
+                    + ", ".join(
+                        map(lambda x: str(x), response_content["data"][0]["embedding"])
+                    )
+                    + "]"
+                )
+            else:
+                transaction_params.add_last_message(
+                    response_content["data"][0]["embedding"]
+                )
 
     return transaction_params.build()
 
