@@ -56,6 +56,7 @@ from .app import app
 def whoami(request: Request, user: dict = Depends(decode_and_validate_token)) -> GetUserSchema:
     return GetUserSchema(
         external_id=user.external_id,
+        organization=user.organization,
         email=user.email,
         given_name=user.given_name,
         family_name=user.family_name,

@@ -6,7 +6,8 @@ class User(BaseModel):
     id: str = Field(default_factory=generate_uuid)
     external_id: str
     email: str
+    organization: str | None = None
     given_name: str
     family_name: str
-    picture: str
+    picture: str | None = None
     issuer: str

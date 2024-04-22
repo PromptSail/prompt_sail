@@ -10,6 +10,47 @@ from auth.use_cases import get_user, add_user
 from config import config
 
 
+class UserBuilder:
+    external_id: str
+    email: str
+    organization: str | None = None
+    given_name: str
+    family_name: str
+    picture: str | None = None
+    issuer: str
+    
+    def add_external_id(self, external_id):
+        self.external_id = external_id
+        return self
+    
+    def add_email(self, email):
+        self.email = email
+        return self
+    
+    def add_organization(self, organization):
+        self.organization = organization
+        return self
+    
+    def add_given_name(self, given_name):
+        self.given_name = given_name
+        return self
+    
+    def add_family_name(self, family_name):
+        self.family_name = family_name
+        return self
+    
+    def add_picture(self, picture):
+        self.picture = picture if picture is not None else None
+        return self
+    
+    def add_issuer(self, issuer):
+        self.issuer = issuer
+        return self
+    
+    def build(self):
+        return User(**self.__dict__)
+    
+
 def get_jwks_url(issuer_url):
     well_known_url = issuer_url + "/.well-known/openid-configuration"
     with urllib.request.urlopen(well_known_url) as response:
@@ -36,20 +77,32 @@ def decode_and_validate_token(ctx: Annotated[TransactionContext, Depends(get_tra
         jwks_client = jwt.PyJWKClient(jwks_url)
         header = jwt.get_unverified_header(token)
         key = jwks_client.get_signing_key(header["kid"]).key
-        if (expected_audience := config.CLIENT_ID) is None:
+        
+        if "microsoft" in unvalidated['iss']:
+            
+            expected_audience = config.AZURE_CLIENT_ID
+            print("using microsoft", expected_audience)
+        elif "google" in unvalidated['iss']:
+            expected_audience = config.GOOGLE_CLIENT_ID
+            print("using google", expected_audience)
+        else:
+            raise HTTPException(status_code=401, detail="Invalid issuer")
+            
+        if expected_audience is None:
             expected_audience = unvalidated.get('aud')
+        
         decoded_token = jwt.decode(token, key, [header["alg"]], audience=expected_audience)
         user_id = decoded_token.get("sub")
         if (db_user := ctx.call(get_user, external_id=user_id)) is None:
-            token_user = User(
-                external_id=decoded_token.get("sub"),
-                email=decoded_token.get("email"),
-                given_name=decoded_token.get("given_name"),
-                family_name=decoded_token.get("family_name"),
-                picture=decoded_token.get("picture"),
-                issuer=decoded_token.get("iss")
-            )
-            new_user = ctx.call(add_user, user=token_user)
+            token_user = UserBuilder().add_external_id(user_id).add_issuer(decoded_token.get("iss"))
+            if "microsoft" in decoded_token.get("iss"):
+                given_name, family_name = decoded_token.get("name").split(' ')
+                token_user = token_user.add_email(decoded_token.get("preferred_username")).add_given_name(given_name).add_family_name(family_name)
+
+            if "google" in decoded_token.get("iss"):
+                token_user = token_user.add_email(decoded_token.get("email")).add_organization(decoded_token.get("hd")).add_given_name(decoded_token.get("given_name")).add_family_name(decoded_token.get("family_name")).add_picture(decoded_token.get("picture"))
+            print(token_user.build())
+            new_user = ctx.call(add_user, user=token_user.build())
             
         return db_user if db_user is not None else new_user
     except jwt.exceptions.DecodeError:
