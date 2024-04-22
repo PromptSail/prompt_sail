@@ -13,6 +13,8 @@ from dependency_injector.containers import Container
 from dependency_injector.providers import Dependency, Factory, Provider, Singleton
 from dependency_injector.wiring import Provide, inject  # noqa
 from lato import Application, DependencyProvider, TransactionContext
+
+from auth.repositories import UserRepository
 from projects.repositories import ProjectRepository
 from settings.repositories import SettingsRepository
 from transactions.repositories import TransactionRepository
@@ -267,4 +269,7 @@ class TransactionContainer(containers.DeclarativeContainer):
     )
     settings_repository = providers.Singleton(
         SettingsRepository, db_client=db_client, collection_name="settings"
+    )
+    user_repository = providers.Singleton(
+        UserRepository, db_client=db_client, collection_name="users"
     )
