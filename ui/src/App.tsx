@@ -18,7 +18,7 @@ const App = () => {
             {isLogged && (
                 <Layout>
                     <Sidebar setLoginState={setLoginState} />
-                    <Layout className="px-[50px] h-screen overflow-auto">
+                    <Layout className="h-screen overflow-auto">
                         <Routes>
                             <Route path="/" element={<Dashboard />} />
                             <Route

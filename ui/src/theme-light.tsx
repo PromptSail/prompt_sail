@@ -53,7 +53,13 @@ const theme: ThemeConfig = {
         colorBgMask: '#0b1d1c73'
     },
     components: {
+        Button: {
+            paddingInline: 16,
+            paddingInlineLG: 16
+        },
         Layout: {
+            headerBg: '#FFFFFF',
+            headerPadding: '0 24px',
             siderBg: '#0B1D1C'
         },
         Menu: {
@@ -66,6 +72,36 @@ const theme: ThemeConfig = {
             itemMarginInline: 16,
             itemSelectedColor: '#FFF',
             itemSelectedBg: '#1D4A48'
+        },
+        Typography: {
+            colorError: '#C74635',
+            colorErrorHover: '#C74635',
+            colorErrorActive: '#C74635',
+            colorLink: '#307C78',
+            colorLinkActive: '#307C78',
+            colorLinkHover: '#307C78',
+            colorSuccess: '#218818',
+            colorText: '#0B1D1CE0',
+            colorTextDescription: '#0B1D1CA6',
+            colorTextDisabled: '#0B1D1C8C',
+            colorTextHeading: '#0B1D1CE0',
+            colorWarning: '#EDB21A',
+            fontFamily: 'Roboto Flex',
+            fontSize: 14,
+            fontSizeHeading1: 38,
+            fontSizeHeading2: 30,
+            fontSizeHeading3: 24,
+            fontSizeHeading4: 20,
+            fontSizeHeading5: 16,
+            lineHeight: 1.5,
+            lineHeightHeading1: 2.875,
+            lineHeightHeading2: 2.375,
+            lineHeightHeading3: 2,
+            lineHeightHeading4: 1.75,
+            lineHeightHeading5: 1.5,
+            linkDecoration: 'underline',
+            titleMarginBottom: '0',
+            titleMarginTop: '0'
         }
     }
 };

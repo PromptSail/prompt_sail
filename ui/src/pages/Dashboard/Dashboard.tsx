@@ -1,20 +1,18 @@
-import { Flex, Input, Space, Typography, Card, Segmented } from 'antd';
-import { CSSProperties, useState } from 'react';
-import ProjectTile from '../../components/ProjectTile/ProjectTile';
+import { Flex, Typography, Layout, Button } from 'antd';
+import { useState } from 'react';
 import { getAllProjects } from '../../api/interfaces';
 import { useGetAllProjects } from '../../api/queries';
-import { AppstoreOutlined, BarsOutlined, TableOutlined } from '@ant-design/icons';
-import TableDashboard from './TableDashboard';
-import { Link } from 'react-router-dom';
+import { PlusSquareOutlined } from '@ant-design/icons';
+import outline from './../../assets/logo/symbol-teal-outline.svg';
+import FilterDashboard from './FilterDashboard';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
+const { Header } = Layout;
 
 const Dashboard = () => {
-    const textStyles: CSSProperties = { lineHeight: '2em' };
-    const titleStyles: CSSProperties = { margin: '0' };
-    const [dashView, setDashView] = useState('list');
     const projects = useGetAllProjects();
-    const [filter, setFilter] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [filter, _setFilter] = useState('');
     const filterProjects = (data: getAllProjects) => {
         return (
             data.name.includes(filter) ||
@@ -39,8 +37,32 @@ const Dashboard = () => {
     if (projects.isSuccess) {
         const filteredProjects = projects.data.filter((el) => filterProjects(el));
         return (
-            <>
-                <Flex vertical gap={30}>
+            <Flex gap={24} vertical>
+                <Header className="w-full min-h-[80px] border-0 border-b border-solid border-[#F0F0F0] relative overflow-hidden">
+                    <Flex className="h-full" justify="space-between">
+                        <div className="my-auto z-10">
+                            <Title level={1} className="h4 m-auto">
+                                Projects ({filteredProjects.length})
+                            </Title>
+                        </div>
+                        <Button
+                            className="my-auto z-10"
+                            type="primary"
+                            size="large"
+                            icon={<PlusSquareOutlined />}
+                        >
+                            New project
+                        </Button>
+                    </Flex>
+                    <img
+                        src={outline}
+                        className="absolute w-[390px] -bottom-[60px] right-14 opacity-60"
+                    />
+                </Header>
+                <div className="px-[24px] max-w-[1600px] w-full mx-auto">
+                    <FilterDashboard />
+                </div>
+                {/* <Flex vertical gap={30}>
                     <div
                         style={{
                             display: 'grid',
@@ -122,8 +144,8 @@ const Dashboard = () => {
                         )}
                         {dashView == 'table' && <TableDashboard data={projects.data} />}
                     </div>
-                </Flex>
-            </>
+                </Flex> */}
+            </Flex>
         );
     }
 };
