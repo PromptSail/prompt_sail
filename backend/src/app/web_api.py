@@ -680,7 +680,7 @@ async def fetch_provider_pricelist(request: Request) -> list[GetAIProviderPriceS
 
     :param request: The incoming request.
     """
-    price_list = get_provider_pricelist(request)
+    price_list = [price for price in get_provider_pricelist(request) if price.is_active is True]
     return [GetAIProviderPriceSchema(**price.__dict__) for price in price_list]
 
 
