@@ -1,10 +1,11 @@
-import { Flex, Typography, Layout, Button } from 'antd';
+import { Flex, Typography, Layout, Button, Row, Col } from 'antd';
 import { useState } from 'react';
 import { getAllProjects } from '../../api/interfaces';
 import { useGetAllProjects } from '../../api/queries';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import outline from './../../assets/logo/symbol-teal-outline.svg';
 import FilterDashboard from './FilterDashboard';
+import ProjectTile from '../../components/ProjectTile/ProjectTile';
 
 const { Title } = Typography;
 const { Header } = Layout;
@@ -61,90 +62,24 @@ const Dashboard = () => {
                 </Header>
                 <div className="px-[24px] max-w-[1600px] w-full mx-auto">
                     <FilterDashboard />
-                </div>
-                {/* <Flex vertical gap={30}>
-                    <div
-                        style={{
-                            display: 'grid',
-                            justifyContent: 'center',
-                            gridTemplateColumns: 'repeat(auto-fill, 260px)',
-                            padding: '.5rem 0',
-                            gap: '20px'
-                        }}
+                    <Row
+                        justify="space-between"
+                        className="flex-nowrap gap-[24px] mx-[24px] mt-[8px] mb-[4px]"
                     >
-                        <Flex justify="space-between" style={{ gridColumn: '1 / -1' }}>
-                            <Space align="end" size={15}>
-                                <Title level={1} style={titleStyles}>
-                                    Projects
-                                </Title>
-                                <Text style={textStyles}>1 members</Text>
-                                <Text style={textStyles}>{projects.data.length} projects</Text>
-                            </Space>
-                            <Segmented
-                                style={{ marginTop: 'auto' }}
-                                defaultValue={dashView}
-                                onChange={setDashView}
-                                options={[
-                                    {
-                                        label: 'Kanban',
-                                        value: 'kanban',
-                                        icon: <AppstoreOutlined />
-                                    },
-                                    { label: 'List', value: 'list', icon: <BarsOutlined /> },
-                                    { label: 'Table', value: 'table', icon: <TableOutlined /> }
-                                ]}
-                                disabled
-                            />
-                            <Input
-                                type="text"
-                                name="search"
-                                placeholder="Search project (by name, tags, etc)"
-                                onChange={(e) => {
-                                    const val = e.currentTarget.value;
-                                    if (val.length > 2) setFilter(val);
-                                    else if (filter != '') setFilter('');
-                                }}
-                                style={{ marginTop: 'auto', maxWidth: '300px' }}
-                            />
-                        </Flex>
-                        {dashView != 'table' && (
-                            <>
-                                <Link
-                                    to="/projects/add"
-                                    style={{
-                                        gridColumn: `${dashView == 'list' ? '1 / -1' : 'auto'}`
-                                    }}
-                                >
-                                    <Card
-                                        hoverable
-                                        className="h-full w-full"
-                                        styles={{ body: { height: '100%' } }}
-                                    >
-                                        <Space className="h-full w-full justify-center">
-                                            <Title
-                                                level={2}
-                                                className="!m-0 text-center opacity-50"
-                                            >
-                                                Add new project +
-                                            </Title>
-                                        </Space>
-                                    </Card>
-                                </Link>
-                                {filteredProjects.map((e) => (
-                                    <ProjectTile
-                                        data={e}
-                                        key={e.id}
-                                        isListStyled={dashView == 'list'}
-                                    />
-                                ))}
-                                {filteredProjects.length == 0 && (
-                                    <h2 className="no-projects-found">No projects found</h2>
-                                )}
-                            </>
+                        <Col className="max-w-[50%] min-w-[50%] w-full leading-5">Title:</Col>
+                        <Col className="w-full leading-5">Owner:</Col>
+                        <Col className="w-full text-end leading-5">Transactions:</Col>
+                        <Col className="w-full text-end leading-5">Cost:</Col>
+                    </Row>
+                    <Flex vertical gap={8}>
+                        {filteredProjects.map((e) => (
+                            <ProjectTile data={e} key={e.id} />
+                        ))}
+                        {filteredProjects.length == 0 && (
+                            <h2 className="no-projects-found">No projects found</h2>
                         )}
-                        {dashView == 'table' && <TableDashboard data={projects.data} />}
-                    </div>
-                </Flex> */}
+                    </Flex>
+                </div>
             </Flex>
         );
     }
