@@ -1,24 +1,17 @@
 import { getAllProjects } from '../../api/interfaces';
-import { Col, Flex, Row, Typography, theme } from 'antd';
+import { Col, Flex, Row, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { TagsContainer } from '../../helpers/dataContainer';
 const { Title, Text } = Typography;
-const { useToken } = theme;
 interface Props {
     data: getAllProjects;
 }
 const ProjectTile: React.FC<Props> = ({ data }) => {
-    const { token } = useToken();
-    const styles = {
-        background: token.colorBgBase,
-        borderHover: token.colorPrimaryBorderHover
-    };
     return (
         <Link
             to={`/projects/${data.id}`}
-            style={{ background: styles.background }}
             className={
-                'relative overflow-hidden px-[24px] py-[16px] h-[82px] border border-solid border-Border/colorBorderSecondary rounded-[8px] hover:border-Primary/colorPrimaryBorderHover focus:border-Primary/colorPrimaryBorderHover  focus-visible:border-Primary/colorPrimaryBorderHover focus:shadow-FocusPrimary focus-visible:shadow-FocusPrimary transition ease-in-out duration-300'
+                'relative overflow-hidden px-[24px] py-[16px] h-[82px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px] hover:border-Primary/colorPrimaryBorderHover focus:border-Primary/colorPrimaryBorderHover  focus-visible:border-Primary/colorPrimaryBorderHover focus:shadow-FocusPrimary focus-visible:shadow-FocusPrimary transition ease-in-out duration-300'
             }
         >
             <Row justify="space-between" className="flex-nowrap gap-[24px] h-full">

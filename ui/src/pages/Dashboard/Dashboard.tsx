@@ -1,4 +1,4 @@
-import { Flex, Typography, Layout, Button, Row, Col } from 'antd';
+import { Flex, Typography, Layout, Button, Row, Col, Pagination } from 'antd';
 import { useState } from 'react';
 import { getAllProjects } from '../../api/interfaces';
 import { useGetAllProjects } from '../../api/queries';
@@ -14,6 +14,10 @@ const Dashboard = () => {
     const projects = useGetAllProjects();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [filter, _setFilter] = useState('');
+    const [pageData, setPageData] = useState({
+        page: 1,
+        size: 5
+    });
     const filterProjects = (data: getAllProjects) => {
         return (
             data.name.includes(filter) ||
@@ -72,12 +76,32 @@ const Dashboard = () => {
                         <Col className="w-full text-end leading-5">Cost:</Col>
                     </Row>
                     <Flex vertical gap={8}>
-                        {filteredProjects.map((e) => (
-                            <ProjectTile data={e} key={e.id} />
-                        ))}
+                        {filteredProjects
+                            .slice(
+                                (pageData.page - 1) * pageData.size,
+                                pageData.page * pageData.size
+                            )
+                            .map((e) => (
+                                <ProjectTile data={e} key={e.id} />
+                            ))}
                         {filteredProjects.length == 0 && (
                             <h2 className="no-projects-found">No projects found</h2>
                         )}
+                    </Flex>
+                    <Flex
+                        justify="flex-end"
+                        className="mt-[12px] px-[24px] py-[16px] min-w-[22px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px] text-end"
+                    >
+                        <Pagination
+                            className="dashboard-pagination"
+                            defaultPageSize={pageData.size}
+                            pageSize={pageData.size}
+                            onChange={(page, size) => setPageData({ page, size })}
+                            pageSizeOptions={[5, 15, 30, 45, 60]}
+                            showSizeChanger
+                            total={filteredProjects.length}
+                            hideOnSinglePage={filteredProjects.length < 11}
+                        />
                     </Flex>
                 </div>
             </Flex>
