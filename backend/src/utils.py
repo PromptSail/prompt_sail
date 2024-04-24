@@ -657,11 +657,13 @@ class ProviderPrice:
     def __init__(
         self,
         model_name: str,
+        provider: str,
         start_date: datetime | str | None,
         match_pattern: str,
         input_price: int | float,
         output_price: int | float,
         total_price: int | float,
+        is_active: bool,
     ) -> None:
         """
         Initialize a ProviderPrice object.
@@ -674,6 +676,7 @@ class ProviderPrice:
         :param total_price: The total price for usage.
         """
         self.model_name = model_name
+        self.provider = provider
         self.start_date = (
             datetime.strptime(start_date, "%Y-%m-%d") if start_date != "" else None
         )
@@ -681,6 +684,7 @@ class ProviderPrice:
         self.input_price = input_price
         self.output_price = output_price
         self.total_price = total_price
+        self.is_active = is_active
 
     def __repr__(self):
         """
@@ -690,7 +694,7 @@ class ProviderPrice:
         """
         return (
             "{"
-            + f"model_name: {self.model_name}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}"
+            + f"model_name: {self.model_name}, provider: {self.provider}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}"
             + "}"
         )
 
