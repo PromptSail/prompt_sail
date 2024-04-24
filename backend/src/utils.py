@@ -227,7 +227,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         ).add_output_tokens(response_content["usage"].get("completion_tokens", 0))
 
     if azure_embeddings_pattern.match(url):
-        transaction_params.add_type("embedding").add_provider("Azure")
+        transaction_params.add_type("embedding").add_provider("Azure OpenAI")
         if isinstance(request_content["input"], list):
             transaction_params.add_prompt(
                 "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
@@ -257,9 +257,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             for message in request_content["messages"]
             if message["role"] == "user"
         ][::-1][0]
-        transaction_params.add_type("completions").add_provider("Azure").add_prompt(
-            prompt if prompt else request_content["messages"][0]["content"]
-        )
+        transaction_params.add_type("completions").add_provider(
+            "Azure OpenAI"
+        ).add_prompt(prompt if prompt else request_content["messages"][0]["content"])
         messages = request_content["messages"]
         if response.__dict__["status_code"] > 200:
             messages.append(
@@ -400,6 +400,9 @@ def token_counter_for_transactions(
                 "model": pairs[pair_idx][1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
                 "status_code": 0,
                 "latency": timedelta(0),
                 "total_transactions": 0,
@@ -414,6 +417,9 @@ def token_counter_for_transactions(
                 "model": pair[1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
                 "status_code": 0,
                 "latency": timedelta(0),
                 "total_transactions": 0,
@@ -432,6 +438,9 @@ def token_counter_for_transactions(
                 "model": "first",
                 "total_input_tokens": "sum",
                 "total_output_tokens": "sum",
+                "total_input_cost": "sum",
+                "total_output_cost": "sum",
+                "total_cost": "sum",
                 "status_code": "sum",
                 "latency": "sum",
                 "total_transactions": "sum",
@@ -451,6 +460,7 @@ def token_counter_for_transactions(
     result["input_cumulative_total"] = result.groupby(["provider", "model"])[
         "total_input_tokens"
     ].cumsum()
+
     data_dicts = result.to_dict(orient="records")
 
     result_list = [
@@ -463,7 +473,7 @@ def token_counter_for_transactions(
             input_cumulative_total=data["input_cumulative_total"],
             output_cumulative_total=data["output_cumulative_total"],
             total_transactions=data["total_transactions"],
-            total_cost=0,
+            total_cost=data["total_cost"],
         )
         for data in data_dicts
     ]
@@ -512,6 +522,9 @@ def status_counter_for_transactions(
             "model": "first",
             "total_input_tokens": "sum",
             "total_output_tokens": "sum",
+            "total_input_cost": "sum",
+            "total_output_cost": "sum",
+            "total_cost": "sum",
             "status_code": [
                 ("status_200", lambda code: (code == 200).sum()),
                 ("status_300", lambda code: (code == 300).sum()),
@@ -585,6 +598,9 @@ def speed_counter_for_transactions(
                 "model": pair[1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
                 "status_code": 0,
                 "latency": timedelta(0),
                 "total_transactions": 0,
@@ -599,6 +615,9 @@ def speed_counter_for_transactions(
                 "model": pair[1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
                 "status_code": 0,
                 "latency": timedelta(0),
                 "total_transactions": 0,
@@ -619,6 +638,9 @@ def speed_counter_for_transactions(
                 "model": "first",
                 "total_input_tokens": "sum",
                 "total_output_tokens": "sum",
+                "total_input_cost": "sum",
+                "total_output_cost": "sum",
+                "total_cost": "sum",
                 "status_code": "first",
                 "latency": "sum",
                 "total_transactions": "sum",
@@ -932,6 +954,9 @@ def read_transactions_from_csv(
                     generation_speed=obj["output_tokens"] / latency.total_seconds()
                     if latency.total_seconds() > 0
                     else 0,
+                    input_cost=None,
+                    output_cost=None,
+                    total_cost=None,
                 )
             )
         else:
@@ -957,6 +982,9 @@ def read_transactions_from_csv(
                     request_time=request_time,
                     response_time=response_time,
                     generation_speed=0,
+                    input_cost=None,
+                    output_cost=None,
+                    total_cost=None,
                 )
             )
     return transactions

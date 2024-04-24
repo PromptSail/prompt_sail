@@ -28,6 +28,9 @@ class Transaction(BaseModel):
     prompt: str
     error_message: str | None
     generation_speed: int | float
+    input_cost: int | float | None
+    output_cost: int | float | None
+    total_cost: int | float | None
     request_time: datetime
     response_time: datetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc)
