@@ -12,19 +12,43 @@ const { Header } = Layout;
 
 const Dashboard = () => {
     const projects = useGetAllProjects();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [filter, _setFilter] = useState('');
+    const [filter, setFilter] = useState('');
     const [pageData, setPageData] = useState({
         page: 1,
         size: 5
     });
-    const filterProjects = (data: getAllProjects) => {
-        return (
-            data.name.includes(filter) ||
-            data.slug.includes(filter) ||
-            data.description.includes(filter) ||
-            data.tags.join(', ').includes(filter)
-        );
+    type range = {
+        start: number | null;
+        end: number | null;
+    };
+    const [isAsc, setAsc] = useState(false);
+    const [sortby, setSortby] = useState<string>('title');
+    const [costRange, setCostRange] = useState<range>({ start: null, end: null });
+    const [transactionsRange, setTransactionsRange] = useState<range>({ start: null, end: null });
+    const inSearch = (data: getAllProjects) => {
+        return data.name.includes(filter) || data.tags.join(', ').includes(filter);
+    };
+    const inCostRange = (data: getAllProjects) => {
+        const { start, end } = costRange;
+        if (start == null || end == null) return true;
+        return data.total_cost >= start && data.total_cost <= end;
+    };
+    const inTransactionsRange = (data: getAllProjects) => {
+        const { start, end } = transactionsRange;
+        if (start == null || end == null) return true;
+        return data.total_transactions >= start && data.total_transactions <= end;
+    };
+    const sortInterpreter = (arg: string, a: getAllProjects, b: getAllProjects) => {
+        switch (arg) {
+            case 'title':
+                return a.name > b.name ? 1 : -1;
+            case 'transactions':
+                return a.total_transactions - b.total_transactions;
+            case 'cost':
+                return a.total_cost - b.total_cost;
+            default:
+                return 0;
+        }
     };
     if (projects.isLoading)
         return (
@@ -40,7 +64,21 @@ const Dashboard = () => {
             </>
         );
     if (projects.isSuccess) {
-        const filteredProjects = projects.data.filter((el) => filterProjects(el));
+        const maxCost = projects.data.reduce(
+            (max, current) => (current.total_cost > max ? current.total_cost : max),
+            0
+        );
+        const maxTransactionsCount = projects.data.reduce(
+            (max, current) => (current.total_transactions > max ? current.total_transactions : max),
+            0
+        );
+        const filteredProjects = projects.data
+            .filter((el) => inSearch(el) && inCostRange(el) && inTransactionsRange(el))
+            .sort((a, b) => {
+                const asc = isAsc ? -1 : 1;
+                return sortInterpreter(sortby, a, b) * asc;
+            })
+            .slice((pageData.page - 1) * pageData.size, pageData.page * pageData.size);
         return (
             <Flex gap={24} vertical>
                 <Header className="w-full min-h-[80px] border-0 border-b border-solid border-[#F0F0F0] relative overflow-hidden">
@@ -65,7 +103,18 @@ const Dashboard = () => {
                     />
                 </Header>
                 <div className="px-[24px] max-w-[1600px] w-full mx-auto">
-                    <FilterDashboard />
+                    <FilterDashboard
+                        costRange={{ ...costRange, max: maxCost }}
+                        transactionsRange={{ ...transactionsRange, max: maxTransactionsCount }}
+                        onSearch={setFilter}
+                        onSortAsc={setAsc}
+                        onSortByChange={setSortby}
+                        onChangeCost={setCostRange}
+                        onChangeTransactions={setTransactionsRange}
+                        onSetOwner={function (): void {
+                            throw new Error('Function not implemented.');
+                        }}
+                    />
                     <Row
                         justify="space-between"
                         className="flex-nowrap gap-[24px] mx-[24px] mt-[8px] mb-[4px]"
@@ -76,14 +125,9 @@ const Dashboard = () => {
                         <Col className="w-full text-end leading-5">Cost:</Col>
                     </Row>
                     <Flex vertical gap={8}>
-                        {filteredProjects
-                            .slice(
-                                (pageData.page - 1) * pageData.size,
-                                pageData.page * pageData.size
-                            )
-                            .map((e) => (
-                                <ProjectTile data={e} key={e.id} />
-                            ))}
+                        {filteredProjects.map((e) => (
+                            <ProjectTile data={e} key={e.id} />
+                        ))}
                         {filteredProjects.length == 0 && (
                             <h2 className="no-projects-found">No projects found</h2>
                         )}

@@ -1,21 +1,29 @@
 import { DownOutlined } from '@ant-design/icons';
 import { Button, ConfigProvider, Flex, Input, Popover, Slider, theme } from 'antd';
-import { CSSProperties, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 
 const { useToken } = theme;
 
 interface Props {
     values: {
-        start: number;
-        end: number;
+        start: number | null;
+        end: number | null;
     };
     min?: number;
     max?: number;
     onChange: (obj: { start: number; end: number }) => void;
     prefix?: string;
+    fixed?: number;
 }
 
-const SelectForm: React.FC<Props> = ({ values, onChange, prefix = '', min = 0, max = 100 }) => {
+const SelectForm: React.FC<Props> = ({
+    values,
+    onChange,
+    prefix = '',
+    min = 0,
+    max = 100,
+    fixed = 1
+}) => {
     const { token } = useToken();
     const [isOpen, setOpen] = useState(false);
     const [display, setDisplay] = useState('');
@@ -23,6 +31,13 @@ const SelectForm: React.FC<Props> = ({ values, onChange, prefix = '', min = 0, m
         border: `1px solid ${token.colorPrimary}`,
         boxShadow: `0 0 0 2px ${token.colorPrimary + '12'}`
     };
+    const step = 1 / 10 ** fixed;
+    const { start, end } = values;
+    const startNull = start == null;
+    const endNull = end == null;
+    useEffect(() => {
+        if (startNull || endNull) setDisplay('');
+    }, [values]);
     return (
         <ConfigProvider wave={{ disabled: true }}>
             <Popover
@@ -33,11 +48,11 @@ const SelectForm: React.FC<Props> = ({ values, onChange, prefix = '', min = 0, m
                         <Slider
                             className="my-0"
                             range
-                            defaultValue={[values.start, values.end]}
+                            defaultValue={[min, max]}
                             min={min}
                             max={max}
-                            value={[values.start, values.end]}
-                            step={max / 100}
+                            value={[startNull ? min : start, endNull ? max : end]}
+                            step={step}
                             onChange={(v) => {
                                 onChange({ start: v[0], end: v[1] });
                                 setDisplay(`${prefix}${v[0]} - ${v[1]}`);
@@ -48,16 +63,18 @@ const SelectForm: React.FC<Props> = ({ values, onChange, prefix = '', min = 0, m
                                 type="number"
                                 min={min}
                                 max={max}
-                                step={max / 100}
-                                value={values.start}
+                                step={step}
+                                defaultValue={min}
+                                value={startNull ? min : start}
                                 onChange={(v) => {
                                     const val = v.target.valueAsNumber;
                                     const min = Number(v.target.min);
-                                    // console.log(val);
                                     if (val >= min || isNaN(val)) {
-                                        onChange({ start: val, end: values.end });
+                                        onChange({ start: val, end: endNull ? max : end });
                                         setDisplay(
-                                            `${prefix}${val || values.start} - ${values.end}`
+                                            `${prefix}${val || startNull ? min : start} - ${
+                                                endNull ? max : end
+                                            }`
                                         );
                                     }
                                 }}
@@ -67,15 +84,17 @@ const SelectForm: React.FC<Props> = ({ values, onChange, prefix = '', min = 0, m
                                 name="rightInput"
                                 min={min}
                                 max={max}
-                                value={values.end}
-                                step={max / 100}
+                                value={endNull ? max : end}
+                                step={step}
                                 onChange={(v) => {
                                     const val = v.target.valueAsNumber;
                                     const max = Number(v.target.max);
                                     if (val <= max) {
-                                        onChange({ start: values.start, end: val });
+                                        onChange({ start: startNull ? min : start, end: val });
                                         setDisplay(
-                                            `${prefix}${values.start} - ${val || values.end}`
+                                            `${prefix}${startNull ? min : start} - ${
+                                                val || endNull ? max : end
+                                            }`
                                         );
                                     }
                                 }}
