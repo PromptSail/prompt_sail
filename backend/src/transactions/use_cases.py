@@ -204,20 +204,23 @@ def store_transaction(
         if item.provider == params["provider"]
         and re.match(item.match_pattern, params["model"])
     ]
-    if len(pricelist) > 0:
-        if pricelist[0].input_price == 0:
-            input_cost, output_cost = 0, 0
-            total_cost = (
-                (params["input_tokens"] + params["output_tokens"])
-                / 1000
-                * pricelist[0].output_price
-            )
+    if params["status_code"] == 200:
+        if len(pricelist) > 0:
+            if pricelist[0].input_price == 0:
+                input_cost, output_cost = 0, 0
+                total_cost = (
+                    (params["input_tokens"] + params["output_tokens"])
+                    / 1000
+                    * pricelist[0].output_price
+                )
+            else:
+                input_cost = pricelist[0].input_price * (params["input_tokens"] / 1000)
+                output_cost = pricelist[0].output_price * (params["output_tokens"] / 1000)
+                total_cost = input_cost + output_cost
         else:
-            input_cost = pricelist[0].input_price * (params["input_tokens"] / 1000)
-            output_cost = pricelist[0].output_price * (params["output_tokens"] / 1000)
-            total_cost = input_cost + output_cost
+            input_cost, output_cost, total_cost = None, None, None
     else:
-        input_cost, output_cost, total_cost = None, None, None
+        input_cost, output_cost, total_cost = 0, 0, 0
 
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response
