@@ -58,7 +58,7 @@ const Transaction: React.FC = () => {
             },
             {
                 label: 'Cost',
-                children: `$ ${data.total_cost.toFixed(4)}`
+                children: data.total_cost !== null ? `$ ${data.total_cost.toFixed(4)}` : 'null'
             },
             {
                 label: 'Api base',
