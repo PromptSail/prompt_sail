@@ -17,8 +17,8 @@ class Config(BaseSettings):
     BUILD_SHA: str = "unknown"
     TEMPLATES_DIRECTORY: str = str((BASE_DIR / Path("web/templates")).resolve())
     STATIC_DIRECTORY: str = str((BASE_DIR / Path("../static")).resolve())
-    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", None)
-    AZURE_CLIENT_ID: str = os.getenv("AZURE_CLIENT_ID", None)
+    GOOGLE_CLIENT_ID: str | None = os.getenv("GOOGLE_CLIENT_ID", None)
+    AZURE_CLIENT_ID: str | None = os.getenv("AZURE_CLIENT_ID", None)
 
 
 config = Config()
