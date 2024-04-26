@@ -1,5 +1,5 @@
 import { Flex, Typography, Layout, Button, Row, Col, Pagination } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getAllProjects } from '../../api/interfaces';
 import { useGetAllProjects } from '../../api/queries';
 import { PlusSquareOutlined } from '@ant-design/icons';
@@ -7,7 +7,7 @@ import outline from './../../assets/logo/symbol-teal-outline.svg';
 import FilterDashboard from './FilterDashboard';
 import ProjectTile from '../../components/ProjectTile/ProjectTile';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Header } = Layout;
 
 const Dashboard = () => {
@@ -17,6 +17,8 @@ const Dashboard = () => {
         page: 1,
         size: 5
     });
+    const [paginationInfo, setPaginationInfo] = useState('');
+    const [filteredProjects, setFilteredProjects] = useState<getAllProjects[]>([]);
     type range = {
         start: number | null;
         end: number | null;
@@ -50,6 +52,23 @@ const Dashboard = () => {
                 return 0;
         }
     };
+    useEffect(() => {
+        if (projects.isSuccess) {
+            const filteredData = projects.data
+                .filter((el) => inSearch(el) && inCostRange(el) && inTransactionsRange(el))
+                .sort((a, b) => {
+                    const asc = isAsc ? -1 : 1;
+                    return sortInterpreter(sortby, a, b) * asc;
+                })
+                .slice((pageData.page - 1) * pageData.size, pageData.page * pageData.size);
+            setFilteredProjects(filteredData);
+            setPaginationInfo(
+                `Showing ${(pageData.page - 1) * pageData.size}-${
+                    pageData.page * pageData.size
+                } of ${filteredData.length}`
+            );
+        }
+    }, [projects.status, pageData, costRange, transactionsRange]);
     if (projects.isLoading)
         return (
             <>
@@ -72,13 +91,6 @@ const Dashboard = () => {
             (max, current) => (current.total_transactions > max ? current.total_transactions : max),
             0
         );
-        const filteredProjects = projects.data
-            .filter((el) => inSearch(el) && inCostRange(el) && inTransactionsRange(el))
-            .sort((a, b) => {
-                const asc = isAsc ? -1 : 1;
-                return sortInterpreter(sortby, a, b) * asc;
-            })
-            .slice((pageData.page - 1) * pageData.size, pageData.page * pageData.size);
         return (
             <Flex gap={24} vertical>
                 <Header className="w-full min-h-[80px] border-0 border-b border-solid border-[#F0F0F0] relative overflow-hidden">
@@ -105,7 +117,10 @@ const Dashboard = () => {
                 <div className="px-[24px] max-w-[1600px] w-full mx-auto">
                     <FilterDashboard
                         costRange={{ ...costRange, max: maxCost }}
-                        transactionsRange={{ ...transactionsRange, max: maxTransactionsCount }}
+                        transactionsRange={{
+                            ...transactionsRange,
+                            max: maxTransactionsCount
+                        }}
                         onSearch={setFilter}
                         onSortAsc={setAsc}
                         onSortByChange={setSortby}
@@ -134,8 +149,10 @@ const Dashboard = () => {
                     </Flex>
                     <Flex
                         justify="flex-end"
+                        gap={10}
                         className="mt-[12px] px-[24px] py-[16px] min-w-[22px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px] text-end"
                     >
+                        <Text className="my-auto">{paginationInfo}</Text>
                         <Pagination
                             className="dashboard-pagination"
                             defaultPageSize={pageData.size}
