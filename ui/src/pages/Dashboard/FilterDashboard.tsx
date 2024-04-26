@@ -30,7 +30,7 @@ const FilterDashboard: React.FC<Props> = ({
     onChangeCost,
     onChangeTransactions
 }) => {
-    const [isAsc, setAsc] = useState(true);
+    const [isAsc, setAsc] = useState(false);
     const [owner, setOwner] = useState<string | null>(null);
     const [isClearActive, setClear] = useState(false);
     useEffect(() => {

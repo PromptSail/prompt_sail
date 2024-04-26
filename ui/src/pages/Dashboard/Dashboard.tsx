@@ -57,7 +57,7 @@ const Dashboard = () => {
             const filteredData = projects.data
                 .filter((el) => inSearch(el) && inCostRange(el) && inTransactionsRange(el))
                 .sort((a, b) => {
-                    const asc = isAsc ? -1 : 1;
+                    const asc = isAsc ? 1 : -1;
                     return sortInterpreter(sortby, a, b) * asc;
                 })
                 .slice((pageData.page - 1) * pageData.size, pageData.page * pageData.size);
@@ -68,7 +68,7 @@ const Dashboard = () => {
                 } of ${filteredData.length}`
             );
         }
-    }, [projects.status, pageData, costRange, transactionsRange]);
+    }, [projects.status, pageData, costRange, transactionsRange, isAsc, sortby]);
     if (projects.isLoading)
         return (
             <>
