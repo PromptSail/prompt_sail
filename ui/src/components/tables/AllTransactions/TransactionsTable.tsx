@@ -105,7 +105,10 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }
                             aiProvider: tr.provider,
                             model: tr.model,
                             tags: <TagsContainer tags={tr.tags} />,
-                            cost: tr.status_code < 300 ? `$ ${tr.total_cost.toFixed(4)}` : 'null',
+                            cost:
+                                tr.total_cost !== null && tr.status_code < 300
+                                    ? `$ ${tr.total_cost.toFixed(4)}`
+                                    : 'null',
                             tokens:
                                 tr.status_code < 300 ? (
                                     <span>
