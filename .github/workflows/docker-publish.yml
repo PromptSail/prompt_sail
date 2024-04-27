@@ -184,8 +184,6 @@ jobs:
 
 
 
-
-
   build-publish-ui-image:
 
     runs-on: ubuntu-latest
@@ -214,7 +212,7 @@ jobs:
       - name: Use RELEASE_TAG
         run: echo "RELEASE_TAG is ${{ env.RELEASE_TAG }}"
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
 
       # Install the cosign tool except on PR
@@ -224,6 +222,10 @@ jobs:
         uses: sigstore/cosign-installer@6e04d228eb30da1757ee4e1dd75a0ec73a653e06 #v3.1.1
         with:
           cosign-release: 'v2.1.1'
+
+      # Set up QEMU for cross-platform builds -> https://docs.docker.com/build/ci/github-actions/multi-platform/
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -257,11 +259,11 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5 # v5.0.0
         with:
+          platforms: linux/amd64,linux/arm64
           context: ./ui
           file: ./ui/Dockerfile
           push: true
           tags: |
-
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name || env.RELEASE_TAG }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ env.RELEASE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
