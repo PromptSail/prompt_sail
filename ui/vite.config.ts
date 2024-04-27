@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
             proxy: createProxy(env.BACKEND_URL)
         },
         define: {
-            'import.meta.env.BACKEND_URL': new String(env.BACKEND_URL)
+            'import.meta.env.PROXY_URL_HOST': new String(env.PROXY_URL_HOST)
         }
     };
 });

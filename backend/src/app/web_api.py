@@ -113,54 +113,23 @@ async def get_projects(
 
 @app.get("/api/projects/{project_id}", response_class=JSONResponse, status_code=200)
 async def get_project_details(
-    request: Request,
     project_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> GetProjectSchema:
     """
     API endpoint to retrieve details about a specific project.
 
-    :param request: The incoming request.
     :param project_id: The identifier of the project.
     :param ctx: The transaction context dependency.
     :return: A GetProjectSchema object representing the project details.
     """
     project = ctx.call(get_project, project_id=project_id)
-    pricelist = get_provider_pricelist(request)
     transactions = ctx.call(get_transactions_for_project, project_id=project_id)
     cost = 0
     transaction_count = ctx.call(count_transactions, project_id=project_id)
     if transaction_count > 0:
         for transaction in transactions:
-            price = [
-                price
-                for price in pricelist
-                if re.match(price.match_pattern, transaction.model)
-            ]
-            if len(price) > 0:
-                price = price[0]
-                if price.total_price > 0:
-                    cost += (
-                        (
-                            (transaction.input_tokens / 1000)
-                            + (transaction.output_tokens / 1000)
-                        )
-                        * price.total_price
-                        if transaction.input_tokens > 0
-                        and transaction.output_tokens > 0
-                        else 0
-                    )
-                else:
-                    cost += (
-                        (transaction.input_tokens / 1000) * price.input_price
-                        if transaction.input_tokens > 0 and price.input_price > 0
-                        else 0
-                    )
-                    cost += (
-                        (transaction.output_tokens / 1000) * price.output_price
-                        if transaction.output_tokens > 0 and price.output_price > 0
-                        else 0
-                    )
+            cost += transaction.total_cost if transaction.total_cost else 0
 
     project = GetProjectSchema(
         **project.model_dump(), total_transactions=transaction_count, total_cost=cost
@@ -242,62 +211,26 @@ async def delete_existing_project(
     "/api/transactions/{transaction_id}", response_class=JSONResponse, status_code=200
 )
 async def get_transaction_details(
-    request: Request,
     transaction_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> GetTransactionWithProjectSlugSchema:
     """
     API endpoint to retrieve details of a specific transaction.
 
-    :param request: The incoming request.
     :param transaction_id: The identifier of the transaction.
     :param ctx: The transaction context dependency.
     """
-    price_list = get_provider_pricelist(request)
     transaction = ctx.call(get_transaction, transaction_id=transaction_id)
-    price = [
-        price
-        for price in price_list
-        if re.match(price.match_pattern, transaction.model)
-    ]
-    if len(price) > 0:
-        price = price[0]
-        if price.total_price > 0:
-            input_cost, output_cost = 0, 0
-            total_cost = (
-                ((transaction.input_tokens / 1000) + (transaction.output_tokens / 1000))
-                * price.total_price
-                if transaction.input_tokens > 0 and transaction.output_tokens > 0
-                else 0
-            )
-        else:
-            input_cost = (
-                (transaction.input_tokens / 1000) * price.input_price
-                if transaction.input_tokens > 0 and price.input_price > 0
-                else 0
-            )
-            output_cost = (
-                (transaction.output_tokens / 1000) * price.output_price
-                if transaction.output_tokens > 0 and price.output_price > 0
-                else 0
-            )
-            total_cost = input_cost + output_cost
-    else:
-        input_cost, output_cost, total_cost = 0, 0, 0
     project = ctx.call(get_project, project_id=transaction.project_id)
     transaction = GetTransactionWithProjectSlugSchema(
         **transaction.model_dump(),
         project_name=project.name,
-        input_cost=input_cost,
-        output_cost=output_cost,
-        total_cost=total_cost,
     )
     return transaction
 
 
 @app.get("/api/transactions", response_class=JSONResponse, status_code=200)
 async def get_paginated_transactions(
-    request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     page: int = 1,
     page_size: int = 20,
@@ -311,7 +244,6 @@ async def get_paginated_transactions(
     """
     API endpoint to retrieve a paginated list of transactions based on specified filters.
 
-    :param request: The incoming request.
     :param ctx: The transaction context dependency.
     :param page: The page number for pagination.
     :param page_size: The number of transactions per page.
@@ -337,50 +269,14 @@ async def get_paginated_transactions(
         sort_type=sort_type,
     )
 
-    price_list = get_provider_pricelist(request)
     projects = ctx.call(get_all_projects)
     project_id_name_map = {project.id: project.name for project in projects}
     new_transactions = []
     for transaction in transactions:
-        price = [
-            price
-            for price in price_list
-            if re.match(price.match_pattern, transaction.model)
-        ]
-        if len(price) > 0:
-            price = price[0]
-            if price.total_price > 0:
-                input_cost, output_cost = 0, 0
-                total_cost = (
-                    (
-                        (transaction.input_tokens / 1000)
-                        + (transaction.output_tokens / 1000)
-                    )
-                    * price.total_price
-                    if transaction.input_tokens > 0 and transaction.output_tokens > 0
-                    else 0
-                )
-            else:
-                input_cost = (
-                    (transaction.input_tokens / 1000) * price.input_price
-                    if transaction.input_tokens > 0 and price.input_price > 0
-                    else 0
-                )
-                output_cost = (
-                    (transaction.output_tokens / 1000) * price.output_price
-                    if transaction.output_tokens > 0 and price.output_price > 0
-                    else 0
-                )
-                total_cost = input_cost + output_cost
-        else:
-            input_cost, output_cost, total_cost = 0, 0, 0
         new_transactions.append(
             GetTransactionWithProjectSlugSchema(
                 **transaction.model_dump(),
                 project_name=project_id_name_map.get(transaction.project_id, None),
-                input_cost=input_cost,
-                output_cost=output_cost,
-                total_cost=total_cost,
             )
         )
 
@@ -403,7 +299,6 @@ async def get_paginated_transactions(
 
 @app.get("/api/statistics/transactions_cost", response_class=JSONResponse)
 async def get_transaction_usage_statistics_over_time(
-    request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
     date_from: datetime | str | None = None,
@@ -418,7 +313,6 @@ async def get_transaction_usage_statistics_over_time(
     including total input tokens, total output tokens, cumulative input tokens, cumulative output tokens as well as
     total cost calculated based on cumulative values for the best possible representation of costs over time.\n
 
-    :param request: The FastAPI Request object (automatically applied).\n
     :param ctx: The transaction context, providing access to dependencies (automatically applied).\n
     :param project_id: The unique identifier of the project.\n
     :param date_from: Starting point of the time interval (optional - when empty, then the scope is counted from the
@@ -457,6 +351,9 @@ async def get_transaction_usage_statistics_over_time(
             model=transaction.model,
             total_input_tokens=transaction.input_tokens or 0,
             total_output_tokens=transaction.output_tokens or 0,
+            total_input_cost=transaction.input_cost or 0,
+            total_output_cost=transaction.output_cost or 0,
+            total_cost=transaction.total_cost or 0,
             status_code=transaction.status_code,
             date=transaction.response_time,
             latency=(
@@ -470,30 +367,9 @@ async def get_transaction_usage_statistics_over_time(
     stats = utils.token_counter_for_transactions(
         transactions, period, date_from, date_to
     )
-    pricelist = get_provider_pricelist(request)
     dates = []
     for stat in stats:
         dates.append(stat.date)
-        possible_prices = [
-            price for price in pricelist if re.match(price.match_pattern, stat.model)
-        ]
-        if len(possible_prices) > 0:
-            # TODO: Counting by date instead of by lastest
-            lastest = max(
-                possible_prices,
-                key=lambda x: x.start_date if x.start_date else datetime.min,
-            )
-            if lastest.input_price > 0 and lastest.output_price > 0:
-                stat.total_cost += (
-                    stat.input_cumulative_total / 1000
-                ) * lastest.input_price
-                stat.total_cost += (
-                    stat.output_cumulative_total / 1000
-                ) * lastest.output_price
-            else:
-                stat.total_cost = (
-                    (stat.input_cumulative_total + stat.output_cumulative_total) / 1000
-                ) * lastest.total_price
     new_stats = []
     for date in set(dates):
         for_date = []
@@ -569,6 +445,9 @@ async def get_transaction_status_statistics_over_time(
             model=transaction.model,
             total_input_tokens=transaction.input_tokens or 0,
             total_output_tokens=transaction.output_tokens or 0,
+            total_input_cost=transaction.input_cost or 0,
+            total_output_cost=transaction.output_cost or 0,
+            total_cost=transaction.total_cost or 0,
             status_code=transaction.status_code,
             date=transaction.response_time,
             latency=(
@@ -636,6 +515,9 @@ async def get_transaction_latency_statistics_over_time(
             model=transaction.model,
             total_input_tokens=transaction.input_tokens or 0,
             total_output_tokens=transaction.output_tokens or 0,
+            total_input_cost=transaction.input_cost or 0,
+            total_output_cost=transaction.output_cost or 0,
+            total_cost=transaction.total_cost or 0,
             status_code=transaction.status_code,
             date=transaction.response_time,
             latency=(
@@ -680,7 +562,9 @@ async def fetch_provider_pricelist(request: Request) -> list[GetAIProviderPriceS
 
     :param request: The incoming request.
     """
-    price_list = get_provider_pricelist(request)
+    price_list = [
+        price for price in get_provider_pricelist(request) if price.is_active is True
+    ]
     return [GetAIProviderPriceSchema(**price.__dict__) for price in price_list]
 
 

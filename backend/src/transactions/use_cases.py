@@ -1,4 +1,5 @@
 import json
+import re
 
 from _datetime import datetime, timezone
 from transactions.models import Transaction
@@ -145,6 +146,7 @@ def store_transaction(
     project_id,
     tags,
     ai_model_version,
+    pricelist,
     request_time,
     transaction_repository: TransactionRepository,
 ):
@@ -158,6 +160,7 @@ def store_transaction(
     :param tags: The tags associated with the transaction.
     :param request_time: The timestamp of the request.
     :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
+    :param pricelist: The pricelist for the models.
     :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
     :return: None
     """
@@ -194,6 +197,30 @@ def store_transaction(
         )
 
     params = req_resp_to_transaction_parser(request, response, response_content)
+
+    pricelist = [
+        item
+        for item in pricelist
+        if item.provider == params["provider"]
+        and re.match(item.match_pattern, params["model"])
+    ]
+    if params["status_code"] == 200:
+        if len(pricelist) > 0:
+            if pricelist[0].input_price == 0:
+                input_cost, output_cost = 0, 0
+                total_cost = (
+                    (params["input_tokens"] + params["output_tokens"])
+                    / 1000
+                    * pricelist[0].output_price
+                )
+            else:
+                input_cost = pricelist[0].input_price * (params["input_tokens"] / 1000)
+                output_cost = pricelist[0].output_price * (params["output_tokens"] / 1000)
+                total_cost = input_cost + output_cost
+        else:
+            input_cost, output_cost, total_cost = None, None, None
+    else:
+        input_cost, output_cost, total_cost = 0, 0, 0
 
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response
@@ -234,6 +261,9 @@ def store_transaction(
         messages=params["messages"],
         last_message=params["last_message"],
         error_message=params["error_message"],
+        input_cost=input_cost,
+        output_cost=output_cost,
+        total_cost=total_cost,
         request_time=request_time,
         generation_speed=params["output_tokens"]
         / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
