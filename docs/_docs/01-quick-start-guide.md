@@ -1,7 +1,7 @@
 ---
 title: "Quick Start Guide"
 permalink: /docs/quick-start-guide/
-excerpt: "How to incorporate Prompt Sail into your LLM workflo"
+excerpt: "How build docker images and run Prompt Sail on your local machine and make your first API call."
 last_modified_at: 2023-12-28T15:18:35+01:00
 redirect_from:
   - /theme-setup/
@@ -12,7 +12,7 @@ toc: true
 
 
 
-## Run the Prompt Sail Docker images on your local machine
+## Run Prompt Sail on your local machine
 
 Prompt Sail is build as a set of docker containers. One for backend (promptsail-backend) and one for frontend (promptsail-ui).
 
@@ -20,7 +20,11 @@ Prompt Sail is build as a set of docker containers. One for backend (promptsail-
 - **promptsail-ui** is a user interface that allows you to view, search and analyze prompts and responses.
 
 
-There are two options to run the Prompt Sail docker containers: build the images from the source code or pull the images from Docker Hub.
+There are two options to run the Prompt Sail docker containers: 
+* build the images from the source code or 
+* pull the images from Github Container Repository (ghcr.io).
+
+
 
 ### Build the Docker images from the source code
 
@@ -39,19 +43,28 @@ cd prompt_sail
 Build the Docker images. It will build the images for backend and UI and pull mongodb and mongo-express images from Docker Hub.
 
 ```bash
-docker-compose up --build
+docker-compose -f docker-compose-build.yml up --build
 ```
 
 
-### Pull and run the Docker images from Docker Hub
+### Pull and run the Docker images from GHCR.io
 
 
-**Notice:** Currently, the docker image is not available on Docker Hub. Command below will not work yet.
-{: .notice--warning}
+This will pull the images from the [GitHub Container Registry](https://github.com/orgs/PromptSail/packages?repo_name=prompt_sail)
+
+The prepared docker-compose file will pull images with latest tags:
+
+* [prompt_sail-backend](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-backend)
+* [prompt_sail-ui](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-ui)
+* [mongo](https://hub.docker.com/_/mongo)
+* [mongo-express](https://hub.docker.com/_/mongo-express)
 
 ```bash
-docker run prompt-sail
+docker-compose -f docker-compose.yml up
 ``` 
+
+All the environment variables are set in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml)
+
 
 ### Check that the Docker containers are running
 
