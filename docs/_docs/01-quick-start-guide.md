@@ -67,7 +67,6 @@ docker-compose -f docker-compose.yml up
 
 If you want to run the dev version of the images, you can pull the `dev-release` tag insted of `latest`. More on image tagging strategy you will find at [deployment - docker image tagging stratedy](/docs/image-tagging-strategy/) section.
 
-```bash
 
 All the environment variables are set to default and non-production deployment in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) it is recommended to change them to your own values. 
 
