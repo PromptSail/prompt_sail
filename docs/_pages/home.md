@@ -7,7 +7,7 @@ header:
     overlay_filter: "0.3 0.1"
     overlay_image: /assets/images/home-page-feature-bckg.png
     actions:
-        - label: "<i class="fa-solid fa-code"></i> Try now"
+        - label: "<i class='fas fa-download'></i> Pull now"
           url: "/docs/quick-start-guide/"
 excerpt: >
     LLM's proxy for prompt and response governance, monitoring, and cost analysis.<br />
