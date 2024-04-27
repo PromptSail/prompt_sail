@@ -13,7 +13,7 @@ toc: true
 ## What is Prompt Sail?
 
 
-Prompt Sail is a self-hosted application that captures and logs all interactions with LLM APIs such as OpenAI, Cohere, and others. It is a proxy between your framework of choice (LangChain, OpenAI etc) and LLM provider API. 
+Is a self-hosted application that captures and logs all interactions with LLM APIs such as OpenAI, Anthropic, Google Gemini and others. It is a proxy between your framework of choice (LangChain, OpenAI etc) and LLM provider API. 
 
 For **developers**, it offers a way to analyze and optimize API prompts. 
 
@@ -21,26 +21,24 @@ For **Project managers** can gain insights into project and experiment costs.
 
 For **Business owners** can ensure compliance with regulations and maintain governance over prompts and responses.
 
-## Key Features
 
-1. **Transparent Logging** 
-It captures and logs all interactions with LLM APIs, providing a comprehensive record of prompts and responses.
+## How does it work?
 
-2. **Optimization and Analysis**
-By providing a concise and detailed view of all interactions, developers can analyze and refine their prompts.
+Prompt Sail is build as a set of docker containers. One for backend (promptsail-backend) and one for frontend (promptsail-ui).
 
-3. **Cost Insights** 
-Project managers can track and analyze the costs associated with each project and experiment, enabling better budget management.
+- **promptsail-backend** is a proxy that sits between your LLM framework of choice (LangChain, OpenAI python lib etc) and LLM provider API. You change `api_base` to point to Prompt Sail `proxy_url` and then it will captures and logs all your prompts and responses. 
+- **promptsail-ui** is a user interface that allows you to view, search and analyze all transactions (prompts and responses).
 
-4. **Compliance and Governance**
-Empowers business owners to maintain control over instructions, chat messages, and other interactions with LLM APIs. This enables the implementation of standards and policies, identification of misuse, and detection of non-compliant content.
 
-5. **Easy Integration** 
-Prompt Sail seamlessly integrates into your workflow and used libraries. Just modify the `base_url` parameter when creating your provider API object.
+There are two options to run the Prompt Sail docker containers: 
+* [build the images from the source code](docs/quick-start-guide/#build-the-docker-images-from-the-source-code) or 
+* [pull the images from Github Container Repository (ghcr.io)](docs/quick-start-guide/#pull-and-run-the-docker-images-from-ghcr).
 
-6. **Searchable Database**
-All prompts and responses are stored in a MongoDB, making finding and analyzing specific interactions easy. You can export the data for further analysis.
 
-7. **User-Friendly Interface**
-Simple and intuitive UI lets you easily view and filter your transactions (prompts and responses) by project, API provider, LLM model, or tags.
+In the next page you will:
+
+* learn how to run Prompt Sail on your local machine
+* make your first API call to OpenAI
+
+
 

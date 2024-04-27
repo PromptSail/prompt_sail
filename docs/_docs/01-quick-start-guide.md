@@ -47,7 +47,7 @@ docker-compose -f docker-compose-build.yml up --build
 ```
 
 
-### Pull and run the Docker images from GHCR.io
+### Pull and run the Docker images from GHCR
 
 
 This will pull the images from the [GitHub Container Registry](https://github.com/orgs/PromptSail/packages?repo_name=prompt_sail)
