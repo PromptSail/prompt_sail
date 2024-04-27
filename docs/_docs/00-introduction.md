@@ -31,8 +31,8 @@ Prompt Sail is build as a set of docker containers. One for backend (promptsail-
 
 
 There are two options to run the Prompt Sail docker containers: 
-* [build the images from the source code](docs/quick-start-guide/#build-the-docker-images-from-the-source-code) or 
-* [pull the images from Github Container Repository (ghcr.io)](docs/quick-start-guide/#pull-and-run-the-docker-images-from-ghcr).
+* [build the images from the source code](/docs/quick-start-guide/#build-the-docker-images-from-the-source-code) or 
+* [pull the images from Github Container Repository (ghcr.io)](/docs/quick-start-guide/#pull-and-run-the-docker-images-from-ghcr).
 
 
 In the next page you will:
