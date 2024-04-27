@@ -95,11 +95,11 @@ jobs:
       - name: Set RELEASE_TAG based on branch name and release tag
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "RELEASE_TAG=release_candidate" >> $GITHUB_ENV
+            echo "RELEASE_TAG=release-candidate" >> $GITHUB_ENV
           elif [[ "${{ github.event.release.tag_name }}" != "" ]]; then
             echo "RELEASE_TAG=latest" >> $GITHUB_ENV
           else
-            echo "RELEASE_TAG=non-release" >> $GITHUB_ENV
+            echo "RELEASE_TAG=dev-release" >> $GITHUB_ENV
           fi
     
       - name: Use RELEASE_TAG
@@ -153,8 +153,8 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.run_number }}
+            # ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
+            # ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.run_number }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.event.release.tag_name || env.RELEASE_TAG }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_BACKEND }}:${{ env.RELEASE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -198,11 +198,11 @@ jobs:
       - name: Set RELEASE_TAG based on branch name and release tag
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "RELEASE_TAG=release_candidate" >> $GITHUB_ENV
+            echo "RELEASE_TAG=release-candidate" >> $GITHUB_ENV
           elif [[ "${{ github.event.release.tag_name }}" != "" ]]; then
             echo "RELEASE_TAG=latest" >> $GITHUB_ENV
           else
-            echo "RELEASE_TAG=non-release" >> $GITHUB_ENV
+            echo "RELEASE_TAG=dev-release" >> $GITHUB_ENV
           fi
     
       - name: Use RELEASE_TAG
@@ -254,8 +254,8 @@ jobs:
           push: true
   
           tags: |
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.sha }}
-            ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.run_number }}
+            # ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.sha }}
+            # ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.run_number }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ github.event.release.tag_name || env.RELEASE_TAG }}
             ${{ env.IMAGE_URI }}/${{ env.IMAGE_NAME_UI }}:${{ env.RELEASE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
