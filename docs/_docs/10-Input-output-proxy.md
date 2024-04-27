@@ -12,9 +12,16 @@ toc: true
 
 ## Input/output proxy
 
-Prompt Sail stores transactions by acting as a proxy for libraries and capturing the request and response data. This is done in the **store_transaction** function in the **src\transactions\use_cases.py** file.
+Prompt Sail stores transactions by acting as a proxy for libraries and capturing the request and response data. 
 
-All the magic happens thanks to properly prepared **api_base** (aka **proxy_url**) with points to the  prompt sail backend as a proxy
+All the magic happens when you replace **api_base**(or similar parameter) which originaly points to your LLM provider endpoint by ours **proxy_url**. Thanks to this substitution we can bypass your request and grab response transparently. 
+
+
+Before you start using Prompt Sail as a proxy, you need to configure the `project` and add `ai-providers` via UI, those information  eventaully will be used to create your unique **proxy_url**.
+
+In one project you can have multiple AI deployments, each with its own **proxy_url**.
+
+
 
 ### The **proxy_url** structure is as follows:
 

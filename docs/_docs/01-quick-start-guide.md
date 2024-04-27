@@ -16,20 +16,20 @@ toc: true
 
 Prompt Sail is build as a set of docker containers. One for backend (promptsail-backend) and one for frontend (promptsail-ui).
 
-- **promptsail-backend** is a proxy that sits between your LLM framework of choice (LangChain, OpenAI python lib etc) and LLM provider API. It captures and logs all prompts and responses. 
-- **promptsail-ui** is a user interface that allows you to view, search and analyze prompts and responses.
+- **promptsail-backend** is a proxy that sits between your LLM framework of choice (LangChain, OpenAI python lib etc) and LLM provider API. You change `api_base` to point to Prompt Sail `proxy_url` and then it will captures and logs all your prompts and responses. 
+- **promptsail-ui** is a user interface that allows you to view, search and analyze all transactions (prompts and responses).
 
 
 There are two options to run the Prompt Sail docker containers: 
-* build the images from the source code or 
-* pull the images from Github Container Repository (ghcr.io).
+* [build the images from the source code](#build-the-docker-images-from-the-source-code) or 
+* [pull the images from Github Container Repository (ghcr.io)](#pull-and-run-the-docker-images-from-ghcr).
 
 
 
 ### Build the Docker images from the source code
 
 
-Building from source will give the latest version of the code with the latest features, however, you could encounter uncatched bugs.  
+Building from source will give you the latest version of the code with the newest features. However, please note that there might be uncaught bugs that could affect the stability of the application.
 {: .notice--warning}
 
 
@@ -40,8 +40,8 @@ git clone https://github.com/PromptSail/prompt_sail.git
 cd prompt_sail
 ``` 
 
-Build the Docker images. It will build the images for backend and UI and pull mongodb and mongo-express images from Docker Hub.
-
+To build the Docker images, execute the following command. This will build the images for the backend and UI, and pull the MongoDB and Mongo Express images from Docker Hub.
+All environment variables are set for you, but you can change them. 
 ```bash
 docker-compose -f docker-compose-build.yml up --build
 ```
@@ -53,12 +53,11 @@ Pulling the images from GHCR will give you the latest stable version of the code
 {: .notice--warning}
 
 
-This will pull the images from the [GitHub Container Registry](https://github.com/orgs/PromptSail/packages?repo_name=prompt_sail)
 
-The prepared docker-compose file will pull images with latest tags:
+The prepared docker-compose file will pull Prompt Sail (backend,ui) images from [GitHub Container Registry](https://github.com/orgs/PromptSail/packages?repo_name=prompt_sail) with `latest` tags, also it will pull the latest mongo and mongo-express images from Docker Hub:
 
-* [prompt_sail-backend](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-backend)
-* [prompt_sail-ui](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-ui)
+* [prompt_sail-backend ](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-backend)(ghcr.io package)
+* [prompt_sail-ui](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-ui)(ghcr.io package)
 * [mongo](https://hub.docker.com/_/mongo)
 * [mongo-express](https://hub.docker.com/_/mongo-express)
 
@@ -66,7 +65,12 @@ The prepared docker-compose file will pull images with latest tags:
 docker-compose -f docker-compose.yml up
 ``` 
 
-All the environment variables are set in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml)
+If you want to run the dev version of the images, you can pull the `dev-release` tag insted of `latest`. More on image tagging strategy you will find at [deployment - docker image tagging stratedy](/docs/image-tagging-strategy/) section.
+
+```bash
+
+All the environment variables are set to default and non-production deployment in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) it is recommended to change them to your own values. 
+
 
 
 ### Check that the Docker containers are running

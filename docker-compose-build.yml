@@ -29,12 +29,16 @@ services:
         condition: service_healthy
     
   promptsail-backend:
-    image: ghcr.io/promptsail/promptsail-backend:latest
     container_name: promptsail-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - BUILD_SHA
     ports:
       - "8000:8000"
     environment:
-      BASE_URL: "http://localhost:8000"
+      BASE_URL: "http://promptsail.local"
       STATIC_DIRECTORY: "/static"
       MONGO_URL: "mongodb://root:password@mongodb:27017"
       ORGANIZATION_NAME: "Default"
@@ -43,8 +47,10 @@ services:
       mongodb:
         condition: service_healthy
   promptsail-ui:
-    image: ghcr.io/promptsail/promptsail-ui:latest
     container_name: promptsail-ui
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
     ports:
       - "80:80"
     depends_on:

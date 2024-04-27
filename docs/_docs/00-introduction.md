@@ -24,10 +24,10 @@ For **Business owners** can ensure compliance with regulations and maintain gove
 
 ## How does it work?
 
-Prompt Sail is build as a set of docker containers. One for backend (promptsail-backend) and one for frontend (promptsail-ui).
+Prompt Sail is built as a set of Docker containers: one for the backend (promptsail-backend) and one for the frontend (promptsail-ui).
 
-- **promptsail-backend** is a proxy that sits between your LLM framework of choice (LangChain, OpenAI python lib etc) and LLM provider API. You change `api_base` to point to Prompt Sail `proxy_url` and then it will captures and logs all your prompts and responses. 
-- **promptsail-ui** is a user interface that allows you to view, search and analyze all transactions (prompts and responses).
+- **promptsail-backend** acts as a proxy between your chosen LLM framework (such as LangChain or the OpenAI Python library) and the LLM provider API. By changing the `api_base` to point to Prompt Sail's `proxy_url`, it captures and logs all prompts and responses.
+- **promptsail-ui** provides a user interface for viewing, searching, and analyzing all transactions (prompts and responses).
 
 
 There are two options to run the Prompt Sail docker containers: 
