@@ -29,8 +29,8 @@ There are two options to run the Prompt Sail docker containers:
 ### Build the Docker images from the source code
 
 
-Recommmened way is to build the Docker image from the source code via `docker-compose`.
-{: .notice--success}
+Building from source will give the latest version of the code with the latest features, however, you could encounter uncatched bugs.  
+{: .notice--warning}
 
 
 Clone the repository from GitHub.
@@ -48,6 +48,9 @@ docker-compose -f docker-compose-build.yml up --build
 
 
 ### Pull and run the Docker images from GHCR
+
+Pulling the images from GHCR will give you the latest stable version of the code, however, you will not have the latest features.  
+{: .notice--warning}
 
 
 This will pull the images from the [GitHub Container Registry](https://github.com/orgs/PromptSail/packages?repo_name=prompt_sail)
