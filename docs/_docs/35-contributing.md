@@ -1,7 +1,7 @@
 ---
 title: "Contributing Guidelines"
 permalink: /docs/contributing/
-excerpt: "How to contribute to Prompt Sail"
+excerpt: "General guidelines for contributing to Prompt Sail."
 last_modified_at: 2024-04-27T11:48:35+01:00
 redirect_from:
   - /theme-setup/

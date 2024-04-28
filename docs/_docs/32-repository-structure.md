@@ -1,7 +1,7 @@
 ---
 title: "Repository structure"
 permalink: /docs/repository-structure/
-excerpt: "How to contribute to Prompt Sail"
+excerpt: "How the repository is organized."
 last_modified_at: 2023-12-22T18:48:35+01:00
 redirect_from:
   - /theme-setup/
@@ -12,12 +12,8 @@ toc: true
 
 
 
-TODO: Please add a screenshot of the GitHub repository structure to provide a visual representation of the project organization.{: .notice--warning}
-
-
-
-
-
+TODO: Please add a screenshot of the GitHub repository structure to provide a visual representation of the project organization.
+{: .notice--warning}
 
 
 

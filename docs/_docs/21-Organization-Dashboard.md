@@ -18,9 +18,7 @@ This page can be accessed at `localhost:80` after logging in to the application.
 
 
 
-
-
-### Interface Elements:
+## Interface Elements:
 
 -   **Project List:**
 
@@ -37,6 +35,6 @@ This page can be accessed at `localhost:80` after logging in to the application.
     -   Clicking the button opens the new project wizard, which guides the user through the process of creating a new project.
     -   The wizard enables users to specify all necessary information about the new project, such as name, description, tags, etc.
 
-### Notes:
+## Notes:
 
 -   The Organization Dashboard page serves as the starting point for users of the application, providing them with quick access to all essential project management functions.
