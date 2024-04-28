@@ -75,19 +75,49 @@ All the environment variables are set to default and non-production deployment i
 ### Check that the Docker containers are running
 
 
-The UI should be running at [http://localhost:80/](http://localhost:80/) with default username and password `admin`:`password`. Default organization name will be `Default`. You can edit it in database using mongo-express.
 
-The backend should be running at [http://localhost:8000/](http://localhost:8000/)
+🖥️ **User Interface (UI)**
 
-The mongo-express should be running at [http://localhost:8081/](http://localhost:8081/) with default username and password `admin`:`pass`
+The UI should be up and running at [http://localhost:80/](http://localhost:80/). 
+- Default login credentials: `admin`:`password`
+- Default organization name: `Default`
+- 🛠️ You can edit the organization name in the database using mongo-express.
 
-The mongo should be running at [http://localhost:27017/](http://localhost:27017/) with default username and password `root`:`password`
 
-All of the above are set in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) file and can be changed there.
+🔧 **Backend Service (API)**
+
+The backend services should be operational at [http://localhost:8000/](http://localhost:8000/). 
+- Swagger UI can be accessed at [http://localhost:8000/docs/](http://localhost:8000/docs/).
+
+
+
+
+🗄️ **MongoDB**
+
+The MongoDB database should be running at [http://localhost:27017/](http://localhost:27017/). 
+- Default login credentials: `root`:`password`
+- Default database name: `prompt_sail`
+- Default folder for storing data will be located in the root directory of the project in the `data/mongo` folder.
+
+
+📊 **Mongo-Express**
+
+Mongo-Express acts as a web-based MongoDB admin interface. It should be accessible at [http://localhost:8081/](http://localhost:8081/). 
+- Default login credentials: `admin`:`pass`
+- It is not necessary to use Mongo-Express to run Prompt Sail, but it can be helpful for debugging and monitoring the database.
+
+
+**All the settings** can be changed in the appropriate `dokcer-compose` files: 
+
+* for pulled images in [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) 
+* for build images in [docker-compose-build.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose-build.yml)
+
+
 
 ## Create your first project and add at least one AI provider
 
-In the UI, go to your [Organization's dasboard](https://promptsail.github.io/prompt_sail/docs/organization-dashboard/). Using the [Add new project](https://promptsail.github.io/prompt_sail/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
+In the UI, go to your [Organization's dasboard](/docs/organization-dashboard/). Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
+
 
 ## Make your first API call
 
@@ -183,4 +213,8 @@ pprint(response.choices[0].message)
 
 ```
 
-Folder [examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples) and [LLM Integration](/docs/llm-integrations/) section of the documentation contain more examples of how to make API calls to different LLM providers via Prompt Sail.
+## More examples
+
+You can find more examples as jupyter notebooks in the repository folder [prompt_sail/examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples). 
+
+All tested integraion are documented in [LLM Integration](/docs/llm-integrations/) section.

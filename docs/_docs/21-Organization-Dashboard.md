@@ -11,8 +11,14 @@ toc: true
 The Organization Dashboard page serves as a central hub for managing projects within the organization. It provides users with easy access to all pertinent project information and enables quick searching and creation of new projects.
 This page can be accessed at `localhost:80` after logging in to the application.
 
-<img src='/docs/assets/images/Organization_Dashboard.png' />
+
+
+
 ![Prompt Sail Organisatin Dashboard list of projects]({{ site.url }}{{ site.baseurl }}assets/images/Organization_Dashboard.png){: .align-center}
+
+
+
+
 
 ### Interface Elements:
 
