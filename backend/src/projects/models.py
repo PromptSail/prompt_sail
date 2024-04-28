@@ -1,3 +1,4 @@
+from _datetime import datetime, timezone
 from pydantic import BaseModel, Field
 from transactions.models import generate_uuid
 
@@ -18,3 +19,5 @@ class Project(BaseModel):
     ai_providers: list[AIProvider]
     tags: list[str] = []
     org_id: str | None
+    created_at: datetime = datetime.now(tz=timezone.utc)
+    owner: str

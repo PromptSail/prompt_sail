@@ -1,4 +1,5 @@
 import json
+import re
 
 from _datetime import datetime, timezone
 from transactions.models import Transaction
@@ -53,6 +54,7 @@ def count_transactions(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
+    status_code: int | None = None,
 ) -> int:
     """
     Count the number of transactions based on specified filters.
@@ -62,9 +64,12 @@ def count_transactions(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
+    :param status_code: Optional. Status code to filter transactions by.
     :return: The count of transactions that meet the specified filtering criteria.
     """
-    query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
+    query = create_transaction_query_from_filters(
+        tags, date_from, date_to, project_id, status_code
+    )
     return transaction_repository.count(query)
 
 
@@ -140,6 +145,8 @@ def store_transaction(
     buffer,
     project_id,
     tags,
+    ai_model_version,
+    pricelist,
     request_time,
     transaction_repository: TransactionRepository,
 ):
@@ -152,20 +159,74 @@ def store_transaction(
     :param project_id: The Project ID associated with the transaction.
     :param tags: The tags associated with the transaction.
     :param request_time: The timestamp of the request.
+    :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
+    :param pricelist: The pricelist for the models.
     :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
     :return: None
     """
     decoder = response._get_content_decoder()
     buf = b"".join(buffer)
-    response_content = decoder.decode(buf)
 
-    response_content = json.loads(response_content)
+    try:
+        response_content = decoder.decode(buf)
+        response_content = json.loads(response_content)
+    except json.JSONDecodeError:
+        content = []
+        for i in (
+            chunks := buf.decode().replace("data: ", "").split("\n\n")[::-1][3:][::-1]
+        ):
+            content.append(
+                json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")
+            )
+        content = "".join(content)
+        example = json.loads(chunks[0])
+        response_content = dict(
+            id=example["id"],
+            object="chat.completion",
+            created=example["created"],
+            model=example["model"],
+            choices=[
+                dict(
+                    index=0,
+                    message=dict(role="assistant", content=content),
+                    logprobs=None,
+                    finish_reason="stop",
+                )
+            ],
+            system_fingerprint=example["system_fingerprint"],
+        )
 
     params = req_resp_to_transaction_parser(request, response, response_content)
 
+    pricelist = [
+        item
+        for item in pricelist
+        if item.provider == params["provider"]
+        and re.match(item.match_pattern, params["model"])
+    ]
+    if params["status_code"] == 200:
+        if len(pricelist) > 0:
+            if pricelist[0].input_price == 0:
+                input_cost, output_cost = 0, 0
+                total_cost = (
+                    (params["input_tokens"] + params["output_tokens"])
+                    / 1000
+                    * pricelist[0].output_price
+                )
+            else:
+                input_cost = pricelist[0].input_price * (params["input_tokens"] / 1000)
+                output_cost = pricelist[0].output_price * (params["output_tokens"] / 1000)
+                total_cost = input_cost + output_cost
+        else:
+            input_cost, output_cost, total_cost = None, None, None
+    else:
+        input_cost, output_cost, total_cost = 0, 0, 0
+
     if "usage" not in response_content:
         # TODO: check why we don't get usage data with streaming response
-        response_content["usage"] = dict(prompt_tokens=0, completion_tokens=0)
+        response_content["usage"] = dict(
+            prompt_tokens=0, completion_tokens=0, total_tokens=0
+        )
 
     transaction = Transaction(
         project_id=project_id,
@@ -189,7 +250,7 @@ def store_transaction(
         ),
         tags=tags,
         provider=params["provider"],
-        model=params["model"],
+        model=ai_model_version if ai_model_version is not None else params["model"],
         prompt=params["prompt"],
         type=params["type"],
         os=params["os"],
@@ -200,6 +261,9 @@ def store_transaction(
         messages=params["messages"],
         last_message=params["last_message"],
         error_message=params["error_message"],
+        input_cost=input_cost,
+        output_cost=output_cost,
+        total_cost=total_cost,
         request_time=request_time,
         generation_speed=params["output_tokens"]
         / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
@@ -231,7 +295,10 @@ def get_list_of_filtered_transactions(
     :return: A list of Transaction objects that meet the specified criteria.
     """
     query = create_transaction_query_from_filters(
-        date_from=date_from, date_to=date_to, project_id=project_id, status_code=status_code
+        date_from=date_from,
+        date_to=date_to,
+        project_id=project_id,
+        status_code=status_code,
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions

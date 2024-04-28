@@ -11,7 +11,8 @@ import {
     getTransactionResponse,
     getProviders,
     getStatisticsTransactionsCount,
-    getStatisticsTransactionsCost
+    getStatisticsTransactionsCost,
+    getStatisticsTransactionsSpeed
 } from './interfaces';
 import { StatisticsParams, TransactionsFilters } from './types';
 import { notification } from 'antd';
@@ -204,6 +205,23 @@ export const useGetStatistics_TransactionsCost = (
         ['statistics_transactionsCost', params],
         async () => {
             return await api.getStatistics_TransactionsCost(linkParamsParser(params));
+        },
+        {
+            enabled: !!params,
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
+        }
+    );
+};
+export const useGetStatistics_TransactionsSpeed = (
+    params: StatisticsParams
+): UseQueryResult<AxiosResponse<getStatisticsTransactionsSpeed[]>, AxiosError> => {
+    return useQuery(
+        ['statistics_transactionsSpeed', params],
+        async () => {
+            return await api.getStatistics_TransactionsSpeed(linkParamsParser(params));
         },
         {
             enabled: !!params,

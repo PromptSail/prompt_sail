@@ -12,7 +12,7 @@ const { Title, Text } = Typography;
 const Dashboard = () => {
     const textStyles: CSSProperties = { lineHeight: '2em' };
     const titleStyles: CSSProperties = { margin: '0' };
-    const [dashView, setDashView] = useState('kanban');
+    const [dashView, setDashView] = useState('list');
     const projects = useGetAllProjects();
     const [filter, setFilter] = useState('');
     const filterProjects = (data: getAllProjects) => {
@@ -71,6 +71,7 @@ const Dashboard = () => {
                                     { label: 'List', value: 'list', icon: <BarsOutlined /> },
                                     { label: 'Table', value: 'table', icon: <TableOutlined /> }
                                 ]}
+                                disabled
                             />
                             <Input
                                 type="text"

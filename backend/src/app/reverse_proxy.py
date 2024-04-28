@@ -2,7 +2,7 @@ from typing import Annotated
 
 import httpx
 from _datetime import datetime, timezone
-from app.dependencies import get_logger, get_transaction_context
+from app.dependencies import get_logger, get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
 from lato import Application, TransactionContext
@@ -28,7 +28,15 @@ async def iterate_stream(response, buffer):
 
 
 async def close_stream(
-    app: Application, project_id, request, response, buffer, tags, request_time
+    app: Application,
+    project_id,
+    request,
+    response,
+    buffer,
+    tags,
+    ai_model_version,
+    pricelist,
+    request_time,
 ):
     """
     Asynchronously close the response stream and store the transaction in the database.
@@ -39,6 +47,8 @@ async def close_stream(
     :param response: The response object.
     :param buffer: The buffer containing accumulated chunks.
     :param tags: The tags associated with the transaction.
+    :param ai_model_version: Specific tag for AI model. Helps with cost count.
+    :param pricelist: The pricelist for the models.
     :param request_time: The request time.
     """
     await response.aclose()
@@ -50,6 +60,8 @@ async def close_stream(
             response=response,
             buffer=buffer,
             tags=tags,
+            ai_model_version=ai_model_version,
+            pricelist=pricelist,
             request_time=request_time,
         )
 
@@ -65,6 +77,7 @@ async def reverse_proxy(
     request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     tags: str | None = None,
+    ai_model_version: str | None = None,
     target_path: str | None = None,
 ):
     """
@@ -76,6 +89,7 @@ async def reverse_proxy(
     :param request: The incoming request.
     :param ctx: The transaction context dependency.
     :param tags: Optional. Tags associated with the transaction.
+    :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
     :param target_path: Optional. Target path for the reverse proxy.
     :return: A StreamingResponse object.
     """
@@ -88,6 +102,8 @@ async def reverse_proxy(
     tags = tags.split(",") if tags is not None else []
     project = ctx.call(get_project_by_slug, slug=project_slug)
     url = ApiURLBuilder.build(project, provider_slug, path, target_path)
+
+    pricelist = get_provider_pricelist(request)
 
     logger.debug(f"got projects for {project}")
 
@@ -127,6 +143,8 @@ async def reverse_proxy(
             rp_resp,
             buffer,
             tags,
+            ai_model_version,
+            pricelist,
             request_time,
         ),
     )

@@ -1,7 +1,7 @@
 import { useFormik } from 'formik';
 import { SetStateAction } from 'react';
 import { checkLogin } from '../storage/login';
-import Logo from '../assets/imgs/prompt_sail_logo200.jpg';
+import Logo from '../assets/logo/symbol-teal.svg';
 import { Button, Flex, Form, Input, Space, Typography } from 'antd';
 
 const { Title, Paragraph } = Typography;

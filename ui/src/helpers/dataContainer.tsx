@@ -10,14 +10,14 @@ export const TagsContainer: React.FC<Props> = ({ tags, classname }) => (
         {tags
             .filter((_el, id) => id < 3)
             .map((e, id) => (
-                <Tag key={id} color="magenta">
+                <Tag key={id} color="blue">
                     {e}
                 </Tag>
             ))}
         {tags.length > 3 && (
             <Popover
                 content={tags.map((e, id) => (
-                    <Tag key={id} color="magenta">
+                    <Tag key={id} color="blue">
                         {e}
                     </Tag>
                 ))}

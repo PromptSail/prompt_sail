@@ -14,21 +14,33 @@ toc: true
 
 Prompt Sail stores transactions by acting as a proxy for libraries and capturing the request and response data. This is done in the **store_transaction** function in the **src\transactions\use_cases.py** file.
 
-All the magic happens thanks to properly prepared **base_url** with points to the  prompt sail backend as a proxy
+All the magic happens thanks to properly prepared **api_base** (aka **proxy_url**) with points to the  prompt sail backend as a proxy
 
-The url structure is as follows:
+### The **proxy_url** structure is as follows:
 
 ```
-http://<prompt_sail_backend_url>/project_slug/deployment_name/?tags=tag1,tag2,tag3
+http://localhost:8000/project_slug/deployment_name/
 ```
 
 where: 
 * **project_slug** is a slugified project name, configured in the UI while creating a project
 * **deployment_name** is a slugified AI deployment name, configured in the project settings with the target AI provider api url eg. https://api.openai.com/v1/, you can configure multiple AI deployments for a single project
-* **tags** is a comma-separated list of tags. This is optional and can be used to tag a transaction eg. with a specific experiment name, department, prompting technique etc. Tags can help you filter and analyze transactions in the UI.
+
+Through the **proxy_url**, it is also possible to tag transactions. 
+
+### The **proxy_url** structure for passing the tags is as follows:
+
+```
+http://localhost:8000/project_slug/deployment_name/?tags=tag1,tag2,tag3&target_path=
+```
+
+where:
+* **tags** is a comma-separated list of tags. This is optional and can be used to tag a transaction eg. with a specific user_id, 
+department_name, prompting_technique etc. Tags can help you filter and analyze transactions in the UI.
+* **target_path** is required in proxy url when tags are added to it and is used for capturing the target path of particular requests. If you send requests by Python libraries, target_path should be empty (like this: target_path=). In such cases, it will be filled by external Python packages (eg. Langchain, OpenAI).  
 
 
-Proxy on your behalf make a call to the configured AI API and log the request and response data in the database.
+Proxy on your behalf makes a call to the configured AI API and log the request and response data in the database.
 
 Transaction object is created with the following fields:
 

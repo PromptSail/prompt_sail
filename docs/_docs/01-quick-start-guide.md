@@ -66,10 +66,11 @@ The mongo should be running at [http://localhost:27017/](http://localhost:27017/
 
 All of the above are set in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) file and can be changed there.
 
+## Create your first project and add at least one AI provider
+
+In the UI, go to your [Organization's dasboard](https://promptsail.github.io/prompt_sail/docs/organization-dashboard/). Using the [Add new project](https://promptsail.github.io/prompt_sail/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
 
 ## Make your first API call
-
-Folder [examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples) and [LLM Integration](/docs/llm-integrations/) section of the documentation contain more examples of how to make API calls to different LLM providers via Prompt Sail.
 
 ### OpenAI Chat model example
 
@@ -100,7 +101,8 @@ openai_key = os.getenv("OPENAI_API_KEY")
 openai_org_id = os.getenv("OPENAI_ORG_ID")
 ```
 
-Make an API call to OpenAI via Prompt Sail without tagging.
+Make an API call to OpenAI via Prompt Sail without tagging. 
+What is and where to get **api_base** [see here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
 
 ```python
 
@@ -130,7 +132,9 @@ pprint(response.choices[0].message)
 
 ```
 
-Make an API call to OpenAI via Prompt Sail adding some tags for the transaction.
+
+Make an API call to OpenAI via Prompt Sail adding some tags for the transaction. 
+How structure of **api_base** for passing tags looks like, [see here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
 
 ```python
 
@@ -159,3 +163,5 @@ response = ps_client.chat.completions.create(
 pprint(response.choices[0].message)
 
 ```
+
+Folder [examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples) and [LLM Integration](/docs/llm-integrations/) section of the documentation contain more examples of how to make API calls to different LLM providers via Prompt Sail.

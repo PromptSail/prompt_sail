@@ -70,7 +70,7 @@ const ProjectTile: React.FC<Props> = ({ isListStyled, data }) => {
                         <Space direction="vertical">
                             <Text type="secondary">Total cost</Text>
                             <Title level={3} style={titleStyles}>
-                                $ 1.00
+                                {`$ ${data.total_cost.toFixed(4)}`}
                             </Title>
                         </Space>
                         <Space direction="vertical">

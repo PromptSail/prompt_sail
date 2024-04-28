@@ -17,7 +17,7 @@ const TableContainer: React.FC<Props> = ({ data }) => {
         cost: el.total_cost,
         tags: el.tags.map((tag) => ({
             label: tag,
-            color: 'magenta'
+            color: 'blue'
         }))
     }));
 

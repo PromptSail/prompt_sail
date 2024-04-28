@@ -11,9 +11,9 @@ const createProxy = (url: string) => ({
 });
 
 export default defineConfig(({ mode }) => {
-    const env = { 
+    const env = {
         ...dotenv.config({ path: `.env.${mode}` }).parsed,
-        ...process.env, 
+        ...process.env
     };
     console.log('using env', env);
     return {
@@ -25,6 +25,9 @@ export default defineConfig(({ mode }) => {
         preview: {
             port: parseInt(env.PORT),
             proxy: createProxy(env.BACKEND_URL)
+        },
+        define: {
+            'import.meta.env.PROXY_URL_HOST': new String(env.PROXY_URL_HOST)
         }
     };
 });

@@ -58,7 +58,7 @@ const Transaction: React.FC = () => {
             },
             {
                 label: 'Cost',
-                children: `$ ${data.total_cost.toFixed(4)}`
+                children: data.total_cost !== null ? `$ ${data.total_cost.toFixed(4)}` : 'null'
             },
             {
                 label: 'Api base',
@@ -83,7 +83,18 @@ const Transaction: React.FC = () => {
             },
             {
                 label: 'Response status',
-                children: <Badge status="success" text={data.status_code} />
+                children: (
+                    <Badge
+                        status={
+                            data.status_code >= 300
+                                ? data.status_code >= 400
+                                    ? 'error'
+                                    : 'warning'
+                                : 'success'
+                        }
+                        text={data.status_code}
+                    />
+                )
             },
             {
                 label: 'Tags',
