@@ -1,5 +1,5 @@
 ---
-title: "Monodb database schema"
+title: "MongoDB database schema"
 permalink: /docs/database-schema/
 excerpt: "How the database schema was designed."
 last_modified_at: 2024-04-28T18:48:35+01:00
