@@ -10,11 +10,30 @@ toc: true
 
 ## How the project structure is organized
 
-### **backend**: 
+
+
+TODO: Please add a screenshot of the GitHub repository structure to provide a visual representation of the project organization.{: .notice--warning}
+
+
+
+
+
+
+
+
+## backend folder
 
 A directory containing files related to the application backend.
 
-#### **src**: 
+Files: 
+
+- Dockerfile - 
+- pyproject.toml 
+- pytest.ini
+- provider_price_list.json
+
+
+### - src
 
 This directory contains the most important files for the operation of the application. Here we can find the `config` configuration, `app` startup files and the rest of `projects`, `transactions` and `settings` which are the objects present in the database along with the necessary tools for their operation such as `repositories` and `use_cases`. The repositories of all objects are built on top of a single, common and generic one stored in the `seedwork` directory. There is also a `utils.py` file containing general-purpose functions.
    
@@ -24,14 +43,20 @@ This directory contains the most important files for the operation of the applic
       
 - **projects/transactions/settings**: These are objects stored in the database, and the structure of the files in these folders is uniform. `models` contains the models of these objects, and `schemas` the schemas used in endpoints. `repositories` contains the repository of a given object. `use_cases` is a set of functions that use the repository, used in endpoints to retrieve, for example, a list of objects or add a new object.
       
-#### **tests**: 
+### - tests 
 Here you can find tests of the application. This is a very important part. Without running tests, the production image of the application will not be built.
+
+
+### perf_tests
+
+This directory contains performance tests for the application with use of locust.io
    
-### **docs**: 
-A directory containing the files from which the application documentation is built.
+## docs
+A directory containing the github pages jackyll files from which the application documentation is automaticallly built.
+More information on how to contribute to the documentation can be found is section [How the documentation is organized](/docs/how-to-write-documentation/)
 
-### **example**: 
-Examples of application usage for various AI providers.
+## examples folder 
+Jupyter notebooks examples for various AI providers.
 
-### **ui**: 
+## UI
 A directory containing the files from which the visual layer of the application is built.
