@@ -197,13 +197,18 @@ def store_transaction(
         )
 
     params = req_resp_to_transaction_parser(request, response, response_content)
+    ai_model_version = ai_model_version if ai_model_version is not None else params["model"]
 
     pricelist = [
         item
         for item in pricelist
         if item.provider == params["provider"]
-        and re.match(item.match_pattern, params["model"])
+        and re.match(item.match_pattern, ai_model_version)
     ]
+    
+    print('model', params["model"])
+    print('pricelist', pricelist)
+    
     if params["status_code"] == 200:
         if len(pricelist) > 0:
             if pricelist[0].input_price == 0:
@@ -250,7 +255,7 @@ def store_transaction(
         ),
         tags=tags,
         provider=params["provider"],
-        model=ai_model_version if ai_model_version is not None else params["model"],
+        model=ai_model_version,
         prompt=params["prompt"],
         type=params["type"],
         os=params["os"],
