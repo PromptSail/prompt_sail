@@ -47,6 +47,9 @@ services:
     container_name: promptsail-ui
     ports:
       - "80:80"
+    environment:
+      BACKEND_URL: "http://localhost:8000"
+      PROXY_URL_HOST: "http://localhost:8000"
     depends_on:
         mongodb:
             condition: service_started
