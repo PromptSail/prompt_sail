@@ -54,7 +54,7 @@ services:
     ports:
       - "80:80"
     environment:
-      BACKEND_URL: "http://localhost:8000"
+      BACKEND_URL: "http://promptsail-backend:8000"
       PROXY_URL_HOST: "http://localhost:8000"
     depends_on:
         mongodb:
