@@ -206,9 +206,6 @@ def store_transaction(
         and re.match(item.match_pattern, ai_model_version)
     ]
     
-    print('model', params["model"])
-    print('pricelist', pricelist)
-    
     if params["status_code"] == 200:
         if len(pricelist) > 0:
             if pricelist[0].input_price == 0:
