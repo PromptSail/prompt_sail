@@ -213,6 +213,9 @@ def store_transaction(
         and re.match(item.match_pattern, ai_model_version)
     ]
     
+    print(params["provider"])
+    print(ai_model_version)
+    print(pricelist)
    
     if params["status_code"] == 200 and params["input_tokens"] is not None and params["output_tokens"] is not None:
         if len(pricelist) > 0:

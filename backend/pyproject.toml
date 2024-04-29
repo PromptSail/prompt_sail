@@ -19,6 +19,7 @@ lato = "^0.8.0"
 python-slugify = "^8.0.4"
 fastapi = "^0.110.1"
 pyzmq = "~25"
+anthropic = "^0.25.6"
 
 
 

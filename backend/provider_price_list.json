@@ -73,7 +73,7 @@
         "model_name": "claude-3-opus-20240229",
         "provider": "Anthropic",
         "start_date": "",
-        "match_pattern": "(?i)^(claude-opus-20240229)$",
+        "match_pattern": "(?i)^(claude-3-opus-20240229)$",
         "input_price": 0.015,
         "output_price": 0.075,
         "total_price": 0,
