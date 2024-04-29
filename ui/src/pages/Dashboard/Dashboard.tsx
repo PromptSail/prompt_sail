@@ -6,6 +6,8 @@ import { PlusSquareOutlined } from '@ant-design/icons';
 import outline from './../../assets/logo/symbol-teal-outline.svg';
 import FilterDashboard from './FilterDashboard';
 import ProjectTile from '../../components/ProjectTile/ProjectTile';
+import noFoundImg from '../../assets/paper_boat.svg';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 const { Header } = Layout;
@@ -52,6 +54,7 @@ const Dashboard = () => {
                 return 0;
         }
     };
+    const navigate = useNavigate();
     useEffect(() => {
         if (projects.isSuccess) {
             const filteredData = projects.data
@@ -69,105 +72,140 @@ const Dashboard = () => {
             );
         }
     }, [projects.status, pageData, costRange, transactionsRange, isAsc, sortby, filter]);
-    if (projects.isLoading)
-        return (
-            <>
-                <div>loading...</div>
-            </>
-        );
-    if (projects.isError)
-        return (
-            <>
-                <div>An error has occurred</div>
-                {console.error(projects.error)}
-            </>
-        );
-    if (projects.isSuccess) {
-        const maxCost = projects.data.reduce(
-            (max, current) => (current.total_cost > max ? current.total_cost : max),
-            0
-        );
-        const maxTransactionsCount = projects.data.reduce(
-            (max, current) => (current.total_transactions > max ? current.total_transactions : max),
-            0
-        );
-        return (
-            <Flex gap={24} vertical>
-                <Header className="w-full min-h-[80px] border-0 border-b border-solid border-[#F0F0F0] relative overflow-hidden">
-                    <Flex className="h-full" justify="space-between">
-                        <div className="my-auto z-10">
-                            <Title level={1} className="h4 m-auto">
-                                Projects ({filteredProjects.length})
-                            </Title>
-                        </div>
-                        <Button
-                            className="my-auto z-10"
-                            type="primary"
-                            size="large"
-                            icon={<PlusSquareOutlined />}
-                        >
-                            New project
-                        </Button>
-                    </Flex>
-                    <img
-                        src={outline}
-                        className="absolute w-[390px] -bottom-[60px] right-14 opacity-60"
-                    />
-                </Header>
+    return (
+        <Flex gap={24} vertical>
+            <Header className="w-full min-h-[80px] border-0 border-b border-solid border-[#F0F0F0] relative overflow-hidden">
+                <Flex className="h-full" justify="space-between">
+                    <div className="my-auto z-10">
+                        <Title level={1} className="h4 m-auto">
+                            Projects ({filteredProjects.length})
+                        </Title>
+                    </div>
+                    <Button
+                        className="my-auto z-10"
+                        type="primary"
+                        size="large"
+                        icon={<PlusSquareOutlined />}
+                        onClick={() => navigate('/projects/add')}
+                    >
+                        New project
+                    </Button>
+                </Flex>
+                <img
+                    src={outline}
+                    className="absolute w-[390px] -bottom-[60px] right-14 opacity-60"
+                />
+            </Header>
+            {projects.isLoading && (
+                <>
+                    <div>loading...</div>
+                </>
+            )}
+            {projects.isError && (
+                <>
+                    <div>An error has occurred</div>
+                    {console.error(projects.error)}
+                </>
+            )}
+            {projects.isSuccess && (
                 <div className="px-[24px] max-w-[1600px] w-full mx-auto">
-                    <FilterDashboard
-                        costRange={{ ...costRange, max: maxCost }}
-                        transactionsRange={{
-                            ...transactionsRange,
-                            max: maxTransactionsCount
-                        }}
-                        onSearch={setFilter}
-                        onSortAsc={setAsc}
-                        onSortByChange={setSortby}
-                        onChangeCost={setCostRange}
-                        onChangeTransactions={setTransactionsRange}
-                        onSetOwner={function (): void {
-                            throw new Error('Function not implemented.');
-                        }}
-                    />
-                    <Row
-                        justify="space-between"
-                        className="flex-nowrap gap-[24px] mx-[24px] mt-[8px] mb-[4px]"
-                    >
-                        <Col className="max-w-[50%] min-w-[50%] w-full leading-5">Title:</Col>
-                        <Col className="w-full leading-5">Owner:</Col>
-                        <Col className="w-full text-end leading-5">Transactions:</Col>
-                        <Col className="w-full text-end leading-5">Cost:</Col>
-                    </Row>
-                    <Flex vertical gap={8}>
-                        {filteredProjects.map((e) => (
-                            <ProjectTile data={e} key={e.id} />
-                        ))}
-                        {filteredProjects.length == 0 && (
-                            <h2 className="no-projects-found">No projects found</h2>
-                        )}
-                    </Flex>
-                    <Flex
-                        justify="flex-end"
-                        gap={10}
-                        className="mt-[12px] px-[24px] py-[16px] min-w-[22px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px] text-end"
-                    >
-                        <Text className="my-auto">{paginationInfo}</Text>
-                        <Pagination
-                            className="dashboard-pagination"
-                            defaultPageSize={pageData.size}
-                            pageSize={pageData.size}
-                            onChange={(page, size) => setPageData({ page, size })}
-                            pageSizeOptions={[5, 15, 30, 45, 60]}
-                            showSizeChanger
-                            total={filteredProjects.length}
-                            hideOnSinglePage={filteredProjects.length < 11}
-                        />
-                    </Flex>
+                    {projects.data.length < 1 && <NoProjectsInfo />}
+                    {projects.data.length > 0 && (
+                        <>
+                            <FilterDashboard
+                                costRange={{
+                                    ...costRange,
+                                    max: projects.data.reduce(
+                                        (max, current) =>
+                                            current.total_cost > max ? current.total_cost : max,
+                                        0
+                                    )
+                                }}
+                                transactionsRange={{
+                                    ...transactionsRange,
+                                    max: projects.data.reduce(
+                                        (max, current) =>
+                                            current.total_transactions > max
+                                                ? current.total_transactions
+                                                : max,
+                                        0
+                                    )
+                                }}
+                                onSearch={setFilter}
+                                onSortAsc={setAsc}
+                                onSortByChange={setSortby}
+                                onChangeCost={setCostRange}
+                                onChangeTransactions={setTransactionsRange}
+                                onSetOwner={function (): void {
+                                    throw new Error('Function not implemented.');
+                                }}
+                            />
+                            {filteredProjects.length > 0 && (
+                                <Row
+                                    justify="space-between"
+                                    className="flex-nowrap gap-[24px] mx-[24px] mt-[8px] mb-[4px]"
+                                >
+                                    <Col className="max-w-[50%] min-w-[50%] w-full leading-5">
+                                        Title:
+                                    </Col>
+                                    <Col className="w-full leading-5">Owner:</Col>
+                                    <Col className="w-full text-end leading-5">Transactions:</Col>
+                                    <Col className="w-full text-end leading-5">Cost:</Col>
+                                </Row>
+                            )}
+                            <Flex vertical gap={8}>
+                                {filteredProjects.map((e) => (
+                                    <ProjectTile data={e} key={e.id} />
+                                ))}
+                                {filteredProjects.length == 0 && <NoProjectsInfo />}
+                            </Flex>
+                            {filteredProjects.length > 0 && (
+                                <Flex
+                                    justify="flex-end"
+                                    gap={10}
+                                    className="mt-[12px] px-[24px] py-[16px] min-w-[22px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px] text-end"
+                                >
+                                    <Text className="my-auto">{paginationInfo}</Text>
+                                    <Pagination
+                                        className="dashboard-pagination"
+                                        defaultPageSize={pageData.size}
+                                        pageSize={pageData.size}
+                                        onChange={(page, size) => setPageData({ page, size })}
+                                        pageSizeOptions={[5, 15, 30, 45, 60]}
+                                        showSizeChanger
+                                        total={filteredProjects.length}
+                                        hideOnSinglePage={filteredProjects.length < 11}
+                                    />
+                                </Flex>
+                            )}
+                        </>
+                    )}
                 </div>
-            </Flex>
-        );
-    }
+            )}
+        </Flex>
+    );
+};
+
+const NoProjectsInfo: React.FC = () => {
+    const navigate = useNavigate();
+    return (
+        <Flex className="m-auto mt-24" vertical>
+            <img src={noFoundImg} width={300} className="m-auto" />
+            <Title level={2} className="mt-[24px] text-center">
+                Start your journey
+            </Title>
+            <Text className="text-center text-[16px] mt-[8px]">Create your fist project</Text>
+            <Button
+                className="m-auto mt-[32px]"
+                type="primary"
+                size="large"
+                icon={<PlusSquareOutlined />}
+                onClick={() => navigate('/projects/add')}
+            >
+                New project
+            </Button>
+        </Flex>
+    );
 };
 
 export default Dashboard;
