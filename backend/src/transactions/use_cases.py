@@ -179,6 +179,7 @@ def store_transaction(
                 json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")
             )
         content = "".join(content)
+        # TODO: Tokenization
         example = json.loads(chunks[0])
         response_content = dict(
             id=example["id"],
@@ -196,15 +197,24 @@ def store_transaction(
             system_fingerprint=example["system_fingerprint"],
         )
 
+    if "usage" not in response_content:
+        # TODO: check why we don't get usage data with streaming response
+        response_content["usage"] = dict(
+            prompt_tokens=0, completion_tokens=0, total_tokens=0
+        )
+
     params = req_resp_to_transaction_parser(request, response, response_content)
+    ai_model_version = ai_model_version if ai_model_version is not None else params["model"]
 
     pricelist = [
         item
         for item in pricelist
         if item.provider == params["provider"]
-        and re.match(item.match_pattern, params["model"])
+        and re.match(item.match_pattern, ai_model_version)
     ]
-    if params["status_code"] == 200:
+    
+   
+    if params["status_code"] == 200 and params["input_tokens"] is not None and params["output_tokens"] is not None:
         if len(pricelist) > 0:
             if pricelist[0].input_price == 0:
                 input_cost, output_cost = 0, 0
@@ -221,12 +231,6 @@ def store_transaction(
             input_cost, output_cost, total_cost = None, None, None
     else:
         input_cost, output_cost, total_cost = 0, 0, 0
-
-    if "usage" not in response_content:
-        # TODO: check why we don't get usage data with streaming response
-        response_content["usage"] = dict(
-            prompt_tokens=0, completion_tokens=0, total_tokens=0
-        )
 
     transaction = Transaction(
         project_id=project_id,
@@ -250,7 +254,7 @@ def store_transaction(
         ),
         tags=tags,
         provider=params["provider"],
-        model=ai_model_version if ai_model_version is not None else params["model"],
+        model=ai_model_version,
         prompt=params["prompt"],
         type=params["type"],
         os=params["os"],

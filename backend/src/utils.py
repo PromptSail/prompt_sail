@@ -460,6 +460,9 @@ def token_counter_for_transactions(
     result["input_cumulative_total"] = result.groupby(["provider", "model"])[
         "total_input_tokens"
     ].cumsum()
+    result["total_cumulative_cost"] = result.groupby(["provider", "model"])[
+        "total_cost"
+    ].cumsum()
 
     data_dicts = result.to_dict(orient="records")
 
@@ -473,7 +476,7 @@ def token_counter_for_transactions(
             input_cumulative_total=data["input_cumulative_total"],
             output_cumulative_total=data["output_cumulative_total"],
             total_transactions=data["total_transactions"],
-            total_cost=data["total_cost"],
+            total_cost=data["total_cumulative_cost"],
         )
         for data in data_dicts
     ]
