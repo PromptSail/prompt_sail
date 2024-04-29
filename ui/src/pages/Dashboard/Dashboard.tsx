@@ -68,7 +68,7 @@ const Dashboard = () => {
                 } of ${filteredData.length}`
             );
         }
-    }, [projects.status, pageData, costRange, transactionsRange, isAsc, sortby]);
+    }, [projects.status, pageData, costRange, transactionsRange, isAsc, sortby, filter]);
     if (projects.isLoading)
         return (
             <>
