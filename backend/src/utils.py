@@ -332,10 +332,12 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 messages
             )
         else:
-            messages.append({"role": "system", "content": response_content["choices"][0]["text"]})
+            messages.append(
+                {"role": "system", "content": response_content["choices"][0]["text"]}
+            )
             transaction_params.add_messages(messages).add_model(
                 response_headers["openai-model"]
-                if "openai-model" in response_headers 
+                if "openai-model" in response_headers
                 else response_content["model"]
             ).add_last_message(response_content["choices"][0]["text"])
 
@@ -365,17 +367,14 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 transaction_params.add_last_message(
                     response_content["data"][0]["embedding"]
                 )
-        
+
     if anthropic_pattern.match(url):
         transaction_params.add_type("chat").add_provider("Anthropic")
         transaction_params.add_prompt(request_content["messages"][0]["content"])
         messages = request_content["messages"]
         if response.__dict__["status_code"] > 200:
             messages.append(
-                {
-                    "role": "error",
-                    "content": response_content["error"]["message"]
-                }
+                {"role": "error", "content": response_content["error"]["message"]}
             )
             transaction_params.add_error_message(
                 response_content["error"]["message"]
@@ -383,11 +382,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 messages
             )
         else:
-            messages.append({
-                "role": "assistant",
-                "content": response_content["content"][0]["text"]
-            
-            })
+            messages.append(
+                {"role": "assistant", "content": response_content["content"][0]["text"]}
+            )
             transaction_params.add_messages(messages).add_model(
                 response_content["model"]
             ).add_last_message(response_content["content"][0]["text"])
