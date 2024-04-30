@@ -9,6 +9,9 @@ import Signin from './pages/Signin';
 import { checkLogin } from './storage/login';
 import { Layout } from 'antd';
 import Transaction from './pages/Transaction/Transaction';
+import Auth from './pages/Transaction/Auth/Auth';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { config } from './pages/Transaction/Auth/config';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
@@ -39,6 +42,16 @@ const App = () => {
             <Layout className="h-screen">
                 <Routes>
                     <Route path="/signin" element={<Signin setLoginState={setLoginState} />} />
+
+                    <Route
+                        path="/auth"
+                        element={
+                            <GoogleOAuthProvider clientId={config.GOOGLE_CLIENT_ID}>
+                                <Auth />
+                            </GoogleOAuthProvider>
+                        }
+                    />
+
                     <Route path="*" element={<Navigate to="/signin" />} />
                 </Routes>
             </Layout>
