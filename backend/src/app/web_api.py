@@ -76,30 +76,37 @@ async def get_projects(
                     for price in pricelist
                     if re.match(price.match_pattern, transaction.model)
                 ]
-                if len(price) > 0:
-                    price = price[0]
-                    if price.total_price > 0:
-                        cost += (
-                            (
-                                (transaction.input_tokens / 1000)
-                                + (transaction.output_tokens / 1000)
+                if (
+                    transaction.input_tokens is not None
+                    and transaction.output_tokens is not None
+                    and transaction.status_code == 200
+                ):
+                    if len(price) > 0:
+                        price = price[0]
+                        if price.total_price > 0:
+                            cost += (
+                                (
+                                    (transaction.input_tokens / 1000)
+                                    + (transaction.output_tokens / 1000)
+                                )
+                                * price.total_price
+                                if transaction.input_tokens > 0
+                                and transaction.output_tokens > 0
+                                else 0
                             )
-                            * price.total_price
-                            if transaction.input_tokens > 0
-                            and transaction.output_tokens > 0
-                            else 0
-                        )
-                    else:
-                        cost += (
-                            (transaction.input_tokens / 1000) * price.input_price
-                            if transaction.input_tokens > 0 and price.input_price > 0
-                            else 0
-                        )
-                        cost += (
-                            (transaction.output_tokens / 1000) * price.output_price
-                            if transaction.output_tokens > 0 and price.output_price > 0
-                            else 0
-                        )
+                        else:
+                            cost += (
+                                (transaction.input_tokens / 1000) * price.input_price
+                                if transaction.input_tokens > 0
+                                and price.input_price > 0
+                                else 0
+                            )
+                            cost += (
+                                (transaction.output_tokens / 1000) * price.output_price
+                                if transaction.output_tokens > 0
+                                and price.output_price > 0
+                                else 0
+                            )
         dtos.append(
             GetProjectSchema(
                 **project.model_dump(),

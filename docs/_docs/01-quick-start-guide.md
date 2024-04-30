@@ -1,7 +1,7 @@
 ---
 title: "Quick Start Guide"
 permalink: /docs/quick-start-guide/
-excerpt: "How to incorporate Prompt Sail into your LLM workflo"
+excerpt: "How build docker images and run Prompt Sail on your local machine and make your first API call."
 last_modified_at: 2023-12-28T15:18:35+01:00
 redirect_from:
   - /theme-setup/
@@ -12,21 +12,25 @@ toc: true
 
 
 
-## Run the Prompt Sail Docker images on your local machine
+## Run Prompt Sail on your local machine
 
 Prompt Sail is build as a set of docker containers. One for backend (promptsail-backend) and one for frontend (promptsail-ui).
 
-- **promptsail-backend** is a proxy that sits between your LLM framework of choice (LangChain, OpenAI python lib etc) and LLM provider API. It captures and logs all prompts and responses. 
-- **promptsail-ui** is a user interface that allows you to view, search and analyze prompts and responses.
+- **promptsail-backend** is a proxy that sits between your LLM framework of choice (LangChain, OpenAI python lib etc) and LLM provider API. You change `api_base` to point to Prompt Sail `proxy_url` and then it will captures and logs all your prompts and responses. 
+- **promptsail-ui** is a user interface that allows you to view, search and analyze all transactions (prompts and responses).
 
 
-There are two options to run the Prompt Sail docker containers: build the images from the source code or pull the images from Docker Hub.
+There are two options to run the Prompt Sail docker containers: 
+* [build the images from the source code](#build-the-docker-images-from-the-source-code) or 
+* [pull the images from Github Container Repository (ghcr.io)](#pull-and-run-the-docker-images-from-ghcr).
+
+
 
 ### Build the Docker images from the source code
 
 
-Recommmened way is to build the Docker image from the source code via `docker-compose`.
-{: .notice--success}
+Building from source will give you the latest version of the code with the newest features. However, please note that there might be uncaught bugs that could affect the stability of the application.
+{: .notice--warning}
 
 
 Clone the repository from GitHub.
@@ -36,39 +40,84 @@ git clone https://github.com/PromptSail/prompt_sail.git
 cd prompt_sail
 ``` 
 
-Build the Docker images. It will build the images for backend and UI and pull mongodb and mongo-express images from Docker Hub.
-
+To build the Docker images, execute the following command. This will build the images for the backend and UI, and pull the MongoDB and Mongo Express images from Docker Hub.
+All environment variables are set for you, but you can change them. 
 ```bash
-docker-compose up --build
+docker-compose -f docker-compose-build.yml up --build
 ```
 
 
-### Pull and run the Docker images from Docker Hub
+### Pull and run the Docker images from GHCR
 
-
-**Notice:** Currently, the docker image is not available on Docker Hub. Command below will not work yet.
+Pulling the images from GHCR will give you the latest stable version of the code, however, you will not have the latest features.  
 {: .notice--warning}
 
+
+
+The prepared docker-compose file will pull Prompt Sail (backend,ui) images from [GitHub Container Registry](https://github.com/orgs/PromptSail/packages?repo_name=prompt_sail) with `latest` tags, also it will pull the latest mongo and mongo-express images from Docker Hub:
+
+* [prompt_sail-backend ](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-backend)(ghcr.io package)
+* [prompt_sail-ui](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-ui)(ghcr.io package)
+* [mongo](https://hub.docker.com/_/mongo)
+* [mongo-express](https://hub.docker.com/_/mongo-express)
+
 ```bash
-docker run prompt-sail
+docker-compose -f docker-compose.yml up
 ``` 
+
+If you want to run the dev version of the images, you can pull the `dev-release` tag insted of `latest`. More on image tagging strategy you will find at [deployment - docker image tagging stratedy](/docs/image-tagging-strategy/) section.
+
+
+All the environment variables are set to default and non-production deployment in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) it is recommended to change them to your own values. 
+
+
 
 ### Check that the Docker containers are running
 
 
-The UI should be running at [http://localhost:80/](http://localhost:80/) with default username and password `admin`:`password`. Default organization name will be `Default`. You can edit it in database using mongo-express.
 
-The backend should be running at [http://localhost:8000/](http://localhost:8000/)
+🖥️ **User Interface (UI)**
 
-The mongo-express should be running at [http://localhost:8081/](http://localhost:8081/) with default username and password `admin`:`pass`
+The UI should be up and running at [http://localhost:80/](http://localhost:80/). 
+- Default login credentials: `admin`:`password`
+- Default organization name: `Default`
+- 🛠️ You can edit the organization name in the database using mongo-express.
 
-The mongo should be running at [http://localhost:27017/](http://localhost:27017/) with default username and password `root`:`password`
 
-All of the above are set in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) file and can be changed there.
+🔧 **Backend Service (API)**
+
+The backend services should be operational at [http://localhost:8000/](http://localhost:8000/). 
+- Swagger UI can be accessed at [http://localhost:8000/docs/](http://localhost:8000/docs/).
+
+
+
+
+🗄️ **MongoDB**
+
+The MongoDB database should be running at [http://localhost:27017/](http://localhost:27017/). 
+- Default login credentials: `root`:`password`
+- Default database name: `prompt_sail`
+- Default folder for storing data will be located in the root directory of the project in the `data/mongo` folder.
+
+
+📊 **Mongo-Express**
+
+Mongo-Express acts as a web-based MongoDB admin interface. It should be accessible at [http://localhost:8081/](http://localhost:8081/). 
+- Default login credentials: `admin`:`pass`
+- It is not necessary to use Mongo-Express to run Prompt Sail, but it can be helpful for debugging and monitoring the database.
+
+
+**All the settings** can be changed in the appropriate `dokcer-compose` files: 
+
+* for pulled images in [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) 
+* for build images in [docker-compose-build.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose-build.yml)
+
+
 
 ## Create your first project and add at least one AI provider
 
-In the UI, go to your [Organization's dasboard](https://promptsail.github.io/prompt_sail/docs/organization-dashboard/). Using the [Add new project](https://promptsail.github.io/prompt_sail/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
+In the UI, go to your [Organization's dasboard](/docs/organization-dashboard/). Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
+
 
 ## Make your first API call
 
@@ -164,4 +213,8 @@ pprint(response.choices[0].message)
 
 ```
 
-Folder [examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples) and [LLM Integration](/docs/llm-integrations/) section of the documentation contain more examples of how to make API calls to different LLM providers via Prompt Sail.
+## More examples
+
+You can find more examples as jupyter notebooks in the repository folder [prompt_sail/examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples). 
+
+All tested integraion are documented in [LLM Integration](/docs/llm-integrations/) section.

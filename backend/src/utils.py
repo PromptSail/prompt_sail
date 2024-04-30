@@ -213,6 +213,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         r".*api\.openai\.com(?!.*chat).*\/completions.*"
     )
     openai_embeddings_pattern = re.compile(r".*api\.openai\.com.*embeddings.*")
+    anthropic_pattern = re.compile(r".*anthropic\.com.*")
 
     transaction_params = TransactionParamsBuilder()
     transaction_params.add_library(request_headers["user-agent"]).add_status_code(
@@ -331,10 +332,12 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 messages
             )
         else:
-            messages.append({"role": "system", "content": response_content["choices"][0]["text"]})
+            messages.append(
+                {"role": "system", "content": response_content["choices"][0]["text"]}
+            )
             transaction_params.add_messages(messages).add_model(
                 response_headers["openai-model"]
-                if "openai-model" in response_headers 
+                if "openai-model" in response_headers
                 else response_content["model"]
             ).add_last_message(response_content["choices"][0]["text"])
 
@@ -364,6 +367,30 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 transaction_params.add_last_message(
                     response_content["data"][0]["embedding"]
                 )
+
+    if anthropic_pattern.match(url):
+        transaction_params.add_type("chat").add_provider("Anthropic")
+        transaction_params.add_prompt(request_content["messages"][0]["content"])
+        messages = request_content["messages"]
+        if response.__dict__["status_code"] > 200:
+            messages.append(
+                {"role": "error", "content": response_content["error"]["message"]}
+            )
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(response_content["error"]["message"]).add_messages(
+                messages
+            )
+        else:
+            messages.append(
+                {"role": "assistant", "content": response_content["content"][0]["text"]}
+            )
+            transaction_params.add_messages(messages).add_model(
+                response_content["model"]
+            ).add_last_message(response_content["content"][0]["text"])
+            transaction_params.add_input_tokens(
+                response_content["usage"].get("input_tokens", 0)
+            ).add_output_tokens(response_content["usage"].get("output_tokens", 0))
 
     return transaction_params.build()
 
@@ -460,6 +487,9 @@ def token_counter_for_transactions(
     result["input_cumulative_total"] = result.groupby(["provider", "model"])[
         "total_input_tokens"
     ].cumsum()
+    result["total_cumulative_cost"] = result.groupby(["provider", "model"])[
+        "total_cost"
+    ].cumsum()
 
     data_dicts = result.to_dict(orient="records")
 
@@ -473,7 +503,7 @@ def token_counter_for_transactions(
             input_cumulative_total=data["input_cumulative_total"],
             output_cumulative_total=data["output_cumulative_total"],
             total_transactions=data["total_transactions"],
-            total_cost=data["total_cost"],
+            total_cost=data["total_cumulative_cost"],
         )
         for data in data_dicts
     ]
@@ -1007,7 +1037,7 @@ known_ai_providers = [
     },
     {
         "provider_name": "Anthropic",
-        "api_base_placeholder": "https://api.anthropic.com/v1",
+        "api_base_placeholder": "https://api.anthropic.com",
     },
     {
         "provider_name": "Other",

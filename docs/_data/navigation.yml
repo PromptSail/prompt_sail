@@ -24,7 +24,7 @@ docs:
         url: /docs/quick-start-guide/
       - title: "Project Setup"
         url: /docs/how-to-setup-llm-proxy-project/
-  - title: 1- LLM integrations
+  - title: 1- Configure LLM Proxy
     children:
       - title: "Input/output capturing"
         url: /docs/storing-transactions/
@@ -38,19 +38,19 @@ docs:
         url: /docs/project-dashboard/
       - title: "Transactions View"
         url: /docs/todo/
-      - title: "Cost Analysis View"
-        url: /docs/todo/
-  - title: 3 - Contributing
+
+  - title: 3 - Developer Guide
     children:
-      - title: "Documentation"
-        url: /docs/how-to-write-documentation/
+      - title: "Development Environment"
+        url: /docs/development-environment/
       - title: "Repository Structure"
         url: /docs/repository-structure/
-      - title: "Code of Conduct"
-        url: /docs/code-of-conduct/
+      - title: "Database Schema"
+        url: /docs/database-schema/
+      - title: "Documentation"
+        url: /docs/how-to-write-documentation/
       - title: "Contributing Guidelines"
         url: /docs/contributing/
-
 
       
   - title: 4 - About the project
