@@ -342,9 +342,6 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             ).add_last_message(response_content["choices"][0]["text"])
 
     if openai_embeddings_pattern.match(url):
-        print("openai embeddings")
-        print("request_content", request_content)
-        print("response_content", response_content)
         transaction_params.add_type("embedding").add_provider("OpenAI")
         if isinstance(request_content["input"], list):
             transaction_params.add_prompt(
