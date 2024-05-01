@@ -16,13 +16,13 @@ perf-tests:
 	cd backend/perf_tests && locust --config locust.conf
 
 build:
-	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA)
+	docker-compose -f docker-compose-build.yml build --build-arg BUILD_SHA=$(BUILD_SHA)
 
 build-ui:
-	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA) promptsail-ui
+	docker-compose -f docker-compose-build.yml build --build-arg BUILD_SHA=$(BUILD_SHA) promptsail-ui
 
 build-backend:
-	docker-compose build --build-arg BUILD_SHA=$(BUILD_SHA) promptsail-backend
+	docker-compose -f docker-compose-build.yml build --build-arg BUILD_SHA=$(BUILD_SHA) promptsail-backend
 	
 format:
 	pre-commit run --all-files
