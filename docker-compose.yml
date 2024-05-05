@@ -29,7 +29,7 @@ services:
         condition: service_healthy
     
   promptsail-backend:
-    image: ghcr.io/promptsail/promptsail-backend:latest
+    image: ghcr.io/promptsail/promptsail-backend:${PROMPTSAIL_TAG:-latest}
     container_name: promptsail-backend
     ports:
       - "8000:8000"
@@ -43,7 +43,7 @@ services:
       mongodb:
         condition: service_healthy
   promptsail-ui:
-    image: ghcr.io/promptsail/promptsail-ui:latest
+    image: ghcr.io/promptsail/promptsail-ui:${PROMPTSAIL_TAG:-latest}
     container_name: promptsail-ui
     ports:
       - "80:80"

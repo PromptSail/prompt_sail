@@ -16,7 +16,7 @@ main:
 
 # documentation links
 docs:
-  - title: 0- Getting Started
+  - title: Getting Started
     children:
       - title: "Introduction"
         url: /docs/introduction/      
@@ -24,13 +24,25 @@ docs:
         url: /docs/quick-start-guide/
       - title: "Project Setup"
         url: /docs/how-to-setup-llm-proxy-project/
-  - title: 1- Configure LLM Proxy
+  - title: Advanced Settings
     children:
       - title: "Input/output capturing"
         url: /docs/storing-transactions/
+      - title: "Programmatic API"
+        url: /docs/programmatic-api/
       - title: "LLM frameworks integration"
         url: /docs/llm-integrations/
-  - title: 2 - User UI Guide
+  - title: Deployment Cookbook
+    children:
+      - title: "Local Deployment"
+        url: /docs/deploy-promptsail-local/
+      - title: "Deploying on Azure"
+        url: /docs/deploy-promptsail-azure
+      - title: "Deploying on AWS"
+        url: /docs/deploy-promptsail-aws/
+      - title: "Deploying on GCP"
+        url: /docs/deploy-promptsail-gcp/
+  - title: User UI Guide
     children:
       - title: "Organization Dashboard"
         url: /docs/organization-dashboard/
@@ -39,7 +51,7 @@ docs:
       - title: "Transactions View"
         url: /docs/todo/
 
-  - title: 3 - Developer Guide
+  - title: Developer Guide
     children:
       - title: "Development Environment"
         url: /docs/development-environment/
@@ -53,7 +65,7 @@ docs:
         url: /docs/contributing/
 
       
-  - title: 4 - About the project
+  - title: About the project
     children:
       - title: "Contributors"
         url: /docs/contributors/
