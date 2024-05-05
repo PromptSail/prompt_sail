@@ -21,10 +21,10 @@ Step by step guide on how to deploy Prompt Sail on Azure.
 
 Propose Checklist:
 
-[] Azure setup: account, resources, web app
-[] Azure MongoDB or alternative setup (CosmosDB, Atlas)
-[] Azure deplyment automatioon: registry, docker images, build, run
-[] Prompt Sail setup: clone, build, run
-[] Azure authentication configuration SSO
-[] App logging and monitoring
+* Azure setup: account, resources, web app
+* Azure MongoDB or alternative setup (CosmosDB, Atlas)
+* Azure deplyment automatioon: registry, docker images, build, run
+* Prompt Sail setup: clone, build, run
+* Azure authentication configuration SSO
+* App logging and monitoring
 

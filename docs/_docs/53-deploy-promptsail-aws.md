@@ -21,10 +21,10 @@ Step by step guide on how to deploy Prompt Sail on AWS.
 
 Propose Checklist:
 
-[] AWS setup: account, resources, EC2 instance
-[] AWS MongoDB or alternative setup (DocumentDB, Atlas)
-[] AWS deployment automation: registry, docker images, build, run
-[] Prompt Sail setup: clone, build, run
-[] AWS authentication configuration SSO
-[] App logging and monitoring
+* AWS setup: account, resources, EC2 instance
+* AWS MongoDB or alternative setup (DocumentDB, Atlas)
+* AWS deployment automation: registry, docker images, build, run
+* Prompt Sail setup: clone, build, run
+* AWS authentication configuration SSO
+* App logging and monitoring
 
