@@ -65,7 +65,7 @@ The prepared docker-compose file will pull Prompt Sail (backend,ui) images from 
 docker-compose -f docker-compose.yml up
 ``` 
 
-If you want to run the dev version of the images, you can pull the `dev-release` tag insted of `latest`. More on image tagging strategy you will find at [deployment - docker image tagging stratedy](/docs/image-tagging-strategy/) section.
+If you want to run the dev version of the images, you can pull the `dev-release` tag insted of `latest`. More on image tagging strategy and deployments you will find at [Deployment Cookbook - Local Deployment](/docs/deploy-promptsail-local/#Pull-and-run-the-Docker-images-from-GHCR) section.
 
 
 All the environment variables are set to default and non-production deployment in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) it is recommended to change them to your own values. 
