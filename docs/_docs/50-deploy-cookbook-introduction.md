@@ -1,6 +1,6 @@
 ---
-title: "Introduction"
-permalink: /docs/deploy-promptsail-cookbook/
+title: "Deployment recipes for Prompt Sail"
+permalink: /docs/deploy-promptsail-cookbook
 excerpt: "How to deploy Prompt Sail on Azure, AWS, GCP, or your local machine."
 last_modified_at: 2024-05-05T11:48:05+01:00
 redirect_from:

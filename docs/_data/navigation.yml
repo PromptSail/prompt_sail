@@ -37,7 +37,7 @@ docs:
         url: /docs/llm-integrations/
   - title: Deployment Cookbook
     children:
-      - title: "Intoduction"
+      - title: "Deployment recepies"
         url: /docs/deploy-promptsail-cookbook
       - title: "Local Deployment"
         url: /docs/deploy-promptsail-local
