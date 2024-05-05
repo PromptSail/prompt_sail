@@ -20,6 +20,7 @@ Help needed #good-first-issue
 Step by step guide on how to deploy Prompt Sail on GCP.
 
 Propose Checklist:
+
 [] GCP setup: account, project, resources, app engine
 [] GCP MongoDB or alternative setup (Firestore, Atlas)
 [] GCP deployment automation: registry, docker images, build, run

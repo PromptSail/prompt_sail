@@ -34,14 +34,16 @@ docs:
         url: /docs/llm-integrations/
   - title: Deployment Cookbook
     children:
+      - title: "Intoduction"
+        url: /docs/deploy-promptsail-cookbook
       - title: "Local Deployment"
-        url: /docs/deploy-promptsail-local/
+        url: /docs/deploy-promptsail-local
       - title: "Deploying on Azure"
         url: /docs/deploy-promptsail-azure
       - title: "Deploying on AWS"
-        url: /docs/deploy-promptsail-aws/
+        url: /docs/deploy-promptsail-aws
       - title: "Deploying on GCP"
-        url: /docs/deploy-promptsail-gcp/
+        url: /docs/deploy-promptsail-gcp
   - title: User UI Guide
     children:
       - title: "Organization Dashboard"

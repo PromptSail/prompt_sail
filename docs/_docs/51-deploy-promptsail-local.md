@@ -1,6 +1,6 @@
 ---
 title: "Run Prompt Sail on your local machine via docker"
-permalink: /docs/deploy-promptsail-local/
+permalink: /docs/deploy-promptsail-local
 excerpt: "How run Prompt Sail on your local machine via docker."
 last_modified_at: 2024-05-05T11:18:35+01:00
 redirect_from:
@@ -181,46 +181,6 @@ The UI should be up and running at [http://localhost:80/](http://localhost:80/).
 * `BACKEND_URL` should point to the backend service the url should be available from UI docker container.
 * `PROXY_URL_HOST` is used to properly set the proxy url for creating the links to ai providers, this should point to public url of the backend service host. 
 
-
-
-### Check that the Docker containers are running
-
-
-🖥️ **User Interface (UI)**
-
-The UI should be up and running at [http://localhost:80/](http://localhost:80/). 
-- Default login credentials: `admin`:`password`
-- Default organization name: `Default`
-- 🛠️ You can edit the organization name in the database using mongo-express.
-
-
-🔧 **Backend Service (API)**
-
-The backend services should be operational at [http://localhost:8000/](http://localhost:8000/). 
-- Swagger UI can be accessed at [http://localhost:8000/docs/](http://localhost:8000/docs/).
-
-
-
-
-🗄️ **MongoDB**
-
-The MongoDB database should be running at [http://localhost:27017/](http://localhost:27017/). 
-- Default login credentials: `root`:`password`
-- Default database name: `prompt_sail`
-- Default folder for storing data will be located in the root directory of the project in the `data/mongo` folder.
-
-
-📊 **Mongo-Express**
-
-Mongo-Express acts as a web-based MongoDB admin interface. It should be accessible at [http://localhost:8081/](http://localhost:8081/). 
-- Default login credentials: `admin`:`pass`
-- It is not necessary to use Mongo-Express to run Prompt Sail, but it can be helpful for debugging and monitoring the database.
-
-
-**All the settings** can be changed in the appropriate `dokcer-compose` files: 
-
-* for pulled images in [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) 
-* for build images in [docker-compose-build.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose-build.yml)
 
 
 ### Troubleshooting
