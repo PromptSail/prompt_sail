@@ -4,8 +4,6 @@ main:
     url: /docs/introduction/
   - title: "News"
     url: /year-archive/
-  # - title: "About Us"
-  #   url: /about-us
   - title: ""Discord"
     url: "https://discord.gg/NvpVbw3aqW"
     description: "Join our Discord community"
