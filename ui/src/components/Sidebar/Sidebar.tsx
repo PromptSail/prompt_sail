@@ -44,7 +44,7 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
                     <Button
                         ghost
                         onClick={() => {
-                            localStorage.removeItem('login');
+                            localStorage.removeItem('PS_TOKEN');
                             setLoginState(checkLogin());
                         }}
                     >

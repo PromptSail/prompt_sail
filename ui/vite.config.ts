@@ -27,7 +27,14 @@ export default defineConfig(({ mode }) => {
             proxy: createProxy(env.BACKEND_URL)
         },
         define: {
-            'import.meta.env.BACKEND_URL': new String(env.BACKEND_URL)
+            'import.meta.env.BACKEND_URL': new String(env.BACKEND_URL),
+            SSO_GOOGLE_ID: new String(env.SSO_GOOGLE_CLIENT_ID),
+            SSO_AZURE: {
+                CLIENT_ID: new String(env.SSO_AZURE_CLIENT_ID),
+                TENANT: new String(env.SSO_AZURE_TENANT),
+                SCOPES: new String(env.SSO_AZURE_SCOPES).split(','),
+                AUTHORITY: new String(env.SSO_AZURE_AUTHORITY)
+            }
         }
     };
 });
