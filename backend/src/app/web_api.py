@@ -63,10 +63,10 @@ async def get_projects(
     
     dtos = []
     for project in projects:
-        transactions = ctx.call(get_transactions_for_project, project_id=project.id)
-        cost = 0
         transaction_count = ctx.call(count_transactions, project_id=project.id)
+        cost = 0
         if transaction_count > 0:
+            transactions = ctx.call(get_transactions_for_project, project_id=project.id)
             for transaction in transactions:
                 if transaction.status_code == 200:
                     cost += transaction.total_cost if transaction.total_cost else 0
