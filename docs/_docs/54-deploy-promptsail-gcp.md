@@ -6,6 +6,7 @@ last_modified_at: 2024-05-05T11:48:05+01:00
 redirect_from:
   - /theme-setup/
 toc: true
+toc_sticky: true
 ---
 
 
