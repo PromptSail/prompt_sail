@@ -13,7 +13,6 @@ const createProxy = (url: string) => ({
 export default defineConfig(({ mode }) => {
     const env = {
         ...dotenv.config({ path: `.env.${mode}` }).parsed,
-        ...dotenv.config({ path: `.env` }).parsed,
         ...process.env
     };
     console.log('using env', env);
@@ -28,7 +27,7 @@ export default defineConfig(({ mode }) => {
             proxy: createProxy(env.BACKEND_URL)
         },
         define: {
-            'import.meta.env.BACKEND_URL': new String(env.BACKEND_URL),
+            'import.meta.env.PROXY_URL_HOST': new String(env.PROXY_URL_HOST),
             SSO_GOOGLE_ID: new String(env.SSO_GOOGLE_CLIENT_ID),
             SSO_AZURE: {
                 CLIENT_ID: new String(env.SSO_AZURE_CLIENT_ID),
