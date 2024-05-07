@@ -15,6 +15,7 @@ class GetTransactionSchema(BaseModel):
     os: str | None
     input_tokens: int | None
     output_tokens: int | None
+    input_tokens: int | None
     library: str
     status_code: int
     messages: list[dict[str, Any]] | str | None
@@ -42,6 +43,7 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     os: str | None
     input_tokens: int | None
     output_tokens: int | None
+    total_tokens: int | None
     library: str
     status_code: int
     messages: list[dict[str, Any]] | str | None
