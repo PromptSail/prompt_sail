@@ -1,5 +1,5 @@
 ---
-title: "Contributing to Prompt Sail documentation"
+title: "How the documentation is organized"
 permalink: /docs/how-to-write-documentation/
 excerpt: "How to contribute to Prompt Sail documentation"
 last_modified_at: 2023-12-22T18:48:35+01:00

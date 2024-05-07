@@ -29,8 +29,12 @@ services:
         condition: service_healthy
     
   promptsail-backend:
-    image: ghcr.io/promptsail/promptsail-backend:${PROMPTSAIL_TAG:-latest}
     container_name: promptsail-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - BUILD_SHA
     ports:
       - "8000:8000"
     environment:
@@ -43,8 +47,10 @@ services:
       mongodb:
         condition: service_healthy
   promptsail-ui:
-    image: ghcr.io/promptsail/promptsail-ui:${PROMPTSAIL_TAG:-latest}
     container_name: promptsail-ui
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
     ports:
       - "80:80"
     environment:

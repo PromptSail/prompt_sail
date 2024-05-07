@@ -1,7 +1,9 @@
 import json
 import random
+import re
 from collections import OrderedDict
 from enum import Enum
+from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
 import numpy as np
@@ -105,6 +107,85 @@ def parse_headers_to_dict(headers: list[tuple[bytes]]) -> dict:
     return {header[0].decode("utf8"): header[2].decode("utf8") for header in headers}
 
 
+class TransactionParamsBuilder:
+    library: str | None = None
+    status_code: int | None = None
+    model: str | None = None
+    model_type: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    prompt: str | None = None
+    os: str | None = None
+    provider: str | None = None
+    messages: list[dict[str, Any]] | str | None = None
+    last_message: str | None = None
+    error_message: str | None = None
+
+    def add_library(self, library: str):
+        self.library = library
+        return self
+
+    def add_status_code(self, status_code: int):
+        self.status_code = status_code
+        return self
+
+    def add_model(self, model: str):
+        self.model = model
+        return self
+
+    def add_type(self, model_type: str):
+        self.model_type = model_type
+        return self
+
+    def add_prompt(self, prompt: str):
+        self.prompt = prompt
+        return self
+
+    def add_input_tokens(self, input_tokens: int):
+        self.input_tokens = input_tokens
+        return self
+
+    def add_output_tokens(self, output_tokens: int):
+        self.output_tokens = output_tokens
+        return self
+
+    def add_os(self, os: str | None):
+        self.os = os
+        return self
+
+    def add_provider(self, provider: str):
+        self.provider = provider
+        return self
+
+    def add_messages(self, messages: list[dict[str, str]]):
+        self.messages = messages
+        return self
+
+    def add_last_message(self, last_message: str | None):
+        self.last_message = last_message
+        return self
+
+    def add_error_message(self, error_message: str):
+        self.error_message = error_message
+        return self
+
+    def build(self):
+        return {
+            "library": self.library,
+            "status_code": self.status_code,
+            "model": self.model,
+            "type": self.model_type,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "prompt": self.prompt,
+            "os": self.os,
+            "provider": self.provider,
+            "messages": self.messages,
+            "last_message": self.last_message,
+            "error_message": self.error_message,
+        }
+
+
 def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     """
     Parse information from a request, response, and response content into a dictionary representing a transaction.
@@ -121,46 +202,45 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         request.__dict__["headers"].__dict__["_list"]
     )
     request_content = json.loads(request.__dict__["_content"].decode("utf8"))
-
-    transaction_params = {
-        "library": request_headers["user-agent"],
-        "status_code": response.__dict__["status_code"],
-        "model": request_content.get("model", None),
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "os": request_headers.get("x-stainless-os", None),
-        "provider": "Unknown",
-        "messages": None,
-        "last_message": None,
-    }
-
-    if "usage" in response_content:
-        transaction_params["input_tokens"] = response_content["usage"].get(
-            "prompt_tokens", 0
-        )
-        transaction_params["output_tokens"] = response_content["usage"].get(
-            "completion_tokens", 0
-        )
-
     url = str(request.__dict__["url"])
 
-    if "openai.azure.com" in url and "embeddings" in url:
-        transaction_params["type"] = "embedding"
-        transaction_params["provider"] = "Azure"
+    azure_embeddings_pattern = re.compile(r".*openai\.azure\.com.*embeddings.*")
+    azure_completions_pattern = re.compile(r".*openai\.azure\.com.*completions.*")
+    openai_chat_completions_pattern = re.compile(
+        r".*api\.openai\.com.*chat.*completions.*"
+    )
+    openai_completions_pattern = re.compile(
+        r".*api\.openai\.com(?!.*chat).*\/completions.*"
+    )
+    openai_embeddings_pattern = re.compile(r".*api\.openai\.com.*embeddings.*")
+    anthropic_pattern = re.compile(r".*anthropic\.com.*")
+
+    transaction_params = TransactionParamsBuilder()
+    transaction_params.add_library(request_headers["user-agent"]).add_status_code(
+        response.__dict__["status_code"]
+    ).add_model(request_content.get("model", None)).add_os(
+        request_headers.get("x-stainless-os", None)
+    )
+
+    if "usage" in response_content:
+        transaction_params.add_input_tokens(
+            response_content["usage"].get("prompt_tokens", 0)
+        ).add_output_tokens(response_content["usage"].get("completion_tokens", 0))
+
+    if azure_embeddings_pattern.match(url):
+        transaction_params.add_type("embedding").add_provider("Azure OpenAI")
         if isinstance(request_content["input"], list):
-            prompt = (
+            transaction_params.add_prompt(
                 "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
             )
         else:
-            prompt = str(request_content["input"])
-
-        transaction_params["prompt"] = prompt
+            transaction_params.add_prompt(request_content["input"])
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["message"]
+            transaction_params.add_error_message(response_content["message"])
         else:
-            transaction_params["model"] = response_content["model"]
+            transaction_params.add_model(response_content["model"])
             if isinstance(response_content["data"][0]["embedding"], list):
-                msg = (
+                transaction_params.add_last_message(
                     "["
                     + ", ".join(
                         map(lambda x: str(x), response_content["data"][0]["embedding"])
@@ -168,35 +248,22 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                     + "]"
                 )
             else:
-                msg = str(response_content["data"][0]["embedding"])
-            transaction_params["messages"] = None
-            transaction_params["last_message"] = msg
-            transaction_params["error_message"] = None
+                transaction_params.add_last_message(
+                    response_content["data"][0]["embedding"]
+                )
 
-    if "openai.azure.com" in url and "completions" in url:
-        transaction_params["type"] = "chat"
-        transaction_params["provider"] = "Azure"
+    if azure_completions_pattern.match(url):
         prompt = [
             message["content"]
             for message in request_content["messages"]
             if message["role"] == "user"
         ][::-1][0]
-        transaction_params["prompt"] = (
-            prompt if prompt else request_content["messages"][0]["content"]
-        )
-        transaction_params["messages"] = request_content["messages"]
+        transaction_params.add_type("completions").add_provider(
+            "Azure OpenAI"
+        ).add_prompt(prompt if prompt else request_content["messages"][0]["content"])
+        messages = request_content["messages"]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = (
-                response_content["error"]["message"]
-                if "error" in response_content.keys()
-                else response_content["message"]
-            )
-            transaction_params["last_message"] = (
-                response_content["error"]["message"]
-                if "error" in response_content.keys()
-                else response_content["message"]
-            )
-            transaction_params["messages"].append(
+            messages.append(
                 {
                     "role": "error",
                     "content": response_content["error"]["message"]
@@ -204,72 +271,128 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                     else response_content["message"],
                 }
             )
-        else:
-            transaction_params["model"] = response_content["model"]
-            transaction_params["messages"].append(
-                response_content["choices"][0]["message"]
-            )
-            transaction_params["last_message"] = response_content["choices"][0][
-                "message"
-            ]["content"]
-            transaction_params["error_message"] = None
 
-    if "api.openai.com" in url and "chat" in url and "completions" in url:
-        transaction_params["type"] = "chat"
-        transaction_params["provider"] = "OpenAI"
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+                if "error" in response_content.keys()
+                else response_content["message"]
+            ).add_last_message(
+                response_content["error"]["message"]
+                if "error" in response_content.keys()
+                else response_content["message"]
+            ).add_messages(
+                messages
+            )
+        else:
+            messages.append(response_content["choices"][0]["message"])
+
+            transaction_params.add_messages(messages).add_model(
+                response_content["model"]
+            ).add_last_message(response_content["choices"][0]["message"]["content"])
+
+    if openai_chat_completions_pattern.match(url):
         prompt = [
             message["content"]
             for message in request_content["messages"]
             if message["role"] == "user"
         ][::-1][0]
-        transaction_params["prompt"] = (
-            prompt if prompt else request_content["messages"][0]["content"]
-        )
-        transaction_params["messages"] = request_content["messages"]
+        transaction_params.add_type("chat completions").add_provider(
+            "OpenAI"
+        ).add_prompt(prompt if prompt else request_content["messages"][0]["content"])
+        messages = request_content["messages"]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["error"]["message"]
-            transaction_params["last_message"] = response_content["error"]["message"]
-            transaction_params["messages"].append(
+            messages.append(
                 {"role": "error", "content": response_content["error"]["message"]}
             )
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(response_content["error"]["message"]).add_messages(
+                messages
+            )
         else:
-            transaction_params["model"] = (
+            messages.append(response_content["choices"][0]["message"])
+            transaction_params.add_messages(messages).add_model(
                 response_headers["openai-model"]
                 if "openai-model" in response_headers
                 else response_content["model"]
-            )
+            ).add_last_message(response_content["choices"][0]["message"]["content"])
 
-            transaction_params["messages"].append(
-                response_content["choices"][0]["message"]
-            )
-            transaction_params["last_message"] = response_content["choices"][0][
-                "message"
-            ]["content"]
-            transaction_params["error_message"] = None
-
-    if "api.openai.com" in url and "completions" in url and "chat" not in url:
-        transaction_params["type"] = "completion"
-        transaction_params["provider"] = "OpenAI"
-        transaction_params["prompt"] = request_content["prompt"]
-        transaction_params["messages"] = [
-            {"role": "user", "content": request_content["prompt"]}
-        ]
-
+    if openai_completions_pattern.match(url):
+        transaction_params.add_type("completions").add_provider("OpenAI").add_prompt(
+            request_content["prompt"]
+        )
+        messages = [{"role": "user", "content": request_content["prompt"]}]
         if response.__dict__["status_code"] > 200:
-            transaction_params["error_message"] = response_content["error"]["message"]
-            transaction_params["last_message"] = response_content["error"]["message"]
-            transaction_params["messages"].append(
+            messages.append(
                 {"role": "error", "content": response_content["error"]["message"]}
             )
-        else:
-            transaction_params["model"] = response_headers["openai-model"]
-            transaction_params["messages"].append(
-                {"role": "assistant", "content": response_content["choices"][0]["text"]}
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(response_content["error"]["message"]).add_messages(
+                messages
             )
-            transaction_params["last_message"] = response_content["choices"][0]["text"]
-            transaction_params["error_message"] = None
+        else:
+            messages.append(
+                {"role": "system", "content": response_content["choices"][0]["text"]}
+            )
+            transaction_params.add_messages(messages).add_model(
+                response_headers["openai-model"]
+                if "openai-model" in response_headers
+                else response_content["model"]
+            ).add_last_message(response_content["choices"][0]["text"])
 
-    return transaction_params
+    if openai_embeddings_pattern.match(url):
+        transaction_params.add_type("embedding").add_provider("OpenAI")
+        if isinstance(request_content["input"], list):
+            transaction_params.add_prompt(
+                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+            )
+        else:
+            transaction_params.add_prompt(request_content["input"])
+        if response.__dict__["status_code"] > 200:
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(None)
+        else:
+            transaction_params.add_model(response_content["model"])
+            if isinstance(response_content["data"][0]["embedding"], list):
+                transaction_params.add_last_message(
+                    "["
+                    + ", ".join(
+                        map(lambda x: str(x), response_content["data"][0]["embedding"])
+                    )
+                    + "]"
+                )
+            else:
+                transaction_params.add_last_message(
+                    response_content["data"][0]["embedding"]
+                )
+
+    if anthropic_pattern.match(url):
+        transaction_params.add_type("chat").add_provider("Anthropic")
+        transaction_params.add_prompt(request_content["messages"][0]["content"])
+        messages = request_content["messages"]
+        if response.__dict__["status_code"] > 200:
+            messages.append(
+                {"role": "error", "content": response_content["error"]["message"]}
+            )
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(response_content["error"]["message"]).add_messages(
+                messages
+            )
+        else:
+            messages.append(
+                {"role": "assistant", "content": response_content["content"][0]["text"]}
+            )
+            transaction_params.add_messages(messages).add_model(
+                response_content["model"]
+            ).add_last_message(response_content["content"][0]["text"])
+            transaction_params.add_input_tokens(
+                response_content["usage"].get("input_tokens", 0)
+            ).add_output_tokens(response_content["usage"].get("output_tokens", 0))
+
+    return transaction_params.build()
 
 
 def token_counter_for_transactions(
@@ -304,6 +427,9 @@ def token_counter_for_transactions(
                 "model": pairs[pair_idx][1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
                 "status_code": 0,
                 "latency": timedelta(0),
                 "total_transactions": 0,
@@ -318,6 +444,9 @@ def token_counter_for_transactions(
                 "model": pair[1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
                 "status_code": 0,
                 "latency": timedelta(0),
                 "total_transactions": 0,
@@ -336,6 +465,9 @@ def token_counter_for_transactions(
                 "model": "first",
                 "total_input_tokens": "sum",
                 "total_output_tokens": "sum",
+                "total_input_cost": "sum",
+                "total_output_cost": "sum",
+                "total_cost": "sum",
                 "status_code": "sum",
                 "latency": "sum",
                 "total_transactions": "sum",
@@ -355,6 +487,10 @@ def token_counter_for_transactions(
     result["input_cumulative_total"] = result.groupby(["provider", "model"])[
         "total_input_tokens"
     ].cumsum()
+    result["total_cumulative_cost"] = result.groupby(["provider", "model"])[
+        "total_cost"
+    ].cumsum()
+
     data_dicts = result.to_dict(orient="records")
 
     result_list = [
@@ -367,7 +503,7 @@ def token_counter_for_transactions(
             input_cumulative_total=data["input_cumulative_total"],
             output_cumulative_total=data["output_cumulative_total"],
             total_transactions=data["total_transactions"],
-            total_cost=0,
+            total_cost=data["total_cumulative_cost"],
         )
         for data in data_dicts
     ]
@@ -416,6 +552,9 @@ def status_counter_for_transactions(
             "model": "first",
             "total_input_tokens": "sum",
             "total_output_tokens": "sum",
+            "total_input_cost": "sum",
+            "total_output_cost": "sum",
+            "total_cost": "sum",
             "status_code": [
                 ("status_200", lambda code: (code == 200).sum()),
                 ("status_300", lambda code: (code == 300).sum()),
@@ -489,6 +628,9 @@ def speed_counter_for_transactions(
                 "model": pair[1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
                 "status_code": 0,
                 "latency": timedelta(0),
                 "total_transactions": 0,
@@ -503,6 +645,9 @@ def speed_counter_for_transactions(
                 "model": pair[1],
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
                 "status_code": 0,
                 "latency": timedelta(0),
                 "total_transactions": 0,
@@ -523,6 +668,9 @@ def speed_counter_for_transactions(
                 "model": "first",
                 "total_input_tokens": "sum",
                 "total_output_tokens": "sum",
+                "total_input_cost": "sum",
+                "total_output_cost": "sum",
+                "total_cost": "sum",
                 "status_code": "first",
                 "latency": "sum",
                 "total_transactions": "sum",
@@ -561,11 +709,13 @@ class ProviderPrice:
     def __init__(
         self,
         model_name: str,
+        provider: str,
         start_date: datetime | str | None,
         match_pattern: str,
         input_price: int | float,
         output_price: int | float,
         total_price: int | float,
+        is_active: bool,
     ) -> None:
         """
         Initialize a ProviderPrice object.
@@ -578,6 +728,7 @@ class ProviderPrice:
         :param total_price: The total price for usage.
         """
         self.model_name = model_name
+        self.provider = provider
         self.start_date = (
             datetime.strptime(start_date, "%Y-%m-%d") if start_date != "" else None
         )
@@ -585,6 +736,7 @@ class ProviderPrice:
         self.input_price = input_price
         self.output_price = output_price
         self.total_price = total_price
+        self.is_active = is_active
 
     def __repr__(self):
         """
@@ -594,7 +746,7 @@ class ProviderPrice:
         """
         return (
             "{"
-            + f"model_name: {self.model_name}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}"
+            + f"model_name: {self.model_name}, provider: {self.provider}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}"
             + "}"
         )
 
@@ -832,6 +984,9 @@ def read_transactions_from_csv(
                     generation_speed=obj["output_tokens"] / latency.total_seconds()
                     if latency.total_seconds() > 0
                     else 0,
+                    input_cost=None,
+                    output_cost=None,
+                    total_cost=None,
                 )
             )
         else:
@@ -857,6 +1012,9 @@ def read_transactions_from_csv(
                     request_time=request_time,
                     response_time=response_time,
                     generation_speed=0,
+                    input_cost=None,
+                    output_cost=None,
+                    total_cost=None,
                 )
             )
     return transactions
@@ -879,7 +1037,7 @@ known_ai_providers = [
     },
     {
         "provider_name": "Anthropic",
-        "api_base_placeholder": "https://api.anthropic.com/v1",
+        "api_base_placeholder": "https://api.anthropic.com",
     },
     {
         "provider_name": "Other",

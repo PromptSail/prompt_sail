@@ -89,7 +89,7 @@ export interface getTransactionResponse {
     generation_speed: number;
     input_cost: number;
     output_cost: number;
-    total_cost: number;
+    total_cost: number | null;
     tags: string[];
 }
 export interface getAllTransactionResponse {

@@ -15,6 +15,7 @@ class GetTransactionSchema(BaseModel):
     os: str | None
     input_tokens: int | None
     output_tokens: int | None
+    input_tokens: int | None
     library: str
     status_code: int
     messages: list[dict[str, Any]] | str | None
@@ -24,6 +25,9 @@ class GetTransactionSchema(BaseModel):
     request_time: datetime
     response_time: datetime
     generation_speed: int | float
+    input_cost: int | float | None
+    output_cost: int | float | None
+    total_cost: int | float | None
     tags: list[str]
 
 
@@ -39,6 +43,7 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     os: str | None
     input_tokens: int | None
     output_tokens: int | None
+    total_tokens: int | None
     library: str
     status_code: int
     messages: list[dict[str, Any]] | str | None
@@ -48,9 +53,9 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     request_time: datetime
     response_time: datetime
     generation_speed: int | float
-    input_cost: int | float
-    output_cost: int | float
-    total_cost: int | float
+    input_cost: int | float | None
+    output_cost: int | float | None
+    total_cost: int | float | None
     tags: list[str]
 
 
@@ -60,6 +65,9 @@ class StatisticTransactionSchema(BaseModel):
     model: str
     total_input_tokens: int
     total_output_tokens: int
+    total_input_cost: int | float | None
+    total_output_cost: int | float | None
+    total_cost: int | float | None
     status_code: int
     latency: timedelta
     date: datetime
