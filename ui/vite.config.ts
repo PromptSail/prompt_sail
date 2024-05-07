@@ -13,6 +13,7 @@ const createProxy = (url: string) => ({
 export default defineConfig(({ mode }) => {
     const env = {
         ...dotenv.config({ path: `.env.${mode}` }).parsed,
+        ...dotenv.config({ path: `.env` }).parsed,
         ...process.env
     };
     console.log('using env', env);
