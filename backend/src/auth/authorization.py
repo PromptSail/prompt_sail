@@ -75,9 +75,8 @@ def decode_and_validate_token(ctx: Annotated[TransactionContext, Depends(get_tra
         unvalidated = jwt.decode(token, options={"verify_signature": False})
         
         if "test" == unvalidated['iss']:
-            return User(external_id="test", email="test@test.com", organization="test", given_name="test",
-                        family_name="test", picture="", issuer="test")
-        
+            return User(external_id="test", email="test@test.com", organization="test", given_name="test", family_name="test", picture="", issuer="test")  
+
         jwks_url = get_jwks_url(unvalidated['iss'])
         jwks_client = jwt.PyJWKClient(jwks_url)
         header = jwt.get_unverified_header(token)
