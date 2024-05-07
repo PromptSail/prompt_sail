@@ -19,6 +19,8 @@ lato = "^0.8.0"
 python-slugify = "^8.0.4"
 fastapi = "^0.110.1"
 pyzmq = "~25"
+pyjwt = "^2.8.0"
+cryptography = "^42.0.5"
 
 
 
