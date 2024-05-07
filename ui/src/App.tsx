@@ -5,13 +5,23 @@ import Transactions from './pages/Transactions';
 import Sidebar from './components/Sidebar/Sidebar';
 
 import { useState } from 'react';
-import Signin from './pages/Signin';
+import Signin from './pages/Signin/Signin';
 import { checkLogin } from './storage/login';
 import { Layout } from 'antd';
 import Transaction from './pages/Transaction/Transaction';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
+    // useEffect(() => {
+    //     const handleStorageChange = () => {
+    //         console.log('c');
+    //         setLoginState(checkLogin());
+    //     };
+    //     window.addEventListener('storage', handleStorageChange);
+    //     return () => {
+    //         window.removeEventListener('storage', handleStorageChange);
+    //     };
+    // }, [localStorage]);
     if (isLogged) {
         return (
             <>
@@ -39,6 +49,7 @@ const App = () => {
             <Layout className="h-screen">
                 <Routes>
                     <Route path="/signin" element={<Signin setLoginState={setLoginState} />} />
+
                     <Route path="*" element={<Navigate to="/signin" />} />
                 </Routes>
             </Layout>
