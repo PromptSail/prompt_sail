@@ -51,11 +51,17 @@ services:
     build:
       context: ./ui
       dockerfile: Dockerfile
+      args:
+        PROXY_URL_HOST: "http://localhost:8000"
+        SSO_GOOGLE_CLIENT_ID: '******.apps.googleusercontent.com'
+        SSO_AZURE_CLIENT_ID: '6fe*******'
+        SSO_AZURE_TENANT: '4a1******'
+        SSO_AZURE_SCOPES: 'user.read'
+        SSO_AZURE_AUTHORITY: 'https://login.microsoftonline.com/4a1*****'
     ports:
       - "80:80"
     environment:
       BACKEND_URL: "http://promptsail-backend:8000"
-      PROXY_URL_HOST: "http://localhost:8000"
     depends_on:
         mongodb:
             condition: service_started
