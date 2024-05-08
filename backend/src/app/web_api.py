@@ -63,10 +63,10 @@ async def get_projects(
     
     dtos = []
     for project in projects:
-        transactions = ctx.call(get_transactions_for_project, project_id=project.id)
-        cost = 0
         transaction_count = ctx.call(count_transactions, project_id=project.id)
+        cost = 0
         if transaction_count > 0:
+            transactions = ctx.call(get_transactions_for_project, project_id=project.id)
             for transaction in transactions:
                 if transaction.status_code == 200:
                     cost += transaction.total_cost if transaction.total_cost else 0
@@ -195,6 +195,7 @@ async def get_transaction_details(
     transaction = GetTransactionWithProjectSlugSchema(
         **transaction.model_dump(),
         project_name=project.name,
+        total_tokens=transaction.input_tokens + transaction.output_tokens if transaction.input_tokens and transaction.output_tokens else None,
     )
     return transaction
 
@@ -247,6 +248,7 @@ async def get_paginated_transactions(
             GetTransactionWithProjectSlugSchema(
                 **transaction.model_dump(),
                 project_name=project_id_name_map.get(transaction.project_id, None),
+                total_tokens=transaction.input_tokens + transaction.output_tokens if transaction.input_tokens and transaction.output_tokens else None,
             )
         )
 
