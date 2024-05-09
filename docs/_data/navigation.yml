@@ -43,6 +43,8 @@ docs:
         url: /docs/deploy-promptsail-aws
       - title: "Deploying on GCP"
         url: /docs/deploy-promptsail-gcp
+      - title: "SSO Configuration"
+        url: /docs/sso-configuration/
   - title: User UI Guide
     children:
       - title: "Login Page"
