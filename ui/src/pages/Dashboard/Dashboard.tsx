@@ -7,6 +7,7 @@ import outline from './../../assets/logo/symbol-teal-outline.svg';
 import FilterDashboard from './FilterDashboard';
 import ProjectTile from '../../components/ProjectTile/ProjectTile';
 import noFoundImg from '../../assets/paper_boat.svg';
+import noResultsImg from '../../assets/loupe.svg';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
@@ -109,7 +110,26 @@ const Dashboard = () => {
             )}
             {projects.isSuccess && (
                 <div className="px-[24px] max-w-[1600px] w-full mx-auto">
-                    {projects.data.length < 1 && <NoProjectsInfo />}
+                    {projects.data.length < 1 && (
+                        <Flex className="m-auto mt-24" vertical>
+                            <img src={noFoundImg} width={250} className="m-auto" />
+                            <Title level={2} className="mt-[24px] text-center">
+                                Start your journey
+                            </Title>
+                            <Title level={5} className="text-center text-[16px] mt-[8px]">
+                                Create your fist project
+                            </Title>
+                            <Button
+                                className="m-auto mt-[32px]"
+                                type="primary"
+                                size="large"
+                                icon={<PlusSquareOutlined />}
+                                onClick={() => navigate('/projects/add')}
+                            >
+                                New project
+                            </Button>
+                        </Flex>
+                    )}
                     {projects.data.length > 0 && (
                         <>
                             <FilterDashboard
@@ -157,7 +177,21 @@ const Dashboard = () => {
                                 {filteredProjects.map((e) => (
                                     <ProjectTile data={e} key={e.id} />
                                 ))}
-                                {filteredProjects.length == 0 && <NoProjectsInfo />}
+                                {filteredProjects.length == 0 && (
+                                    <Flex className="m-auto mt-24" vertical>
+                                        <img src={noResultsImg} width={250} className="m-auto" />
+                                        <Title level={3} className="mt-[24px] text-center">
+                                            No results
+                                        </Title>
+                                        <Title
+                                            level={5}
+                                            className="max-w-[250px] text-center m-auto"
+                                        >
+                                            Refine your search or adjust filters to see more
+                                            results.
+                                        </Title>
+                                    </Flex>
+                                )}
                             </Flex>
                             {filteredProjects.length > 0 && (
                                 <Flex
@@ -182,28 +216,6 @@ const Dashboard = () => {
                     )}
                 </div>
             )}
-        </Flex>
-    );
-};
-
-const NoProjectsInfo: React.FC = () => {
-    const navigate = useNavigate();
-    return (
-        <Flex className="m-auto mt-24" vertical>
-            <img src={noFoundImg} width={300} className="m-auto" />
-            <Title level={2} className="mt-[24px] text-center">
-                Start your journey
-            </Title>
-            <Text className="text-center text-[16px] mt-[8px]">Create your fist project</Text>
-            <Button
-                className="m-auto mt-[32px]"
-                type="primary"
-                size="large"
-                icon={<PlusSquareOutlined />}
-                onClick={() => navigate('/projects/add')}
-            >
-                New project
-            </Button>
         </Flex>
     );
 };
