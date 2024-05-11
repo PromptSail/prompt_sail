@@ -53,6 +53,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+    volumes:
+      # vite has a problem with env variables, so we need to pass them via mounted file /configs/ui/.env.production
+      # https://github.com/vitejs/vite/issues/10059
+      - ./configs/ui:/app/env_config  # ./configs/ui/.env.production is mounted to /app/config/.env.production
     environment:
       # vite has a problem with env variables, so we need to pass them via mounted file /configs/ui/.env.production
       # https://github.com/vitejs/vite/issues/10059
