@@ -247,7 +247,7 @@ async def get_paginated_transactions(
         new_transactions.append(
             GetTransactionWithProjectSlugSchema(
                 **transaction.model_dump(),
-                project_name=project_id_name_map.get(transaction.project_id, None),
+                project_name=project_id_name_map.get(transaction.project_id, ""),
                 total_tokens=transaction.input_tokens + transaction.output_tokens if transaction.input_tokens and transaction.output_tokens else None,
             )
         )
