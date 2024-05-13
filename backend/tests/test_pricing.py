@@ -93,7 +93,7 @@ def test_azure_costs(client, application):
     case16 = [item for item in data if item["model"] == "gpt-4-0613"][0]
     case17 = [item for item in data if item["model"] == "gpt-4-1106-preview"][0]
     case18 = [item for item in data if item["model"] == "gpt-4-32k-0613"][0]
-    # case19 = [item for item in data if item["model"] == "gpt-4-vision-preview"][0]
+    case19 = [item for item in data if item["model"] == "gpt-4-vision-preview"][0]
     case20 = [item for item in data if item["model"] == "text-embedding-3-small-1"][0]
     case21 = [item for item in data if item["model"] == "text-embedding-3-large-1"][0]
     case22 = [item for item in data if item["model"] == "text-embedding-ada-002-1"][0]
@@ -108,16 +108,14 @@ def test_azure_costs(client, application):
     assert case2["total_cost"] - 0.00001 <= 0.000324000 <= case2["total_cost"] + 0.00001
     assert case3["total_cost"] - 0.00001 <= 0.001215500 <= case3["total_cost"] + 0.00001
     assert case4["total_cost"] - 0.00001 <= 0.000879000 <= case4["total_cost"] + 0.00001
-    assert case5["total_cost"] - 0.00001 <= 0.000278000 <= case5["total_cost"] + 0.00001
-    assert case6["total_cost"] - 0.00001 <= 0.000428000 <= case6["total_cost"] + 0.00001
+    assert case5["total_cost"] - 0.00001 <= 0.000296000 <= case5["total_cost"] + 0.00001
+    assert case6["total_cost"] - 0.00001 <= 0.000496000 <= case6["total_cost"] + 0.00001
     assert case7["total_cost"] - 0.00001 <= 0.000407000 <= case7["total_cost"] + 0.00001
     assert case8["total_cost"] - 0.00001 <= 0.000607000 <= case8["total_cost"] + 0.00001
     assert case9["total_cost"] - 0.00001 <= 0.000282000 <= case9["total_cost"] + 0.00001
     assert case10["total_cost"] - 0.00001 <= 0.000382000 <= case10["total_cost"] + 0.00001
-    
     assert case11["total_cost"] - 0.00001 <= 0.000714000 <= case11["total_cost"] + 0.00001
     assert case12["total_cost"] - 0.00001 <= 0.001014000 <= case12["total_cost"] + 0.00001
-    
     assert case13["total_cost"] - 0.00001 <= 0.001058000 <= case13["total_cost"] + 0.00001
     assert case14["total_cost"] - 0.00001 <= 0.001258000 <= case14["total_cost"] + 0.00001
     assert case15["total_cost"] - 0.00001 <= 0.003810000 <= case15["total_cost"] + 0.00001
@@ -125,7 +123,7 @@ def test_azure_costs(client, application):
     assert case17["total_cost"] - 0.00001 <= 0.006230000 <= case17["total_cost"] + 0.00001
     assert case18["total_cost"] - 0.00001 <= 0.031680000 <= case18["total_cost"] + 0.00001
     
-    # assert case19["total_cost"] - 0.00001 <= 0.004250000 <= case19["total_cost"] + 0.00001
+    assert case19["total_cost"] - 0.00001 <= 0.004250000 <= case19["total_cost"] + 0.00001
     
     assert case20["total_cost"] - 0.00001 <= 0.000006660 <= case20["total_cost"] + 0.00001
     assert case21["total_cost"] - 0.00001 <= 0.000054730 <= case21["total_cost"] + 0.00001

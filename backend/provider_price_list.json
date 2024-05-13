@@ -254,7 +254,7 @@
         "provider": "Azure OpenAI",
         "start_date": "",
         "match_pattern": "(?i)^(gpt-)(35|3.5)(-turbo-0301)$",
-        "input_price": 0.0015,
+        "input_price": 0.0020,
         "output_price": 0.0020,
         "total_price": 0,
         "is_active": true
@@ -434,6 +434,16 @@
         "provider": "Azure OpenAI",
         "start_date": "",
         "match_pattern": "(?i)^(gpt-4-1106-vision-preview)$",
+        "input_price": 0.01,
+        "output_price": 0.03,
+        "total_price": 0,
+        "is_active": true
+    },
+    {
+        "model_name": "gpt-4-vision-preview",
+        "provider": "Azure OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4-vision-preview)$",
         "input_price": 0.01,
         "output_price": 0.03,
         "total_price": 0,
