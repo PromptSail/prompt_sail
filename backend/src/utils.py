@@ -1047,6 +1047,15 @@ def read_transactions_from_csv(
     return transactions
 
 
+class MockResponse:
+    def __init__(self, status_code, content):
+        self.status_code = status_code
+        self.content = content
+    
+    def json(self):
+        return self.content
+    
+    
 class PeriodEnum(str, Enum):
     week = "week"
     year = "year"
