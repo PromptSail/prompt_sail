@@ -15,7 +15,9 @@ export default defineConfig(({ mode }) => {
         ...dotenv.config({ path: `.env.${mode}` }).parsed,
         ...process.env
     };
-    console.log('using env', env);
+
+    // console.log('Evn from ', `.env.${mode}`);
+    // console.log('All defined and overwriten env', env);
     return {
         plugins: [react()],
         server: {

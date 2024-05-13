@@ -47,22 +47,18 @@ services:
     container_name: promptsail-ui
     ports:
       - "80:80"
-    volumes:
-      # vite has a problem with env variables, so we need to pass them via mounted file /configs/ui/.env.production
-      # https://github.com/vitejs/vite/issues/10059
-      - ./configs/ui:/app/env_config  # ./configs/ui/.env.production is mounted to /app/config/.env.production
     environment:
-      # vite has a problem with reading env variables after image has built, so we need to pass them via mounted file /configs/ui/.env.production
+      # vite has a problem with env variables, they are hardcoded after 'npm build' so at runtime we search through the files and replace them, see ui/.env.production and ui/deployment/docker_env_replacement.sh scritp
+      # https://dev.to/sanjayttg/dynamic-environment-variables-for-dockerized-react-apps-5bc5
       # https://github.com/vitejs/vite/issues/10059
-      # PORT=80
-      # BACKEND_URL='http://promptsail-backend:8000'
-      # PROXY_URL_HOST='http://localhost:8000'
-      # SSO_GOOGLE_CLIENT_ID='change_me_in_production.apps.googleusercontent.com'
-      # SSO_AZURE_CLIENT_ID='6fe*******aaa'
-      # SSO_AZURE_TENANT='4a1******aaa'
-      # SSO_AZURE_SCOPES='user.read'
-      # SSO_AZURE_AUTHORITY='https://login.microsoftonline.com/4a1*****aaa'
-      DUMMY_ENV: "dummy"
+      PORT: 80
+      PROMPT_SAIL_ENV_PLACEHOLDER_BACKEND_URL: 'http://promptsail-backend:8000'
+      PROMPT_SAIL_ENV_PLACEHOLDER_PROXY_URL_HOST: 'http://localhost:8000'
+      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_GOOGLE_CLIENT_ID: 'change_me_compose.apps.googleusercontent.com'
+      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_CLIENT_ID: '6fe*******aaa'
+      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_TENANT: '4a1******aaa'
+      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_SCOPES: 'user.read'
+      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_AUTHORITY: 'https://login.microsoftonline.com/4a1*****aaa'
     depends_on:
         mongodb:
             condition: service_started
