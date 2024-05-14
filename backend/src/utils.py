@@ -950,6 +950,7 @@ def read_transactions_from_csv(
     df = pd.read_csv(path, sep=";")
     data = df.to_dict(orient="records")
     transactions = []
+    pricelist = read_provider_pricelist()
     for idx, obj in enumerate(data):
         transaction_id = f"test-transaction-{idx}"
         request_time = datetime.fromisoformat(
@@ -959,7 +960,33 @@ def read_transactions_from_csv(
             obj["response_time"].replace("Z", "+00:00")
         )
         latency = response_time - request_time
+        price = [
+            item
+            for item in pricelist
+            if item.provider == obj["provider"]
+               and re.match(item.match_pattern, obj["model"])
+        ]
         if obj["status_code"] == 200:
+            print(obj["model"])
+            if len(price) > 0:
+                price = price[0]
+                print("input tokens:", obj["input_tokens"], "output tokens:", obj["output_tokens"], "input price:", price.input_price, "output price:", price.output_price, "total price:", price.total_price)
+                if price.input_price == 0:
+                    input_cost, output_cost = 0, 0
+                    total_cost = (
+                        (obj["input_tokens"] + obj["output_tokens"])
+                        / 1000
+                        * price.total_price
+                    )
+                else:
+                    input_cost = price.input_price * (obj["input_tokens"] / 1000)
+                    output_cost = price.output_price * (
+                        obj["output_tokens"] / 1000
+                    )
+                    total_cost = input_cost + output_cost
+            else:
+                input_cost, output_cost, total_cost = None, None, None
+            print("input_cost:", input_cost, "output_cost:", output_cost, "total_cost:", total_cost)
             transactions.append(
                 Transaction(
                     id=transaction_id,
@@ -984,9 +1011,9 @@ def read_transactions_from_csv(
                     generation_speed=obj["output_tokens"] / latency.total_seconds()
                     if latency.total_seconds() > 0
                     else 0,
-                    input_cost=None,
-                    output_cost=None,
-                    total_cost=None,
+                    input_cost=input_cost,
+                    output_cost=output_cost,
+                    total_cost=total_cost,
                 )
             )
         else:
@@ -1012,14 +1039,23 @@ def read_transactions_from_csv(
                     request_time=request_time,
                     response_time=response_time,
                     generation_speed=0,
-                    input_cost=None,
-                    output_cost=None,
-                    total_cost=None,
+                    input_cost=0,
+                    output_cost=0,
+                    total_cost=0,
                 )
             )
     return transactions
 
 
+class MockResponse:
+    def __init__(self, status_code, content):
+        self.status_code = status_code
+        self.content = content
+    
+    def json(self):
+        return self.content
+    
+    
 class PeriodEnum(str, Enum):
     week = "week"
     year = "year"

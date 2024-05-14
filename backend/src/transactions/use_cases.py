@@ -215,10 +215,6 @@ def store_transaction(
         and re.match(item.match_pattern, ai_model_version)
     ]
 
-    print(params["provider"])
-    print(ai_model_version)
-    print(pricelist)
-
     if (
         params["status_code"] == 200
         and params["input_tokens"] is not None
@@ -230,7 +226,7 @@ def store_transaction(
                 total_cost = (
                     (params["input_tokens"] + params["output_tokens"])
                     / 1000
-                    * pricelist[0].output_price
+                    * pricelist[0].total_price
                 )
             else:
                 input_cost = pricelist[0].input_price * (params["input_tokens"] / 1000)

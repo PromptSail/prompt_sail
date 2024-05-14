@@ -6,6 +6,7 @@ last_modified_at: 2024-02-21T12:14:05+01:00
 redirect_from:
     - /theme-setup/
 toc: true
+toc_sticky: true
 ---
 
 The Project Setup page guides users through the process of creating a new project within our application. This includes defining project details and integrating AI providers. To begin the process of creating a new project, click on "Add new Project" on the [Organization Dashboard](https://promptsail.github.io/prompt_sail/docs/organization-dashboard/) page. You should see a form with two sections:
