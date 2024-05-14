@@ -229,28 +229,26 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
     if azure_embeddings_pattern.match(url):
         transaction_params.add_type("embedding").add_provider("Azure OpenAI")
+        messages = []
         if isinstance(request_content["input"], list):
-            transaction_params.add_prompt(
-                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
-            )
+            prompt = "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
         else:
-            transaction_params.add_prompt(request_content["input"])
+            prompt = request_content["input"]
+        transaction_params.add_prompt(prompt)
+        messages.append({"role": "user", "content": prompt})
         if response.__dict__["status_code"] > 200:
-            transaction_params.add_error_message(response_content["message"])
+            last_message = response_content["error"]["message"]
+            transaction_params.add_error_message(last_message)
+            messages.append({"role": "error", "content": last_message})
         else:
             transaction_params.add_model(response_content["model"])
             if isinstance(response_content["data"][0]["embedding"], list):
-                transaction_params.add_last_message(
-                    "["
-                    + ", ".join(
-                        map(lambda x: str(x), response_content["data"][0]["embedding"])
-                    )
-                    + "]"
-                )
+                last_message = "[" + ", ".join(map(lambda x: str(x), response_content["data"][0]["embedding"])) + "]"
             else:
-                transaction_params.add_last_message(
-                    response_content["data"][0]["embedding"]
-                )
+                last_message = response_content["data"][0]["embedding"]
+            transaction_params.add_last_message(last_message)
+            messages.append({"role": "system", "content": last_message})
+        transaction_params.add_messages(messages)
 
     if azure_completions_pattern.match(url):
         prompt = [
@@ -343,31 +341,27 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
     if openai_embeddings_pattern.match(url):
         transaction_params.add_type("embedding").add_provider("OpenAI")
+        messages = []
         if isinstance(request_content["input"], list):
-            transaction_params.add_prompt(
-                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
-            )
+            prompt = "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
         else:
-            transaction_params.add_prompt(request_content["input"])
+            prompt = request_content["input"]
+        messages.append({"role": "user", "content": prompt})
+        transaction_params.add_prompt(prompt)
         if response.__dict__["status_code"] > 200:
-            transaction_params.add_error_message(
-                response_content["error"]["message"]
-            ).add_last_message(None)
+            last_message = response_content["error"]["message"]
+            transaction_params.add_error_message(last_message).add_last_message(None)
+            messages.append({"role": "error", "content": last_message})
         else:
             transaction_params.add_model(response_content["model"])
             if isinstance(response_content["data"][0]["embedding"], list):
-                transaction_params.add_last_message(
-                    "["
-                    + ", ".join(
-                        map(lambda x: str(x), response_content["data"][0]["embedding"])
-                    )
-                    + "]"
-                )
+                last_message = "[" + ", ".join(map(lambda x: str(x), response_content["data"][0]["embedding"])) + "]"
             else:
-                transaction_params.add_last_message(
-                    response_content["data"][0]["embedding"]
-                )
-
+                last_message = response_content["data"][0]["embedding"]
+            transaction_params.add_last_message(last_message)
+            messages.append({"role": "system", "content": last_message})
+        transaction_params.add_messages(messages)
+        
     if anthropic_pattern.match(url):
         transaction_params.add_type("chat").add_provider("Anthropic")
         transaction_params.add_prompt(request_content["messages"][0]["content"])
