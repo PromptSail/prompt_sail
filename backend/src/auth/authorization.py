@@ -2,7 +2,7 @@ import urllib.request
 import json
 import jwt
 from fastapi import Header, HTTPException, Depends
-from typing import Annotated
+from typing import Annotated, Optional
 from lato import TransactionContext
 from app.dependencies import get_transaction_context
 from auth.models import User
@@ -60,17 +60,24 @@ def get_jwks_url(issuer_url):
     return well_known['jwks_uri']
 
 
-def verify_authorization(authorization: str = Header(...)) -> str:
+def verify_authorization(authorization: Optional[str] = Header(None)) -> str:
+    if not config.SSO_AUTH:
+        return "auth off"
     try:
+        if authorization is None:
+            raise HTTPException(status_code=401, detail="Authorization header is missing")
         token_type, token = authorization.split(' ')
         if token_type.lower() != 'bearer':
             raise HTTPException(status_code=401, detail="Invalid authentication scheme")
         return token
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid authorization header")
-
+        
 
 def decode_and_validate_token(ctx: Annotated[TransactionContext, Depends(get_transaction_context)], token: str = Depends(verify_authorization)) -> User:
+    if not config.SSO_AUTH:
+        return User(external_id="anonymous", email="anonymous@unknown.com", organization="Anonymous", 
+                    given_name="Anonymous", family_name="Unknown", picture="", issuer="test")
     try:
         unvalidated = jwt.decode(token, options={"verify_signature": False})
         

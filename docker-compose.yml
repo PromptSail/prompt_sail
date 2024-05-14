@@ -39,6 +39,7 @@ services:
       MONGO_URL: "mongodb://root:password@mongodb:27017"
       ORGANIZATION_NAME: "Default"
       ADMIN_PASSWORD: "password"
+      SSO_AUTH: "False"
     depends_on:
       mongodb:
         condition: service_healthy

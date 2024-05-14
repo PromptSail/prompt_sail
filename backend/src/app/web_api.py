@@ -1,4 +1,3 @@
-import re
 from typing import Annotated, Any
 
 import utils
@@ -24,8 +23,8 @@ from projects.use_cases import (
     get_project,
     update_project,
 )
-from settings.schemas import AuthorizeUserSchema
-from settings.use_cases import get_organization_name, get_users_for_organization
+
+from settings.use_cases import get_organization_name
 from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
@@ -579,27 +578,22 @@ async def get_organization(
     return str(organization_name)
 
 
-@app.post("/api/authorize", response_class=JSONResponse)
-async def authorize_user(
-    data: AuthorizeUserSchema,
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
-) -> dict[str, Any]:
+@app.get("/api/config", response_class=JSONResponse)
+async def get_config(
+    request: Request,
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> dict[str, str | bool]:
     """
-    API endpoint to authorize a user.
+    API endpoint to retrieve the config.
 
-    :param data: The data containing user information.
     :param ctx: The transaction context dependency.
-    :return: A dictionary containing the authorization status and message.
     """
-    if AuthorizeUserSchema(**data.model_dump()) in [
-        AuthorizeUserSchema(**data.model_dump())
-        for data in ctx.call(get_users_for_organization)
-    ]:
-        return {"status": 200, "message": "OK"}
-    return {"status": 404, "message": "Not Found"}
+    organization_name = ctx.call(get_organization_name)
+    auth = request.app.container.config().SSO_AUTH
+    return {"organization": str(organization_name), "authorization": auth}
 
 
-@app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse, dependencies=[Security(decode_and_validate_token)])
+@app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse)
 async def mock_transactions(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     count: int,
