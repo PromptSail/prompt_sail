@@ -20,6 +20,9 @@ do
 
     # sed JS and CSS only
     find /app/dist -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|${key}|${value}|g" '{}' +
+
+    # sed Nginx config file
+    sed -i "s|${key}|${value}|g" /etc/nginx/conf.d/default.conf
 done
 
 echo "*** Replacing environment variables in the build files [done]"
