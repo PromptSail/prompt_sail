@@ -17,6 +17,9 @@ const api = {
     whoami: (): Promise<AxiosResponse> => {
         return client.get('/api/whoami');
     },
+    config: (): Promise<AxiosResponse> => {
+        return client.get('/api/config');
+    },
     getProjects: (): Promise<AxiosResponse<getAllProjects[]>> => {
         return client.get('/api/projects');
     },

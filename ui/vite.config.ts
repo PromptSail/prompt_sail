@@ -16,8 +16,6 @@ export default defineConfig(({ mode }) => {
         ...process.env
     };
 
-    // console.log('Evn from ', `.env.${mode}`);
-    // console.log('All defined and overwriten env', env);
     return {
         plugins: [react()],
         server: {

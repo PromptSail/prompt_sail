@@ -12,16 +12,6 @@ import Transaction from './pages/Transaction/Transaction';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
-    // useEffect(() => {
-    //     const handleStorageChange = () => {
-    //         console.log('c');
-    //         setLoginState(checkLogin());
-    //     };
-    //     window.addEventListener('storage', handleStorageChange);
-    //     return () => {
-    //         window.removeEventListener('storage', handleStorageChange);
-    //     };
-    // }, [localStorage]);
     if (isLogged) {
         return (
             <>

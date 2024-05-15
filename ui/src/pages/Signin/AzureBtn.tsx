@@ -1,4 +1,6 @@
+import { WindowsFilled } from '@ant-design/icons';
 import { PublicClientApplication } from '@azure/msal-browser';
+import { Button } from 'antd';
 const { CLIENT_ID, SCOPES, AUTHORITY } = SSO_AZURE;
 const msalInstance = new PublicClientApplication({
     auth: {
@@ -10,16 +12,6 @@ const msalInstance = new PublicClientApplication({
         cacheLocation: 'sessionStorage',
         storeAuthStateInCookie: true
     }
-    // system: {
-    //     loggerOptions: {
-    //         loggerCallback: (level, message, containsPii) => {
-    //             console.log(level);
-    //             console.log(message);
-    //             console.log(containsPii);
-    //             return;
-    //         }
-    //     }
-    // }
 });
 const AzureBtn: React.FC<{ onOk: (arg: string) => void }> = ({ onOk }) => {
     const handleClick = async () => {
@@ -35,6 +27,16 @@ const AzureBtn: React.FC<{ onOk: (arg: string) => void }> = ({ onOk }) => {
             console.error(error);
         }
     };
-    return <button onClick={handleClick}>Login by Azure</button>;
+    return (
+        <Button
+            type="primary"
+            size="large"
+            className="w-full mt-3"
+            icon={<WindowsFilled />}
+            onClick={handleClick}
+        >
+            Login by Azure
+        </Button>
+    );
 };
 export default AzureBtn;
