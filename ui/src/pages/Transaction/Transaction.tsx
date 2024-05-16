@@ -16,7 +16,7 @@ import Details from './Details';
 import { transactionTabOnLoad } from '../../storage/transactionsDetails';
 import { TagsContainer } from '../../helpers/dataContainer';
 import { ArrowRightOutlined } from '@ant-design/icons';
-import Container from '../Project/Container';
+import Container from '../../components/Container/Container';
 const { Title } = Typography;
 
 const Transaction: React.FC = () => {

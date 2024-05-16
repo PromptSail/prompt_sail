@@ -1,207 +1,166 @@
-import { useFormik } from 'formik';
-import { useEffect, useState } from 'react';
-import ProviderFormAndList from './ProviderFormAndList/ProviderFormAndList';
-import { projectSchema } from '../../api/formSchemas';
-import { useGetAllProjects } from '../../api/queries';
+import { FormikProps, useFormik } from 'formik';
+import { useState } from 'react';
+import { projectSchema, providerSchema } from '../../api/formSchemas';
 import { toSlug } from '../../helpers/aiProvider';
-import { Col, Form, Input, Row, Select, Tag } from 'antd';
-import Container from '../../pages/Project/Container';
-import { FormikValues } from './types';
+import { Button, Flex, Steps } from 'antd';
+import { FormikValuesTemplate } from './types';
+import ProjectDetails from './ProjectDetails';
+import ProviderDetails from './ProviderDetails/ProviderDetails';
+import { CheckSquareOutlined, RightSquareOutlined } from '@ant-design/icons';
 
 interface Props {
-    submitFunc: (values: typeof FormikValues) => Promise<void>;
+    submitFunc: (values: typeof FormikValuesTemplate) => Promise<void>;
     formId: string;
     projectId?: string;
 }
 
-const ProjectForm: React.FC<Props> = ({ submitFunc, formId, projectId }) => {
-    const projects = useGetAllProjects();
-    const [isSlugGenerated, setSlugGenerate] = useState(true);
-    const formik = useFormik({
-        initialValues: {
-            ...FormikValues,
-            ai_providers: [] as typeof FormikValues.ai_providers
-        },
+const ProjectForm: React.FC<Props> = ({ submitFunc }) => {
+    const [stepsCurrent, setStepsCurrent] = useState(0);
+    const [project, setProject] = useState<typeof FormikValuesTemplate>({
+        ...FormikValuesTemplate,
+        ai_providers: [] as typeof FormikValuesTemplate.ai_providers
+    });
+    const formikDetails = useFormik({
+        initialValues: { ...project, skip: false },
         onSubmit: async (values) => {
-            if (projects.isSuccess) {
-                const noEditedProjects = projects.data.filter((e) => e.id !== (projectId || ''));
-                const isNameUnique =
-                    noEditedProjects.filter((e) => e.name === values.name).length < 1;
-                const isSlugUnique =
-                    noEditedProjects.filter((e) => e.slug === toSlug(values.slug)).length < 1;
-                if (isNameUnique && isSlugUnique)
-                    submitFunc({
-                        ...values,
-                        slug: toSlug(values.slug)
-                    });
-                else {
-                    if (!isNameUnique)
-                        formik.setErrors({
-                            ...formik.errors,
-                            name: 'There is already a project with this name in your organisation'
-                        });
-                    if (!isSlugUnique)
-                        formik.setErrors({
-                            ...formik.errors,
-                            slug: 'In your organization this slug is already taken'
-                        });
-                }
-            }
+            setProject((old) => ({
+                ...values,
+                slug: toSlug(values.slug),
+                ai_providers: old.ai_providers
+            }));
+            if (values.skip) {
+                submitFunc(values);
+            } else setStepsCurrent(1);
         },
         validationSchema: projectSchema,
         validateOnChange: false
     });
-    useEffect(() => {
-        if (projects.isSuccess && projectId) {
-            const project = projects.data.filter((e) => e.id === projectId)[0];
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { id, total_transactions, org_id, ...rest } = project;
-            setSlugGenerate(!project);
-            const value = {
-                ...rest,
-                org_id: org_id || ''
-            };
-            formik.setValues((old) => ({ ...old, ...value }));
-        }
-    }, [projects.status]);
-    if (projects.isError)
-        return (
-            <>
-                {console.error(projects.error)}
-                <div>Error {projects.error.code}</div>
-            </>
-        );
-    if (projects.isLoading) return <div>Loading...</div>;
-    if (projects.isSuccess) {
-        const options = [
-            {
-                value: 'tag1'
-            },
-            {
-                value: 'tag2'
-            },
-            {
-                value: 'tag3'
-            },
-            {
-                value: 'tag4'
-            },
-            {
-                value: 'tag5'
-            },
-            {
-                value: 'tag6'
-            }
-        ];
-        return (
-            <div className="flex flex-col gap-3">
-                <Container header="Project details">
-                    <Form
-                        name="project_details"
-                        id={formId}
-                        layout="vertical"
-                        onSubmitCapture={formik.handleSubmit}
-                        initialValues={{ tags: formik.values.tags, name: 'asdasd' }}
-                        onFinishFailed={() => console.log(formik.errors)}
-                        autoComplete="on"
-                        noValidate={true}
-                    >
-                        <Row gutter={12}>
-                            <Col span={12}>
-                                <Form.Item<typeof FormikValues>
-                                    label="Name"
-                                    rules={[{ required: true }]}
-                                    help={formik.errors.name}
-                                    validateStatus={formik.errors.name ? 'error' : ''}
-                                >
-                                    <Input
-                                        name="name"
-                                        value={formik.values.name}
-                                        onKeyUp={(e) => {
-                                            const val = e.currentTarget.value;
-                                            if (isSlugGenerated)
-                                                formik.setValues((old) => ({
-                                                    ...old,
-                                                    slug: toSlug(val)
-                                                }));
-                                        }}
-                                        onChange={formik.handleChange}
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item<typeof FormikValues>
-                                    label="slug"
-                                    rules={[{ required: true }]}
-                                    help={formik.errors.slug}
-                                    validateStatus={formik.errors.slug ? 'error' : ''}
-                                >
-                                    <Input
-                                        name="slug"
-                                        onKeyDown={() => setSlugGenerate(false)}
-                                        value={formik.values.slug}
-                                        onBlur={(e) => {
-                                            const val = e.currentTarget.value;
-                                            if (val.length < 1) setSlugGenerate(true);
-                                            e.currentTarget.value = toSlug(val);
-                                        }}
-                                        onChange={formik.handleChange}
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Form.Item<typeof FormikValues>
-                            label="Description"
-                            help={formik.errors.description}
-                            validateStatus={formik.errors.description ? 'error' : ''}
-                        >
-                            <Input.TextArea
-                                name="description"
-                                value={formik.values.description}
-                                onChange={formik.handleChange}
-                            />
-                        </Form.Item>
-                        <Form.Item<typeof FormikValues>
-                            label="Tags"
-                            validateStatus={formik.errors.tags ? 'error' : ''}
-                            help={formik.errors.tags}
-                        >
-                            <Select
-                                mode="tags"
-                                allowClear
-                                value={formik.values.tags}
-                                tagRender={({ value, closable, onClose }) => {
-                                    return (
-                                        <Tag color="blue" closable={closable} onClose={onClose}>
-                                            {value}
-                                        </Tag>
-                                    );
-                                }}
-                                onChange={(val) => {
-                                    formik.handleChange({
-                                        target: {
-                                            value: val,
-                                            name: 'tags'
-                                        }
-                                    });
-                                }}
-                                options={options}
-                            />
-                        </Form.Item>
-                    </Form>
-                </Container>
-                <ProviderFormAndList
-                    ProvidersList={formik.values.ai_providers}
-                    setProvidersList={(list: typeof FormikValues.ai_providers) =>
-                        formik.setValues({ ...formik.values, ai_providers: list })
-                    }
-                    projectSlug={formik.values.slug}
-                    isProjects={!!projectId}
-                    isError={!!formik.errors.ai_providers}
+    const formikProviders = useFormik({
+        initialValues: { ...FormikValuesTemplate.ai_providers[0] },
+        onSubmit: async (values) => {
+            const isProviderNameUniqe =
+                project.ai_providers.filter((e) => e.deployment_name === values.deployment_name)
+                    .length < 1;
+            if (isProviderNameUniqe) {
+                setProject((old) => ({
+                    ...old,
+                    ai_providers: [
+                        ...old.ai_providers,
+                        { ...values, slug: toSlug(values.deployment_name) }
+                    ]
+                }));
+                formikProviders.setValues({
+                    ...FormikValuesTemplate.ai_providers[0]
+                });
+            } else
+                formikProviders.setErrors({
+                    deployment_name: 'Already exist deployment with this name'
+                });
+        },
+        validationSchema: providerSchema,
+        validateOnChange: false
+    });
+    return (
+        <Flex gap={12} className="px-[24px] max-w-[1600px] w-full mx-auto" vertical>
+            <div className="px-[24px] py-[16px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px]">
+                <Steps
+                    current={stepsCurrent}
+                    className="max-w-[60%]"
+                    items={[
+                        {
+                            title: 'Project details'
+                        },
+                        {
+                            title: 'Provider details'
+                        }
+                    ]}
                 />
             </div>
-        );
-    }
+            <Flex vertical gap={12} className={stepsCurrent === 0 ? '' : 'hidden'}>
+                <ProjectDetails
+                    formik={formikDetails as unknown as FormikProps<typeof FormikValuesTemplate>}
+                />
+                <Flex
+                    justify="flex-end"
+                    gap={16}
+                    className="px-[24px] py-[16px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px]"
+                >
+                    <Button
+                        className="my-auto"
+                        size="large"
+                        type="text"
+                        onClick={() => console.log('cancel')}
+                    >
+                        Cancel
+                    </Button>
+                    <form id="projectForm_main"></form>
+                    <Button
+                        className="my-auto"
+                        size="large"
+                        htmlType="submit"
+                        form="projectForm_details"
+                        onClick={() => {
+                            formikDetails.setValues((old) => ({ ...old, skip: true }));
+                        }}
+                    >
+                        Skip second step and create project
+                    </Button>
+                    <Button
+                        className="my-auto"
+                        type="primary"
+                        size="large"
+                        icon={<RightSquareOutlined />}
+                        htmlType="submit"
+                        form="projectForm_details"
+                    >
+                        Continue
+                    </Button>
+                </Flex>
+            </Flex>
+            <div className={stepsCurrent === 1 ? '' : 'hidden'}>
+                <ProviderDetails
+                    formik={formikProviders}
+                    projectDetails={project}
+                    setProjectDetails={setProject}
+                />
+                <Flex
+                    justify="flex-end"
+                    gap={16}
+                    className="px-[24px] py-[16px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px]"
+                >
+                    <Button
+                        className="my-auto"
+                        size="large"
+                        type="text"
+                        onClick={() => console.log('cancel')}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="my-auto"
+                        type="default"
+                        size="large"
+                        onClick={() => setStepsCurrent(0)}
+                    >
+                        Back
+                    </Button>
+                    <Button
+                        className="my-auto"
+                        type="primary"
+                        size="large"
+                        icon={<CheckSquareOutlined />}
+                        htmlType="submit"
+                        form="projectForm_providers"
+                        onClick={() => {
+                            submitFunc(project);
+                        }}
+                    >
+                        Create project
+                    </Button>
+                </Flex>
+            </div>
+        </Flex>
+    );
 };
 
 export default ProjectForm;

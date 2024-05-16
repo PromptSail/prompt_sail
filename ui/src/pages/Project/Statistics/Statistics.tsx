@@ -1,5 +1,5 @@
 import { DatePicker, Flex, Select, Typography } from 'antd';
-import Container from '../Container';
+import Container from '../../../components/Container/Container';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import { StatisticsParams } from '../../../api/types';

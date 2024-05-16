@@ -1,6 +1,6 @@
 import { Collapse, Flex, theme } from 'antd';
 import { getTransactionResponse } from '../../api/interfaces';
-import Container from '../Project/Container';
+import Container from '../../components/Container/Container';
 import { CaretRightOutlined } from '@ant-design/icons';
 
 interface Props {

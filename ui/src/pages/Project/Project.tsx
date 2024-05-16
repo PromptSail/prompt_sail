@@ -6,15 +6,20 @@ import { UseQueryResult } from 'react-query';
 import UpdateProject from './Update/UpdateProject';
 import AddProject from './Add/AddProject';
 import { Button, Flex, Typography } from 'antd';
-import Container from './Container';
+import Container from '../../components/Container/Container';
 import { TagsContainer } from '../../helpers/dataContainer';
 import AiProvidersTable from './AiProvidersTable';
 import LatestTransactions from './LatestTransactions';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
 import Statistics from './Statistics/Statistics';
+import { NotificationInstance } from 'antd/es/notification/interface';
 const { Title, Paragraph } = Typography;
 
-const Project: React.FC & { Add: React.FC; Update: React.FC } = () => {
+interface AddProps {
+    notification: NotificationInstance;
+}
+
+const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => {
     const navigate = useNavigate();
     const params = useParams();
     const project: UseQueryResult<AxiosResponse<getProjectResponse>> = useGetProject(

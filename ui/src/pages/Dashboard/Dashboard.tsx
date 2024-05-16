@@ -1,17 +1,16 @@
-import { Flex, Typography, Layout, Button, Row, Col, Pagination } from 'antd';
+import { Flex, Typography, Button, Row, Col, Pagination } from 'antd';
 import { useEffect, useState } from 'react';
 import { getAllProjects } from '../../api/interfaces';
 import { useGetAllProjects } from '../../api/queries';
 import { PlusSquareOutlined } from '@ant-design/icons';
-import outline from './../../assets/logo/symbol-teal-outline.svg';
 import FilterDashboard from './FilterDashboard';
 import ProjectTile from '../../components/ProjectTile/ProjectTile';
 import noFoundImg from '../../assets/paper_boat.svg';
 import noResultsImg from '../../assets/loupe.svg';
 import { useNavigate } from 'react-router-dom';
+import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
 
 const { Title, Text } = Typography;
-const { Header } = Layout;
 
 const Dashboard = () => {
     const projects = useGetAllProjects();
@@ -75,28 +74,22 @@ const Dashboard = () => {
     }, [projects.status, pageData, costRange, transactionsRange, isAsc, sortby, filter]);
     return (
         <Flex gap={24} vertical>
-            <Header className="w-full min-h-[80px] border-0 border-b border-solid border-[#F0F0F0] relative overflow-hidden">
-                <Flex className="h-full" justify="space-between">
-                    <div className="my-auto z-10">
-                        <Title level={1} className="h4 m-auto">
-                            Projects ({filteredProjects.length})
-                        </Title>
-                    </div>
-                    <Button
-                        className="my-auto z-10"
-                        type="primary"
-                        size="large"
-                        icon={<PlusSquareOutlined />}
-                        onClick={() => navigate('/projects/add')}
-                    >
-                        New project
-                    </Button>
-                </Flex>
-                <img
-                    src={outline}
-                    className="absolute w-[390px] -bottom-[60px] right-14 opacity-60"
-                />
-            </Header>
+            <HeaderContainer>
+                <div className="my-auto z-10">
+                    <Title level={1} className="h4 m-auto">
+                        Projects ({filteredProjects.length})
+                    </Title>
+                </div>
+                <Button
+                    className="my-auto z-10"
+                    type="primary"
+                    size="large"
+                    icon={<PlusSquareOutlined />}
+                    onClick={() => navigate('/projects/add')}
+                >
+                    New project
+                </Button>
+            </HeaderContainer>
             {projects.isLoading && (
                 <>
                     <div>loading...</div>

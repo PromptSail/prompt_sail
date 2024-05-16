@@ -58,6 +58,11 @@ const theme: ThemeConfig = {
             paddingInlineLG: styles.global['Space/Padding/padding'],
             paddingBlockSM: styles.global['Space/Padding/paddingXS']
         },
+        Collapse: {
+            colorBorder: styles.Colors.light['Border/colorBorderSecondary'],
+            contentPadding: `${styles.global['Space/Padding/padding']}px ${styles.global['Space/Padding/paddingLG']}px`,
+            headerPadding: `${styles.global['Space/Padding/padding']}px ${styles.global['Space/Padding/paddingLG']}px`
+        },
         Layout: {
             bodyBg: '#fafbfa' || styles.Colors.light['Fill/colorFillQuaternary'],
             headerBg: styles.Colors.light['Background/colorBgContainer'],
