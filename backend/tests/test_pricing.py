@@ -11,9 +11,7 @@ def test_openai_costs(client, application):
             repo.add(transaction)
 
     # act
-    response = client.get(
-        "/api/transactions?page=1&page_size=100"
-    )
+    response = client.get("/api/transactions?page=1&page_size=100")
     data = [item for item in response.json()["items"] if item["provider"] == "OpenAI"]
     case1 = [item for item in data if item["model"] == "babbage-002"][0]
     case2 = [item for item in data if item["model"] == "davinci-002"][0]
@@ -35,7 +33,7 @@ def test_openai_costs(client, application):
     case18 = [item for item in data if item["model"] == "gpt-3.5-turbo-0000"][0]
     case19 = [item for item in data if item["model"] == "gpt-3.5-turbo-0100"][0]
     case20 = [item for item in data if item["model"] == "gpt-3.5-turbo-0613"][0]
-    
+
     # assert
     assert response.status_code == 200
     assert len(data) == 20
@@ -48,14 +46,30 @@ def test_openai_costs(client, application):
     assert case7["total_cost"] - 0.00001 <= 0.000514000 <= case7["total_cost"] + 0.00001
     assert case8["total_cost"] - 0.00001 <= 0.000646500 <= case8["total_cost"] + 0.00001
     assert case9["total_cost"] - 0.00001 <= 0.000908000 <= case9["total_cost"] + 0.00001
-    assert case10["total_cost"] - 0.00001 <= 0.002810000 <= case10["total_cost"] + 0.00001
-    assert case11["total_cost"] - 0.00001 <= 0.007380000 <= case11["total_cost"] + 0.00001
-    assert case12["total_cost"] - 0.00001 <= 0.003230000 <= case12["total_cost"] + 0.00001
-    assert case13["total_cost"] - 0.00001 <= 0.003250000 <= case13["total_cost"] + 0.00001
-    assert case14["total_cost"] - 0.00001 <= 0.003670000 <= case14["total_cost"] + 0.00001
-    assert case15["total_cost"] - 0.00001 <= 0.000010660 <= case15["total_cost"] + 0.00001
-    assert case16["total_cost"] - 0.00001 <= 0.000130000 <= case16["total_cost"] + 0.00001
-    assert case17["total_cost"] - 0.00001 <= 0.000150000 <= case17["total_cost"] + 0.00001
+    assert (
+        case10["total_cost"] - 0.00001 <= 0.002810000 <= case10["total_cost"] + 0.00001
+    )
+    assert (
+        case11["total_cost"] - 0.00001 <= 0.007380000 <= case11["total_cost"] + 0.00001
+    )
+    assert (
+        case12["total_cost"] - 0.00001 <= 0.003230000 <= case12["total_cost"] + 0.00001
+    )
+    assert (
+        case13["total_cost"] - 0.00001 <= 0.003250000 <= case13["total_cost"] + 0.00001
+    )
+    assert (
+        case14["total_cost"] - 0.00001 <= 0.003670000 <= case14["total_cost"] + 0.00001
+    )
+    assert (
+        case15["total_cost"] - 0.00001 <= 0.000010660 <= case15["total_cost"] + 0.00001
+    )
+    assert (
+        case16["total_cost"] - 0.00001 <= 0.000130000 <= case16["total_cost"] + 0.00001
+    )
+    assert (
+        case17["total_cost"] - 0.00001 <= 0.000150000 <= case17["total_cost"] + 0.00001
+    )
     assert case18["total_cost"] == 0
     assert case19["total_cost"] is None
     assert case20["total_cost"] == 0
@@ -71,10 +85,10 @@ def test_azure_costs(client, application):
             repo.add(transaction)
 
     # act
-    response = client.get(
-        "/api/transactions?page=1&page_size=100"
-    )
-    data = [item for item in response.json()["items"] if item["provider"] == "Azure OpenAI"]
+    response = client.get("/api/transactions?page=1&page_size=100")
+    data = [
+        item for item in response.json()["items"] if item["provider"] == "Azure OpenAI"
+    ]
     case1 = [item for item in data if item["model"] == "babbage-002-1"][0]
     case2 = [item for item in data if item["model"] == "davinci-002-1"][0]
     case3 = [item for item in data if item["model"] == "gpt-35-turbo-0125"][0]
@@ -88,7 +102,9 @@ def test_azure_costs(client, application):
     case11 = [item for item in data if item["model"] == "gpt-35-turbo-16k-0613"][0]
     case12 = [item for item in data if item["model"] == "gpt-3.5-turbo-16k-0613"][0]
     case13 = [item for item in data if item["model"] == "gpt-35-turbo-instruct-0914"][0]
-    case14 = [item for item in data if item["model"] == "gpt-3.5-turbo-instruct-0914"][0]
+    case14 = [item for item in data if item["model"] == "gpt-3.5-turbo-instruct-0914"][
+        0
+    ]
     case15 = [item for item in data if item["model"] == "gpt-4-0125-preview"][0]
     case16 = [item for item in data if item["model"] == "gpt-4-0613"][0]
     case17 = [item for item in data if item["model"] == "gpt-4-1106-preview"][0]
@@ -113,26 +129,54 @@ def test_azure_costs(client, application):
     assert case7["total_cost"] - 0.00001 <= 0.000407000 <= case7["total_cost"] + 0.00001
     assert case8["total_cost"] - 0.00001 <= 0.000607000 <= case8["total_cost"] + 0.00001
     assert case9["total_cost"] - 0.00001 <= 0.000282000 <= case9["total_cost"] + 0.00001
-    assert case10["total_cost"] - 0.00001 <= 0.000382000 <= case10["total_cost"] + 0.00001
-    assert case11["total_cost"] - 0.00001 <= 0.000714000 <= case11["total_cost"] + 0.00001
-    assert case12["total_cost"] - 0.00001 <= 0.001014000 <= case12["total_cost"] + 0.00001
-    assert case13["total_cost"] - 0.00001 <= 0.001058000 <= case13["total_cost"] + 0.00001
-    assert case14["total_cost"] - 0.00001 <= 0.001258000 <= case14["total_cost"] + 0.00001
-    assert case15["total_cost"] - 0.00001 <= 0.003810000 <= case15["total_cost"] + 0.00001
-    assert case16["total_cost"] - 0.00001 <= 0.010080000 <= case16["total_cost"] + 0.00001
-    assert case17["total_cost"] - 0.00001 <= 0.006230000 <= case17["total_cost"] + 0.00001
-    assert case18["total_cost"] - 0.00001 <= 0.031680000 <= case18["total_cost"] + 0.00001
-    
-    assert case19["total_cost"] - 0.00001 <= 0.004250000 <= case19["total_cost"] + 0.00001
-    
-    assert case20["total_cost"] - 0.00001 <= 0.000006660 <= case20["total_cost"] + 0.00001
-    assert case21["total_cost"] - 0.00001 <= 0.000054730 <= case21["total_cost"] + 0.00001
-    assert case22["total_cost"] - 0.00001 <= 0.000120000 <= case22["total_cost"] + 0.00001
-    assert case23["total_cost"] - 0.00001 <= 0.000150000 <= case23["total_cost"] + 0.00001
+    assert (
+        case10["total_cost"] - 0.00001 <= 0.000382000 <= case10["total_cost"] + 0.00001
+    )
+    assert (
+        case11["total_cost"] - 0.00001 <= 0.000714000 <= case11["total_cost"] + 0.00001
+    )
+    assert (
+        case12["total_cost"] - 0.00001 <= 0.001014000 <= case12["total_cost"] + 0.00001
+    )
+    assert (
+        case13["total_cost"] - 0.00001 <= 0.001058000 <= case13["total_cost"] + 0.00001
+    )
+    assert (
+        case14["total_cost"] - 0.00001 <= 0.001258000 <= case14["total_cost"] + 0.00001
+    )
+    assert (
+        case15["total_cost"] - 0.00001 <= 0.003810000 <= case15["total_cost"] + 0.00001
+    )
+    assert (
+        case16["total_cost"] - 0.00001 <= 0.010080000 <= case16["total_cost"] + 0.00001
+    )
+    assert (
+        case17["total_cost"] - 0.00001 <= 0.006230000 <= case17["total_cost"] + 0.00001
+    )
+    assert (
+        case18["total_cost"] - 0.00001 <= 0.031680000 <= case18["total_cost"] + 0.00001
+    )
+
+    assert (
+        case19["total_cost"] - 0.00001 <= 0.004250000 <= case19["total_cost"] + 0.00001
+    )
+
+    assert (
+        case20["total_cost"] - 0.00001 <= 0.000006660 <= case20["total_cost"] + 0.00001
+    )
+    assert (
+        case21["total_cost"] - 0.00001 <= 0.000054730 <= case21["total_cost"] + 0.00001
+    )
+    assert (
+        case22["total_cost"] - 0.00001 <= 0.000120000 <= case22["total_cost"] + 0.00001
+    )
+    assert (
+        case23["total_cost"] - 0.00001 <= 0.000150000 <= case23["total_cost"] + 0.00001
+    )
     assert case24["total_cost"] is None
     assert case25["total_cost"] is None
-    
-    
+
+
 def test_anthropic_costs(client, application):
     # arrange
     with application.transaction_context() as ctx:
@@ -143,17 +187,17 @@ def test_anthropic_costs(client, application):
             repo.add(transaction)
 
     # act
-    response = client.get(
-        "/api/transactions?page=1&page_size=100"
-    )
-    data = [item for item in response.json()["items"] if item["provider"] == "Anthropic"]
+    response = client.get("/api/transactions?page=1&page_size=100")
+    data = [
+        item for item in response.json()["items"] if item["provider"] == "Anthropic"
+    ]
     case1 = [item for item in data if item["model"] == "claude-2.0"][0]
     case2 = [item for item in data if item["model"] == "claude-2.1"][0]
     case3 = [item for item in data if item["model"] == "claude-3-haiku-20240307"][0]
     case4 = [item for item in data if item["model"] == "claude-3-opus-20240229"][0]
     case5 = [item for item in data if item["model"] == "claude-3-sonnet-20240229"][0]
     case6 = [item for item in data if item["model"] == "claude-instant-1.2"][0]
-    
+
     # assert
     assert response.status_code == 200
     assert len(data) == 6
@@ -163,4 +207,3 @@ def test_anthropic_costs(client, application):
     assert case4["total_cost"] - 0.00001 <= 0.049290000 <= case4["total_cost"] + 0.00001
     assert case5["total_cost"] - 0.00001 <= 0.007581000 <= case5["total_cost"] + 0.00001
     assert case6["total_cost"] - 0.00001 <= 0.000845600 <= case6["total_cost"] + 0.00001
-    

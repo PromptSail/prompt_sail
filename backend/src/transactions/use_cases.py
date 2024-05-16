@@ -4,7 +4,11 @@ import re
 from _datetime import datetime, timezone
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
-from utils import create_transaction_query_from_filters, req_resp_to_transaction_parser
+from utils import (
+    count_tokens_for_streaming_response,
+    create_transaction_query_from_filters,
+    req_resp_to_transaction_parser,
+)
 
 
 def get_transactions_for_project(
@@ -166,7 +170,6 @@ def store_transaction(
     """
     decoder = response._get_content_decoder()
     buf = b"".join(buffer)
-
     try:
         response_content = decoder.decode(buf)
         response_content = json.loads(response_content)
@@ -179,8 +182,16 @@ def store_transaction(
                 json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")
             )
         content = "".join(content)
-        # TODO: Tokenization
         example = json.loads(chunks[0])
+        prompt = [
+            message["content"]
+            for message in json.loads(request.__dict__["_content"].decode("utf8"))[
+                "messages"
+            ]
+            if message["role"] == "user"
+        ][::-1][0]
+        input_tokens = count_tokens_for_streaming_response(prompt, example["model"])
+        output_tokens = count_tokens_for_streaming_response(content, example["model"])
         response_content = dict(
             id=example["id"],
             object="chat.completion",
@@ -195,6 +206,11 @@ def store_transaction(
                 )
             ],
             system_fingerprint=example["system_fingerprint"],
+            usage=dict(
+                prompt_tokens=input_tokens,
+                completion_tokens=output_tokens,
+                total_tokens=input_tokens + output_tokens,
+            ),
         )
 
     if "usage" not in response_content:
@@ -204,6 +220,7 @@ def store_transaction(
         )
 
     params = req_resp_to_transaction_parser(request, response, response_content)
+
     ai_model_version = (
         ai_model_version if ai_model_version is not None else params["model"]
     )

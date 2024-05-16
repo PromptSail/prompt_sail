@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import numpy as np
 import pandas as pd
+import tiktoken
 from _datetime import datetime, timedelta
 from transactions.models import Transaction
 from transactions.schemas import (
@@ -231,7 +232,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params.add_type("embedding").add_provider("Azure OpenAI")
         messages = []
         if isinstance(request_content["input"], list):
-            prompt = "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+            prompt = (
+                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+            )
         else:
             prompt = request_content["input"]
         transaction_params.add_prompt(prompt)
@@ -243,7 +246,13 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         else:
             transaction_params.add_model(response_content["model"])
             if isinstance(response_content["data"][0]["embedding"], list):
-                last_message = "[" + ", ".join(map(lambda x: str(x), response_content["data"][0]["embedding"])) + "]"
+                last_message = (
+                    "["
+                    + ", ".join(
+                        map(lambda x: str(x), response_content["data"][0]["embedding"])
+                    )
+                    + "]"
+                )
             else:
                 last_message = response_content["data"][0]["embedding"]
             transaction_params.add_last_message(last_message)
@@ -343,7 +352,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         transaction_params.add_type("embedding").add_provider("OpenAI")
         messages = []
         if isinstance(request_content["input"], list):
-            prompt = "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+            prompt = (
+                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+            )
         else:
             prompt = request_content["input"]
         messages.append({"role": "user", "content": prompt})
@@ -355,13 +366,19 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
         else:
             transaction_params.add_model(response_content["model"])
             if isinstance(response_content["data"][0]["embedding"], list):
-                last_message = "[" + ", ".join(map(lambda x: str(x), response_content["data"][0]["embedding"])) + "]"
+                last_message = (
+                    "["
+                    + ", ".join(
+                        map(lambda x: str(x), response_content["data"][0]["embedding"])
+                    )
+                    + "]"
+                )
             else:
                 last_message = response_content["data"][0]["embedding"]
             transaction_params.add_last_message(last_message)
             messages.append({"role": "system", "content": last_message})
         transaction_params.add_messages(messages)
-        
+
     if anthropic_pattern.match(url):
         transaction_params.add_type("chat").add_provider("Anthropic")
         transaction_params.add_prompt(request_content["messages"][0]["content"])
@@ -958,13 +975,24 @@ def read_transactions_from_csv(
             item
             for item in pricelist
             if item.provider == obj["provider"]
-               and re.match(item.match_pattern, obj["model"])
+            and re.match(item.match_pattern, obj["model"])
         ]
         if obj["status_code"] == 200:
             print(obj["model"])
             if len(price) > 0:
                 price = price[0]
-                print("input tokens:", obj["input_tokens"], "output tokens:", obj["output_tokens"], "input price:", price.input_price, "output price:", price.output_price, "total price:", price.total_price)
+                print(
+                    "input tokens:",
+                    obj["input_tokens"],
+                    "output tokens:",
+                    obj["output_tokens"],
+                    "input price:",
+                    price.input_price,
+                    "output price:",
+                    price.output_price,
+                    "total price:",
+                    price.total_price,
+                )
                 if price.input_price == 0:
                     input_cost, output_cost = 0, 0
                     total_cost = (
@@ -974,13 +1002,18 @@ def read_transactions_from_csv(
                     )
                 else:
                     input_cost = price.input_price * (obj["input_tokens"] / 1000)
-                    output_cost = price.output_price * (
-                        obj["output_tokens"] / 1000
-                    )
+                    output_cost = price.output_price * (obj["output_tokens"] / 1000)
                     total_cost = input_cost + output_cost
             else:
                 input_cost, output_cost, total_cost = None, None, None
-            print("input_cost:", input_cost, "output_cost:", output_cost, "total_cost:", total_cost)
+            print(
+                "input_cost:",
+                input_cost,
+                "output_cost:",
+                output_cost,
+                "total_cost:",
+                total_cost,
+            )
             transactions.append(
                 Transaction(
                     id=transaction_id,
@@ -1041,15 +1074,29 @@ def read_transactions_from_csv(
     return transactions
 
 
+def count_tokens_for_streaming_response(messages: list | str, model: str) -> int:
+    encoder = tiktoken.encoding_for_model(model)
+    if isinstance(messages, str):
+        tokens = encoder.encode(messages)
+    else:
+        full_prompt = ""
+        for message in messages:
+            role = message["role"]
+            content = message["content"]
+            full_prompt += f"{role}: {content}\n"
+        tokens = encoder.encode(full_prompt)
+    return len(tokens)
+
+
 class MockResponse:
     def __init__(self, status_code, content):
         self.status_code = status_code
         self.content = content
-    
+
     def json(self):
         return self.content
-    
-    
+
+
 class PeriodEnum(str, Enum):
     week = "week"
     year = "year"

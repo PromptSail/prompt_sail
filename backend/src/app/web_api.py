@@ -1,4 +1,3 @@
-import re
 from typing import Annotated, Any
 
 import utils
@@ -60,7 +59,7 @@ async def get_projects(
     :return: A list of GetProjectSchema objects.
     """
     projects = ctx.call(get_all_projects)
-    
+
     dtos = []
     for project in projects:
         transaction_count = ctx.call(count_transactions, project_id=project.id)
@@ -195,7 +194,9 @@ async def get_transaction_details(
     transaction = GetTransactionWithProjectSlugSchema(
         **transaction.model_dump(),
         project_name=project.name,
-        total_tokens=transaction.input_tokens + transaction.output_tokens if transaction.input_tokens and transaction.output_tokens else None,
+        total_tokens=transaction.input_tokens + transaction.output_tokens
+        if transaction.input_tokens and transaction.output_tokens
+        else None,
     )
     return transaction
 
@@ -248,7 +249,9 @@ async def get_paginated_transactions(
             GetTransactionWithProjectSlugSchema(
                 **transaction.model_dump(),
                 project_name=project_id_name_map.get(transaction.project_id, ""),
-                total_tokens=transaction.input_tokens + transaction.output_tokens if transaction.input_tokens and transaction.output_tokens else None,
+                total_tokens=transaction.input_tokens + transaction.output_tokens
+                if transaction.input_tokens and transaction.output_tokens
+                else None,
             )
         )
 
