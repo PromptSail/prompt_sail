@@ -1,7 +1,6 @@
+from auth.repositories import UserAlreadyExistsException, UserNotFoundException
 from fastapi import Request
 from fastapi.responses import JSONResponse
-
-from auth.repositories import UserNotFoundException, UserAlreadyExistsException
 from projects.repositories import ProjectNotFoundException, SlugAlreadyExistsException
 from seedwork.exceptions import NotFoundException
 

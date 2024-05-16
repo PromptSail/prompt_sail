@@ -62,7 +62,7 @@ class UserRepository(MongoRepository):
             raise UserNotFoundException(f"User with id: {doc_id} not found.")
         user = super().get(doc_id)
         return User(**user.model_dump())
-    
+
     def get_by_external_id(self, external_id: str) -> User | None:
         """
         Retrieve a project by its unique external identifier.
@@ -74,4 +74,3 @@ class UserRepository(MongoRepository):
             return None
         user = super().find_one({"external_id": external_id})
         return User(**user.model_dump())
-    

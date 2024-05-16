@@ -8,13 +8,12 @@ from uuid import UUID
 
 import pymongo
 from app.logging import logger, logging_context
+from auth.repositories import UserRepository
 from dependency_injector import containers, providers
 from dependency_injector.containers import Container
 from dependency_injector.providers import Dependency, Factory, Provider, Singleton
 from dependency_injector.wiring import Provide, inject  # noqa
 from lato import Application, DependencyProvider, TransactionContext
-
-from auth.repositories import UserRepository
 from projects.repositories import ProjectRepository
 from settings.repositories import SettingsRepository
 from transactions.repositories import TransactionRepository

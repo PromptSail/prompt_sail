@@ -9,4 +9,3 @@ class GetUserSchema(BaseModel):
     family_name: str
     picture: str | None
     issuer: str
-    
