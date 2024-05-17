@@ -19,7 +19,7 @@ do
     #find /app/dist -type f \( -name '*.js' -o -name '*.css' \) | xargs sed 's|${key}|${value}|gp'
 
     # sed JS and CSS only
-    find /app/dist -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|${key}|${value}|g" '{}' +
+    find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|${key}|${value}|g" '{}' +
 
     # sed Nginx config file
     sed -i "s|${key}|${value}|g" /etc/nginx/conf.d/default.conf

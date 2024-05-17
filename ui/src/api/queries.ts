@@ -233,7 +233,12 @@ export const useGetStatistics_TransactionsSpeed = (
     );
 };
 export const useGetConfig = (): UseQueryResult<
-    AxiosResponse<{ organization: string; authorization: boolean }>,
+    AxiosResponse<{
+        organization: string;
+        authorization: boolean;
+        azure_auth: boolean;
+        google_auth: boolean;
+    }>,
     AxiosError
 > => {
     return useQuery(

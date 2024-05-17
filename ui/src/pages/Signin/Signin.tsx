@@ -41,33 +41,35 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
             />
         );
     if (config.isSuccess) {
-        const { authorization, organization } = config.data.data;
+        const { authorization, organization, azure_auth, google_auth } = config.data.data;
         return (
             <Flex justify="center" align="center" className="h-screen">
                 <Space direction="vertical" className="signin text-center">
                     <Title level={1} className="!m-0">
                         Welcome to {organization}
                     </Title>
-                    {authorization && (
+                    {!authorization && (
                         <Button type="primary" onClick={() => setToken(`AUTH: ${authorization}`)}>
                             Click to continue
                         </Button>
                     )}
-                    {!authorization && (
+                    {authorization && (
                         <>
                             <Title level={2} className="!m-0">
                                 Log in to continue
                             </Title>
-                            <GoogleOAuthProvider clientId={SSO_GOOGLE_ID}>
-                                <GoogleBtn onOk={setToken} />
-                            </GoogleOAuthProvider>
-                            <AzureBtn onOk={setToken} />
-                            <Space direction="vertical" className="mt-5">
-                                <img className="logo" src={Logo} />
-                                <Paragraph className="font-bold">Prompt Sail</Paragraph>
-                            </Space>
+                            {google_auth && (
+                                <GoogleOAuthProvider clientId={SSO_GOOGLE_ID}>
+                                    <GoogleBtn onOk={setToken} />
+                                </GoogleOAuthProvider>
+                            )}
+                            {azure_auth && <AzureBtn onOk={setToken} />}
                         </>
                     )}
+                    <Space direction="vertical" className="mt-5">
+                        <img className="logo" src={Logo} />
+                        <Paragraph className="font-bold">Prompt Sail</Paragraph>
+                    </Space>
                 </Space>
             </Flex>
         );
