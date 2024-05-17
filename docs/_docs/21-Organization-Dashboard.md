@@ -6,6 +6,7 @@ last_modified_at: 2024-02-01T14:06:00+01:00
 redirect_from:
     - /theme-setup/
 toc: true
+toc_sticky: true
 ---
 
 The Organization Dashboard page serves as a central hub for managing projects within the organization. It provides users with easy access to all pertinent project information and enables quick searching and creation of new projects.

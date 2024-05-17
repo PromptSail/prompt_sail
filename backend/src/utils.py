@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import numpy as np
 import pandas as pd
+import tiktoken
 from _datetime import datetime, timedelta
 from transactions.models import Transaction
 from transactions.schemas import (
@@ -70,6 +71,7 @@ def create_transaction_query_from_filters(
     date_to: datetime | None = None,
     project_id: str | None = None,
     status_code: int | None = None,
+    null_generation_speed: bool = True,
 ) -> dict:
     """
     Create a MongoDB query dictionary based on specified filters for transactions.
@@ -79,6 +81,7 @@ def create_transaction_query_from_filters(
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
     :param status_code: Optional. Status code of the transactions.
+    :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
     :return: MongoDB query dictionary representing the specified filters.
     """
     query = {}
@@ -94,6 +97,8 @@ def create_transaction_query_from_filters(
         query["response_time"]["$lte"] = date_to
     if status_code is not None:
         query["status_code"] = status_code
+    if not null_generation_speed:
+        query["generation_speed"] = {"$ne": None}
     return query
 
 
@@ -229,18 +234,23 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
     if azure_embeddings_pattern.match(url):
         transaction_params.add_type("embedding").add_provider("Azure OpenAI")
+        messages = []
         if isinstance(request_content["input"], list):
-            transaction_params.add_prompt(
+            prompt = (
                 "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
             )
         else:
-            transaction_params.add_prompt(request_content["input"])
+            prompt = request_content["input"]
+        transaction_params.add_prompt(prompt)
+        messages.append({"role": "user", "content": prompt})
         if response.__dict__["status_code"] > 200:
-            transaction_params.add_error_message(response_content["message"])
+            last_message = response_content["error"]["message"]
+            transaction_params.add_error_message(last_message)
+            messages.append({"role": "error", "content": last_message})
         else:
             transaction_params.add_model(response_content["model"])
             if isinstance(response_content["data"][0]["embedding"], list):
-                transaction_params.add_last_message(
+                last_message = (
                     "["
                     + ", ".join(
                         map(lambda x: str(x), response_content["data"][0]["embedding"])
@@ -248,9 +258,10 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                     + "]"
                 )
             else:
-                transaction_params.add_last_message(
-                    response_content["data"][0]["embedding"]
-                )
+                last_message = response_content["data"][0]["embedding"]
+            transaction_params.add_last_message(last_message)
+            messages.append({"role": "system", "content": last_message})
+        transaction_params.add_messages(messages)
 
     if azure_completions_pattern.match(url):
         prompt = [
@@ -343,20 +354,23 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
 
     if openai_embeddings_pattern.match(url):
         transaction_params.add_type("embedding").add_provider("OpenAI")
+        messages = []
         if isinstance(request_content["input"], list):
-            transaction_params.add_prompt(
+            prompt = (
                 "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
             )
         else:
-            transaction_params.add_prompt(request_content["input"])
+            prompt = request_content["input"]
+        messages.append({"role": "user", "content": prompt})
+        transaction_params.add_prompt(prompt)
         if response.__dict__["status_code"] > 200:
-            transaction_params.add_error_message(
-                response_content["error"]["message"]
-            ).add_last_message(None)
+            last_message = response_content["error"]["message"]
+            transaction_params.add_error_message(last_message).add_last_message(None)
+            messages.append({"role": "error", "content": last_message})
         else:
             transaction_params.add_model(response_content["model"])
             if isinstance(response_content["data"][0]["embedding"], list):
-                transaction_params.add_last_message(
+                last_message = (
                     "["
                     + ", ".join(
                         map(lambda x: str(x), response_content["data"][0]["embedding"])
@@ -364,9 +378,10 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                     + "]"
                 )
             else:
-                transaction_params.add_last_message(
-                    response_content["data"][0]["embedding"]
-                )
+                last_message = response_content["data"][0]["embedding"]
+            transaction_params.add_last_message(last_message)
+            messages.append({"role": "system", "content": last_message})
+        transaction_params.add_messages(messages)
 
     if anthropic_pattern.match(url):
         transaction_params.add_type("chat").add_provider("Anthropic")
@@ -950,6 +965,7 @@ def read_transactions_from_csv(
     df = pd.read_csv(path, sep=";")
     data = df.to_dict(orient="records")
     transactions = []
+    pricelist = read_provider_pricelist()
     for idx, obj in enumerate(data):
         transaction_id = f"test-transaction-{idx}"
         request_time = datetime.fromisoformat(
@@ -959,7 +975,49 @@ def read_transactions_from_csv(
             obj["response_time"].replace("Z", "+00:00")
         )
         latency = response_time - request_time
+        price = [
+            item
+            for item in pricelist
+            if item.provider == obj["provider"]
+            and re.match(item.match_pattern, obj["model"])
+        ]
         if obj["status_code"] == 200:
+            print(obj["model"])
+            if len(price) > 0:
+                price = price[0]
+                print(
+                    "input tokens:",
+                    obj["input_tokens"],
+                    "output tokens:",
+                    obj["output_tokens"],
+                    "input price:",
+                    price.input_price,
+                    "output price:",
+                    price.output_price,
+                    "total price:",
+                    price.total_price,
+                )
+                if price.input_price == 0:
+                    input_cost, output_cost = 0, 0
+                    total_cost = (
+                        (obj["input_tokens"] + obj["output_tokens"])
+                        / 1000
+                        * price.total_price
+                    )
+                else:
+                    input_cost = price.input_price * (obj["input_tokens"] / 1000)
+                    output_cost = price.output_price * (obj["output_tokens"] / 1000)
+                    total_cost = input_cost + output_cost
+            else:
+                input_cost, output_cost, total_cost = None, None, None
+            print(
+                "input_cost:",
+                input_cost,
+                "output_cost:",
+                output_cost,
+                "total_cost:",
+                total_cost,
+            )
             transactions.append(
                 Transaction(
                     id=transaction_id,
@@ -984,9 +1042,9 @@ def read_transactions_from_csv(
                     generation_speed=obj["output_tokens"] / latency.total_seconds()
                     if latency.total_seconds() > 0
                     else 0,
-                    input_cost=None,
-                    output_cost=None,
-                    total_cost=None,
+                    input_cost=input_cost,
+                    output_cost=output_cost,
+                    total_cost=total_cost,
                 )
             )
         else:
@@ -1012,12 +1070,35 @@ def read_transactions_from_csv(
                     request_time=request_time,
                     response_time=response_time,
                     generation_speed=0,
-                    input_cost=None,
-                    output_cost=None,
-                    total_cost=None,
+                    input_cost=0,
+                    output_cost=0,
+                    total_cost=0,
                 )
             )
     return transactions
+
+
+def count_tokens_for_streaming_response(messages: list | str, model: str) -> int:
+    encoder = tiktoken.encoding_for_model(model)
+    if isinstance(messages, str):
+        tokens = encoder.encode(messages)
+    else:
+        full_prompt = ""
+        for message in messages:
+            role = message["role"]
+            content = message["content"]
+            full_prompt += f"{role}: {content}\n"
+        tokens = encoder.encode(full_prompt)
+    return len(tokens)
+
+
+class MockResponse:
+    def __init__(self, status_code, content):
+        self.status_code = status_code
+        self.content = content
+
+    def json(self):
+        return self.content
 
 
 class PeriodEnum(str, Enum):

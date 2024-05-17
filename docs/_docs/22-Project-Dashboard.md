@@ -6,6 +6,7 @@ last_modified_at: 2024-02-01T15:36:00+01:00
 redirect_from:
     - /theme-setup/
 toc: true
+toc_sticky: true
 ---
 
 The Project Dashboard page provides detailed information about a specific project. The main container displays key project details such as name, description, slug, tags, list of AI providers, number of members, number of transactions, URL address utilizing the slug, which is used by `Promptsail` to add transactions.

@@ -528,6 +528,7 @@ async def get_transaction_latency_statistics_over_time(
         date_from=date_from,
         date_to=date_to,
         status_code=200,
+        null_generation_speed=False,
     )
     if count == 0:
         return []
@@ -538,6 +539,7 @@ async def get_transaction_latency_statistics_over_time(
         date_from=date_from,
         date_to=date_to,
         status_code=200,
+        null_generation_speed=False,
     )
     transactions = [
         StatisticTransactionSchema(
