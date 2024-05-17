@@ -71,6 +71,7 @@ def create_transaction_query_from_filters(
     date_to: datetime | None = None,
     project_id: str | None = None,
     status_code: int | None = None,
+    null_generation_speed: bool = True,
 ) -> dict:
     """
     Create a MongoDB query dictionary based on specified filters for transactions.
@@ -80,6 +81,7 @@ def create_transaction_query_from_filters(
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
     :param status_code: Optional. Status code of the transactions.
+    :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
     :return: MongoDB query dictionary representing the specified filters.
     """
     query = {}
@@ -95,6 +97,8 @@ def create_transaction_query_from_filters(
         query["response_time"]["$lte"] = date_to
     if status_code is not None:
         query["status_code"] = status_code
+    if not null_generation_speed:
+        query["generation_speed"] = {"$ne": None}
     return query
 
 

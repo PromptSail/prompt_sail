@@ -59,6 +59,7 @@ def count_transactions(
     date_to: datetime | None = None,
     project_id: str | None = None,
     status_code: int | None = None,
+    null_generation_speed: bool = True,
 ) -> int:
     """
     Count the number of transactions based on specified filters.
@@ -69,10 +70,11 @@ def count_transactions(
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
     :param status_code: Optional. Status code to filter transactions by.
+    :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
     :return: The count of transactions that meet the specified filtering criteria.
     """
     query = create_transaction_query_from_filters(
-        tags, date_from, date_to, project_id, status_code
+        tags, date_from, date_to, project_id, status_code, null_generation_speed
     )
     return transaction_repository.count(query)
 
@@ -256,6 +258,13 @@ def store_transaction(
     else:
         input_cost, output_cost, total_cost = 0, 0, 0
 
+    if params["output_tokens"] is not None and params["output_tokens"] > 0:
+        generation_speed = params["output_tokens"] / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
+    elif params["output_tokens"] == 0:
+        generation_speed = None
+    else:
+        generation_speed = 0
+
     transaction = Transaction(
         project_id=project_id,
         request=dict(
@@ -293,10 +302,7 @@ def store_transaction(
         output_cost=output_cost,
         total_cost=total_cost,
         request_time=request_time,
-        generation_speed=params["output_tokens"]
-        / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
-        if (params["output_tokens"] is not None and params["output_tokens"] > 0)
-        else 0,
+        generation_speed=generation_speed,
     )
 
     transaction_repository.add(transaction)
@@ -308,6 +314,7 @@ def get_list_of_filtered_transactions(
     date_to: datetime,
     transaction_repository: TransactionRepository,
     status_code: int | None = None,
+    null_generation_speed: bool = True,
 ) -> list[Transaction]:
     """
     Retrieve a list of transactions filtered by project ID and date range.
@@ -320,6 +327,7 @@ def get_list_of_filtered_transactions(
     :param date_to: The ending date for the filter.
     :param transaction_repository: An instance of TransactionRepository for data retrieval.
     :param status_code: The transactions' status code.
+    :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
     :return: A list of Transaction objects that meet the specified criteria.
     """
     query = create_transaction_query_from_filters(
@@ -327,6 +335,7 @@ def get_list_of_filtered_transactions(
         date_to=date_to,
         project_id=project_id,
         status_code=status_code,
+        null_generation_speed=null_generation_speed,
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions

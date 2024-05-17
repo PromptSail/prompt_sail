@@ -27,7 +27,7 @@ class Transaction(BaseModel):
     last_message: str | None
     prompt: str
     error_message: str | None
-    generation_speed: int | float
+    generation_speed: int | float | None
     input_cost: int | float | None
     output_cost: int | float | None
     total_cost: int | float | None
