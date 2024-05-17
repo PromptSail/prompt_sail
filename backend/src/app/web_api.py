@@ -232,7 +232,7 @@ async def get_transaction_details(
     project = ctx.call(get_project, project_id=transaction.project_id)
     transaction = GetTransactionWithProjectSlugSchema(
         **transaction.model_dump(),
-        project_name=project.name,
+        project_name=project.name if project else "",
         total_tokens=transaction.input_tokens + transaction.output_tokens
         if transaction.input_tokens and transaction.output_tokens
         else None,
@@ -292,7 +292,7 @@ async def get_paginated_transactions(
         new_transactions.append(
             GetTransactionWithProjectSlugSchema(
                 **transaction.model_dump(),
-                project_name=project_id_name_map.get(transaction.project_id, None),
+                project_name=project_id_name_map.get(transaction.project_id, ""),
                 total_tokens=transaction.input_tokens + transaction.output_tokens
                 if transaction.input_tokens and transaction.output_tokens
                 else None,
