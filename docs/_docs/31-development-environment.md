@@ -16,7 +16,13 @@ toc_sticky: true
 
 ### Backend
 
-If you want to start contributing to Prompt Sail you need to pull our repository first.
+If you want to start contributing to Prompt Sail you need to clone our repository first.
+
+```bash
+mkdir prompt_sail
+cd prompt_sail
+git clone https://github.com/PromptSail/prompt_sail.git
+```
 
 In this section we will focus on the backend, so you need to make sure you have it installed:
 - [Python version 3.10+](https://www.python.org/downloads/release/python-3100/) 
@@ -25,11 +31,18 @@ In this section we will focus on the backend, so you need to make sure you have 
 
 When you have the above dependencies, you can proceed to install packages using poetry. To do this, use the following commands:
 ```bash
+cd backend
 poetry install
 poetry shell
 ```
 
 Now set the environment variables. Go to the backend folder and create an `.env` file and then fill in the variables as in the example below:
+```bash
+touch .env
+nano .env
+```
+
+And pase and edit the following variables in the `.env` file:
 ```python
 DEBUG=True
 OPENAI_API_KEY="sk-your-api-key"
@@ -39,12 +52,18 @@ ORGANIZATION_NAME="your-organization-name"
 ADMIN_PASSWORD="your-admin-password"
 ```
 
-Once you've done that then return to the project's main folder and use the make command used to run the project locally:
+
+Remember that you need a working instance of the mongoDB database for the backend to work properly. You can run it for example from the docker position. To do this, use the following command:
 ```bash
-make run-dev
+docker run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=password --name mongodb mongo:latest
 ```
 
-Remember that you need a working instance of the mongoDB database for the backend to work properly. You can run it from the docker position, for example.
+
+Once you've done that then return to the project's main folder and use the make command used to run the project locally:
+```bash
+cd ..
+make run-dev
+```
 
 
 
