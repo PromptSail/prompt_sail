@@ -13,14 +13,12 @@ main:
   # - title: "Sample Collections"
   #   url: /collection-archive/
 
-
-
 # documentation links
 docs:
   - title: Getting Started
     children:
       - title: "Introduction"
-        url: /docs/introduction/      
+        url: /docs/introduction/
       - title: "Quick-Start Guide"
         url: /docs/quick-start-guide/
       - title: "Project Setup"
@@ -45,8 +43,12 @@ docs:
         url: /docs/deploy-promptsail-aws
       - title: "Deploying on GCP"
         url: /docs/deploy-promptsail-gcp
+      - title: "SSO Configuration"
+        url: /docs/sso-configuration/
   - title: User UI Guide
     children:
+      - title: "Login Page"
+        url: /docs/login-page/
       - title: "Organization Dashboard"
         url: /docs/organization-dashboard/
       - title: "Project Dashboard"
@@ -67,7 +69,6 @@ docs:
       - title: "Contributing Guidelines"
         url: /docs/contributing/
 
-      
   - title: About the project
     children:
       - title: "Contributors"

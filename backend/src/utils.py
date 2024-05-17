@@ -982,21 +982,8 @@ def read_transactions_from_csv(
             and re.match(item.match_pattern, obj["model"])
         ]
         if obj["status_code"] == 200:
-            print(obj["model"])
             if len(price) > 0:
                 price = price[0]
-                print(
-                    "input tokens:",
-                    obj["input_tokens"],
-                    "output tokens:",
-                    obj["output_tokens"],
-                    "input price:",
-                    price.input_price,
-                    "output price:",
-                    price.output_price,
-                    "total price:",
-                    price.total_price,
-                )
                 if price.input_price == 0:
                     input_cost, output_cost = 0, 0
                     total_cost = (
@@ -1010,14 +997,6 @@ def read_transactions_from_csv(
                     total_cost = input_cost + output_cost
             else:
                 input_cost, output_cost, total_cost = None, None, None
-            print(
-                "input_cost:",
-                input_cost,
-                "output_cost:",
-                output_cost,
-                "total_cost:",
-                total_cost,
-            )
             transactions.append(
                 Transaction(
                     id=transaction_id,

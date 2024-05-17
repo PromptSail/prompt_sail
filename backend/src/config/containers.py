@@ -8,6 +8,7 @@ from uuid import UUID
 
 import pymongo
 from app.logging import logger, logging_context
+from auth.repositories import UserRepository
 from dependency_injector import containers, providers
 from dependency_injector.containers import Container
 from dependency_injector.providers import Dependency, Factory, Provider, Singleton
@@ -267,4 +268,7 @@ class TransactionContainer(containers.DeclarativeContainer):
     )
     settings_repository = providers.Singleton(
         SettingsRepository, db_client=db_client, collection_name="settings"
+    )
+    user_repository = providers.Singleton(
+        UserRepository, db_client=db_client, collection_name="users"
     )
