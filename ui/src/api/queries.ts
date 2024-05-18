@@ -232,3 +232,25 @@ export const useGetStatistics_TransactionsSpeed = (
         }
     );
 };
+export const useGetConfig = (): UseQueryResult<
+    AxiosResponse<{
+        organization: string;
+        authorization: boolean;
+        azure_auth: boolean;
+        google_auth: boolean;
+    }>,
+    AxiosError
+> => {
+    return useQuery(
+        'config',
+        async () => {
+            return await api.config();
+        },
+        {
+            staleTime: 10000,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: false
+        }
+    );
+};
