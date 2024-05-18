@@ -2,7 +2,7 @@
 title: "Development environment"
 permalink: /docs/development-environment/
 excerpt: "How to setup development environment for Prompt Sail."
-last_modified_at: 2024-04-28T18:48:35+01:00
+last_modified_at: 2024-05-18T09:48:35+01:00
 redirect_from:
   - /theme-setup/
 toc: true

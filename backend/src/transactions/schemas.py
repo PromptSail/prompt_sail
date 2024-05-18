@@ -24,7 +24,7 @@ class GetTransactionSchema(BaseModel):
     error_message: str | None
     request_time: datetime
     response_time: datetime
-    generation_speed: int | float
+    generation_speed: int | float | None
     input_cost: int | float | None
     output_cost: int | float | None
     total_cost: int | float | None
@@ -52,7 +52,7 @@ class GetTransactionWithProjectSlugSchema(BaseModel):
     error_message: str | None
     request_time: datetime
     response_time: datetime
-    generation_speed: int | float
+    generation_speed: int | float | None
     input_cost: int | float | None
     output_cost: int | float | None
     total_cost: int | float | None
@@ -72,7 +72,7 @@ class StatisticTransactionSchema(BaseModel):
     latency: timedelta
     date: datetime
     total_transactions: int
-    generation_speed: int | float
+    generation_speed: int | float | None
 
 
 class GetTransactionUsageStatisticsSchema(BaseModel):

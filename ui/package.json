@@ -13,6 +13,8 @@
     "dependencies": {
         "@ant-design/compatible": "^5.1.2",
         "@ant-design/icons": "^5.3.1",
+        "@azure/msal-browser": "^3.13.0",
+        "@react-oauth/google": "^0.12.1",
         "antd": "^5.14.2",
         "axios": "^1.6.2",
         "d3-scale-chromatic": "^3.1.0",
@@ -20,6 +22,7 @@
         "formik": "^2.4.5",
         "fs": "^0.0.1-security",
         "fs-extra": "^11.1.1",
+        "jwt-decode": "^4.0.0",
         "less": "^4.2.0",
         "path": "^0.12.7",
         "react": "^18.2.0",

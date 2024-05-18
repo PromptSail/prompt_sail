@@ -1,10 +1,11 @@
-import re
 from typing import Annotated, Any
 
 import utils
 from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
-from fastapi import Depends, Request
+from auth.authorization import decode_and_validate_token
+from auth.schemas import GetUserSchema
+from fastapi import Depends, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from projects.models import AIProvider, Project
@@ -22,8 +23,7 @@ from projects.use_cases import (
     get_project,
     update_project,
 )
-from settings.schemas import AuthorizeUserSchema
-from settings.use_cases import get_organization_name, get_users_for_organization
+from settings.use_cases import get_organization_name
 from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
@@ -49,7 +49,22 @@ from transactions.use_cases import (
 from .app import app
 
 
-@app.get("/api/projects")
+@app.get("/api/auth/whoami", dependencies=[Security(decode_and_validate_token)])
+def whoami(
+    request: Request, user: dict = Depends(decode_and_validate_token)
+) -> GetUserSchema:
+    return GetUserSchema(
+        external_id=user.external_id,
+        organization=user.organization,
+        email=user.email,
+        given_name=user.given_name,
+        family_name=user.family_name,
+        picture=user.picture,
+        issuer=user.issuer,
+    )
+
+
+@app.get("/api/projects", dependencies=[Security(decode_and_validate_token)])
 async def get_projects(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> list[GetProjectSchema]:
@@ -60,7 +75,7 @@ async def get_projects(
     :return: A list of GetProjectSchema objects.
     """
     projects = ctx.call(get_all_projects)
-    
+
     dtos = []
     for project in projects:
         transaction_count = ctx.call(count_transactions, project_id=project.id)
@@ -81,7 +96,12 @@ async def get_projects(
     return dtos
 
 
-@app.get("/api/projects/{project_id}", response_class=JSONResponse, status_code=200)
+@app.get(
+    "/api/projects/{project_id}",
+    response_class=JSONResponse,
+    status_code=200,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def get_project_details(
     project_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
@@ -107,7 +127,12 @@ async def get_project_details(
     return project
 
 
-@app.post("/api/projects", response_class=JSONResponse, status_code=201)
+@app.post(
+    "/api/projects",
+    response_class=JSONResponse,
+    status_code=201,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def create_project(
     data: CreateProjectSchema,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
@@ -134,7 +159,12 @@ async def create_project(
     return response
 
 
-@app.put("/api/projects/{project_id}", response_class=JSONResponse, status_code=200)
+@app.put(
+    "/api/projects/{project_id}",
+    response_class=JSONResponse,
+    status_code=200,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def update_existing_project(
     project_id: str,
     data: UpdateProjectSchema,
@@ -162,7 +192,12 @@ async def update_existing_project(
     )
 
 
-@app.delete("/api/projects/{project_id}", response_class=JSONResponse, status_code=204)
+@app.delete(
+    "/api/projects/{project_id}",
+    response_class=JSONResponse,
+    status_code=204,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def delete_existing_project(
     project_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
@@ -178,7 +213,10 @@ async def delete_existing_project(
 
 
 @app.get(
-    "/api/transactions/{transaction_id}", response_class=JSONResponse, status_code=200
+    "/api/transactions/{transaction_id}",
+    response_class=JSONResponse,
+    status_code=200,
+    dependencies=[Security(decode_and_validate_token)],
 )
 async def get_transaction_details(
     transaction_id: str,
@@ -194,13 +232,20 @@ async def get_transaction_details(
     project = ctx.call(get_project, project_id=transaction.project_id)
     transaction = GetTransactionWithProjectSlugSchema(
         **transaction.model_dump(),
-        project_name=project.name,
-        total_tokens=transaction.input_tokens + transaction.output_tokens if transaction.input_tokens and transaction.output_tokens else None,
+        project_name=project.name if project else "",
+        total_tokens=transaction.input_tokens + transaction.output_tokens
+        if transaction.input_tokens and transaction.output_tokens
+        else None,
     )
     return transaction
 
 
-@app.get("/api/transactions", response_class=JSONResponse, status_code=200)
+@app.get(
+    "/api/transactions",
+    response_class=JSONResponse,
+    status_code=200,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def get_paginated_transactions(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     page: int = 1,
@@ -247,8 +292,10 @@ async def get_paginated_transactions(
         new_transactions.append(
             GetTransactionWithProjectSlugSchema(
                 **transaction.model_dump(),
-                project_name=project_id_name_map.get(transaction.project_id, None),
-                total_tokens=transaction.input_tokens + transaction.output_tokens if transaction.input_tokens and transaction.output_tokens else None,
+                project_name=project_id_name_map.get(transaction.project_id, ""),
+                total_tokens=transaction.input_tokens + transaction.output_tokens
+                if transaction.input_tokens and transaction.output_tokens
+                else None,
             )
         )
 
@@ -269,7 +316,11 @@ async def get_paginated_transactions(
     return page_response
 
 
-@app.get("/api/statistics/transactions_cost", response_class=JSONResponse)
+@app.get(
+    "/api/statistics/transactions_cost",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def get_transaction_usage_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
@@ -367,7 +418,11 @@ async def get_transaction_usage_statistics_over_time(
     return new_stats
 
 
-@app.get("/api/statistics/transactions_count", response_class=JSONResponse)
+@app.get(
+    "/api/statistics/transactions_count",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def get_transaction_status_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
@@ -437,7 +492,11 @@ async def get_transaction_status_statistics_over_time(
     return stats
 
 
-@app.get("/api/statistics/transactions_speed", response_class=JSONResponse)
+@app.get(
+    "/api/statistics/transactions_speed",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def get_transaction_latency_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
@@ -469,6 +528,7 @@ async def get_transaction_latency_statistics_over_time(
         date_from=date_from,
         date_to=date_to,
         status_code=200,
+        null_generation_speed=False,
     )
     if count == 0:
         return []
@@ -479,6 +539,7 @@ async def get_transaction_latency_statistics_over_time(
         date_from=date_from,
         date_to=date_to,
         status_code=200,
+        null_generation_speed=False,
     )
     transactions = [
         StatisticTransactionSchema(
@@ -527,7 +588,11 @@ async def get_transaction_latency_statistics_over_time(
     return new_stats
 
 
-@app.get("/api/statistics/pricelist", response_class=JSONResponse)
+@app.get(
+    "/api/statistics/pricelist",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def fetch_provider_pricelist(request: Request) -> list[GetAIProviderPriceSchema]:
     """
     API endpoint to retrieve a price list of AI providers.
@@ -540,7 +605,11 @@ async def fetch_provider_pricelist(request: Request) -> list[GetAIProviderPriceS
     return [GetAIProviderPriceSchema(**price.__dict__) for price in price_list]
 
 
-@app.get("/api/providers", response_class=JSONResponse)
+@app.get(
+    "/api/providers",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def get_providers(request: Request) -> list[GetAIProviderSchema]:
     """
     API endpoint to retrieve a list of AI providers.
@@ -550,37 +619,25 @@ async def get_providers(request: Request) -> list[GetAIProviderSchema]:
     return [GetAIProviderSchema(**provider) for provider in utils.known_ai_providers]
 
 
-@app.get("/api/organization", response_class=JSONResponse)
-async def get_organization(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
-) -> str:
-    """
-    API endpoint to retrieve the organization name.
-
-    :param ctx: The transaction context dependency.
-    """
-    organization_name = ctx.call(get_organization_name)
-    return str(organization_name)
-
-
-@app.post("/api/authorize", response_class=JSONResponse)
-async def authorize_user(
-    data: AuthorizeUserSchema,
+@app.get("/api/config", response_class=JSONResponse)
+async def get_config(
+    request: Request,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
-) -> dict[str, Any]:
+) -> dict[str, str | bool]:
     """
-    API endpoint to authorize a user.
+    API endpoint to retrieve the config.
 
-    :param data: The data containing user information.
     :param ctx: The transaction context dependency.
-    :return: A dictionary containing the authorization status and message.
     """
-    if AuthorizeUserSchema(**data.model_dump()) in [
-        AuthorizeUserSchema(**data.model_dump())
-        for data in ctx.call(get_users_for_organization)
-    ]:
-        return {"status": 200, "message": "OK"}
-    return {"status": 404, "message": "Not Found"}
+    config = request.app.container.config()
+    organization_name = ctx.call(get_organization_name)
+
+    return {
+        "organization": str(organization_name),
+        "authorization": config.SSO_AUTH,
+        "azure_auth": config.AZURE_CLIENT_ID is not None,
+        "google_auth": config.GOOGLE_CLIENT_ID is not None,
+    }
 
 
 @app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse)
