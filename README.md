@@ -29,9 +29,17 @@
 
 Prompt Sail is a proxy for Large Language Models (LLMs) API's such as OpenAI GPT models, Azure OpenAI, Anthropic Clude etc. that allows you to record prompts and responses, analyze costs, generation speed, compare and track trends and changes across various models and projects over time.
 
+![Prompt Sail dashboard](/docs/assets/images/LLM_Project_dashboard_budget_v2.png)
+
+
 To learn more about Prompt Sail’s features and capabilities, see 
 
 * [Documentation](https://promptsail.github.io/prompt_sail/) 📖
+   * [Quick Start Guide](https://promptsail.com/docs/quick-start-guide/) - How to run Prompt Sail locally via docker.
+   * [Advanced Features](https://promptsail.com/docs/storing-transactions/) - 
+   API access, transctions capturing logic, and more.
+   * [Deployment Cookbook](https://promptsail.com/docs/deploy-promptsail-cookbook) - How to deploy Prompt Sail on various cloud providers.
+   * [Developers Guide](https://promptsail.com/docs/development-environment/) - Development environment setup, database schema, testing, and more.
 * [Examples](https://github.com/PromptSail/prompt_sail/tree/main/examples) 💻
     * [OpenAI SDK -> OpenAI API](/examples/openai_sdk_openai.ipynb)
     * [Langchain SDK -> OpenAI API](/examples/langchain_openai.ipynb)
@@ -41,16 +49,16 @@ To learn more about Prompt Sail’s features and capabilities, see
 
 <!-- * [API Reference](https://promptsail.github.io/prompt_sail/api/). -->
 
+
+
 ## Getting started 🚀
 
-The simplest way to try Prompt Sail is to create a project on https://try.promptsail.com and integrate it with 
-your code.
+Checkout the documenttion [how to run PromptSail locally via docker.](https://promptsail.com/docs/quick-start-guide/)
 
-If you prefer to install and manage Prompt Sail yourself, you can build or download a docker image and run it locally.
 
-## Run Prompt Sail locally via Docker Compose 🐳
+### Run Prompt Sail locally via Docker Compose 🐳
 
-To try out Start Prompt on your own machine, we recommend using docker-compose. Docker images are available from ...
+To try out Start Prompt on your own machine, we recommend using docker-compose. 
 
 ### Requirements 📋
 
@@ -63,13 +71,21 @@ cd prompt_sail
 
 
 
-### Build docker images 🏗️
+### Run docker images 🏗️
 
 Build and run the docker image:
 
 ```bash
-docker-docker-compose up --build
+docker-compose -f docker-compose-build.yml up --build
 ```
+
+
+Pull and run the Docker images from GHCR:
+
+```bash
+docker-compose -f docker-compose.yml up
+```
+
 
 
 ### Create a project 📝
