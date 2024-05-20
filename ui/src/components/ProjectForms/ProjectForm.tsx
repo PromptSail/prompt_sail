@@ -7,6 +7,7 @@ import { FormikValuesTemplate } from './types';
 import ProjectDetails from './ProjectDetails';
 import ProviderDetails from './ProviderDetails/ProviderDetails';
 import { CheckSquareOutlined, RightSquareOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
     submitFunc: (values: typeof FormikValuesTemplate) => Promise<void>;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 const ProjectForm: React.FC<Props> = ({ submitFunc }) => {
+    const navigate = useNavigate();
     const [stepsCurrent, setStepsCurrent] = useState(0);
     const [project, setProject] = useState<typeof FormikValuesTemplate>({
         ...FormikValuesTemplate,
@@ -89,7 +91,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc }) => {
                         className="my-auto"
                         size="large"
                         type="text"
-                        onClick={() => console.log('cancel')}
+                        onClick={() => navigate('/')}
                     >
                         Cancel
                     </Button>
@@ -132,7 +134,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc }) => {
                         className="my-auto"
                         size="large"
                         type="text"
-                        onClick={() => console.log('cancel')}
+                        onClick={() => navigate('/')}
                     >
                         Cancel
                     </Button>
