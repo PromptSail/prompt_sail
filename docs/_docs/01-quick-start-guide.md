@@ -52,14 +52,22 @@ docker-compose -f docker-compose-build.yml up --build
 Pulling the images from GHCR will give you the latest stable version of the code, however, you will not have the latest features.  
 {: .notice--warning}
 
-
-
 The prepared docker-compose file will pull Prompt Sail (backend,ui) images from [GitHub Container Registry](https://github.com/orgs/PromptSail/packages?repo_name=prompt_sail) with `latest` tags, also it will pull the latest mongo and mongo-express images from Docker Hub:
 
 * [prompt_sail-backend ](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-backend)(ghcr.io package)
 * [prompt_sail-ui](https://github.com/PromptSail/prompt_sail/pkgs/container/promptsail-ui)(ghcr.io package)
 * [mongo](https://hub.docker.com/_/mongo)
 * [mongo-express](https://hub.docker.com/_/mongo-express)
+
+
+
+```bash
+docker pull ghcr.io/promptsail/promptsail-ui:latest
+docker pull ghcr.io/promptsail/promptsail-backend:latest
+```
+
+If you've previously pulled Prompt Sail images from ghcr, ensure to pull the promptsail-ui and promptsail-backend images before executing the docker-compose command. This will update any previously pulled images. 
+{: .notice--warning}
 
 ```bash
 docker-compose -f docker-compose.yml up
