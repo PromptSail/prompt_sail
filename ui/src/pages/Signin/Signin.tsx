@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useState } from 'react';
+import { SetStateAction, useCallback, useEffect, useState } from 'react';
 import { checkLogin } from '../../storage/login';
 import Logo from '../../assets/logo/symbol-teal.svg';
 import { Button, Flex, Space, Spin, Typography } from 'antd';
@@ -14,6 +14,7 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
 }) => {
     const [token, setToken] = useState<null | string>(null);
     const config = useGetConfig();
+    const [googleBtnWidth, setGoogleBtnWidth] = useState(300);
     useEffect(() => {
         if (token !== null) {
             localStorage.setItem('PS_TOKEN', token);
@@ -26,6 +27,9 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
                 });
         }
     }, [token]);
+    const setWidth = useCallback((node: HTMLDivElement) => {
+        if (node !== null) setGoogleBtnWidth(node.clientWidth);
+    }, []);
     if (config.isError)
         return (
             <>
@@ -44,7 +48,7 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
         const { authorization, organization, azure_auth, google_auth } = config.data.data;
         return (
             <Flex justify="center" align="center" className="h-screen">
-                <Space direction="vertical" className="signin text-center">
+                <Space ref={setWidth} direction="vertical" className="signin text-center">
                     <Title level={1} className="!m-0">
                         Welcome to {organization}
                     </Title>
@@ -60,7 +64,7 @@ const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }
                             </Title>
                             {google_auth && (
                                 <GoogleOAuthProvider clientId={SSO_GOOGLE_ID}>
-                                    <GoogleBtn onOk={setToken} />
+                                    <GoogleBtn onOk={setToken} width={googleBtnWidth} />
                                 </GoogleOAuthProvider>
                             )}
                             {azure_auth && <AzureBtn onOk={setToken} />}
