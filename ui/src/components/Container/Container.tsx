@@ -1,33 +1,34 @@
-import { Flex, Typography } from 'antd';
-import { ReactNode } from 'react';
-const { Title, Paragraph } = Typography;
+import { Flex } from 'antd';
+import { ReactElement, Children, cloneElement } from 'react';
 
 interface Props {
     children: React.ReactNode;
-    header: string | React.ReactNode;
-    desc?: string | ReactNode;
-    classname?: {
-        parent?: string;
-        title?: string;
-        box?: string;
-    };
+    classname?: string;
 }
 
-const Container: React.FC<Props> = ({ children, header, desc, classname }) => {
+const Container: React.FC<Props> = ({ children, classname }) => {
+    const renderChildren = () => {
+        return Children.map(children, (child, id) => {
+            let className = 'py-[16px]';
+            if (id === 0) className = 'pb-[16px]';
+            if (id === Children.count(children) - 1) {
+                className = id === 0 ? '' : 'pt-[16px]';
+            }
+            return cloneElement(child as ReactElement, {
+                className: `${className} px-[24px] border-0 ${
+                    (child as ReactElement).props.className || ''
+                }`
+            });
+        });
+    };
     return (
-        <Flex vertical gap={5} className={`${classname?.parent}`}>
-            {typeof header === typeof '' && (
-                <Title level={2} style={{ margin: '0 10px' }} className={`${classname?.title}`}>
-                    {header}
-                </Title>
-            )}
-            {typeof header !== typeof '' && header}
-            {!!desc && <Paragraph className="ml-[10px] !mb-0">{desc}</Paragraph>}
-            <div
-                className={`box bg-white p-[20px] rounded-2xl flex flex-col grow border border-solid border-[#E5E5E5] ${classname?.box}`}
-            >
-                {children}
-            </div>
+        <Flex
+            className={`bg-white border border-solid border-[#F0F0F0] rounded-[8px] py-[15px] divide-y divide-solid divide-[#F0F0F0] ${
+                classname || ''
+            }`}
+            vertical
+        >
+            {renderChildren()}
         </Flex>
     );
 };

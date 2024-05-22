@@ -99,92 +99,94 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
         };
     });
     return (
-        <Container
-            header={
-                <Flex justify="space-between">
-                    <Title level={2} style={{ margin: '0 10px' }}>
-                        Statistics
-                    </Title>
-                    <div className="mt-auto">
-                        <RangePicker
-                            maxDate={dayjs()}
-                            presets={[
-                                {
-                                    label: 'Last 30 minutes',
-                                    value: [dayjs().add(-0.5, 'h'), dayjs()]
-                                },
-                                { label: 'Last hour', value: [dayjs().add(-1, 'h'), dayjs()] },
-                                { label: 'Last 6 hours', value: [dayjs().add(-6, 'h'), dayjs()] },
-                                { label: 'Last 12 hours', value: [dayjs().add(-12, 'h'), dayjs()] },
-                                { label: 'Today', value: [dayjs().startOf('day'), dayjs()] },
-                                {
-                                    label: 'Yesterday',
-                                    value: [
-                                        dayjs().add(-1, 'd').startOf('day'),
-                                        dayjs().add(-1, 'd').endOf('day')
-                                    ]
-                                },
-                                {
-                                    label: 'Last 7 Days',
-                                    value: [dayjs().add(-7, 'd').startOf('day'), dayjs()]
-                                },
-                                {
-                                    label: 'Last 14 Days',
-                                    value: [dayjs().add(-14, 'd').startOf('day'), dayjs()]
-                                },
-                                {
-                                    label: 'Last 30 Days',
-                                    value: [dayjs().add(-30, 'd').startOf('day'), dayjs()]
+        <Container>
+            <Flex justify="space-between">
+                <Title level={2} className="h5 my-auto !mb-1">
+                    Statistics
+                </Title>
+                <Flex gap={16}>
+                    <RangePicker
+                        maxDate={dayjs()}
+                        presets={[
+                            {
+                                label: 'Last 30 minutes',
+                                value: [dayjs().add(-0.5, 'h'), dayjs()]
+                            },
+                            { label: 'Last hour', value: [dayjs().add(-1, 'h'), dayjs()] },
+                            { label: 'Last 6 hours', value: [dayjs().add(-6, 'h'), dayjs()] },
+                            { label: 'Last 12 hours', value: [dayjs().add(-12, 'h'), dayjs()] },
+                            { label: 'Today', value: [dayjs().startOf('day'), dayjs()] },
+                            {
+                                label: 'Yesterday',
+                                value: [
+                                    dayjs().add(-1, 'd').startOf('day'),
+                                    dayjs().add(-1, 'd').endOf('day')
+                                ]
+                            },
+                            {
+                                label: 'Last 7 Days',
+                                value: [dayjs().add(-7, 'd').startOf('day'), dayjs()]
+                            },
+                            {
+                                label: 'Last 14 Days',
+                                value: [dayjs().add(-14, 'd').startOf('day'), dayjs()]
+                            },
+                            {
+                                label: 'Last 30 Days',
+                                value: [dayjs().add(-30, 'd').startOf('day'), dayjs()]
+                            }
+                        ]}
+                        onChange={(_, dates) => {
+                            if (!rangeOKRef.current) {
+                                let dateStart = '';
+                                let dateEnd = '';
+                                if (dates[0].length > 0 && dates[1].length > 0) {
+                                    dateStart = new Date(dates[0] + 'Z')
+                                        .toISOString()
+                                        .substring(0, 19);
+                                    dateEnd = new Date(dates[1] + 'Z')
+                                        .toISOString()
+                                        .substring(0, 19);
                                 }
-                            ]}
-                            onChange={(_, dates) => {
-                                if (!rangeOKRef.current) {
-                                    let dateStart = '';
-                                    let dateEnd = '';
-                                    if (dates[0].length > 0 && dates[1].length > 0) {
-                                        dateStart = new Date(dates[0] + 'Z')
-                                            .toISOString()
-                                            .substring(0, 19);
-                                        dateEnd = new Date(dates[1] + 'Z')
-                                            .toISOString()
-                                            .substring(0, 19);
-                                    }
-                                    setDates({
-                                        start: dateStart.length > 0 ? dayjs(dateStart) : null,
-                                        end: dateEnd.length > 0 ? dayjs(dateEnd) : null
-                                    });
-                                    setGranularityAndUpdateApi(dayjs(dateStart), dayjs(dateEnd));
-                                }
-                                rangeOKRef.current = false;
-                            }}
-                            onOk={(v) => {
-                                setDates({ start: v[0], end: v[1] });
-                                setGranularityAndUpdateApi(v[0], v[1]);
-                                rangeOKRef.current = true;
-                            }}
-                            value={[dates.start, dates.end]}
-                            showTime
-                            allowClear={false}
-                            allowEmpty={false}
-                        />
-                        <Select
-                            options={periodOptions}
-                            value={granularity}
-                            onChange={(val: Period) => {
-                                setGranularity(val);
-                                setStatisticsParams((old) => ({ ...old, period: val }));
-                            }}
-                            defaultValue={Period.Daily}
-                            className="w-[100px]"
-                        />
-                    </div>
+                                setDates({
+                                    start: dateStart.length > 0 ? dayjs(dateStart) : null,
+                                    end: dateEnd.length > 0 ? dayjs(dateEnd) : null
+                                });
+                                setGranularityAndUpdateApi(dayjs(dateStart), dayjs(dateEnd));
+                            }
+                            rangeOKRef.current = false;
+                        }}
+                        onOk={(v) => {
+                            setDates({ start: v[0], end: v[1] });
+                            setGranularityAndUpdateApi(v[0], v[1]);
+                            rangeOKRef.current = true;
+                        }}
+                        value={[dates.start, dates.end]}
+                        showTime
+                        allowClear={false}
+                        allowEmpty={false}
+                    />
+                    <Select
+                        options={periodOptions}
+                        value={granularity}
+                        onChange={(val: Period) => {
+                            setGranularity(val);
+                            setStatisticsParams((old) => ({ ...old, period: val }));
+                        }}
+                        defaultValue={Period.Daily}
+                        className="w-[100px]"
+                    />
                 </Flex>
-            }
-            classname={{ parent: 'mt-5', box: 'relative gap-5' }}
-        >
-            <TransactionsCountChart statisticsParams={statisticsParams} />
-            <TransactionsCostAndTokensChart statisticsParams={statisticsParams} />
-            <TransactionsSpeedChart statisticsParams={statisticsParams} />
+            </Flex>
+            <div>
+                <TransactionsCountChart statisticsParams={statisticsParams} />
+            </div>
+            <div>
+                <TransactionsCostAndTokensChart statisticsParams={statisticsParams} />
+            </div>
+            <div>
+                <TransactionsSpeedChart statisticsParams={statisticsParams} />
+            </div>
         </Container>
     );
 };
