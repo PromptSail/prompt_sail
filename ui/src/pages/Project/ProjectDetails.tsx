@@ -11,7 +11,7 @@ interface Props {
 
 const ProjectDetails: React.FC<Props> = ({ details }) => (
     <>
-        <Container classname={'mt-[24px]'}>
+        <Container>
             <Flex justify="space-between">
                 <Title level={2} className="h5 my-auto !mb-1">
                     Project details

@@ -7,7 +7,7 @@ import UpdateProject from './Update/UpdateProject';
 import AddProject from './Add/AddProject';
 import { Breadcrumb, Button, Flex, Tabs, Typography } from 'antd';
 import Container from '../../components/Container/Container';
-import AiProvidersTable from './AiProvidersTable';
+import AiProvidersTable from './AiProvidersList';
 import LatestTransactions from './LatestTransactions';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
 import Statistics from './Statistics/Statistics';
@@ -16,6 +16,7 @@ import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
 import { useState } from 'react';
 import { DeleteOutlined } from '@ant-design/icons';
 import ProjectDetails from './ProjectDetails';
+import AiProvidersList from './AiProvidersList';
 const { Title, Paragraph } = Typography;
 
 interface AddProps {
@@ -89,66 +90,76 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                         Delete
                     </Button>
                 </HeaderContainer>
-                {currentTab == '1' && (
-                    <div className="px-[24px] max-w-[1600px] w-full mx-auto">
-                        <Flex className="m-auto" vertical gap={12}>
-                            <ProjectDetails details={data} />
-                            <Statistics projectId={data.id} />
-                        </Flex>
-                    </div>
-                )}
-                {currentTab != '1' && (
-                    <>
-                        <Flex align="center" justify="space-between">
-                            <Title style={{ margin: 5 }}>{data.name}</Title>
-                            <Flex gap={10}>
-                                <Button
-                                    type="primary"
-                                    onClick={() =>
-                                        window.open(
-                                            'https://promptsail.github.io/prompt_sail/docs/project-dashboard/',
-                                            '_blank'
-                                        )
-                                    }
-                                    ghost
-                                    style={{ background: '#FFF' }}
-                                >
-                                    Help
-                                </Button>
-                                <Button
-                                    type="primary"
-                                    onClick={() => navigate(`/projects/${data.id}/update`)}
-                                >
-                                    Edit
-                                </Button>
-                                <DeleteProject name={data.name} projectId={data.id} />
-                            </Flex>
-                        </Flex>
-                        <Paragraph>{data.description}</Paragraph>
-                        <Flex gap={10}>
-                            <Container classname={'w-full'}>
-                                <AiProvidersTable providers={data.ai_providers} slug={data.slug} />
-                            </Container>
-                        </Flex>
+                <div className="px-[24px] pt-[24px] max-w-[1600px] w-full mx-auto">
+                    <Flex className="m-auto" vertical gap={12}>
+                        {currentTab == '1' && (
+                            <>
+                                <ProjectDetails details={data} />
+                                <Statistics projectId={data.id} />
+                            </>
+                        )}
+                        {currentTab == '2' && (
+                            <AiProvidersList list={data.ai_providers} slug={data.slug} />
+                        )}
+                        {currentTab == '3' && (
+                            <>
+                                <Flex align="center" justify="space-between">
+                                    <Title style={{ margin: 5 }}>{data.name}</Title>
+                                    <Flex gap={10}>
+                                        <Button
+                                            type="primary"
+                                            onClick={() =>
+                                                window.open(
+                                                    'https://promptsail.github.io/prompt_sail/docs/project-dashboard/',
+                                                    '_blank'
+                                                )
+                                            }
+                                            ghost
+                                            style={{ background: '#FFF' }}
+                                        >
+                                            Help
+                                        </Button>
+                                        <Button
+                                            type="primary"
+                                            onClick={() => navigate(`/projects/${data.id}/update`)}
+                                        >
+                                            Edit
+                                        </Button>
+                                        <DeleteProject name={data.name} projectId={data.id} />
+                                    </Flex>
+                                </Flex>
+                                <Paragraph>{data.description}</Paragraph>
+                                <Flex gap={10}>
+                                    <Container classname={'w-full'}>
+                                        <AiProvidersTable
+                                            list={data.ai_providers}
+                                            slug={data.slug}
+                                        />
+                                    </Container>
+                                </Flex>
 
-                        <Container classname={'my-5'}>
-                            <Flex justify="space-between">
-                                <Title level={2} style={{ margin: '0 10px' }}>
-                                    Latest transactions
-                                </Title>
-                                <Button
-                                    type="primary"
-                                    className="!bg-white my-auto"
-                                    onClick={() => navigate(`/transactions?project_id=${data.id}`)}
-                                    ghost
-                                >
-                                    View all transactions
-                                </Button>
-                            </Flex>
-                            <LatestTransactions projectId={data.id} />
-                        </Container>
-                    </>
-                )}
+                                <Container classname={'my-5'}>
+                                    <Flex justify="space-between">
+                                        <Title level={2} style={{ margin: '0 10px' }}>
+                                            Latest transactions
+                                        </Title>
+                                        <Button
+                                            type="primary"
+                                            className="!bg-white my-auto"
+                                            onClick={() =>
+                                                navigate(`/transactions?project_id=${data.id}`)
+                                            }
+                                            ghost
+                                        >
+                                            View all transactions
+                                        </Button>
+                                    </Flex>
+                                    <LatestTransactions projectId={data.id} />
+                                </Container>
+                            </>
+                        )}
+                    </Flex>
+                </div>
             </Flex>
         );
     }
