@@ -110,7 +110,7 @@ if config.SSO_AUTH:
                 expected_audience = unvalidated.get("aud")
 
             decoded_token = jwt.decode(
-                token, key, [header["alg"]], audience=expected_audience
+                token, key, [header["alg"]], audience=expected_audience, leeway=10
             )
             user_id = decoded_token.get("sub")
             new_user = None
@@ -141,6 +141,10 @@ if config.SSO_AUTH:
             return db_user if db_user is not None else new_user
         except jwt.exceptions.DecodeError:
             raise HTTPException(status_code=401, detail="Invalid token")
+        except jwt.exceptions.ImmatureSignatureError:
+            raise HTTPException(
+                status_code=401, detail="Token is not yet valid (iat claim)."
+            )
 
 else:
 
