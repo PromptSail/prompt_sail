@@ -7,7 +7,7 @@ from app.dependencies import get_transaction_context
 from auth.models import User
 from auth.use_cases import add_user, get_user
 from config import config
-from fastapi import Depends, Security, HTTPException
+from fastapi import Depends, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from lato import TransactionContext
 
@@ -64,16 +64,17 @@ def get_jwks_url(issuer_url):
 
 if config.SSO_AUTH:
     api_key_header = APIKeyHeader(name="Authorization")
-    
+
     def verify_authorization(authorization: str = Security(api_key_header)) -> str:
         try:
             token_type, token = authorization.split(" ")
             if token_type.lower() != "bearer":
-                raise HTTPException(status_code=401, detail="Invalid authentication scheme")
+                raise HTTPException(
+                    status_code=401, detail="Invalid authentication scheme"
+                )
             return token
         except ValueError:
             raise HTTPException(status_code=401, detail="Invalid authorization header")
-
 
     def decode_and_validate_token(
         ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
@@ -81,7 +82,7 @@ if config.SSO_AUTH:
     ) -> User:
         try:
             unvalidated = jwt.decode(token, options={"verify_signature": False})
-            
+
             if "test" == unvalidated["iss"]:
                 return User(
                     external_id="test",
@@ -140,7 +141,9 @@ if config.SSO_AUTH:
             return db_user if db_user is not None else new_user
         except jwt.exceptions.DecodeError:
             raise HTTPException(status_code=401, detail="Invalid token")
+
 else:
+
     def decode_and_validate_token() -> User:
         if not config.SSO_AUTH:
             return User(
