@@ -5,15 +5,15 @@ import { AxiosResponse } from 'axios';
 import { UseQueryResult } from 'react-query';
 import UpdateProject from './Update/UpdateProject';
 import AddProject from './Add/AddProject';
-import { Breadcrumb, Button, Flex, Tabs, Typography } from 'antd';
+import { Breadcrumb, Flex, Tabs, Typography } from 'antd';
 import Statistics from './Statistics/Statistics';
 import { NotificationInstance } from 'antd/es/notification/interface';
 import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
 import { useState } from 'react';
-import { DeleteOutlined } from '@ant-design/icons';
 import ProjectDetails from './ProjectDetails';
 import AiProvidersList from './AiProvidersList';
 import ProjectTransactions from './ProjectTransactions';
+import DeleteProject from '../../components/ProjectForms/DeleteProject';
 const { Title } = Typography;
 
 interface AddProps {
@@ -83,9 +83,7 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                             ]}
                         />
                     </Flex>
-                    <Button className="my-auto z-10" icon={<DeleteOutlined />}>
-                        Delete
-                    </Button>
+                    <DeleteProject projectId={data.id} name={data.name} />
                 </HeaderContainer>
                 <div className="px-[24px] pt-[24px] max-w-[1600px] w-full mx-auto">
                     <Flex className="m-auto" vertical gap={12}>

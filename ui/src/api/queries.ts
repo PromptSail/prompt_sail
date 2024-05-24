@@ -122,14 +122,6 @@ export const useUpdateProject = (): UseMutationResult<
             return await api.updateProject(id, data);
         },
         {
-            onSuccess: () => {
-                notification.success({
-                    message: 'Success',
-                    description: 'Project successfully edited',
-                    placement: 'bottomRight',
-                    duration: 5
-                });
-            },
             onError: (err) => {
                 console.error(`${err.code}: ${err.message}`);
             }

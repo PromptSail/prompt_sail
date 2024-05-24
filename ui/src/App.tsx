@@ -4,23 +4,24 @@ import Project from './pages/Project/Project';
 import Transactions from './pages/Transactions';
 import Sidebar from './components/Sidebar/Sidebar';
 
-import { createContext, useMemo, useState } from 'react';
+import { useState } from 'react';
 import Signin from './pages/Signin';
 import { checkLogin } from './storage/login';
-import { ConfigProvider, Layout, notification } from 'antd';
+import { ConfigProvider, Layout, Modal, notification } from 'antd';
 import Transaction from './pages/Transaction/Transaction';
 import theme from './theme-light';
+import { Context } from './context/Context';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
     const [noteApi, noteContextHolder] = notification.useNotification();
-    const contextValue = useMemo(() => ({ name: 'App' }), []);
-    const Context = createContext({ name: 'Default' });
+    const [modalApi, modalContextHolder] = Modal.useModal();
     return (
         <ConfigProvider theme={theme}>
             {isLogged && (
-                <Context.Provider value={contextValue}>
+                <Context.Provider value={{ notification: noteApi, modal: modalApi }}>
                     {noteContextHolder}
+                    {modalContextHolder}
                     <Layout>
                         <Sidebar setLoginState={setLoginState} />
                         <Layout className="h-screen overflow-auto">
