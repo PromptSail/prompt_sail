@@ -145,6 +145,10 @@ if config.SSO_AUTH:
             raise HTTPException(
                 status_code=401, detail="Token is not yet valid (iat claim)."
             )
+        except jwt.exceptions.ExpiredSignatureError:
+            raise HTTPException(
+                status_code=401, detail="Token has expired (exp claim)."
+            )
 
 else:
 
