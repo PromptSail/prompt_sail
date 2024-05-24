@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { DeleteOutlined } from '@ant-design/icons';
 import ProjectDetails from './ProjectDetails';
 import AiProvidersList from './AiProvidersList';
+import ProjectTransactions from './ProjectTransactions';
 const { Title, Paragraph } = Typography;
 
 interface AddProps {
@@ -101,7 +102,8 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                         {currentTab == '2' && (
                             <AiProvidersList list={data.ai_providers} slug={data.slug} />
                         )}
-                        {currentTab == '3' && (
+                        {currentTab == '3' && <ProjectTransactions projectId={data.id} />}
+                        {currentTab == '4' && (
                             <>
                                 <Flex align="center" justify="space-between">
                                     <Title style={{ margin: 5 }}>{data.name}</Title>

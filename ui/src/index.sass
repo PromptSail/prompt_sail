@@ -32,3 +32,46 @@ $headers:("fontSize1": 38, "fontSize2": 30, "fontSize3": 24, "fontSize4": 20, "f
   & > .ant-tabs-nav::before
     content: none
 
+// .test
+//   // background: orange
+//   height: 200px
+//   overflow: auto
+//   & > div
+//     height: 500px
+
+.ant-table-body
+  scrollbar-width: auto
+  scrollbar-color: auto
+  tbody
+    tr:last-child
+      td
+        border-bottom: none
+      
+div
+  &::-webkit-scrollbar
+    width: 8px // Width of the scrollbar
+    height: 8px // Height of the scrollbar
+
+  &::-webkit-scrollbar-track // Color of the track (the area behind the scrollbar)
+    @apply bg-Background/colorBgBase
+
+  &::-webkit-scrollbar-thumb
+    // Color of the scrollbar thumb
+    @apply bg-Border/colorBorder
+    border-radius: 14px
+  &::-webkit-scrollbar-button
+    width: 4px
+.transactions-table
+  .ant-table
+    @apply border-Border/colorBorderSecondary #{!important}
+    border-radius: 8px !important
+    border-width: 1px
+    border-style: solid
+    padding-bottom: 4px !important
+  .ant-table-thead th
+    @apply text-Text/colorText #{!important}
+    padding: 8px !important
+  .ant-table-tbody td
+    padding-left: 8px !important
+    padding-right: 8px !important
+    

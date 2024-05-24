@@ -35,7 +35,7 @@ const Transactions = () => {
                 <TransactionsTable
                     filters={filters}
                     setFilters={setFilters}
-                    setURLParam={setURLParam}
+                    // setURLParam={setURLParam}
                 />
             </Flex>
         </>

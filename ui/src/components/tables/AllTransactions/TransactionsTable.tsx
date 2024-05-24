@@ -7,11 +7,12 @@ import { TransactionsFilters } from '../../../api/types';
 import { useGetAllTransactions } from '../../../api/queries';
 import { DataType, columns } from '../columns';
 import { SorterResult } from 'antd/es/table/interface';
+import * as styles from '../../../styles.json';
 
 interface Props {
     filters: TransactionsFilters;
     setFilters: Dispatch<SetStateAction<TransactionsFilters>>;
-    setURLParam: (param: { [key: string]: string }) => void;
+    // setURLParam: (param: { [key: string]: string }) => void;
 }
 
 interface sortWithApiCol extends SorterResult<DataType> {
@@ -20,7 +21,11 @@ interface sortWithApiCol extends SorterResult<DataType> {
     };
 }
 
-const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }) => {
+const TransactionsTable: React.FC<Props> = ({
+    filters,
+    setFilters
+    // setURLParam
+}) => {
     const transactions = useGetAllTransactions(filters);
     const [isLoading, setLoading] = useState(true);
     const [tableData, setTableData] = useState<{
@@ -62,9 +67,20 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }
                                         title={tr.id}
                                         overlayStyle={{ maxWidth: '500px' }}
                                     >
-                                        <Tag color="geekblue" className="m-0">
+                                        <Tag
+                                            style={{
+                                                color: styles.Colors.light['Primary/colorPrimary'],
+                                                borderColor:
+                                                    styles.Colors.light[
+                                                        'Primary/colorPrimaryBorder'
+                                                    ],
+                                                background:
+                                                    styles.Colors.light['Primary/colorPrimaryBg']
+                                            }}
+                                            className="m-0"
+                                        >
                                             {tr.id.length > 10
-                                                ? tr.id.substring(0, 10) + '...'
+                                                ? tr.id.substring(0, 17) + '...'
                                                 : tr.id}
                                         </Tag>
                                     </Tooltip>
@@ -104,7 +120,7 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }
                             ),
                             aiProvider: tr.provider,
                             model: tr.model,
-                            tags: <TagsContainer tags={tr.tags} />,
+                            tags: <TagsContainer tags={tr.tags} classname="w-full" />,
                             cost: tr.status_code < 300 ? `$ ${tr.total_cost.toFixed(4)}` : 'null',
                             tokens:
                                 tr.status_code < 300 ? (
@@ -131,15 +147,15 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }
             columns={columns}
             loading={isLoading}
             pagination={{
-                position: ['topRight', 'bottomRight'],
+                position: ['bottomRight'],
                 onChange: (page, pageSize) => {
                     if (filters.page !== `${page}`) {
                         setFilters((old) => ({ ...old, page: `${page}` }));
-                        setURLParam({ page: `${page}` });
+                        // setURLParam({ page: `${page}` });
                     }
                     if (filters.page_size !== `${pageSize}`) {
                         setFilters((old) => ({ ...old, page_size: `${pageSize}` }));
-                        setURLParam({ page_size: `${pageSize}` });
+                        // setURLParam({ page_size: `${pageSize}` });
                     }
                 },
                 total: tableData.total_elements,
@@ -156,8 +172,8 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setURLParam }
                     sort_type: sortData.order === 'ascend' ? 'asc' : ''
                 }));
             }}
-            scroll={{ y: 'true' }}
-            className="overflow-y-hidden"
+            scroll={{ y: 'true' }} // y: 'true' is a magic value that makes the table scrollbar styles work
+            className="transactions-table"
         />
     );
 };
