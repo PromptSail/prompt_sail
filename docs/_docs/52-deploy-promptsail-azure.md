@@ -16,8 +16,9 @@ toc_sticky: true
 ![Photo 1]({{ site.url }}{{ site.baseurl }}assets/images/azure-deploy-1.png)
 2. On the first page you need to specify (1) `Resource Group` that you will use to deploy promptsail, (2) `name of the instance` and (3) `publish type`. Then press (4) `Next`.
 ![Photo 2]({{ site.url }}{{ site.baseurl }}assets/images/azure-deploy-2.png)
-3. In the `Container` tab you need to specify `Image Source` as (1) `Docker Hub or other registries` and as a `Options` the (2) `Docker Compose (Preview)`. Now you need to add a little bit updated version of docker-compose.yml that you can find on our [Github](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml).
+3. In the `Container` tab you need to specify `Image Source` as (1) `Docker Hub or other registries` and as a `Options` the (2) `Docker Compose (Preview)`. Now you need to add (3) a little bit updated version of docker-compose.yml that you can find on our [Github](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml).
 ![Photo 3]({{ site.url }}{{ site.baseurl }}assets/images/azure-deploy-3.png)
+
 ```yaml
 version: "3.8"
 services:
@@ -59,12 +60,12 @@ services:
     environment:
       PORT: 80
       PROMPT_SAIL_ENV_PLACEHOLDER_BACKEND_URL: 'http://promptsail-backend:8000/api'
-      PROMPT_SAIL_ENV_PLACEHOLDER_PROXY_URL_HOST: 'https://promptsail-test.azurewebsites.net'
+      PROMPT_SAIL_ENV_PLACEHOLDER_PROXY_URL_HOST: 'https://promptsail-test.azurewebsites.net/api'
       PROMPT_SAIL_ENV_PLACEHOLDER_SSO_GOOGLE_CLIENT_ID: 'change_me_compose.apps.googleusercontent.com'
-      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_CLIENT_ID: 'd3b4f325-1042-4f7d-b9d5-d0805b6d1cd9'
-      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_TENANT: '4a1bd118-fdae-4403-b302-bcbe3086cb29'
+      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_CLIENT_ID: 'd3xxxx25-xxxx-xxxx-xxxx-d08xxxxxcd9'
+      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_TENANT: '4a1bxxxx-xxxx-xxxx-xxxx-bcxxxx86cb29'
       PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_SCOPES: 'user.read'
-      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_AUTHORITY: 'https://login.microsoftonline.com/4a1bd118-fdae-4403-b302-bcbe3086cb29'
+      PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_AUTHORITY: 'https://login.microsoftonline.com/4axxxx18-xxxx-xxxx-xxxx-bcbxxxxxcb29'
     depends_on:
         mongodb:
             condition: service_started
@@ -75,7 +76,6 @@ networks:
   internal-network:
     internal: true
   external-network:
-
 ```
 
 The main changes in the file are:
@@ -87,7 +87,7 @@ The main changes in the file are:
     - set `AZURE_CLIENT_ID` as your Client ID [(here you can find how to setup auth)](docs/sso-configuration/)
     - add https port mapping `443:443`
 - in `promptsail-ui`:
-    - set `PROMPT_SAIL_ENV_PLACEHOLDER_PROXY_URL_HOST` as `https://` + (2.2.) `name of the instance` + `.azurewebsites.net`
+    - set `PROMPT_SAIL_ENV_PLACEHOLDER_PROXY_URL_HOST` as `https://` + (2.2.) `name of the instance` + `.azurewebsites.net/api`
     - set `PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_CLIENT_ID` as your Client ID [(here you can find how to setup auth)](docs/sso-configuration/),
     - set `PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_TENANT` as your Tenant (as above),
     - set `PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_AUTHORITY` as your authority (as above)
