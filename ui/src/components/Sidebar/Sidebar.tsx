@@ -13,7 +13,7 @@ import {
     RocketOutlined,
     UserOutlined
 } from '@ant-design/icons';
-import { ItemType, MenuItemType } from 'antd/es/menu/hooks/useItems';
+import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import Logo from '../../assets/logo/Logo-teal_white.svg';
 import Symbol from '../../assets/logo/symbol-teal.svg';
 

@@ -33,7 +33,7 @@ const BasicInfo: React.FC<Props> = ({ data }) => {
     ];
     return (
         <Flex vertical gap={20}>
-            <Container header={'Messages'}>
+            <Container>
                 <Collapse
                     defaultActiveKey={[`${collapseItems[collapseItems?.length - 1].key}`]}
                     expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}

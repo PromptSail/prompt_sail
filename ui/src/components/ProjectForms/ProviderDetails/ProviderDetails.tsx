@@ -1,32 +1,21 @@
-import {
-    Button,
-    Collapse,
-    CollapseProps,
-    Divider,
-    Flex,
-    Form,
-    Input,
-    Typography,
-    theme
-} from 'antd';
-import { FormikProps } from 'formik';
+import { Button, Collapse, CollapseProps, Divider, Flex, Typography, theme } from 'antd';
 import { FormikValuesTemplate } from '../types';
 import { SetStateAction, useState } from 'react';
-import { makeUrl, toSlug } from '../../../helpers/aiProvider';
+import { toSlug } from '../../../helpers/aiProvider';
 import { DeleteOutlined, DownOutlined, PlusSquareOutlined } from '@ant-design/icons';
 import ProviderEditableElement from './ProvidersEditableElement';
-import ProviderSelect from './ProviderSelect';
 import { CollapsibleType } from 'antd/es/collapse/CollapsePanel';
+import ProviderForm from './ProviderForm';
+import Container from '../../Container/Container';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
 interface Props {
-    formik: FormikProps<(typeof FormikValuesTemplate.ai_providers)[0]>;
     projectDetails: typeof FormikValuesTemplate;
     setProjectDetails: (args: SetStateAction<typeof FormikValuesTemplate>) => void;
 }
 
-const ProviderDetails: React.FC<Props> = ({ formik, setProjectDetails, projectDetails }) => {
+const ProviderDetails: React.FC<Props> = ({ setProjectDetails, projectDetails }) => {
     const { token } = theme.useToken();
     const [collapseTrigger, setcollapseTrigger] = useState<CollapsibleType>('header');
     const items: CollapseProps['items'] = projectDetails.ai_providers.map((el, item_id) => ({
@@ -106,104 +95,31 @@ const ProviderDetails: React.FC<Props> = ({ formik, setProjectDetails, projectDe
                     items={items}
                 />
             )}
-            <div className="bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px] divide-y divide-solid divide-Border/colorBorderSecondary">
+            <Container>
                 <Title level={2} className="h5 m-0 px-[24px] py-[16px]">
                     Project details
                 </Title>
-                <Form
-                    name="projectForm_providers"
-                    className="px-[24px] py-[16px] border-0"
-                    id="projectForm_providers"
-                    layout="vertical"
-                    onSubmitCapture={formik.handleSubmit}
-                    onFinishFailed={() => console.log(formik.errors)}
-                    autoComplete="on"
-                    noValidate={true}
-                >
-                    <Form.Item<typeof FormikValuesTemplate>
-                        rules={[{ required: true }]}
-                        help={formik.errors.provider_name}
-                        validateStatus={formik.errors.provider_name ? 'error' : ''}
-                        className="mb-[10px]"
-                    >
-                        <Paragraph className="!m-0 text-Text/colorText">AI Provider:</Paragraph>
-                        <ProviderSelect
-                            className="max-w-[50%]"
-                            value={formik.values.provider_name}
-                            size="large"
-                            onChange={(val) => {
-                                formik.handleChange({
-                                    target: {
-                                        value: val,
-                                        name: 'provider_name'
-                                    }
-                                });
-                            }}
-                        />
-                    </Form.Item>
-                    <Form.Item<typeof FormikValuesTemplate>
-                        rules={[{ required: true }]}
-                        help={formik.errors.deployment_name}
-                        validateStatus={formik.errors.deployment_name ? 'error' : ''}
-                        className="mb-[10px]"
-                    >
-                        <Paragraph className="!m-0 text-Text/colorText">Deployment name:</Paragraph>
-                        <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                            Provide a short uniqe name to identify your deployment from the AI
-                            provider. It will be a part of the proxy URL.
-                        </Paragraph>
-                        <Input
-                            className="max-w-[50%]"
-                            name="deployment_name"
-                            value={formik.values.deployment_name}
-                            size="large"
-                            onChange={formik.handleChange}
-                        />
-                    </Form.Item>
-                    <Form.Item<typeof FormikValuesTemplate>
-                        rules={[{ required: true }]}
-                        help={formik.errors.api_base}
-                        validateStatus={formik.errors.api_base ? 'error' : ''}
-                        className="mb-[10px]"
-                    >
-                        <Paragraph className="!m-0 text-Text/colorText">API Base URL:</Paragraph>
-                        <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                            Enter the base URL for the LLM endpoint you want to connect with
-                        </Paragraph>
-                        <Input
-                            className="max-w-[50%]"
-                            name="api_base"
-                            value={formik.values.api_base}
-                            size="large"
-                            onChange={formik.handleChange}
-                        />
-                    </Form.Item>
-                    <Form.Item<typeof FormikValuesTemplate>
-                        rules={[{ required: true }]}
-                        help={formik.errors.slug}
-                        validateStatus={formik.errors.slug ? 'error' : ''}
-                        className="mb-[10px]"
-                    >
-                        <Paragraph className="!m-0 text-Text/colorText">API Base URL:</Paragraph>
-                        <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                            Enter the base URL for the LLM endpoint you want to connect with
-                        </Paragraph>
-                        <Input
-                            className="max-w-[50%]"
-                            disabled
-                            value={makeUrl(projectDetails.slug, formik.values.deployment_name)}
-                            size="large"
-                            onChange={formik.handleChange}
-                        />
-                    </Form.Item>
-                </Form>
-            </div>
+                <ProviderForm
+                    onOk={(values) =>
+                        setProjectDetails((old) => ({
+                            ...old,
+                            ai_providers: [
+                                ...old.ai_providers,
+                                { ...values, slug: toSlug(values.deployment_name) }
+                            ]
+                        }))
+                    }
+                    providers={projectDetails.ai_providers}
+                    slug={projectDetails.slug}
+                    formId="projectForm_providerAdd"
+                />
+            </Container>
             <Button
                 className="me-auto mb-[12px]"
                 type="dashed"
                 icon={<PlusSquareOutlined />}
                 htmlType="submit"
-                form="projectForm_providers"
+                form="projectForm_providerAdd"
             >
                 Add{projectDetails.ai_providers.length > 0 ? ' next' : ''} AI Provider
             </Button>

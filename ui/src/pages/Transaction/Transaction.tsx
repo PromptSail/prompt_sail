@@ -127,7 +127,7 @@ const Transaction: React.FC = () => {
                 <Flex align="center" justify="space-between">
                     <Title style={{ margin: 5 }}>Transaction {data.id}</Title>
                 </Flex>
-                <Container header={''}>
+                <Container>
                     <Descriptions items={descItems} />
                 </Container>
                 <Tabs defaultActiveKey={transactionTabOnLoad()} items={items} onChange={onChange} />

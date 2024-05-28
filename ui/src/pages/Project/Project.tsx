@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useGetProject } from '../../api/queries';
+import { useGetProject, useUpdateProject } from '../../api/queries';
 import { getProjectResponse } from '../../api/interfaces';
 import { AxiosResponse } from 'axios';
 import { UseQueryResult } from 'react-query';
@@ -9,11 +9,13 @@ import { Breadcrumb, Flex, Tabs, Typography } from 'antd';
 import Statistics from './Statistics/Statistics';
 import { NotificationInstance } from 'antd/es/notification/interface';
 import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ProjectDetails from './ProjectDetails';
 import AiProvidersList from './AiProvidersList';
 import ProjectTransactions from './ProjectTransactions';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
+import { Context } from '../../context/Context';
+import { useContext } from 'react';
 const { Title } = Typography;
 
 interface AddProps {
@@ -22,11 +24,16 @@ interface AddProps {
 
 const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => {
     const navigate = useNavigate();
+    const { notification } = useContext(Context);
     const [currentTab, setCurrentTab] = useState('1');
     const params = useParams();
     const project: UseQueryResult<AxiosResponse<getProjectResponse>> = useGetProject(
         params.projectId || ''
     );
+    const updateProject = useUpdateProject();
+    useEffect(() => {
+        project.refetch();
+    }, [currentTab]);
     if (project.isLoading)
         return (
             <>
@@ -94,7 +101,30 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                             </>
                         )}
                         {currentTab == '2' && (
-                            <AiProvidersList list={data.ai_providers} slug={data.slug} />
+                            <AiProvidersList
+                                list={data.ai_providers}
+                                slug={data.slug}
+                                onUpdateProviders={(newProviders) => {
+                                    const updateData: Omit<
+                                        typeof data,
+                                        'id' | 'total_cost' | 'total_transactions'
+                                    > = data;
+                                    updateProject.mutate({
+                                        id: data.id,
+                                        data: {
+                                            ...updateData,
+                                            ai_providers: newProviders,
+                                            org_id: data.org_id || ''
+                                        }
+                                    });
+                                    notification?.success({
+                                        message: 'Success',
+                                        description: 'Providers successfully updated',
+                                        placement: 'bottomRight',
+                                        duration: 5
+                                    });
+                                }}
+                            />
                         )}
                         {currentTab == '3' && <ProjectTransactions projectId={data.id} />}
                     </Flex>

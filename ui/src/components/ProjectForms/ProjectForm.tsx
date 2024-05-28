@@ -1,6 +1,6 @@
 import { FormikProps, useFormik } from 'formik';
 import { useState } from 'react';
-import { projectSchema, providerSchema } from '../../api/formSchemas';
+import { projectSchema } from '../../api/formSchemas';
 import { toSlug } from '../../helpers/aiProvider';
 import { Button, Flex, Steps } from 'antd';
 import { FormikValuesTemplate } from './types';
@@ -37,31 +37,6 @@ const ProjectForm: React.FC<Props> = ({ submitFunc }) => {
         validationSchema: projectSchema,
         validateOnChange: false
     });
-    const formikProviders = useFormik({
-        initialValues: { ...FormikValuesTemplate.ai_providers[0] },
-        onSubmit: async (values) => {
-            const isProviderNameUniqe =
-                project.ai_providers.filter((e) => e.deployment_name === values.deployment_name)
-                    .length < 1;
-            if (isProviderNameUniqe) {
-                setProject((old) => ({
-                    ...old,
-                    ai_providers: [
-                        ...old.ai_providers,
-                        { ...values, slug: toSlug(values.deployment_name) }
-                    ]
-                }));
-                formikProviders.setValues({
-                    ...FormikValuesTemplate.ai_providers[0]
-                });
-            } else
-                formikProviders.setErrors({
-                    deployment_name: 'Already exist deployment with this name'
-                });
-        },
-        validationSchema: providerSchema,
-        validateOnChange: false
-    });
     return (
         <Flex gap={12} className="px-[24px] max-w-[1600px] w-full mx-auto" vertical>
             <div className="px-[24px] py-[16px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px]">
@@ -95,7 +70,6 @@ const ProjectForm: React.FC<Props> = ({ submitFunc }) => {
                     >
                         Cancel
                     </Button>
-                    <form id="projectForm_main"></form>
                     <Button
                         className="my-auto"
                         size="large"
@@ -120,11 +94,7 @@ const ProjectForm: React.FC<Props> = ({ submitFunc }) => {
                 </Flex>
             </Flex>
             <div className={stepsCurrent === 1 ? '' : 'hidden'}>
-                <ProviderDetails
-                    formik={formikProviders}
-                    projectDetails={project}
-                    setProjectDetails={setProject}
-                />
+                <ProviderDetails projectDetails={project} setProjectDetails={setProject} />
                 <Flex
                     justify="flex-end"
                     gap={16}
