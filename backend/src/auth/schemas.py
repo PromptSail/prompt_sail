@@ -9,3 +9,11 @@ class GetUserSchema(BaseModel):
     family_name: str
     picture: str | None
     issuer: str
+
+
+class GetPartialUserSchema(BaseModel):
+    id: str
+    email: str
+    full_name: str
+    picture: str | None
+    
