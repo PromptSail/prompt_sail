@@ -66,7 +66,10 @@ const LatestTransactions: React.FC<Props> = ({ projectId }) => {
                             time: new Date(tr.request_time + 'Z')
                                 .toLocaleString('pl-PL')
                                 .padStart(20, '0'),
-                            speed: tr.status_code < 300 ? tr.generation_speed.toFixed(3) : 'null',
+                            speed:
+                                tr.status_code < 300 && tr.generation_speed !== null
+                                    ? tr.generation_speed.toFixed(3)
+                                    : 'null',
                             messages: (
                                 <Flex vertical>
                                     <div>
