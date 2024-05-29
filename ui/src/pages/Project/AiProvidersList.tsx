@@ -1,8 +1,9 @@
-import { Button, Col, Collapse, Divider, Flex, Row, Typography, theme } from 'antd';
+import { Button, Col, Collapse, Divider, Flex, Input, Row, Select, Typography, theme } from 'antd';
 import { getProjectResponse } from '../../api/interfaces';
 import { makeUrl, toSlug } from '../../helpers/aiProvider';
 import {
     CheckSquareOutlined,
+    CopyOutlined,
     DeleteOutlined,
     DownOutlined,
     EditOutlined,
@@ -15,7 +16,7 @@ import { ItemType } from 'rc-collapse/es/interface';
 import AddProviderContainer from './AddProviderContainer';
 import { FormikValuesTemplate } from '../../components/ProjectForms/types';
 import ProviderEditableElement from '../../components/ProjectForms/ProviderDetails/ProvidersEditableElement';
-const { Text, Title } = Typography;
+const { Text, Title, Paragraph } = Typography;
 
 import React from 'react';
 
@@ -142,50 +143,7 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                     old.includes(item_id) ? old.filter((key) => key !== item_id) : [...old, item_id]
                 );
             },
-            children: (
-                <Flex vertical gap={16}>
-                    <Row gutter={12}>
-                        <Col flex="129px" className="text-end">
-                            <Text>AI Provider:</Text>
-                        </Col>
-                        <Col>
-                            <Text>{el.provider_name}</Text>
-                        </Col>
-                    </Row>
-                    <Row gutter={12}>
-                        <Col flex="129px" className="text-end">
-                            <Text className="!m-0">Deployment name:</Text>
-                        </Col>
-                        <Col>
-                            <Text>{el.deployment_name}</Text>
-                        </Col>
-                    </Row>
-                    <Row gutter={12}>
-                        <Col flex="129px" className="text-end">
-                            <Text>API base URL:</Text>
-                        </Col>
-                        <Col flex="auto">
-                            <Text>{el.api_base}</Text>
-                        </Col>
-                    </Row>
-                    <Row gutter={12}>
-                        <Col flex="129px" className="text-end">
-                            <Text>Proxy URL:</Text>
-                        </Col>
-                        <Col flex="auto">
-                            <Text>{makeUrl(slug, el.deployment_name)}</Text>
-                        </Col>
-                    </Row>
-                    <Row gutter={12}>
-                        <Col flex="129px" className="text-end"></Col>
-                        <Col flex="auto">
-                            <Button size="small" icon={<FileAddOutlined />}>
-                                Proxy URL Configuration
-                            </Button>
-                        </Col>
-                    </Row>
-                </Flex>
-            )
+            children: <ProviderDescription el={el} slug={slug} />
         }));
 
     const [items, setItems] = useState<ItemType[]>(CollapseItems(providers));
@@ -276,6 +234,148 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                 </Flex>
             )}
         </>
+    );
+};
+
+const ProviderDescription: React.FC<{
+    el: (typeof FormikValuesTemplate.ai_providers)[number];
+    slug: string;
+}> = ({ el, slug }) => {
+    const [isOpenProxyConf, setOpenProxyConf] = useState(false);
+    const [AllTags, setAllTags] = useState<string>('');
+    const [Tags, setTags] = useState<string>('');
+    const [AIModelVersionTag, setAIModelVersionTag] = useState<string>('');
+    useEffect(() => {
+        console.log(AIModelVersionTag);
+        const model = (Tags.length > 0 ? `&` : '?') + AIModelVersionTag;
+        setAllTags(Tags + (AIModelVersionTag.length > 0 ? model : ''));
+    }, [Tags, AIModelVersionTag]);
+    return (
+        <Flex vertical gap={16}>
+            <Row gutter={12}>
+                <Col flex="129px" className="text-end">
+                    <Text>AI Provider:</Text>
+                </Col>
+                <Col>
+                    <Text>{el.provider_name}</Text>
+                </Col>
+            </Row>
+            <Row gutter={12}>
+                <Col flex="129px" className="text-end">
+                    <Text className="!m-0">Deployment name:</Text>
+                </Col>
+                <Col>
+                    <Text>{el.deployment_name}</Text>
+                </Col>
+            </Row>
+            <Row gutter={12}>
+                <Col flex="129px" className="text-end">
+                    <Text>API base URL:</Text>
+                </Col>
+                <Col flex="auto">
+                    <Text>{el.api_base}</Text>
+                </Col>
+            </Row>
+            <Row gutter={12}>
+                <Col flex="129px" className="text-end">
+                    <Text>Proxy URL:</Text>
+                </Col>
+                <Col flex="auto">
+                    <Text>{makeUrl(slug, el.deployment_name)}</Text>
+                </Col>
+            </Row>
+            <Row gutter={12}>
+                <Col flex="129px" className="text-end"></Col>
+                <Col flex="auto">
+                    {!isOpenProxyConf && (
+                        <Button
+                            size="small"
+                            icon={<FileAddOutlined />}
+                            onClick={() => setOpenProxyConf(true)}
+                        >
+                            Proxy URL Configuration
+                        </Button>
+                    )}
+                    {isOpenProxyConf && (
+                        <Flex
+                            className="bg-Fill/colorFillTertiary p-[12px] rounded-[4px]"
+                            gap={16}
+                            vertical
+                        >
+                            <Text>
+                                This generator/configurator/builder allows you to easily add tags to
+                                proxy URL
+                            </Text>
+                            <div>
+                                <Paragraph className="!m-0 text-Text/colorText">
+                                    General Tags:
+                                </Paragraph>
+                                <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
+                                    Enter the tags you want to pass via Proxy URL
+                                </Paragraph>
+                                <Select
+                                    mode="tags"
+                                    className="max-w-[50%] w-full"
+                                    placeholder="General Tags"
+                                    onChange={(value: string[]) => {
+                                        setTags(value.length > 0 ? '?tags=' + value.join(',') : '');
+                                    }}
+                                />
+                            </div>
+                            <div>
+                                <Paragraph className="!m-0 text-Text/colorText">
+                                    AI Model Name and Version Tag:
+                                </Paragraph>
+                                <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
+                                    Specifying the model name and version is only necessary for
+                                    Azure deployments - it will allow calculate cost properly.
+                                </Paragraph>
+                                <Select
+                                    showSearch
+                                    className="max-w-[50%] w-full"
+                                    placeholder="AI Model Name and Version Tag"
+                                    options={Array.from({ length: 10 }, (_, i) => ({
+                                        value: `model${i}`,
+                                        label: `model${i}`
+                                    }))}
+                                    onChange={(value) => {
+                                        console.log(value);
+                                        console.log(value.length > 0);
+                                        setAIModelVersionTag(
+                                            value.length > 0 ? 'ai_model_version=' + value : ''
+                                        );
+                                    }}
+                                />
+                            </div>
+                            <div>
+                                <Paragraph className="!m-0 text-Text/colorText">
+                                    Proxy URL:
+                                </Paragraph>
+                                <Flex gap={16}>
+                                    <Input
+                                        className="max-w-[50%] w-full"
+                                        value={makeUrl(slug, el.deployment_name) + AllTags}
+                                        disabled
+                                    />
+                                    <Button
+                                        type="primary"
+                                        icon={<CopyOutlined />}
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(
+                                                makeUrl(slug, el.deployment_name) + AllTags
+                                            );
+                                        }}
+                                    />
+                                </Flex>
+                            </div>
+                            <Button onClick={() => setOpenProxyConf(false)} className="w-fit">
+                                Cancel
+                            </Button>
+                        </Flex>
+                    )}
+                </Col>
+            </Row>
+        </Flex>
     );
 };
 export default AiProvidersList;
