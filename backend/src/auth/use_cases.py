@@ -24,3 +24,14 @@ def add_user(user: User, user_repository: UserRepository) -> User:
     """
     user_repository.add(user)
     return user
+
+
+def get_all_users(user_repository: UserRepository) -> list[User]:
+    """
+    Retrieve all users.
+
+    :param user_repository: An instance of UserRepository used for accessing user data.
+    :return: The list of User objects.
+    """
+    users = user_repository.get_all()
+    return users

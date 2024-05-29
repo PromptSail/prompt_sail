@@ -219,6 +219,7 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     )
     openai_embeddings_pattern = re.compile(r".*api\.openai\.com.*embeddings.*")
     anthropic_pattern = re.compile(r".*anthropic\.com.*")
+    vertexai_pattern = re.compile(r".*-aiplatform\.googleapis\.com/v1.*")
 
     transaction_params = TransactionParamsBuilder()
     transaction_params.add_library(request_headers["user-agent"]).add_status_code(
@@ -226,7 +227,6 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
     ).add_model(request_content.get("model", None)).add_os(
         request_headers.get("x-stainless-os", None)
     )
-
     if "usage" in response_content:
         transaction_params.add_input_tokens(
             response_content["usage"].get("prompt_tokens", 0)
@@ -406,6 +406,54 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             transaction_params.add_input_tokens(
                 response_content["usage"].get("input_tokens", 0)
             ).add_output_tokens(response_content["usage"].get("output_tokens", 0))
+
+    if vertexai_pattern.match(url):
+        transaction_params.add_type("chat").add_provider("Google VertexAI")
+        transaction_params.add_prompt(
+            request_content["contents"][::-1][0]["parts"]["text"]
+        )
+        messages = [
+            {"role": message["role"], "content": message["parts"]["text"]}
+            for message in request_content["contents"]
+        ]
+        if response.__dict__["status_code"] > 200:
+            messages.append(
+                {"role": "error", "content": response_content["error"]["message"]}
+            )
+            transaction_params.add_error_message(
+                response_content["error"]["message"]
+            ).add_last_message(response_content["error"]["message"]).add_messages(
+                messages
+            )
+        else:
+            messages.append(
+                {
+                    "role": response_content["candidates"][0]["content"]["role"],
+                    "content": " ".join(
+                        [
+                            message["text"]
+                            for message in response_content["candidates"][0]["content"][
+                                "parts"
+                            ]
+                        ]
+                    ),
+                }
+            )
+            transaction_params.add_messages(messages).add_model(
+                url.split("/")[-1].split(":")[0]
+            ).add_last_message(
+                " ".join(
+                    [
+                        part["text"]
+                        for part in response_content["candidates"][0]["content"][
+                            "parts"
+                        ]
+                    ]
+                )
+            )
+            transaction_params.add_input_tokens(
+                response_content["usage"].get("prompt_tokens", 0)
+            ).add_output_tokens(response_content["usage"].get("completion_tokens", 0))
 
     return transaction_params.build()
 
@@ -1093,11 +1141,15 @@ known_ai_providers = [
     {"provider_name": "OpenAI", "api_base_placeholder": "https://api.openai.com/v1"},
     {
         "provider_name": "Azure OpenAI",
-        "api_base_placeholder": "https://your-deployment-name.openai.azure.com",
+        "api_base_placeholder": "https://<your-deployment-name>.openai.azure.com",
     },
     {
         "provider_name": "Anthropic",
         "api_base_placeholder": "https://api.anthropic.com",
+    },
+    {
+        "provider_name": "Google VertexAI",
+        "api_base_placeholder": "https://<location>-aiplatform.googleapis.com/v1",
     },
     {
         "provider_name": "Other",

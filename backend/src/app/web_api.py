@@ -4,10 +4,12 @@ import utils
 from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from auth.authorization import decode_and_validate_token
-from auth.schemas import GetUserSchema
+from auth.schemas import GetUserSchema, GetPartialUserSchema
 from fastapi import Depends, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
+
+from auth.use_cases import get_all_users
 from projects.models import AIProvider, Project
 from projects.schemas import (
     CreateProjectSchema,
@@ -638,6 +640,13 @@ async def get_config(
         "azure_auth": config.AZURE_CLIENT_ID is not None,
         "google_auth": config.GOOGLE_CLIENT_ID is not None,
     }
+
+
+@app.get("/api/users", response_class=JSONResponse)
+async def get_users(ctx: Annotated[TransactionContext, Depends(get_transaction_context)]) -> list[GetPartialUserSchema]:
+    users = ctx.call(get_all_users)
+    parsed_users = map(lambda user: GetPartialUserSchema(id=user.id, email=user.email, full_name=str(user.given_name + " " + user.family_name), picture=user.picture), users)
+    return list(parsed_users)
 
 
 @app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse)

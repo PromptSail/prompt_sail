@@ -1,26 +1,15 @@
-import { GoogleCircleFilled } from '@ant-design/icons';
-import { useGoogleLogin } from '@react-oauth/google';
-import { Button } from 'antd';
+import { GoogleLogin } from '@react-oauth/google';
 
-const GoogleBtn: React.FC<{ onOk: (arg: string) => void }> = ({ onOk }) => {
-    const login = useGoogleLogin({
-        onSuccess: (tokenResponse) => {
-            onOk(tokenResponse.access_token || '');
-        },
-        onError: () => {
-            console.error('Google - login failed');
-        }
-    });
+const GoogleBtn: React.FC<{ onOk: (arg: string) => void; width: number }> = ({ onOk, width }) => {
     return (
-        <Button
-            icon={<GoogleCircleFilled />}
-            type="primary"
-            size="large"
-            className="w-full mt-3"
-            onClick={() => login()}
-        >
-            Login by Google
-        </Button>
+        <GoogleLogin
+            onSuccess={(credentialResponse) => {
+                onOk(credentialResponse.credential || '');
+            }}
+            onError={() => console.error('Google - login failed')}
+            width={width}
+            theme="filled_blue"
+        />
     );
 };
 export default GoogleBtn;

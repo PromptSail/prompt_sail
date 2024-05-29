@@ -259,7 +259,10 @@ def store_transaction(
         input_cost, output_cost, total_cost = 0, 0, 0
 
     if params["output_tokens"] is not None and params["output_tokens"] > 0:
-        generation_speed = params["output_tokens"] / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
+        generation_speed = (
+            params["output_tokens"]
+            / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
+        )
     elif params["output_tokens"] == 0:
         generation_speed = None
     else:

@@ -220,12 +220,72 @@
         "is_active": true
     },
     {
-        "model_name": "gemini-pro",
+        "model_name": "gemini-1.0-pro-001",
         "provider": "Google Vertex AI",
         "start_date": "",
-        "match_pattern": "(?i)^(gemini-pro)(@[a-zA-Z0-9]+)?$",
-        "input_price": 0.00025,
-        "output_price": 0.0005,
+        "match_pattern": "(?i)^(gemini-1.0-pro-001)?$",
+        "input_price": 0.000125,
+        "output_price": 0.000375,
+        "total_price": 0,
+        "is_active": false
+    },
+    {
+        "model_name": "gemini-1.0-pro-002",
+        "provider": "Google Vertex AI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gemini-1.0-pro-002)?$",
+        "input_price": 0.000125,
+        "output_price": 0.000375,
+        "total_price": 0,
+        "is_active": false
+    },
+    {
+        "model_name": "gemini-1.0-pro-vision-001",
+        "provider": "Google Vertex AI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gemini-1.0-pro-vision-001)?$",
+        "input_price": 0.000125,
+        "output_price": 0.000375,
+        "total_price": 0,
+        "is_active": false
+    },
+    {
+        "model_name": "gemini-1.5-flash-001",
+        "provider": "Google Vertex AI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gemini-1.5-flash-001)?$",
+        "input_price": 0.000125,
+        "output_price": 0.000375,
+        "total_price": 0,
+        "is_active": false
+    },
+    {
+        "model_name": "gemini-1.5-flash-preview-0514",
+        "provider": "Google Vertex AI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gemini-1.5-flash-preview-0514)?$",
+        "input_price": 0.000125,
+        "output_price": 0.000375,
+        "total_price": 0,
+        "is_active": false
+    },
+    {
+        "model_name": "gemini-1.5-pro-001",
+        "provider": "Google Vertex AI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gemini-1.5-pro-001)?$",
+        "input_price": 0.00125,
+        "output_price": 0.00375,
+        "total_price": 0,
+        "is_active": false
+    },
+    {
+        "model_name": "gemini-1.5-pro-preview-0514",
+        "provider": "Google Vertex AI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gemini-1.5-pro-preview-0514)?$",
+        "input_price": 0.00125,
+        "output_price": 0.00375,
         "total_price": 0,
         "is_active": false
     },
@@ -476,6 +536,16 @@
         "match_pattern": "(?i)^(gpt-4-32k-0613)$",
         "input_price": 0.06,
         "output_price": 0.12,
+        "total_price": 0,
+        "is_active": true
+    },
+    {
+        "model_name": "gpt-4o-2024-05-13",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o)(|-2024-05-13)$",
+        "input_price": 0.005,
+        "output_price": 0.015,
         "total_price": 0,
         "is_active": true
     },
