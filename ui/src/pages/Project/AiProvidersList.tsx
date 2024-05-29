@@ -170,9 +170,6 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                 expandIcon={({ isActive }) => (
                     <DownOutlined className="my-auto !text-[14px]" rotate={isActive ? 180 : 0} />
                 )}
-                onChange={(a) => {
-                    console.log(a);
-                }}
                 expandIconPosition="end"
                 items={items}
             />
@@ -246,7 +243,6 @@ const ProviderDescription: React.FC<{
     const [Tags, setTags] = useState<string>('');
     const [AIModelVersionTag, setAIModelVersionTag] = useState<string>('');
     useEffect(() => {
-        console.log(AIModelVersionTag);
         const model = (Tags.length > 0 ? `&` : '?') + AIModelVersionTag;
         setAllTags(Tags + (AIModelVersionTag.length > 0 ? model : ''));
     }, [Tags, AIModelVersionTag]);

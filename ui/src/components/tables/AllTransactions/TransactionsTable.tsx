@@ -89,7 +89,10 @@ const TransactionsTable: React.FC<Props> = ({
                             time: new Date(tr.request_time + 'Z')
                                 .toLocaleString('pl-PL')
                                 .padStart(20, '0'),
-                            speed: tr.status_code < 300 ? tr.generation_speed.toFixed(3) : 'null',
+                            speed:
+                                tr.status_code < 300 && tr.generation_speed !== null
+                                    ? tr.generation_speed.toFixed(3)
+                                    : 'null',
                             messages: (
                                 <Flex vertical>
                                     <div>
@@ -121,7 +124,10 @@ const TransactionsTable: React.FC<Props> = ({
                             aiProvider: tr.provider,
                             model: tr.model,
                             tags: <TagsContainer tags={tr.tags} classname="w-full" />,
-                            cost: tr.status_code < 300 ? `$ ${tr.total_cost.toFixed(4)}` : 'null',
+                            cost:
+                                tr.status_code < 300 && tr.total_cost !== null
+                                    ? `$ ${tr.total_cost.toFixed(4)}`
+                                    : 'null',
                             tokens:
                                 tr.status_code < 300 ? (
                                     <span>
