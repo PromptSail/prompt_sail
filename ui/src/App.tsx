@@ -28,7 +28,7 @@ const App = () => {
                             <Routes>
                                 <Route path="/" element={<Dashboard />} />
                                 <Route
-                                    path="/projects/:projectId/update"
+                                    path="/projects/:projectId/edit-project-details"
                                     element={<Project.Update />}
                                 />
                                 <Route path="/projects/:projectId" element={<Project />} />
