@@ -16,4 +16,3 @@ class GetPartialUserSchema(BaseModel):
     email: str
     full_name: str
     picture: str | None
-    
