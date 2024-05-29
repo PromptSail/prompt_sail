@@ -453,7 +453,9 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
             )
             transaction_params.add_input_tokens(
                 response_content["usageMetadata"].get("promptTokenCount", 0)
-            ).add_output_tokens(response_content["usageMetadata"].get("candidatesTokenCount", 0))
+            ).add_output_tokens(
+                response_content["usageMetadata"].get("candidatesTokenCount", 0)
+            )
 
     return transaction_params.build()
 
@@ -1126,6 +1128,15 @@ class MockResponse:
 
     def json(self):
         return self.content
+
+
+def truncate_float(number, decimals):
+    if isinstance(number, float):
+        str_number = str(number)
+        integer_part, decimal_part = str_number.split(".")
+        truncated_decimal_part = decimal_part[:decimals]
+        return float(f"{integer_part}.{truncated_decimal_part}")
+    return number
 
 
 class PeriodEnum(str, Enum):

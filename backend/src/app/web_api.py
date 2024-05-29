@@ -690,11 +690,3 @@ async def mock_transactions(
         "status_code": 200,
         "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds.",
     }
-
-
-@app.get("/a/b/c")
-async def abc(ctx: Annotated[TransactionContext, Depends(get_transaction_context)]):
-    repo = ctx["transaction_repository"]
-    transactions = utils.read_transactions_from_csv("../test_transactions_tokens_cost_speed.csv")
-    for transaction in transactions:
-        repo.add(transaction)
