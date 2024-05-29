@@ -58,7 +58,10 @@ const Transaction: React.FC = () => {
             },
             {
                 label: 'Cost',
-                children: `$ ${data.total_cost.toFixed(4)}`
+                children:
+                    data.status_code < 300 && data.total_cost !== null
+                        ? '$ ' + data.total_cost.toFixed(4)
+                        : 'null'
             },
             {
                 label: 'Api base',
@@ -79,7 +82,10 @@ const Transaction: React.FC = () => {
                         Speed
                     </Tooltip>
                 ),
-                children: data.generation_speed.toFixed(3)
+                children:
+                    data.status_code < 300 && data.generation_speed !== null
+                        ? data.generation_speed.toFixed(3)
+                        : 'null'
             },
             {
                 label: 'Response status',
