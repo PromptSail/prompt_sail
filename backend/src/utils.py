@@ -452,8 +452,8 @@ def req_resp_to_transaction_parser(request, response, response_content) -> dict:
                 )
             )
             transaction_params.add_input_tokens(
-                response_content["usage"].get("prompt_tokens", 0)
-            ).add_output_tokens(response_content["usage"].get("completion_tokens", 0))
+                response_content["usageMetadata"].get("promptTokenCount", 0)
+            ).add_output_tokens(response_content["usage"].get("candidatesTokenCount", 0))
 
     return transaction_params.build()
 
