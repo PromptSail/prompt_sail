@@ -4,7 +4,7 @@
 
 1. [Install](https://nodejs.org/en/download) Node.js v20
 
-2. [Install](https://www.npmjs.com/package/npm) Node Pack Manager v20
+2. [Install](https://www.npmjs.com/package/npm) Node Pack Manager
 
 3. Go to project folder
 
