@@ -7,10 +7,14 @@ const { RangePicker } = DatePicker;
 interface Props {
     defaultValues: [string, string];
     setFilters: (args: SetStateAction<TransactionsFilters>) => void;
-    setDates: (date_from: string, date_to: string) => void;
+    // setDates: (date_from: string, date_to: string) => void;
 }
 
-const FilterDates: React.FC<Props> = ({ defaultValues, setFilters, setDates }) => {
+const FilterDates: React.FC<Props> = ({
+    defaultValues,
+    setFilters
+    // setDates
+}) => {
     return (
         <RangePicker
             onChange={(_, dates) => {
@@ -25,7 +29,7 @@ const FilterDates: React.FC<Props> = ({ defaultValues, setFilters, setDates }) =
                     date_from: dateStart,
                     date_to: dateEnd
                 }));
-                setDates(dateStart, dateEnd);
+                // setDates(dateStart, dateEnd);
             }}
             defaultValue={
                 defaultValues[0].length > 1

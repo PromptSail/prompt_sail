@@ -1,4 +1,4 @@
-export const FormikValues = {
+export const FormikValuesTemplate = {
     name: '',
     slug: '',
     description: '',

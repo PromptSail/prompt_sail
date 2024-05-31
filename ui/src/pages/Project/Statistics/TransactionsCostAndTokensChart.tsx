@@ -9,12 +9,13 @@ import {
     YAxis
 } from 'recharts';
 import { useGetStatistics_TransactionsCost } from '../../../api/queries';
-import { Flex, Radio, Spin, Typography } from 'antd';
+import { Flex, Segmented, Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
 import { useState } from 'react';
 import { customSorter, dataRounding, dateFormatter } from './formatters';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
-const { Title, Paragraph } = Typography;
+import * as styles from '../../../styles.json';
+const { Title } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
 }
@@ -55,54 +56,68 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
         });
         return (
             <div className="relative flex flex-col min-h-[200px]">
-                <Flex vertical>
-                    <Paragraph className="mt-0 !mb-0 text-lg text-center font-semibold">
+                <Flex justify="space-between">
+                    <Title level={3} className="h5 m-0">
                         {TokensOrCost === 'tokens' ? 'Used tokens ' : 'Transactions cost '} by model
-                    </Paragraph>
-                    <Radio.Group
-                        className="self-center"
+                    </Title>
+                    <Segmented
                         options={[
                             { label: 'Cost', value: 'cost' },
                             { label: 'Tokens', value: 'tokens' }
                         ]}
-                        onChange={(e) => setTokensOrCost(e.target.value)}
+                        onChange={(e: typeof TokensOrCost) => setTokensOrCost(e)}
                         value={TokensOrCost}
-                        optionType="button"
+                        size="small"
                     />
                 </Flex>
                 {data.length < 1 && (
-                    <Title className="absolute top-2/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
+                    <Title
+                        level={3}
+                        className="h1 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0"
+                    >
                         No data found
                     </Title>
                 )}
                 {data.length > 0 && (
                     <>
-                        <ResponsiveContainer height={200}>
+                        <ResponsiveContainer height={210} className="mt-4">
                             <AreaChart
                                 data={chartData.records}
                                 margin={{
-                                    top: 10,
-                                    right: 30,
-                                    left: -50,
+                                    top: 0,
+                                    right: 26,
+                                    left: 0,
                                     bottom: 0
                                 }}
                             >
-                                <CartesianGrid strokeDasharray="3 3" />
+                                <CartesianGrid
+                                    strokeDasharray="0"
+                                    stroke={styles.Colors.light['Border/colorBorderSecondary']}
+                                />
                                 <XAxis
                                     dataKey="date"
                                     angle={0}
                                     tickMargin={10}
                                     tickFormatter={(v) => dateFormatter(v, statisticsParams.period)}
-                                    fontSize={12}
-                                    height={30}
+                                    tick={{
+                                        fill: styles.Colors.light['Text/colorTextTertiary'],
+                                        fontWeight: 600
+                                    }}
+                                    fontSize={14}
+                                    height={38}
+                                    stroke={styles.Colors.light['Border/colorBorder']}
                                 />
                                 <YAxis
-                                    width={110}
+                                    width={71}
                                     tickFormatter={
                                         TokensOrCost === 'cost'
                                             ? (v) => '$ ' + dataRounding(v, 4)
                                             : undefined
                                     }
+                                    tick={{
+                                        fill: styles.Colors.light['Text/colorTextTertiary']
+                                    }}
+                                    stroke={`${styles.Colors.light['Border/colorBorder']}`}
                                 />
                                 <Tooltip
                                     isAnimationActive={false}
@@ -113,7 +128,19 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                     }
                                     itemSorter={customSorter}
                                 />
-                                <Legend />
+                                <Legend
+                                    align="left"
+                                    wrapperStyle={{ marginLeft: '60px' }}
+                                    formatter={(value) => (
+                                        <span
+                                            style={{
+                                                color: styles.Colors.light['Text/colorTextBase']
+                                            }}
+                                        >
+                                            {value}
+                                        </span>
+                                    )}
+                                />
                                 {chartData.legend.map((el, id) => {
                                     return (
                                         <Area

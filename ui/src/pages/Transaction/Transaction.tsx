@@ -16,7 +16,7 @@ import Details from './Details';
 import { transactionTabOnLoad } from '../../storage/transactionsDetails';
 import { TagsContainer } from '../../helpers/dataContainer';
 import { ArrowRightOutlined } from '@ant-design/icons';
-import Container from '../Project/Container';
+import Container from '../../components/Container/Container';
 const { Title } = Typography;
 
 const Transaction: React.FC = () => {
@@ -58,7 +58,10 @@ const Transaction: React.FC = () => {
             },
             {
                 label: 'Cost',
-                children: data.total_cost !== null ? `$ ${data.total_cost.toFixed(4)}` : 'null'
+                children:
+                    data.status_code < 300 && data.total_cost !== null
+                        ? '$ ' + data.total_cost.toFixed(4)
+                        : 'null'
             },
             {
                 label: 'Api base',
@@ -79,7 +82,10 @@ const Transaction: React.FC = () => {
                         Speed
                     </Tooltip>
                 ),
-                children: data.generation_speed.toFixed(3)
+                children:
+                    data.status_code < 300 && data.generation_speed !== null
+                        ? data.generation_speed.toFixed(3)
+                        : 'null'
             },
             {
                 label: 'Response status',
@@ -127,7 +133,7 @@ const Transaction: React.FC = () => {
                 <Flex align="center" justify="space-between">
                     <Title style={{ margin: 5 }}>Transaction {data.id}</Title>
                 </Flex>
-                <Container header={''}>
+                <Container>
                     <Descriptions items={descItems} />
                 </Container>
                 <Tabs defaultActiveKey={transactionTabOnLoad()} items={items} onChange={onChange} />

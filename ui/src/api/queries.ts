@@ -105,14 +105,6 @@ export const useAddProject = (): UseMutationResult<
             return await api.addProject(data);
         },
         {
-            onSuccess: () => {
-                notification.success({
-                    message: 'Success',
-                    description: 'Project successfully added',
-                    placement: 'bottomRight',
-                    duration: 5
-                });
-            },
             onError: (err) => {
                 console.error(`${err.code}: ${err.message}`);
             }
@@ -130,14 +122,6 @@ export const useUpdateProject = (): UseMutationResult<
             return await api.updateProject(id, data);
         },
         {
-            onSuccess: () => {
-                notification.success({
-                    message: 'Success',
-                    description: 'Project successfully edited',
-                    placement: 'bottomRight',
-                    duration: 5
-                });
-            },
             onError: (err) => {
                 console.error(`${err.code}: ${err.message}`);
             }

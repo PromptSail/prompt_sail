@@ -1,6 +1,6 @@
 import { Collapse, Flex, theme } from 'antd';
 import { getTransactionResponse } from '../../api/interfaces';
-import Container from '../Project/Container';
+import Container from '../../components/Container/Container';
 import { CaretRightOutlined } from '@ant-design/icons';
 
 interface Props {
@@ -33,7 +33,7 @@ const BasicInfo: React.FC<Props> = ({ data }) => {
     ];
     return (
         <Flex vertical gap={20}>
-            <Container header={'Messages'}>
+            <Container>
                 <Collapse
                     defaultActiveKey={[`${collapseItems[collapseItems?.length - 1].key}`]}
                     expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
