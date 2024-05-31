@@ -6,12 +6,12 @@ import { checkLogin } from '../../storage/login';
 import {
     HistoryOutlined,
     LeftSquareOutlined,
-    LineChartOutlined,
+    // LineChartOutlined,
     LogoutOutlined,
     QuestionCircleOutlined,
     RightSquareOutlined,
-    RocketOutlined,
-    UserOutlined
+    RocketOutlined
+    // UserOutlined
 } from '@ant-design/icons';
 import { ItemType, MenuItemType } from 'antd/es/menu/hooks/useItems';
 import Logo from '../../assets/logo/Logo-teal_white.svg';
@@ -54,12 +54,12 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
             key: '/transactions',
             label: 'Transactions',
             icon: <HistoryOutlined />
-        },
-        {
-            key: '/protfolio',
-            label: 'Portfolio',
-            icon: <LineChartOutlined />
         }
+        // {
+        //     key: '/protfolio',
+        //     label: 'Portfolio',
+        //     icon: <LineChartOutlined />
+        // }
     ];
     const bottomMenuItems: ItemType<MenuItemType>[] = [
         {
@@ -67,11 +67,11 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
             label: 'Help',
             icon: <QuestionCircleOutlined />
         },
-        {
-            key: '/profile',
-            label: 'My profile',
-            icon: <UserOutlined />
-        },
+        // {
+        //     key: '/profile',
+        //     label: 'My profile',
+        //     icon: <UserOutlined />
+        // },
         {
             key: 'logout',
             label: 'Log out',
