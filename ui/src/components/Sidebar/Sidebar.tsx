@@ -38,6 +38,9 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
                     localStorage.removeItem('login');
                     setLoginState(checkLogin());
                     break;
+                case 'help':
+                    window.open('https://promptsail.com/', '_blank');
+                    break;
                 default:
                     console.log(`${key} func`);
             }
@@ -63,7 +66,7 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
     ];
     const bottomMenuItems: ItemType<MenuItemType>[] = [
         {
-            key: '/help',
+            key: 'help',
             label: 'Help',
             icon: <QuestionCircleOutlined />
         },
