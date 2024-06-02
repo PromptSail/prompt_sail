@@ -1,13 +1,13 @@
 import json
 import re
 
+import utils
 from _datetime import datetime, timezone
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 from utils import (
     count_tokens_for_streaming_response,
     create_transaction_query_from_filters,
-    req_resp_to_transaction_parser,
 )
 
 
@@ -221,7 +221,10 @@ def store_transaction(
             prompt_tokens=0, completion_tokens=0, total_tokens=0
         )
 
-    params = req_resp_to_transaction_parser(request, response, response_content)
+    # params = req_resp_to_transaction_parser(request, response, response_content)
+    params = utils.TransactionParamExtractor(
+        request, response, response_content
+    ).extract()
 
     ai_model_version = (
         ai_model_version if ai_model_version is not None else params["model"]
