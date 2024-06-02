@@ -21,7 +21,7 @@ export const columns = [
         title: 'ID',
         dataIndex: 'id',
         key: 'id',
-        width: 120
+        width: 150
     },
     {
         title: 'Time',
@@ -29,7 +29,7 @@ export const columns = [
         key: 'time',
         sorter: true,
         apiCol: 'request_time',
-        width: 175
+        width: 160
     },
     {
         title: (
@@ -41,13 +41,13 @@ export const columns = [
         key: 'speed',
         sorter: true,
         apiCol: 'generation_speed',
-        width: 90
+        width: 120
     },
     {
         title: 'Messages',
         dataIndex: 'messages',
         key: 'messages',
-        width: 250
+        width: 280
     },
     {
         title: 'Status',
@@ -55,7 +55,7 @@ export const columns = [
         key: 'status',
         sorter: true,
         apiCol: 'status_code',
-        width: 100
+        width: 120
     },
     {
         title: 'Project',
@@ -77,7 +77,7 @@ export const columns = [
         key: 'model',
         sorter: true,
         apiCol: 'model',
-        width: 200
+        width: 220
     },
     {
         title: 'Tags',
@@ -85,13 +85,13 @@ export const columns = [
         key: 'tags',
         sorter: true,
         apiCol: 'tags',
-        width: 215
+        width: 220
     },
     {
         title: 'Cost',
         dataIndex: 'cost',
         key: 'cost',
-        width: 100
+        width: 200
     },
     {
         title: (
@@ -108,6 +108,6 @@ export const columns = [
         ),
         dataIndex: 'tokens',
         key: 'tokens',
-        width: 150
+        width: 170
     }
 ];

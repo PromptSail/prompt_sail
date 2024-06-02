@@ -1,41 +1,25 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGetTransaction } from '../../api/queries';
-import {
-    Badge,
-    Descriptions,
-    DescriptionsProps,
-    Flex,
-    Space,
-    Tabs,
-    TabsProps,
-    Tooltip,
-    Typography
-} from 'antd';
-import BasicInfo from './BasicInfo';
+import { Breadcrumb, Flex, Spin, Tabs, Typography } from 'antd';
+import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
+import { useState } from 'react';
+import TransactionDetails from './TransactionDetails';
 import Details from './Details';
-import { transactionTabOnLoad } from '../../storage/transactionsDetails';
-import { TagsContainer } from '../../helpers/dataContainer';
-import { ArrowRightOutlined } from '@ant-design/icons';
-import Container from '../Project/Container';
+import Messages from './Messages';
 const { Title } = Typography;
 
 const Transaction: React.FC = () => {
     const params = useParams();
     const navigate = useNavigate();
     const transaction = useGetTransaction(params.transactionId || '');
-    const onChange = (key: string) => {
-        localStorage.setItem('transactionDetailsTab', key);
-    };
-    const toLocalDate = (date: string) => {
-        const local = new Date(date + 'Z');
-        return `${local.toLocaleDateString()} ${local.toLocaleTimeString()}`;
-    };
+    const [currentTab, setCurrentTab] = useState('1');
     if (transaction)
         if (transaction.isLoading)
             return (
-                <>
-                    <div>loading...</div>
-                </>
+                <Spin
+                    size="large"
+                    className="absolute top-1/3 left-1/2 -transtaction-x-1/2 -transtaction-y-1/3"
+                />
             );
     if (transaction.isError)
         return (
@@ -47,91 +31,56 @@ const Transaction: React.FC = () => {
         );
     if (transaction.isSuccess) {
         const data = transaction.data.data;
-        const descItems: DescriptionsProps['items'] = [
-            {
-                label: 'Project',
-                children: <Link to={`/projects/${data.project_id}`}>{data.project_name}</Link>
-            },
-            {
-                label: 'Model',
-                children: data.model
-            },
-            {
-                label: 'Cost',
-                children: data.total_cost !== null ? `$ ${data.total_cost.toFixed(4)}` : 'null'
-            },
-            {
-                label: 'Api base',
-                children: data.request.url,
-                span: 3
-            },
-            {
-                label: 'Request time',
-                children: toLocalDate(data.request_time)
-            },
-            {
-                label: 'Response time',
-                children: toLocalDate(data.response_time)
-            },
-            {
-                label: (
-                    <Tooltip placement="top" title="Tokens per second">
-                        Speed
-                    </Tooltip>
-                ),
-                children: data.generation_speed.toFixed(3)
-            },
-            {
-                label: 'Response status',
-                children: (
-                    <Badge
-                        status={
-                            data.status_code >= 300
-                                ? data.status_code >= 400
-                                    ? 'error'
-                                    : 'warning'
-                                : 'success'
-                        }
-                        text={data.status_code}
-                    />
-                )
-            },
-            {
-                label: 'Tags',
-                children: <TagsContainer tags={data.tags} />
-            },
-            {
-                label: 'Tokens',
-                children: (
-                    <span>
-                        {data.input_tokens} <ArrowRightOutlined /> {data.output_tokens} (Σ{' '}
-                        {data.response.content.usage.total_tokens})
-                    </span>
-                )
-            }
-        ];
-        const items: TabsProps['items'] = [
-            {
-                key: 'basic',
-                label: 'Basic',
-                children: <BasicInfo data={data} />
-            },
-            {
-                key: 'details',
-                label: 'Details',
-                children: <Details data={data} />
-            }
-        ];
         return (
-            <Space direction="vertical">
-                <Flex align="center" justify="space-between">
-                    <Title style={{ margin: 5 }}>Transaction {data.id}</Title>
-                </Flex>
-                <Container header={''}>
-                    <Descriptions items={descItems} />
-                </Container>
-                <Tabs defaultActiveKey={transactionTabOnLoad()} items={items} onChange={onChange} />
-            </Space>
+            <Flex vertical>
+                <HeaderContainer height={123.5}>
+                    <Flex vertical>
+                        <Flex vertical justify="space-between">
+                            <Breadcrumb
+                                className="ms-1"
+                                items={[
+                                    {
+                                        title: <Link to={'/transactions'}>Transactions</Link>
+                                    },
+                                    {
+                                        title: data.id
+                                    }
+                                ]}
+                            />
+                            <Title level={1} className="h4 m-0">
+                                {data.id}
+                            </Title>
+                        </Flex>
+                        <Tabs
+                            defaultActiveKey={currentTab}
+                            className="project-tab"
+                            onChange={(activeKey) => setCurrentTab(activeKey)}
+                            items={[
+                                {
+                                    key: '1',
+                                    label: 'Overview'
+                                },
+                                {
+                                    key: '2',
+                                    label: 'Messages'
+                                },
+                                {
+                                    key: '3',
+                                    label: 'JSON files'
+                                }
+                            ]}
+                        />
+                    </Flex>
+                </HeaderContainer>
+                <div className="px-[24px] pt-[24px] max-w-[1600px] w-full mx-auto">
+                    <Flex className="m-auto" vertical gap={12}>
+                        <></>
+                        {currentTab == '1' && <TransactionDetails data={data} />}
+                        {currentTab == '2' && <Messages data={data} />}
+                        {currentTab == '3' && <Details data={data} />}
+                    </Flex>
+                </div>
+            </Flex>
         );
     }
 };

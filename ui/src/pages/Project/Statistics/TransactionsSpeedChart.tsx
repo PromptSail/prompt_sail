@@ -17,7 +17,8 @@ import { schemeCategory10 as colors } from 'd3-scale-chromatic';
 import { Segment } from 'recharts/types/cartesian/ReferenceLine';
 import createTrend from 'trendline';
 import React from 'react';
-const { Title, Paragraph } = Typography;
+import * as styles from '../../../styles.json';
+const { Title } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
 }
@@ -69,29 +70,35 @@ const TransactionsSpeedChart: React.FC<Params> = ({ statisticsParams }) => {
         };
         return (
             <div className="relative flex flex-col min-h-[200px]">
-                <Paragraph className="mt-0 !mb-1 text-lg text-center font-semibold">
+                <Title level={3} className="h5 m-0">
                     Response generation speed by model (tokens/s)
-                </Paragraph>
+                </Title>
                 {data.length < 1 && (
-                    <Title className="absolute top-2/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0">
+                    <Title
+                        level={3}
+                        className="h1 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0"
+                    >
                         No data found
                     </Title>
                 )}
                 {data.length > 0 && (
                     <>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer height={210} className="mt-4">
                             <ComposedChart
-                                width={500}
-                                height={400}
+                                // width={500}
+                                // height={400}
                                 data={[...chartData.records]}
                                 margin={{
                                     top: 0,
-                                    right: 0,
+                                    right: 26,
                                     left: 0,
                                     bottom: 0
                                 }}
                             >
-                                <CartesianGrid stroke="#f5f5f5" />
+                                <CartesianGrid
+                                    strokeDasharray="0"
+                                    stroke={styles.Colors.light['Border/colorBorderSecondary']}
+                                />
                                 <Tooltip
                                     labelFormatter={(val) => {
                                         return new Date(val).toLocaleString('en-US', {
@@ -102,17 +109,41 @@ const TransactionsSpeedChart: React.FC<Params> = ({ statisticsParams }) => {
                                     }}
                                     formatter={(v) => dataRounding(v as number, 2)}
                                 />
-                                <Legend />
-
                                 <XAxis
                                     dataKey="date"
                                     type="number"
                                     domain={['dataMin', 'dataMax']}
                                     scale={'time'}
-                                    fontSize={12}
                                     tickFormatter={(v) => dateFormatter(v, statisticsParams.period)}
+                                    tick={{
+                                        fill: styles.Colors.light['Text/colorTextTertiary'],
+                                        fontWeight: 600
+                                    }}
+                                    fontSize={14}
+                                    height={38}
+                                    stroke={styles.Colors.light['Border/colorBorder']}
                                 />
-                                <YAxis type="number" width={40} />
+                                <YAxis
+                                    type="number"
+                                    width={71}
+                                    tick={{
+                                        fill: styles.Colors.light['Text/colorTextTertiary']
+                                    }}
+                                    stroke={`${styles.Colors.light['Border/colorBorder']}`}
+                                />
+                                <Legend
+                                    align="left"
+                                    wrapperStyle={{ marginLeft: '60px' }}
+                                    formatter={(value) => (
+                                        <span
+                                            style={{
+                                                color: styles.Colors.light['Text/colorTextBase']
+                                            }}
+                                        >
+                                            {value}
+                                        </span>
+                                    )}
+                                />
                                 {chartData.legend.map((el, id) => {
                                     return (
                                         <React.Fragment key={`speed${id}`}>

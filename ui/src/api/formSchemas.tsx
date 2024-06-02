@@ -11,8 +11,7 @@ export const projectSchema = yup.object().shape({
         .max(50, 'Length must be between 3 and 50 characters')
         .required('This field is required'),
     description: yup.string().max(280, 'Maximum length is 280 characters'),
-    tags: yup.array().of(yup.string()),
-    ai_providers: yup.array().min(1, 'You need to add at least one AI Provider')
+    tags: yup.array().of(yup.string())
 });
 
 export const providerSchema = yup.object().shape({

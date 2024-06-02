@@ -24,9 +24,9 @@ const TableFilters: React.FC<Props> = ({ filters, setFilters, setURLParam }) => 
             <FilterDates
                 defaultValues={[filters.date_from || '', filters.date_to || '']}
                 setFilters={setFilters}
-                setDates={(date_from: string, date_to: string) => {
-                    setURLParam({ date_from, date_to });
-                }}
+                // setDates={(date_from: string, date_to: string) => {
+                // setURLParam({ date_from, date_to });
+                // }}
             />
             <FilterTags
                 defaultValue={filters.tags || ''}
