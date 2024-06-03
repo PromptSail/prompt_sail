@@ -69,7 +69,7 @@ const ProjectDetails: React.FC<Props> = ({ details }) => {
                         <Paragraph className="!mb-1 text-Text/colorTextDescription">
                             Total cost
                         </Paragraph>
-                        <Text className="text-Text/colorText">{details.total_cost}</Text>
+                        <Text className="text-Text/colorText">{details.total_cost.toFixed(4)}</Text>
                     </div>
                 </Flex>
             </Container>
