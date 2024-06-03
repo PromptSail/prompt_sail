@@ -19,7 +19,7 @@ class Config(BaseSettings):
     STATIC_DIRECTORY: str = str((BASE_DIR / Path("../static")).resolve())
     GOOGLE_CLIENT_ID: str | None = os.getenv("GOOGLE_CLIENT_ID", None)
     AZURE_CLIENT_ID: str | None = os.getenv("AZURE_CLIENT_ID", None)
-    SSO_AUTH: bool = os.getenv("SSO_AUTH", "True").lower() in ("true", "1", "t")
+    SSO_AUTH: bool = os.getenv("SSO_AUTH", "False").lower() in ("true", "1", "t")
 
 
 config = Config()
