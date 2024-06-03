@@ -35,6 +35,8 @@ docs:
     children:
       - title: "Deployment recepies"
         url: /docs/deploy-promptsail-cookbook
+      - title: "Environment Variables Configuration"
+        url: /docs/env-variables
       - title: "Local Deployment"
         url: /docs/deploy-promptsail-local
       - title: "Deploying on Azure"

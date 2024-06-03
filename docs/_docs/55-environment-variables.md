@@ -1,7 +1,7 @@
 ---
-title: "Environment Variables"
+title: "Environment Variables Configuration"
 permalink: /docs/env-variables
-excerpt: "Environment Variables"
+excerpt: "Environment Variables Configuration"
 last_modified_at: 2024-05-05T11:48:05+01:00
 redirect_from:
   - /theme-setup/
@@ -9,8 +9,6 @@ toc: true
 toc_sticky: true
 ---
 
-
-# Environment Variable Configuration
 
 
 ## App/Backend
