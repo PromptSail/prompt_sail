@@ -11,7 +11,7 @@ interface Props {
     data: getTransactionResponse;
 }
 
-const TransactionDetails: React.FC<Props> = ({ data }) => {
+const Overview: React.FC<Props> = ({ data }) => {
     const toLocalDate = (date: string) => {
         const local = new Date(date + 'Z');
         return `${local.toLocaleDateString()} ${local.toLocaleTimeString()}`;
@@ -141,4 +141,4 @@ const TransactionDetails: React.FC<Props> = ({ data }) => {
     );
 };
 
-export default TransactionDetails;
+export default Overview;

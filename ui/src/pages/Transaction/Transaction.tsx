@@ -3,9 +3,9 @@ import { useGetTransaction } from '../../api/queries';
 import { Breadcrumb, Flex, Spin, Tabs, Typography } from 'antd';
 import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
 import { useState } from 'react';
-import TransactionDetails from './TransactionDetails';
-import Details from './Details';
+import Overview from './Overview';
 import Messages from './Messages';
+import JSONformat from './JSONformat';
 const { Title } = Typography;
 
 const Transaction: React.FC = () => {
@@ -66,7 +66,7 @@ const Transaction: React.FC = () => {
                                 },
                                 {
                                     key: '3',
-                                    label: 'JSON files'
+                                    label: 'JSON'
                                 }
                             ]}
                         />
@@ -75,9 +75,9 @@ const Transaction: React.FC = () => {
                 <div className="px-[24px] pt-[24px] max-w-[1600px] w-full mx-auto">
                     <Flex className="m-auto" vertical gap={12}>
                         <></>
-                        {currentTab == '1' && <TransactionDetails data={data} />}
+                        {currentTab == '1' && <Overview data={data} />}
                         {currentTab == '2' && <Messages data={data} />}
-                        {currentTab == '3' && <Details data={data} />}
+                        {currentTab == '3' && <JSONformat data={data} />}
                     </Flex>
                 </div>
             </Flex>
