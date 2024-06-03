@@ -1,0 +1,47 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+  promptsail-backend:
+    image: ghcr.io/promptsail/promptsail-backend:dev-release
+    container_name: promptsail-backend
+    ports:
+      - "8000:8000"
+    environment:
+      BASE_URL: "http://localhost:8000"
+      MONGO_URL: "mongodb://root:password@mongodb:27017"
+      ORGANIZATION_NAME: "PromptSail"
+      ADMIN_PASSWORD: "password"
+      SSO_AUTH: "False"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+  promptsail-ui:
+    image: ghcr.io/promptsail/promptsail-ui:dev-release
+    container_name: promptsail-ui
+    ports:
+      - "80:80"
+    environment:
+      PORT: 80
+      PROMPT_SAIL_ENV_PLACEHOLDER_BACKEND_URL: 'http://promptsail-backend:8000'
+      PROMPT_SAIL_ENV_PLACEHOLDER_PROXY_URL_HOST: 'https://try-promptsail.azurewebsites.net/api'
+    depends_on:
+        mongodb:
+            condition: service_started
+        promptsail-backend:
+            condition: service_started
+networks:
+  internal-network:
+    internal: true
+  external-network:
