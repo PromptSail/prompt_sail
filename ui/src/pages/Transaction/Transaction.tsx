@@ -53,7 +53,7 @@ const Transaction: React.FC = () => {
                         </Flex>
                         <Tabs
                             defaultActiveKey={currentTab}
-                            className="project-tab"
+                            className="header-tab"
                             onChange={(activeKey) => setCurrentTab(activeKey)}
                             items={[
                                 {

@@ -72,7 +72,7 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                         </Flex>
                         <Tabs
                             defaultActiveKey={currentTab}
-                            className="project-tab"
+                            className="header-tab min-w-[273px]"
                             onChange={(activeKey) => setCurrentTab(activeKey)}
                             items={[
                                 {

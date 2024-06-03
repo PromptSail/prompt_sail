@@ -277,7 +277,7 @@ const ProviderDescription: React.FC<{
                     <Text>Proxy URL:</Text>
                 </Col>
                 <Col flex="auto">
-                    <Text>{makeUrl(slug, el.deployment_name)}</Text>
+                    <Text copyable>{makeUrl(slug, el.deployment_name)}</Text>
                 </Col>
             </Row>
             <Row gutter={12}>
