@@ -112,7 +112,11 @@ const Overview: React.FC<Props> = ({ data }) => {
                         <Text>Speed:</Text>
                     </Col>
                     <Col flex="auto">
-                        <Text>{data.generation_speed}</Text>
+                        <Text>
+                            {data.status_code < 300 && data.generation_speed !== null
+                                ? data.generation_speed.toFixed(4)
+                                : 'null'}
+                        </Text>
                     </Col>
                 </Row>
                 <Row gutter={12}>
