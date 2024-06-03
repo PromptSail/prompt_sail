@@ -287,7 +287,7 @@
       "Text/colorTextPlaceholder": ["#FFFFFF40","#FFFFFF8C"],
       "Text/colorTextDescription": "#FFFFFFA6",
       "Text/colorTextHeading": "#FFFFFFD9",
-      "Text/colorTextQuaternary": ["#FFFFFF40", "#FFFFFF8C"],
+      "Text/colorTextQuaternary": "#FFFFFF8C",
       "Text/colorTextTertiary": "#FFFFFF73",
       "Text/colorTextSecondary": "#FFFFFFA6",
       "Text/colorText": "#FFFFFFD9",

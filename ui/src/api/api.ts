@@ -15,7 +15,7 @@ import {
 
 const api = {
     whoami: (): Promise<AxiosResponse> => {
-        return client.get('/api/whoami');
+        return client.get('/api/auth/whoami');
     },
     config: (): Promise<AxiosResponse> => {
         return client.get('/api/config');

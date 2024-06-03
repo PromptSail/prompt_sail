@@ -12,7 +12,8 @@ import {
     getProviders,
     getStatisticsTransactionsCount,
     getStatisticsTransactionsCost,
-    getStatisticsTransactionsSpeed
+    getStatisticsTransactionsSpeed,
+    getLoggedUser
 } from './interfaces';
 import { StatisticsParams, TransactionsFilters } from './types';
 import { notification } from 'antd';
@@ -237,4 +238,12 @@ export const useGetConfig = (): UseQueryResult<
             refetchOnWindowFocus: false
         }
     );
+};
+export const useWhoami = (): UseQueryResult<AxiosResponse<getLoggedUser>, AxiosError> => {
+    return useQuery('whoami', async () => await api.whoami(), {
+        staleTime: Infinity,
+        retry: false,
+        cacheTime: 0,
+        refetchOnWindowFocus: false
+    });
 };

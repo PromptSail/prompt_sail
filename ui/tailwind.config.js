@@ -11,7 +11,7 @@ export default {
                 "Text/colorTextPlaceholder": styles.Colors[theme]["Text/colorTextPlaceholder"],
                 "Text/colorTextDescription": styles.Colors[theme]["Text/colorTextDescription"],
                 "Text/colorTextHeading": styles.Colors[theme]["Text/colorTextHeading"],
-                "Text/colorTextQuaternary": styles.Colors[theme]["Text/colorTextQuaternary"],
+                "Text/colorTextQuaternary": styles.Colors.dark["Text/colorTextQuaternary"],
                 "Text/colorTextTertiary": styles.Colors[theme]["Text/colorTextTertiary"],
                 "Text/colorTextSecondary": styles.Colors[theme]["Text/colorTextSecondary"],
                 "Text/colorText": styles.Colors[theme]["Text/colorText"],

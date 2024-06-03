@@ -134,3 +134,12 @@ export interface getStatisticsTransactionsSpeed {
         total_transactions: number;
     }[];
 }
+export interface getLoggedUser {
+    external_id: string;
+    email: string;
+    organization: string;
+    given_name: string;
+    family_name: string;
+    picture: string;
+    issuer: string;
+}

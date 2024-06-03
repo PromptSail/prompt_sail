@@ -1,4 +1,4 @@
-import { Flex, Menu } from 'antd';
+import { Divider, Flex, Menu, Skeleton, Tooltip, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';
 import { SetStateAction, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -16,7 +16,9 @@ import {
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import Logo from '../../assets/logo/Logo-teal_white.svg';
 import Symbol from '../../assets/logo/symbol-teal.svg';
-
+import { useGetConfig, useWhoami } from '../../api/queries';
+import defAvatar from '../../assets/logo/symbol-teal.svg';
+const { Text } = Typography;
 interface Props {
     setLoginState: (arg: SetStateAction<boolean>) => void;
 }
@@ -24,6 +26,8 @@ interface Props {
 const Sidebar: React.FC<Props> = ({ setLoginState }) => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
+    const user = useWhoami();
+    const config = useGetConfig();
     const navigate = useNavigate();
     useEffect(() => {
         setSelectMenuItem(location.pathname);
@@ -35,7 +39,7 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
         } else {
             switch (key) {
                 case 'logout':
-                    localStorage.removeItem('login');
+                    localStorage.removeItem('PS_TOKEN');
                     setLoginState(checkLogin());
                     break;
                 case 'help':
@@ -57,6 +61,17 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
             key: '/transactions',
             label: 'Transactions',
             icon: <HistoryOutlined />
+        },
+        {
+            key: 'divider',
+            label: <Divider className="bg-white/[.08] my-[20px]" />,
+            disabled: true,
+            className: '!cursor-default !p-0'
+        },
+        {
+            key: 'help',
+            label: 'Help',
+            icon: <QuestionCircleOutlined />
         }
         // {
         //     key: '/protfolio',
@@ -66,20 +81,9 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
     ];
     const bottomMenuItems: ItemType<MenuItemType>[] = [
         {
-            key: 'help',
-            label: 'Help',
-            icon: <QuestionCircleOutlined />
-        },
-        // {
-        //     key: '/profile',
-        //     label: 'My profile',
-        //     icon: <UserOutlined />
-        // },
-        {
             key: 'logout',
             label: 'Log out',
-            icon: <LogoutOutlined />,
-            danger: true
+            icon: <LogoutOutlined />
         }
     ];
     return (
@@ -121,6 +125,92 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
                         items={bottomMenuItems}
                         onClick={itemsOnClick}
                     />
+                    <div className="border border-solid border-white/[.08] rounded-[8px] p-[8px] mx-[16px]">
+                        <Flex gap={8}>
+                            {user.isLoading && (
+                                <Skeleton.Avatar
+                                    active
+                                    shape="circle"
+                                    size={'large'}
+                                    style={{
+                                        filter: 'brightness(.1) invert(1)'
+                                    }}
+                                />
+                            )}
+                            {!user.isLoading &&
+                                (() => {
+                                    const isPictureValid =
+                                        user.isSuccess && user.data?.data.picture.length > 0;
+                                    return (
+                                        <Tooltip
+                                            placement="right"
+                                            title={
+                                                collapsed ? (
+                                                    <Flex vertical>
+                                                        <Text className="text-Text/colorTextLight">
+                                                            {user.data?.data.email}
+                                                        </Text>
+                                                        <Text className="text-Text/colorTextQuaternary font-[12px] leading-5">
+                                                            {config.data?.data.organization}
+                                                        </Text>
+                                                    </Flex>
+                                                ) : (
+                                                    false
+                                                )
+                                            }
+                                        >
+                                            <img
+                                                src={
+                                                    isPictureValid
+                                                        ? user.data?.data.picture
+                                                        : defAvatar
+                                                }
+                                                className={`max-w-[32px] max-h-[32px] my-auto${
+                                                    isPictureValid ? ' rounded-[50%]' : ''
+                                                }`}
+                                                alt="avatar"
+                                            />
+                                        </Tooltip>
+                                    );
+                                })()}
+                            {!collapsed && (
+                                <Flex vertical className="min-w-[100px]">
+                                    <Text className="text-Text/colorTextLight">
+                                        <Skeleton
+                                            active
+                                            paragraph={{
+                                                rows: 0,
+                                                className: '!m-0 '
+                                            }}
+                                            loading={user.isLoading}
+                                            title={{
+                                                width: '100%',
+                                                className:
+                                                    'm-0 mt-[6px] !bg-gradient-to-r from-Text/colorTextLight/[.30] from-25% via-Text/colorTextLight/[.50] via-37% to-Text/colorTextLight/[.30] to-63%'
+                                            }}
+                                        >
+                                            {user.data?.data.email}
+                                        </Skeleton>
+                                    </Text>
+
+                                    <Text className="text-Text/colorTextQuaternary font-[12px] leading-5">
+                                        <Skeleton
+                                            active
+                                            paragraph={{ rows: 0, className: '!m-0' }}
+                                            loading={config.isLoading}
+                                            title={{
+                                                width: '100%',
+                                                className:
+                                                    'm-0 mt-1 !bg-gradient-to-r from-Text/colorTextLight/[.30] from-25% via-Text/colorTextLight/[.50] via-37% to-Text/colorTextLight/[.30] to-63%'
+                                            }}
+                                        >
+                                            {config.data?.data.organization}
+                                        </Skeleton>
+                                    </Text>
+                                </Flex>
+                            )}
+                        </Flex>
+                    </div>
                     <Menu
                         onClick={() => setCollapsed(!collapsed)}
                         className="border-solid border-0 border-t border-white/[.08] py-2"
