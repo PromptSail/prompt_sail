@@ -4,24 +4,34 @@ import Project from './pages/Project/Project';
 import Transactions from './pages/Transactions';
 import Sidebar from './components/Sidebar/Sidebar';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Signin from './pages/Signin/Signin';
 import { checkLogin } from './storage/login';
 import { ConfigProvider, Layout, Modal, notification } from 'antd';
 import Transaction from './pages/Transaction/Transaction';
 import theme from './theme-light';
 import { Context } from './context/Context';
+import { useGetConfig } from './api/queries';
+import { getConfig } from './api/interfaces';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
     const [noteApi, noteContextHolder] = notification.useNotification();
     const [modalApi, modalContextHolder] = Modal.useModal();
+    const configApi = useGetConfig();
+    const [config, setConfig] = useState<getConfig | null>(null);
+    useEffect(() => {
+        if (configApi.isSuccess) {
+            setConfig(configApi.data.data);
+        }
+    }, [configApi.status]);
+
     return (
         <ConfigProvider theme={theme}>
-            {isLogged && (
-                <Context.Provider value={{ notification: noteApi, modal: modalApi }}>
-                    {noteContextHolder}
-                    {modalContextHolder}
+            <Context.Provider value={{ notification: noteApi, modal: modalApi, config }}>
+                {noteContextHolder}
+                {modalContextHolder}
+                {isLogged && (
                     <Layout>
                         <Sidebar setLoginState={setLoginState} />
                         <Layout className="h-screen overflow-auto">
@@ -45,16 +55,19 @@ const App = () => {
                             </Routes>
                         </Layout>
                     </Layout>
-                </Context.Provider>
-            )}
-            {!isLogged && (
-                <Layout className="h-screen">
-                    <Routes>
-                        <Route path="/signin" element={<Signin setLoginState={setLoginState} />} />
-                        <Route path="*" element={<Navigate to="/signin" />} />
-                    </Routes>
-                </Layout>
-            )}
+                )}
+                {!isLogged && (
+                    <Layout className="h-screen">
+                        <Routes>
+                            <Route
+                                path="/signin"
+                                element={<Signin setLoginState={setLoginState} />}
+                            />
+                            <Route path="*" element={<Navigate to="/signin" />} />
+                        </Routes>
+                    </Layout>
+                )}
+            </Context.Provider>
         </ConfigProvider>
     );
 };

@@ -11,24 +11,13 @@ export interface addProjectRequest {
     }[];
     tags: string[];
     org_id: string;
+    owner: string;
 }
 
 export interface updateProjectRequest extends addProjectRequest {}
 
-export interface getAllProjects {
+export interface getAllProjects extends addProjectRequest {
     id: string;
-    name: string;
-    slug: string;
-    description: string;
-    ai_providers: {
-        deployment_name: string;
-        slug: string;
-        api_base: string;
-        description: string;
-        provider_name: string;
-    }[];
-    tags: string[];
-    org_id: string | undefined;
     total_cost: number;
     total_transactions: number;
 }
@@ -143,3 +132,16 @@ export interface getLoggedUser {
     picture: string;
     issuer: string;
 }
+export interface getConfig {
+    organization: string;
+    authorization: boolean;
+    azure_auth: boolean;
+    google_auth: boolean;
+}
+export interface getUsers {
+    id: string;
+    email: string;
+    full_name: string;
+    picture: string | null;
+}
+[];

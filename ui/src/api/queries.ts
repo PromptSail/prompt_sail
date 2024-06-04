@@ -13,7 +13,9 @@ import {
     getStatisticsTransactionsCount,
     getStatisticsTransactionsCost,
     getStatisticsTransactionsSpeed,
-    getLoggedUser
+    getLoggedUser,
+    getUsers,
+    getConfig
 } from './interfaces';
 import { StatisticsParams, TransactionsFilters } from './types';
 import { notification } from 'antd';
@@ -217,15 +219,7 @@ export const useGetStatistics_TransactionsSpeed = (
         }
     );
 };
-export const useGetConfig = (): UseQueryResult<
-    AxiosResponse<{
-        organization: string;
-        authorization: boolean;
-        azure_auth: boolean;
-        google_auth: boolean;
-    }>,
-    AxiosError
-> => {
+export const useGetConfig = (): UseQueryResult<AxiosResponse<getConfig>, AxiosError> => {
     return useQuery(
         'config',
         async () => {
@@ -241,6 +235,14 @@ export const useGetConfig = (): UseQueryResult<
 };
 export const useWhoami = (): UseQueryResult<AxiosResponse<getLoggedUser>, AxiosError> => {
     return useQuery('whoami', async () => await api.whoami(), {
+        staleTime: Infinity,
+        retry: false,
+        cacheTime: 0,
+        refetchOnWindowFocus: false
+    });
+};
+export const useGetUsers = (): UseQueryResult<AxiosResponse<getUsers[]>, AxiosError> => {
+    return useQuery('users', async () => await api.getUsers(), {
         staleTime: Infinity,
         retry: false,
         cacheTime: 0,
