@@ -10,6 +10,7 @@ import {
     getStatisticsTransactionsCount,
     getStatisticsTransactionsSpeed,
     getTransactionResponse,
+    getUsers,
     updateProjectRequest
 } from './interfaces';
 
@@ -58,6 +59,9 @@ const api = {
         params: string
     ): Promise<AxiosResponse<getStatisticsTransactionsSpeed[]>> => {
         return client.get(`/api/statistics/transactions_speed${params}`);
+    },
+    getUsers: (): Promise<AxiosResponse<getUsers[]>> => {
+        return client.get('/api/users');
     }
 };
 

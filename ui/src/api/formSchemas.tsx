@@ -11,7 +11,8 @@ export const projectSchema = yup.object().shape({
         .max(50, 'Length must be between 3 and 50 characters')
         .required('This field is required'),
     description: yup.string().max(280, 'Maximum length is 280 characters'),
-    tags: yup.array().of(yup.string())
+    tags: yup.array().of(yup.string()),
+    owner: yup.string().required('This field is required')
 });
 
 export const providerSchema = yup.object().shape({
