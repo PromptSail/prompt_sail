@@ -4,6 +4,7 @@ import utils
 from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from auth.authorization import decode_and_validate_token
+from auth.models import User
 from auth.schemas import GetPartialUserSchema, GetUserSchema
 from auth.use_cases import get_all_users
 from fastapi import Depends, Request, Security
@@ -52,7 +53,7 @@ from .app import app
 
 @app.get("/api/auth/whoami", dependencies=[Security(decode_and_validate_token)])
 def whoami(
-    request: Request, user: dict = Depends(decode_and_validate_token)
+    request: Request, user: User = Depends(decode_and_validate_token)
 ) -> GetUserSchema:
     return GetUserSchema(
         external_id=user.external_id,
@@ -641,11 +642,19 @@ async def get_config(
     }
 
 
-@app.get("/api/users", response_class=JSONResponse)
+@app.get("/api/users", dependencies=[Security(decode_and_validate_token)])
 async def get_users(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    auth_user: User = Depends(decode_and_validate_token)
 ) -> list[GetPartialUserSchema]:
     users = ctx.call(get_all_users)
+    idx = next((i for i, usr in enumerate(users) if usr.external_id == auth_user.external_id), None)
+    if idx is not None:
+        temp = users.pop(idx)
+        users.insert(0, temp)
+    else:
+        users.insert(0, User(**auth_user.model_dump()))
+
     parsed_users = map(
         lambda user: GetPartialUserSchema(
             id=user.id,
