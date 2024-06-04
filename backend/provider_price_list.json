@@ -541,6 +541,16 @@
     },
     {
         "model_name": "gpt-4o-2024-05-13",
+        "provider": "Azure OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o)(|-2024-05-13)$",
+        "input_price": 0.005,
+        "output_price": 0.015,
+        "total_price": 0,
+        "is_active": true
+    },
+    {
+        "model_name": "gpt-4o-2024-05-13",
         "provider": "OpenAI",
         "start_date": "",
         "match_pattern": "(?i)^(gpt-4o)(|-2024-05-13)$",
