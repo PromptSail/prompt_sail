@@ -18,12 +18,12 @@ const UserSelect: React.FC<Props> = ({ ...rest }) => {
             if (config.authorization) {
                 api.getUsers().then((data) => {
                     setOptions(
-                        data.data.map((user, id) => ({
+                        data.data.map((user) => ({
                             label: <UserComponent img={user.picture} label={user.email} />,
-                            value: user.email + id
+                            value: user.email
                         }))
                     );
-                    setFieldValue('owner', data.data[0].email + 0);
+                    setFieldValue('owner', data.data[0].email);
                 });
             } else {
                 api.whoami().then((data) => {
