@@ -1,5 +1,5 @@
 import { Flex, Typography, Button, Row, Col, Pagination } from 'antd';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { getAllProjects } from '../../api/interfaces';
 import { useGetAllProjects } from '../../api/queries';
 import { PlusSquareOutlined } from '@ant-design/icons';
@@ -9,12 +9,15 @@ import noFoundImg from '../../assets/paper_boat.svg';
 import noResultsImg from '../../assets/loupe.svg';
 import { useNavigate } from 'react-router-dom';
 import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
+import { Context } from '../../context/Context';
 
 const { Title, Text } = Typography;
 
 const Dashboard = () => {
     const projects = useGetAllProjects();
+    const auth = useContext(Context).config?.authorization;
     const [filter, setFilter] = useState('');
+    const [filterOwner, setFilterOwner] = useState<string | null>(null);
     const [pageData, setPageData] = useState({
         page: 1,
         size: 5
@@ -31,6 +34,9 @@ const Dashboard = () => {
     const [transactionsRange, setTransactionsRange] = useState<range>({ start: null, end: null });
     const inSearch = (data: getAllProjects) => {
         return data.name.includes(filter) || data.tags.join(', ').includes(filter);
+    };
+    const inOwner = (data: getAllProjects) => {
+        return filterOwner ? data.owner === filterOwner : true;
     };
     const inCostRange = (data: getAllProjects) => {
         const { start, end } = costRange;
@@ -56,9 +62,13 @@ const Dashboard = () => {
     };
     const navigate = useNavigate();
     useEffect(() => {
+        // console.log()
         if (projects.isSuccess) {
             const filteredData = projects.data
-                .filter((el) => inSearch(el) && inCostRange(el) && inTransactionsRange(el))
+                .filter(
+                    (el) =>
+                        inSearch(el) && inCostRange(el) && inTransactionsRange(el) && inOwner(el)
+                )
                 .sort((a, b) => {
                     const asc = isAsc ? 1 : -1;
                     return sortInterpreter(sortby, a, b) * asc;
@@ -71,7 +81,16 @@ const Dashboard = () => {
                 } of ${filteredData.length}`
             );
         }
-    }, [projects.status, pageData, costRange, transactionsRange, isAsc, sortby, filter]);
+    }, [
+        projects.status,
+        pageData,
+        costRange,
+        transactionsRange,
+        isAsc,
+        sortby,
+        filter,
+        filterOwner
+    ]);
     return (
         <Flex gap={24} vertical>
             <HeaderContainer>
@@ -144,14 +163,13 @@ const Dashboard = () => {
                                         0
                                     )
                                 }}
+                                owner={filterOwner}
                                 onSearch={setFilter}
                                 onSortAsc={setAsc}
                                 onSortByChange={setSortby}
                                 onChangeCost={setCostRange}
                                 onChangeTransactions={setTransactionsRange}
-                                onSetOwner={function (): void {
-                                    throw new Error('Function not implemented.');
-                                }}
+                                onSetOwner={setFilterOwner}
                             />
                             {filteredProjects.length > 0 && (
                                 <Row
@@ -161,7 +179,7 @@ const Dashboard = () => {
                                     <Col className="max-w-[50%] min-w-[50%] w-full leading-5">
                                         Title:
                                     </Col>
-                                    <Col className="w-full leading-5">Owner:</Col>
+                                    {auth && <Col className="w-full leading-5">Owner:</Col>}
                                     <Col className="w-full text-end leading-5">Transactions:</Col>
                                     <Col className="w-full text-end leading-5">Cost:</Col>
                                 </Row>
