@@ -186,14 +186,13 @@ def store_transaction(
             )
         content = "".join(content)
         example = json.loads(chunks[0])
-        prompt = [
-            message["content"]
+        messages = [
+            message
             for message in json.loads(request.__dict__["_content"].decode("utf8"))[
                 "messages"
             ]
-            if message["role"] == "user"
-        ][::-1][0]
-        input_tokens = count_tokens_for_streaming_response(prompt, example["model"])
+        ]
+        input_tokens = count_tokens_for_streaming_response(messages, example["model"])
         output_tokens = count_tokens_for_streaming_response(content, example["model"])
         response_content = dict(
             id=example["id"],
@@ -217,12 +216,10 @@ def store_transaction(
         )
 
     if "usage" not in response_content:
-        # TODO: check why we don't get usage data with streaming response
         response_content["usage"] = dict(
             prompt_tokens=0, completion_tokens=0, total_tokens=0
         )
 
-    # params = req_resp_to_transaction_parser(request, response, response_content)
     params = utils.TransactionParamExtractor(
         request, response, response_content
     ).extract()
