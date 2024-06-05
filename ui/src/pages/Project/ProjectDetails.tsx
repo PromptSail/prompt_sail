@@ -36,7 +36,7 @@ const ProjectDetails: React.FC<Props> = ({ details }) => {
                             <Text>Owner:</Text>
                         </Col>
                         <Col>
-                            <Text>{details.name}</Text>
+                            <Text>{details.owner}</Text>
                         </Col>
                     </Row>
                     <Row gutter={12}>

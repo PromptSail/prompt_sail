@@ -2,11 +2,14 @@ import { getAllProjects } from '../../api/interfaces';
 import { Col, Flex, Row, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { TagsContainer } from '../../helpers/dataContainer';
+import { useContext } from 'react';
+import { Context } from '../../context/Context';
 const { Title, Text } = Typography;
 interface Props {
     data: getAllProjects;
 }
 const ProjectTile: React.FC<Props> = ({ data }) => {
+    const auth = useContext(Context).config?.authorization;
     return (
         <Link
             to={`/projects/${data.id}`}
@@ -23,9 +26,11 @@ const ProjectTile: React.FC<Props> = ({ data }) => {
                         <TagsContainer tags={data.tags} />
                     </Flex>
                 </Col>
-                <Col className="w-full my-auto">
-                    <Text>John Doe</Text>
-                </Col>
+                {auth && (
+                    <Col className="w-full my-auto">
+                        <Text>{data.owner}</Text>
+                    </Col>
+                )}
                 <Col className="w-full text-end my-auto">
                     <Text>{data.total_transactions}</Text>
                 </Col>

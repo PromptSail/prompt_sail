@@ -6,15 +6,18 @@ import {
     SortDescendingOutlined
 } from '@ant-design/icons';
 import { Button, Flex, Form, Input, Select } from 'antd';
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useState } from 'react';
 import SelectForm from './SelectForm';
+import UserFilter from './UserFilter';
+import { Context } from '../../context/Context';
 
 interface Props {
     onSearch: (text: string) => void;
     onSortAsc: (isAsc: boolean) => void;
     onSortByChange: (sortby: string) => void;
-    onSetOwner: (value: string) => void;
+    onSetOwner: (value: string | null) => void;
+    owner: string | null;
     costRange: { start: number | null; end: number | null; min?: number; max?: number };
     transactionsRange: { start: number | null; end: number | null; min?: number; max?: number };
     onChangeCost: (obj: { start: number | null; end: number | null }) => void;
@@ -25,14 +28,16 @@ const FilterDashboard: React.FC<Props> = ({
     onSearch,
     onSortAsc,
     onSortByChange,
+    owner,
     costRange,
     transactionsRange,
     onChangeCost,
-    onChangeTransactions
+    onChangeTransactions,
+    onSetOwner
 }) => {
     const [isAsc, setAsc] = useState(false);
-    const [owner, setOwner] = useState<string | null>(null);
     const [isClearActive, setClear] = useState(false);
+    const auth = useContext(Context).config?.authorization;
     useEffect(() => {
         if (
             costRange.start != null ||
@@ -108,20 +113,12 @@ const FilterDashboard: React.FC<Props> = ({
                     justify="flex-start"
                     gap={32}
                 >
-                    <div className="flex gap-2 m-0 max-w-[253px] w-full">
-                        <label className="my-auto text-nowrap">Owner :</label>
-                        <Select
-                            placeholder="Select"
-                            className="w-full"
-                            options={[
-                                { value: 'owner1', label: 'Owner1' },
-                                { value: 'owner2', label: 'Owner2' },
-                                { value: 'owner3', label: 'Owner3' }
-                            ]}
-                            value={owner}
-                            onChange={setOwner}
-                        />
-                    </div>
+                    {auth && (
+                        <div className="flex gap-2 m-0 max-w-[300px] w-full">
+                            <label className="my-auto text-nowrap">Owner :</label>
+                            <UserFilter onChange={onSetOwner} value={owner} className="w-full" />
+                        </div>
+                    )}
                     <Form.Item className="m-0 max-w-[241px] w-full" label="Cost" name="cost">
                         <SelectForm
                             values={costRange}
@@ -151,7 +148,7 @@ const FilterDashboard: React.FC<Props> = ({
                             onClick={() => {
                                 onChangeCost({ start: null, end: null });
                                 onChangeTransactions({ start: null, end: null });
-                                setOwner(null);
+                                onSetOwner(null);
                             }}
                         >
                             Clear filters
