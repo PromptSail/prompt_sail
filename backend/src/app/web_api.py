@@ -1,3 +1,4 @@
+import re
 from typing import Annotated, Any
 
 import utils
@@ -29,8 +30,10 @@ from settings.use_cases import get_organization_name
 from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
+    CreateTransactionSchema,
     GetTransactionLatencyStatisticsWithoutDateSchema,
     GetTransactionPageResponseSchema,
+    GetTransactionSchema,
     GetTransactionsLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionsUsageStatisticsSchema,
@@ -39,6 +42,7 @@ from transactions.schemas import (
     StatisticTransactionSchema,
 )
 from transactions.use_cases import (
+    add_transaction,
     count_token_usage_for_project,
     count_transactions,
     delete_multiple_transactions,
@@ -645,10 +649,13 @@ async def get_config(
 @app.get("/api/users", dependencies=[Security(decode_and_validate_token)])
 async def get_users(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
-    auth_user: User = Depends(decode_and_validate_token)
+    auth_user: User = Depends(decode_and_validate_token),
 ) -> list[GetPartialUserSchema]:
     users = ctx.call(get_all_users)
-    idx = next((i for i, usr in enumerate(users) if usr.external_id == auth_user.external_id), None)
+    idx = next(
+        (i for i, usr in enumerate(users) if usr.external_id == auth_user.external_id),
+        None,
+    )
     if idx is not None:
         temp = users.pop(idx)
         users.insert(0, temp)
@@ -665,6 +672,59 @@ async def get_users(
         users,
     )
     return list(parsed_users)
+
+
+@app.post(
+    "/api/transactions",
+    response_class=JSONResponse,
+    status_code=201,
+    dependencies=[Security(decode_and_validate_token)],
+)
+def create_transaction(
+    request: Request,
+    data: CreateTransactionSchema,
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+) -> GetTransactionSchema:
+    if ((data.status_code == 200) and data.model and data.provider) and not (
+        data.input_cost or data.output_cost or data.total_cost
+    ):
+        pricelist = get_provider_pricelist(request)
+        pricelist = [
+            item
+            for item in pricelist
+            if item.provider == data.provider
+            and re.match(item.match_pattern, data.model)
+        ]
+        if len(pricelist) > 0:
+            if pricelist[0].input_price == 0:
+                data.input_cost, data.output_cost = 0, 0
+                data.total_cost = (
+                    (data.input_tokens + data.output_tokens)
+                    / 1000
+                    * pricelist[0].total_price
+                )
+            else:
+                data.input_cost = pricelist[0].input_price * (data.input_tokens / 1000)
+                data.output_cost = pricelist[0].output_price * (
+                    data.output_tokens / 1000
+                )
+                data.total_cost = data.input_cost + data.output_cost
+        else:
+            data.input_cost, data.output_cost, data.total_cost = None, None, None
+
+    if not data.generation_speed:
+        if data.output_tokens is not None and (data.output_tokens > 0):
+            data.generation_speed = (
+                data.output_tokens
+                / (datetime.now(tz=timezone.utc) - data.request_time).total_seconds()
+            )
+        elif data.output_tokens == 0:
+            data.generation_speed = None
+        else:
+            data.generation_speed = 0
+
+    created_transaction = ctx.call(add_transaction, data=data)
+    return GetTransactionSchema(**created_transaction.model_dump())
 
 
 @app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse)
