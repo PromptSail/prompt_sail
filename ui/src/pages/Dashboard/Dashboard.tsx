@@ -62,7 +62,6 @@ const Dashboard = () => {
     };
     const navigate = useNavigate();
     useEffect(() => {
-        // console.log()
         if (projects.isSuccess) {
             const filteredData = projects.data
                 .filter(
@@ -72,8 +71,7 @@ const Dashboard = () => {
                 .sort((a, b) => {
                     const asc = isAsc ? 1 : -1;
                     return sortInterpreter(sortby, a, b) * asc;
-                })
-                .slice((pageData.page - 1) * pageData.size, pageData.page * pageData.size);
+                });
             setFilteredProjects(filteredData);
             setPaginationInfo(
                 `Showing ${(pageData.page - 1) * pageData.size}-${
@@ -185,9 +183,14 @@ const Dashboard = () => {
                                 </Row>
                             )}
                             <Flex vertical gap={8}>
-                                {filteredProjects.map((e) => (
-                                    <ProjectTile data={e} key={e.id} />
-                                ))}
+                                {filteredProjects
+                                    .slice(
+                                        (pageData.page - 1) * pageData.size,
+                                        pageData.page * pageData.size
+                                    )
+                                    .map((e) => (
+                                        <ProjectTile data={e} key={e.id} />
+                                    ))}
                                 {filteredProjects.length == 0 && (
                                     <Flex className="m-auto mt-24" vertical>
                                         <img src={noResultsImg} width={250} className="m-auto" />
@@ -219,7 +222,7 @@ const Dashboard = () => {
                                         pageSizeOptions={[5, 15, 30, 45, 60]}
                                         showSizeChanger
                                         total={filteredProjects.length}
-                                        hideOnSinglePage={filteredProjects.length < 11}
+                                        hideOnSinglePage={filteredProjects.length < pageData.size}
                                     />
                                 </Flex>
                             )}
