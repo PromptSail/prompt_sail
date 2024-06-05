@@ -140,7 +140,9 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
                             {!user.isLoading &&
                                 (() => {
                                     const isPictureValid =
-                                        user.isSuccess && user.data?.data.picture.length > 0;
+                                        user.isSuccess &&
+                                        user.data?.data.picture &&
+                                        user.data?.data.picture.length > 0;
                                     return (
                                         <Tooltip
                                             placement="right"
