@@ -30,7 +30,7 @@ const ProviderSelect: React.FC<Props> = ({ className, value, size, onChange }) =
             onChange={onChange}
             options={[
                 { label: 'Select Provider', value: '' },
-                ...(Providers.data?.data.map((el) => ({
+                ...(Providers.data?.map((el) => ({
                     label: el.provider_name,
                     value: el.provider_name
                 })) || [])

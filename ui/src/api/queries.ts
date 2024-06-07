@@ -154,11 +154,11 @@ export const useDeleteProject = (): UseMutationResult<AxiosResponse, AxiosError,
         }
     );
 };
-export const useGetProviders = (): UseQueryResult<AxiosResponse<getProviders[]>, AxiosError> => {
+export const useGetProviders = (): UseQueryResult<getProviders[], AxiosError> => {
     return useQuery(
         'providers',
         async () => {
-            return await api.getProviders();
+            return (await api.getProviders()).data;
         },
         {
             staleTime: Infinity,

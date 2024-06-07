@@ -19,6 +19,9 @@ const Transactions = () => {
         tags: params.get('tags') || '',
         date_from: params.get('date_from') || '',
         date_to: params.get('date_to') || '',
+        models: params.get('models') || '',
+        status_codes: params.get('status_codes') || '',
+        providers: params.get('providers') || '',
         page_size: params.get('page_size') || '10',
         page: params.get('page') || '1'
     });

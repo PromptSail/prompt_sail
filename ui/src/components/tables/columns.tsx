@@ -1,10 +1,11 @@
 import { ArrowRightOutlined } from '@ant-design/icons';
-import { Badge, Button, Divider, Flex, Input, Menu, Spin, Tooltip } from 'antd';
+import { Badge, Button, Divider, Flex, Menu, Tooltip } from 'antd';
 import { ColumnProps } from 'antd/es/table';
 import { TransactionsFilters } from '../../api/types';
-import { useGetAllProjects } from '../../api/queries';
-import { ColumnFilterItem, FilterDropdownProps } from 'antd/es/table/interface';
-import { SetStateAction, useEffect, useState } from 'react';
+import { useGetAllProjects, useGetProviders } from '../../api/queries';
+import { ColumnFilterItem } from 'antd/es/table/interface';
+import { SetStateAction } from 'react';
+import FilterStringSelectMenu from './filters/FilterStringSelectMenu';
 
 export interface DataType {
     key: React.Key;
@@ -25,92 +26,6 @@ export interface DataType {
 const Status: React.FC<{ value: number }> = ({ value }) => (
     <Badge status={value >= 300 ? (value >= 400 ? 'error' : 'warning') : 'success'} text={value} />
 );
-
-// eslint-disable-next-line react-refresh/only-export-components
-const ProjectMenu: React.FC<
-    FilterDropdownProps & {
-        filters: TransactionsFilters;
-        setFilters: (attr: SetStateAction<TransactionsFilters>) => void;
-    }
-> = ({ setSelectedKeys, selectedKeys, filters, setFilters, close }) => {
-    const projects = useGetAllProjects();
-    const [search, setSearch] = useState('');
-    useEffect(() => {
-        console.log(selectedKeys);
-        if (projects.isSuccess) setSelectedKeys(filters.project_id ? [filters.project_id] : []);
-    }, [projects.status]);
-    if (projects.isLoading) {
-        <Spin
-            size="large"
-            className="absolute top-1/3 left-1/2 -transtaction-x-1/2 -transtaction-y-1/3"
-        />;
-    }
-    if (!projects.isLoading) {
-        return (
-            <Flex vertical>
-                <Input
-                    className="m-1 max-w-[150px]"
-                    placeholder="Search"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                <div className="max-h-[150px] overflow-y-auto overflow-x-hidden">
-                    <Menu
-                        items={
-                            projects.isError
-                                ? [
-                                      {
-                                          key: projects.error.code || 'error',
-                                          label: `${projects.error.message}`
-                                      }
-                                  ]
-                                : projects.data
-                                      ?.map((el) => ({ key: el.id || '', label: el.name }))
-                                      .filter(({ label }) =>
-                                          search.length > 0
-                                              ? label.toLowerCase().includes(search.toLowerCase())
-                                              : true
-                                      )
-                        }
-                        selectable
-                        onSelect={(val) => {
-                            setSelectedKeys(val.selectedKeys);
-                        }}
-                        defaultSelectedKeys={[filters.project_id || '']}
-                        onDeselect={(val) => {
-                            setSelectedKeys(val.selectedKeys);
-                        }}
-                        selectedKeys={selectedKeys as string[]}
-                    />
-                </div>
-                <Divider className="my-1" />
-                <Flex justify="space-between" className="my-2 mx-2">
-                    <Button
-                        type="text"
-                        size="small"
-                        onClick={() => setSelectedKeys([])}
-                        disabled={!selectedKeys.length}
-                    >
-                        Reset
-                    </Button>
-                    <Button
-                        type="primary"
-                        size="small"
-                        onClick={() => {
-                            setFilters((prevFilters) => ({
-                                ...prevFilters,
-                                project_id: `${selectedKeys}`
-                            }));
-                            close();
-                        }}
-                    >
-                        Save
-                    </Button>
-                </Flex>
-            </Flex>
-        );
-    }
-};
 export type CustomColumns = ColumnProps<DataType> & {
     apiCol?: TransactionsFilters['sort_field'];
 };
@@ -163,11 +78,6 @@ const columns = (
                 text: <Status value={el} />,
                 value: el
             })),
-            onFilter: (value, record) => {
-                const status = record.status as JSX.Element;
-
-                return String(status.props['text']).charAt(0) == String(value).charAt(0);
-            },
             filterDropdown: ({ setSelectedKeys, selectedKeys, confirm }) => {
                 const items = [200, 300, 400, 500].map((el) => ({
                     label: <Status value={el} />,
@@ -185,7 +95,11 @@ const columns = (
                             onDeselect={(val) => {
                                 setSelectedKeys(val.selectedKeys);
                             }}
-                            selectedKeys={selectedKeys as string[]}
+                            defaultSelectedKeys={
+                                filters.status_codes
+                                    ? [...filters.status_codes.split(',')]
+                                    : (selectedKeys as string[])
+                            }
                         />
                         <Divider className="my-1" />
                         <Flex justify="space-between" className="my-2 mx-2">
@@ -197,7 +111,17 @@ const columns = (
                             >
                                 Reset
                             </Button>
-                            <Button type="primary" size="small" onClick={() => confirm()}>
+                            <Button
+                                type="primary"
+                                size="small"
+                                onClick={() => {
+                                    setFilters((prevFilters) => ({
+                                        ...prevFilters,
+                                        status_codes: `${selectedKeys}`
+                                    }));
+                                    confirm();
+                                }}
+                            >
                                 Save
                             </Button>
                         </Flex>
@@ -211,10 +135,13 @@ const columns = (
             key: 'project',
             width: 200,
             filterDropdown: (props) => (
-                <ProjectMenu
+                <FilterStringSelectMenu
                     {...props}
                     filters={filters as ColumnFilterItem[] & TransactionsFilters}
                     setFilters={setFilters}
+                    query={{ hook: useGetAllProjects, label: 'name' }}
+                    target="project_id"
+                    multiselect={false}
                 />
             )
         },
@@ -224,7 +151,17 @@ const columns = (
             key: 'aiProvider',
             sorter: true,
             apiCol: 'provider',
-            width: 200
+            width: 200,
+            filterDropdown: (props) => (
+                <FilterStringSelectMenu
+                    {...props}
+                    filters={filters as ColumnFilterItem[] & TransactionsFilters}
+                    setFilters={setFilters}
+                    query={{ hook: useGetProviders, label: 'provider_name' }}
+                    target="providers"
+                    multiselect={true}
+                />
+            )
         },
         {
             title: 'Model',
@@ -267,5 +204,4 @@ const columns = (
         }
     ];
 };
-
 export default columns;
