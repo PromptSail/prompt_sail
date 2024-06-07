@@ -112,7 +112,16 @@ const TransactionsSpeedChart: React.FC<Params> = ({ statisticsParams }) => {
                                 <XAxis
                                     dataKey="date"
                                     type="number"
-                                    domain={['dataMin', 'dataMax']}
+                                    domain={(() => {
+                                        const length = chartData.records.length;
+                                        const diff =
+                                            chartData.records[length - 1].date -
+                                            chartData.records[length - 2].date;
+                                        return [
+                                            `dataMin - ${length % 2 == 0 ? 0 : diff}`,
+                                            `dataMax + ${diff}`
+                                        ];
+                                    })()}
                                     scale={'time'}
                                     tickFormatter={(v) => dateFormatter(v, statisticsParams.period)}
                                     tick={{
@@ -126,6 +135,29 @@ const TransactionsSpeedChart: React.FC<Params> = ({ statisticsParams }) => {
                                 <YAxis
                                     type="number"
                                     width={71}
+                                    domain={[
+                                        0,
+                                        'auto'
+                                        // auto seems to work but I leave it here just in case
+                                        //
+                                        // (() => {
+                                        //     const recordsWithMoreThanOneParam =
+                                        //         chartData.records.filter(
+                                        //             (el) => Object.keys(el).length > 1
+                                        //         );
+                                        //     const max = Math.max(
+                                        //         ...recordsWithMoreThanOneParam.map((obj) => {
+                                        //             const keys = Object.keys(obj).filter(
+                                        //                 (key) => key !== 'date'
+                                        //             );
+                                        //             return Math.max(...keys.map((el) => obj[el]));
+                                        //         })
+                                        //     );
+                                        //     const a = Number(max + max / 3).toPrecision(2);
+                                        //     console.log(a);
+                                        //     return Number(a);
+                                        // })()
+                                    ]}
                                     tick={{
                                         fill: styles.Colors.light['Text/colorTextTertiary']
                                     }}
