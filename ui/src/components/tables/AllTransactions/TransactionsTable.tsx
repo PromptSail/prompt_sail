@@ -2,30 +2,19 @@ import { Link } from 'react-router-dom';
 import { Badge, Flex, Table, Tag, Tooltip } from 'antd';
 import { TagsContainer } from '../../../helpers/dataContainer';
 import { ArrowRightOutlined } from '@ant-design/icons';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllTransactions } from '../../../api/queries';
-import { DataType, columns } from '../columns';
-import { SorterResult } from 'antd/es/table/interface';
+import columns, { CustomColumns, DataType } from '../columns';
 import * as styles from '../../../styles.json';
+import { SorterResult } from 'antd/es/table/interface';
 
 interface Props {
     filters: TransactionsFilters;
-    setFilters: Dispatch<SetStateAction<TransactionsFilters>>;
-    // setURLParam: (param: { [key: string]: string }) => void;
+    setFilters: (attr: SetStateAction<TransactionsFilters>) => void;
 }
 
-interface sortWithApiCol extends SorterResult<DataType> {
-    column?: SorterResult<DataType>['column'] & {
-        apiCol: TransactionsFilters['sort_field'];
-    };
-}
-
-const TransactionsTable: React.FC<Props> = ({
-    filters,
-    setFilters
-    // setURLParam
-}) => {
+const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
     const transactions = useGetAllTransactions(filters);
     const [isLoading, setLoading] = useState(true);
     const [tableData, setTableData] = useState<{
@@ -150,7 +139,7 @@ const TransactionsTable: React.FC<Props> = ({
     return (
         <Table
             dataSource={tableData.items}
-            columns={columns}
+            columns={columns(filters, setFilters)}
             loading={isLoading}
             pagination={{
                 position: ['bottomRight'],
@@ -171,10 +160,10 @@ const TransactionsTable: React.FC<Props> = ({
                 pageSizeOptions: [5, 10, 20, 50]
             }}
             onChange={(_pagination, _filters, sorter) => {
-                const sortData = sorter as sortWithApiCol;
+                const sortData = sorter as SorterResult<DataType>;
                 setFilters((old) => ({
                     ...old,
-                    sort_field: sortData.column ? sortData.column.apiCol : '',
+                    sort_field: sortData.column ? (sortData.column as CustomColumns).apiCol : '',
                     sort_type: sortData.order === 'ascend' ? 'asc' : ''
                 }));
             }}
