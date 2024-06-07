@@ -89,6 +89,7 @@ def create_transaction_query_from_filters(
     :return: MongoDB query dictionary representing the specified filters.
     """
     query = {}
+    or_conditions = []
     if project_id is not None:
         query["project_id"] = project_id
     if tags is not None:
@@ -102,11 +103,20 @@ def create_transaction_query_from_filters(
     if not null_generation_speed:
         query["generation_speed"] = {"$ne": None}
     if status_codes is not None:
-        query["status_code"] = {"$in": status_codes}
+        for code in status_codes:
+            if code % 100 == 0:
+                or_conditions.append({
+                    "status_code": {
+                        "$gte": code,
+                        "$lt": code + 100
+                    }
+                })
     if providers is not None:
         query["provider"] = {"$in": providers}
     if models is not None:
         query["model"] = {"$in": models}
+    if or_conditions:
+        query["$or"] = or_conditions
     return query
 
 
