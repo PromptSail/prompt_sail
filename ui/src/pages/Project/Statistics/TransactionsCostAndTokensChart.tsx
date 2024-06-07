@@ -34,12 +34,12 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
     if (TransactionsCost.isSuccess) {
         const chartData = {
             legend: [] as string[],
-            records: [] as Record<string, string | number>[]
+            records: [] as Record<string, number>[]
         };
         const data = TransactionsCost.data.data;
         data.map((el) => {
             const record: (typeof chartData.records)[0] = {
-                date: el.date
+                date: new Date(el.date).getTime()
             };
 
             el.records.map((rec) => {
@@ -96,8 +96,18 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                 />
                                 <XAxis
                                     dataKey="date"
-                                    angle={0}
-                                    tickMargin={10}
+                                    type="number"
+                                    domain={(() => {
+                                        const length = chartData.records.length;
+                                        const diff =
+                                            chartData.records[length - 1].date -
+                                            chartData.records[length - 2].date;
+                                        return [
+                                            `dataMin - ${length % 2 == 0 ? 0 : diff}`,
+                                            `dataMax + ${diff}`
+                                        ];
+                                    })()}
+                                    scale={'time'}
                                     tickFormatter={(v) => dateFormatter(v, statisticsParams.period)}
                                     tick={{
                                         fill: styles.Colors.light['Text/colorTextTertiary'],
@@ -114,6 +124,19 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                             ? (v) => '$ ' + dataRounding(v, 4)
                                             : undefined
                                     }
+                                    domain={[
+                                        'auto',
+                                        `dataMax + ${(() => {
+                                            const length = chartData.records.length;
+                                            const record = chartData.records[length - 1];
+                                            const keys = Object.keys(record).filter((el) =>
+                                                el.includes(TokensOrCost)
+                                            );
+                                            const values = keys.map((key) => record[key]);
+                                            const max = Math.max(...values);
+                                            return max / 8;
+                                        })()}`
+                                    ]}
                                     tick={{
                                         fill: styles.Colors.light['Text/colorTextTertiary']
                                     }}
