@@ -66,12 +66,14 @@ def detect_subdomain(host, base_url) -> str | None:
 
 
 def create_transaction_query_from_filters(
-    tags: str | None = None,
+    tags: list[str] | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
-    status_code: int | None = None,
     null_generation_speed: bool = True,
+    status_codes: list[int] | None = None,
+    providers: list[str] | None = None,
+    models: list[str] | None = None,
 ) -> dict:
     """
     Create a MongoDB query dictionary based on specified filters for transactions.
@@ -80,8 +82,10 @@ def create_transaction_query_from_filters(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
-    :param status_code: Optional. Status code of the transactions.
     :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
+    :param status_codes: Optional. List of status codes of the transactions.
+    :param providers: Optional. List of providers of the transactions.
+    :param models: Optional. List of models of the transactions.
     :return: MongoDB query dictionary representing the specified filters.
     """
     query = {}
@@ -95,10 +99,14 @@ def create_transaction_query_from_filters(
         query["response_time"]["$gte"] = date_from
     if date_to is not None:
         query["response_time"]["$lte"] = date_to
-    if status_code is not None:
-        query["status_code"] = status_code
     if not null_generation_speed:
         query["generation_speed"] = {"$ne": None}
+    if status_codes is not None:
+        query["status_code"] = {"$in": status_codes}
+    if providers is not None:
+        query["provider"] = {"$in": providers}
+    if models is not None:
+        query["model"] = {"$in": models}
     return query
 
 

@@ -262,6 +262,9 @@ async def get_paginated_transactions(
     project_id: str | None = None,
     sort_field: str | None = None,
     sort_type: str | None = None,
+    status_codes: str | None = None,
+    providers: str | None = None,
+    models: str | None = None,
 ) -> GetTransactionPageResponseSchema:
     """
     API endpoint to retrieve a paginated list of transactions based on specified filters.
@@ -275,9 +278,18 @@ async def get_paginated_transactions(
     :param project_id: Optional. Project ID to filter transactions by.
     :param sort_field: Optional. Field to sort by.
     :param sort_type: Optional. Ordering method (asc or desc).
+    :param status_codes: Optional. List of status codes for filtering transactions.
+    :param providers: Optional. List of providers for filtering transactions.
+    :param models: Optional. List of models for filtering transactions.
     """
     if tags is not None:
         tags = tags.split(",")
+    if status_codes is not None:
+        status_codes = list(map(lambda x: int(x), status_codes.split(",")))
+    if providers is not None:
+        providers = providers.split(",")
+    if models is not None:
+        models = models.split(",")
 
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
@@ -289,6 +301,9 @@ async def get_paginated_transactions(
         project_id=project_id,
         sort_field=sort_field,
         sort_type=sort_type,
+        status_codes=status_codes,
+        providers=providers,
+        models=models,
     )
 
     projects = ctx.call(get_all_projects)
@@ -311,6 +326,9 @@ async def get_paginated_transactions(
         date_from=date_from,
         date_to=date_to,
         project_id=project_id,
+        status_codes=status_codes,
+        providers=providers,
+        models=models,
     )
     page_response = GetTransactionPageResponseSchema(
         items=new_transactions,
@@ -361,7 +379,7 @@ async def get_transaction_usage_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200,
+        status_codes=[200],
     )
     if count == 0:
         return []
@@ -371,7 +389,7 @@ async def get_transaction_usage_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200,
+        status_codes=[200],
     )
     transactions = [
         StatisticTransactionSchema(
@@ -533,7 +551,7 @@ async def get_transaction_latency_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200,
+        status_codes=[200],
         null_generation_speed=False,
     )
     if count == 0:
@@ -544,7 +562,7 @@ async def get_transaction_latency_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200,
+        status_codes=[200],
         null_generation_speed=False,
     )
     transactions = [
