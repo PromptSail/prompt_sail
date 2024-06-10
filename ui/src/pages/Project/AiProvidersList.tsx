@@ -7,8 +7,7 @@ import {
     DeleteOutlined,
     DownOutlined,
     EditOutlined,
-    FileAddOutlined,
-    SaveOutlined
+    FileAddOutlined
 } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import { CollapsibleType } from 'antd/es/collapse/CollapsePanel';
@@ -29,10 +28,8 @@ interface Props {
 const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...rest }) => {
     const { token } = theme.useToken();
     const [collapseTrigger, setcollapseTrigger] = useState<CollapsibleType>('header');
-    const [isEditing, setIsEditing] = useState(false);
     const ItemLabel = (name: string) => (
         <Flex justify="space-between" {...rest}>
-            {/* <div key={}></div> */}
             <Title level={2} className="h5 m-0 lh-0">
                 {name}
             </Title>
@@ -48,30 +45,46 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                             const index = prevState.findIndex(
                                 (item) => item.deployment_name === name
                             );
+                            const cancelItem = items[index];
                             setItems((prevItems) =>
-                                prevItems.map((el, id) =>
+                                prevState.map((el, id) =>
                                     id !== index
-                                        ? el
+                                        ? prevItems[id]
                                         : {
                                               ...prevItems[index],
+                                              collapsible: 'disabled',
                                               label: (
                                                   <Flex justify="space-between">
                                                       <Title level={2} className="h5 m-0 lh-0">
-                                                          {/* {label.length > 0
-                                                              ? label
-                                                              : 'New AI Provider'} */}
-                                                          'test'
+                                                          {el.deployment_name}
                                                       </Title>
-                                                      <Button
-                                                          className="my-auto"
-                                                          type="default"
-                                                          size="small"
-                                                          icon={<CheckSquareOutlined />}
-                                                          htmlType="submit"
-                                                          form={`projectDetails_editProvider${index}`}
-                                                      >
-                                                          Save
-                                                      </Button>
+                                                      <Flex gap={8}>
+                                                          <Button
+                                                              className="my-auto"
+                                                              size="small"
+                                                              onClick={() => {
+                                                                  setItems((innerPrevItems) =>
+                                                                      innerPrevItems.map((el, id) =>
+                                                                          id !== index
+                                                                              ? el
+                                                                              : cancelItem
+                                                                      )
+                                                                  );
+                                                              }}
+                                                          >
+                                                              Cancel
+                                                          </Button>
+                                                          <Button
+                                                              className="my-auto"
+                                                              type="primary"
+                                                              size="small"
+                                                              icon={<CheckSquareOutlined />}
+                                                              htmlType="submit"
+                                                              form={`projectDetails_editProvider${index}`}
+                                                          >
+                                                              Save
+                                                          </Button>
+                                                      </Flex>
                                                   </Flex>
                                               ),
                                               children: (
@@ -91,9 +104,11 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                                             }
                                                               );
                                                               setItems(CollapseItems(newList));
+                                                              onUpdateProviders(newList);
                                                               return newList;
                                                           });
                                                       }}
+                                                      showSubmitButton={false}
                                                       slugForProxy={slug}
                                                       formId={`projectDetails_editProvider${index}`}
                                                   />
@@ -119,6 +134,7 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                 (item) => item.deployment_name !== name
                             );
                             setItems(CollapseItems(newList));
+                            onUpdateProviders(newList);
                             return newList;
                         });
                     }}
@@ -150,10 +166,6 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
     const [activeKeys, setActiveKeys] = useState<number[]>(
         items.length < 4 ? items.map((_el, id) => id) : []
     );
-    useEffect(() => {
-        if (providers !== list) setIsEditing(true);
-        else setIsEditing(false);
-    }, [providers]);
     return (
         <>
             <Collapse
@@ -176,6 +188,7 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
 
             <AddProviderContainer
                 providers={providers}
+                items={items}
                 slug={slug}
                 setProviders={setProviders}
                 setActiveKeys={setActiveKeys}
@@ -190,46 +203,11 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                             }
                         ];
                         setItems(CollapseItems(newList));
+                        onUpdateProviders(newList);
                         return newList;
                     });
                 }}
             />
-
-            {isEditing && (
-                <Flex
-                    justify="flex-end"
-                    gap={16}
-                    className="px-[24px] py-[16px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px]"
-                >
-                    <Button
-                        className="my-auto"
-                        size="large"
-                        type="text"
-                        onClick={() => {
-                            setProviders(() => {
-                                setItems(CollapseItems(list));
-                                return list;
-                            });
-                            setActiveKeys(items.length < 4 ? items.map((_el, id) => id) : []);
-                        }}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        className="my-auto"
-                        type="primary"
-                        size="large"
-                        icon={<SaveOutlined />}
-                        htmlType="submit"
-                        onClick={() => {
-                            onUpdateProviders(providers);
-                            setIsEditing(false);
-                        }}
-                    >
-                        Save
-                    </Button>
-                </Flex>
-            )}
         </>
     );
 };

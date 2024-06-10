@@ -10,6 +10,7 @@ const { Title } = Typography;
 
 interface Props {
     providers: typeof FormikValuesTemplate.ai_providers;
+    items: ItemType[];
     slug: string;
     onSubmitSuccess: (values: (typeof FormikValuesTemplate.ai_providers)[number]) => void;
     setProviders: (list: SetStateAction<typeof FormikValuesTemplate.ai_providers>) => void;
@@ -19,6 +20,7 @@ interface Props {
 
 const AddProviderContainer: React.FC<Props> = ({
     providers,
+    items,
     slug,
     onSubmitSuccess,
     setActiveKeys
@@ -35,7 +37,12 @@ const AddProviderContainer: React.FC<Props> = ({
                     icon={<PlusSquareOutlined />}
                     onClick={() => {
                         setOpenForm(true);
-                        setActiveKeys([providers.length]);
+                        // return array of keys: return key if collapsible === 'disabled'
+                        const disabledItems = items
+                            .filter((item) => item.collapsible === 'disabled')
+                            .map((item) => item.key) as number[];
+
+                        setActiveKeys([...disabledItems, providers.length]);
                     }}
                 >
                     Add{providers.length > 0 ? ' next' : ''} AI Provider
@@ -47,16 +54,37 @@ const AddProviderContainer: React.FC<Props> = ({
                         <Title level={2} className="h5 m-0 lh-0">
                             {label.length > 0 ? label : 'New AI Provider'}
                         </Title>
-                        <Button
-                            className="my-auto"
-                            type="default"
-                            size="small"
-                            icon={<CheckSquareOutlined />}
-                            htmlType="submit"
-                            form="projectDetails_addProvider"
-                        >
-                            Save
-                        </Button>
+                        <Flex gap={8}>
+                            <Button
+                                className="my-auto"
+                                size="small"
+                                onClick={() => {
+                                    setOpenForm(false);
+                                    const disabledItems = items
+                                        .filter((item) => item.collapsible === 'disabled')
+                                        .map((item) => item.key) as number[];
+
+                                    setActiveKeys([
+                                        ...disabledItems,
+                                        ...(providers.length < 4
+                                            ? providers.map((_el, id) => id)
+                                            : [])
+                                    ]);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                className="my-auto"
+                                type="primary"
+                                size="small"
+                                icon={<CheckSquareOutlined />}
+                                htmlType="submit"
+                                form="projectDetails_addProvider"
+                            >
+                                Save
+                            </Button>
+                        </Flex>
                     </Flex>
                     <ProviderForm
                         slug={slug}
