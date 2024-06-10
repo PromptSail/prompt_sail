@@ -145,3 +145,11 @@ export interface getUsers {
     picture: string | null;
 }
 [];
+export interface getModels {
+    model_name: string;
+    start_date: null | string;
+    match_pattern: string;
+    input_price: number;
+    output_price: number;
+    total_price: number;
+}

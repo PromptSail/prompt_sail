@@ -4,6 +4,7 @@ import {
     addProjectRequest,
     getAllProjects,
     getAllTransactionResponse,
+    getModels,
     getProjectResponse,
     getProviders,
     getStatisticsTransactionsCost,
@@ -62,6 +63,9 @@ const api = {
     },
     getUsers: (): Promise<AxiosResponse<getUsers[]>> => {
         return client.get('/api/users');
+    },
+    getModels: (): Promise<AxiosResponse<getModels>> => {
+        return client.get('/api/statistics/pricelist');
     }
 };
 
