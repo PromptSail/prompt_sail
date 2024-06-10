@@ -6,6 +6,7 @@ import { useGetAllProjects, useGetModels, useGetProviders } from '../../api/quer
 import { ColumnFilterItem } from 'antd/es/table/interface';
 import { SetStateAction } from 'react';
 import FilterStringSelectMenu from './filters/FilterStringSelectMenu';
+import FilterTags from './filters/FilterTags';
 
 export interface DataType {
     key: React.Key;
@@ -187,7 +188,14 @@ const columns = (
             key: 'tags',
             sorter: true,
             apiCol: 'tags',
-            width: 220
+            width: 220,
+            filterDropdown: (props) => (
+                <FilterTags
+                    {...props}
+                    filters={filters as ColumnFilterItem[] & TransactionsFilters}
+                    setFilters={setFilters}
+                />
+            )
         },
         {
             title: 'Cost',

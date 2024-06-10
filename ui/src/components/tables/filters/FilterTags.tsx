@@ -1,14 +1,20 @@
-import { SetStateAction } from 'react';
+import { SetStateAction, useEffect } from 'react';
 import { TransactionsFilters } from '../../../api/types';
-import { Select, Tag } from 'antd';
+import { Button, Divider, Flex, Select, Tag } from 'antd';
+import { FilterDropdownProps } from 'antd/es/table/interface';
 
 interface Props {
-    defaultValue: string;
+    filters: TransactionsFilters;
     setFilters: (args: SetStateAction<TransactionsFilters>) => void;
-    setTags: (tags: string) => void;
 }
 
-const FilterTags: React.FC<Props> = ({ defaultValue, setFilters, setTags }) => {
+const FilterTags: React.FC<FilterDropdownProps & Props> = ({
+    setSelectedKeys,
+    selectedKeys,
+    confirm,
+    setFilters,
+    filters
+}) => {
     const options = [
         {
             value: 'tag1'
@@ -29,32 +35,55 @@ const FilterTags: React.FC<Props> = ({ defaultValue, setFilters, setTags }) => {
             value: 'tag6'
         }
     ];
-    const defaults: typeof options = [];
-    if (defaultValue.length > 0)
-        defaultValue.split(',').map((el) => {
-            defaults.push({ value: el });
-        });
+    useEffect(() => {
+        if (filters.tags) setSelectedKeys(filters.tags.split(','));
+    }, [filters.tags]);
     return (
-        <Select
-            mode="tags"
-            allowClear
-            style={{ width: 250 }}
-            tagRender={({ value, closable, onClose }) => {
-                return (
-                    <Tag color="blue" closable={closable} onClose={onClose}>
-                        {value}
-                    </Tag>
-                );
-            }}
-            onChange={(e) => {
-                const tags = e.join(',');
-                setFilters((old) => ({ ...old, tags }));
-                setTags(tags);
-            }}
-            placeholder="Select tags"
-            defaultValue={defaults}
-            options={options}
-        />
+        <Flex vertical>
+            <Select
+                mode="tags"
+                className="m-1"
+                allowClear
+                style={{ width: 250 }}
+                tagRender={({ value, closable, onClose }) => {
+                    return (
+                        <Tag color="blue" closable={closable} onClose={onClose}>
+                            {value}
+                        </Tag>
+                    );
+                }}
+                onChange={setSelectedKeys}
+                placeholder="Select tags"
+                defaultValue={filters.tags ? filters.tags.split(',') : []}
+                value={selectedKeys}
+                options={options}
+                placement="topLeft"
+            />
+            <Divider className="my-1" />
+            <Flex justify="space-between" className="my-2 mx-2">
+                <Button
+                    type="text"
+                    size="small"
+                    onClick={() => setSelectedKeys([])}
+                    disabled={!selectedKeys.length}
+                >
+                    Reset
+                </Button>
+                <Button
+                    type="primary"
+                    size="small"
+                    onClick={() => {
+                        setFilters((prevFilters) => ({
+                            ...prevFilters,
+                            tags: selectedKeys.join(',')
+                        }));
+                        confirm();
+                    }}
+                >
+                    Save
+                </Button>
+            </Flex>
+        </Flex>
     );
 };
 export default FilterTags;
