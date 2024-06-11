@@ -13,13 +13,15 @@ interface Props {
     onSubmit: (values: (typeof FormikValuesTemplate.ai_providers)[0]) => void;
     slugForProxy: string;
     formId: string;
+    showSubmitButton?: boolean;
 }
 
 const ProviderEditableElement: React.FC<Props> = ({
     initialValues,
     onSubmit,
     formId,
-    slugForProxy
+    slugForProxy,
+    showSubmitButton = true
 }) => {
     const formik = useFormik({
         initialValues: initialValues,
@@ -116,15 +118,17 @@ const ProviderEditableElement: React.FC<Props> = ({
                     />
                 </Form.Item>
             </Form>
-            <Button
-                className="me-auto"
-                type="dashed"
-                icon={<UpSquareOutlined />}
-                htmlType="submit"
-                form={formId}
-            >
-                Update AI Provider
-            </Button>
+            {showSubmitButton && (
+                <Button
+                    className="me-auto"
+                    type="dashed"
+                    icon={<UpSquareOutlined />}
+                    htmlType="submit"
+                    form={formId}
+                >
+                    Update AI Provider
+                </Button>
+            )}
         </>
     );
 };

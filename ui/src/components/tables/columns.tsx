@@ -2,10 +2,11 @@ import { ArrowRightOutlined } from '@ant-design/icons';
 import { Badge, Button, Divider, Flex, Menu, Tooltip } from 'antd';
 import { ColumnProps } from 'antd/es/table';
 import { TransactionsFilters } from '../../api/types';
-import { useGetAllProjects, useGetProviders } from '../../api/queries';
+import { useGetAllProjects, useGetModels, useGetProviders } from '../../api/queries';
 import { ColumnFilterItem } from 'antd/es/table/interface';
 import { SetStateAction } from 'react';
 import FilterStringSelectMenu from './filters/FilterStringSelectMenu';
+import FilterTags from './filters/FilterTags';
 
 export interface DataType {
     key: React.Key;
@@ -169,7 +170,17 @@ const columns = (
             key: 'model',
             sorter: true,
             apiCol: 'model',
-            width: 220
+            width: 220,
+            filterDropdown: (props) => (
+                <FilterStringSelectMenu
+                    {...props}
+                    filters={filters as ColumnFilterItem[] & TransactionsFilters}
+                    setFilters={setFilters}
+                    query={{ hook: useGetModels, label: 'model_name' }}
+                    target="providers"
+                    multiselect={true}
+                />
+            )
         },
         {
             title: 'Tags',
@@ -177,7 +188,14 @@ const columns = (
             key: 'tags',
             sorter: true,
             apiCol: 'tags',
-            width: 220
+            width: 220,
+            filterDropdown: (props) => (
+                <FilterTags
+                    {...props}
+                    filters={filters as ColumnFilterItem[] & TransactionsFilters}
+                    setFilters={setFilters}
+                />
+            )
         },
         {
             title: 'Cost',

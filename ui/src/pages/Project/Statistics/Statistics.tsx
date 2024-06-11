@@ -51,19 +51,19 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                             options.push(Period.Monthly);
                         break;
                     case 2: // week
-                        if (end.diff(start, 'w', true) >= 1 && end.diff(start, 'M', true) <= 6)
+                        if (end.diff(start, 'w', true) >= 1 && end.diff(start, 'M', true) <= 12)
                             options.push(Period.Weekly);
                         break;
                     case 3: // day
-                        if (end.diff(start, 'd', true) >= 1 && end.diff(start, 'M', true) <= 1)
+                        if (end.diff(start, 'd', true) >= 1 && end.diff(start, 'M', true) <= 2)
                             options.push(Period.Daily);
                         break;
                     case 4: // hour
-                        if (end.diff(start, 'h', true) >= 1 && end.diff(start, 'h', true) <= 24)
+                        if (end.diff(start, 'h', true) >= 1 && end.diff(start, 'h', true) <= 60)
                             options.push(Period.Hourly);
                         break;
                     case 5: // minutes
-                        if (end.diff(start, 'h', true) <= 2) options.push(Period.Minutely);
+                        if (end.diff(start, 'h', true) <= 5) options.push(Period.Minutely);
                         break;
                     default:
                         break;

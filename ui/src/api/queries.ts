@@ -15,7 +15,8 @@ import {
     getStatisticsTransactionsSpeed,
     getLoggedUser,
     getUsers,
-    getConfig
+    getConfig,
+    getModels
 } from './interfaces';
 import { StatisticsParams, TransactionsFilters } from './types';
 import { notification } from 'antd';
@@ -243,6 +244,14 @@ export const useWhoami = (): UseQueryResult<AxiosResponse<getLoggedUser>, AxiosE
 };
 export const useGetUsers = (): UseQueryResult<AxiosResponse<getUsers[]>, AxiosError> => {
     return useQuery('users', async () => await api.getUsers(), {
+        staleTime: Infinity,
+        retry: false,
+        cacheTime: 0,
+        refetchOnWindowFocus: false
+    });
+};
+export const useGetModels = (): UseQueryResult<getModels[], AxiosError> => {
+    return useQuery('models', async () => (await api.getModels()).data, {
         staleTime: Infinity,
         retry: false,
         cacheTime: 0,

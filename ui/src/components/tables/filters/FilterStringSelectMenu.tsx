@@ -59,6 +59,7 @@ const FilterStringSelectMenu: React.FC<
                 />
                 <div className="max-h-[150px] overflow-y-auto overflow-x-hidden">
                     <Menu
+                        className="!max-h-full"
                         items={
                             strings.isError
                                 ? [
