@@ -537,9 +537,10 @@ class TransactionParamExtractor:
         if "usage" in self.response_content:
             transaction_params.add_input_tokens(
                 self.response_content["usage"].get("prompt_tokens", 0)
-            ).add_output_tokens(
-                self.response_content["usage"].get("completion_tokens", 0)
             )
+            output_tokens = self.response_content["usage"].get("completion_tokens", 0)
+            output_tokens += self.response_content["usage"].get("total_tokens", 0)
+            transaction_params.add_output_tokens(output_tokens)
 
         if self.pattern == "Azure Embeddings":
             extracted = self._extract_from_azure_embeddings()
