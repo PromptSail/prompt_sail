@@ -118,10 +118,10 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                                     ? `$ ${tr.total_cost.toFixed(4)}`
                                     : 'null',
                             tokens:
-                                tr.status_code < 300 ? (
+                                tr.status_code < 300 && tr.total_tokens !== null ? (
                                     <span>
                                         {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens}{' '}
-                                        (Σ {tr.response.content.usage.total_tokens})
+                                        (Σ {tr.total_tokens})
                                     </span>
                                 ) : (
                                     <span>null</span>

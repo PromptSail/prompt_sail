@@ -62,6 +62,7 @@ export interface getTransactionResponse {
     os: string | null;
     input_tokens: number | null;
     output_tokens: number | null;
+    total_tokens: number | null;
     library: string;
     status_code: number;
     messages:
