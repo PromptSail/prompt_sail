@@ -46,13 +46,13 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                 (item) => item.deployment_name === name
                             );
                             const cancelItem = items[index];
-                            setItems((prevItems) =>
-                                prevState.map((el, id) =>
+                            setItems((prevItems) => {
+                                const newItems = prevState.map((el, id) =>
                                     id !== index
                                         ? prevItems[id]
                                         : {
                                               ...prevItems[index],
-                                              collapsible: 'disabled',
+                                              collapsible: 'disabled' as CollapsibleType,
                                               label: (
                                                   <Flex justify="space-between">
                                                       <Title level={2} className="h5 m-0 lh-0">
@@ -114,8 +114,14 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                   />
                                               )
                                           }
-                                )
-                            );
+                                );
+                                setActiveKeys(
+                                    newItems
+                                        .filter((el) => el.collapsible === 'disabled')
+                                        .map((el) => el.key as number)
+                                );
+                                return newItems;
+                            });
                             return prevState;
                         });
                     }}
