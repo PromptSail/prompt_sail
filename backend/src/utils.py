@@ -105,12 +105,7 @@ def create_transaction_query_from_filters(
     if status_codes is not None:
         for code in status_codes:
             if code % 100 == 0:
-                or_conditions.append({
-                    "status_code": {
-                        "$gte": code,
-                        "$lt": code + 100
-                    }
-                })
+                or_conditions.append({"status_code": {"$gte": code, "$lt": code + 100}})
     if providers is not None:
         query["provider"] = {"$in": providers}
     if models is not None:
