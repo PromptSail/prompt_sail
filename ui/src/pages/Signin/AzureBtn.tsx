@@ -31,7 +31,7 @@ const AzureBtn: React.FC<{ onOk: (arg: string) => void }> = ({ onOk }) => {
         <Button
             type="primary"
             size="large"
-            className="w-full mt-3"
+            className="w-full"
             icon={<WindowsFilled />}
             onClick={handleClick}
         >
