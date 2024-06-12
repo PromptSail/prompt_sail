@@ -1,3 +1,4 @@
+import base64
 import json
 import random
 import re
@@ -105,12 +106,7 @@ def create_transaction_query_from_filters(
     if status_codes is not None:
         for code in status_codes:
             if code % 100 == 0:
-                or_conditions.append({
-                    "status_code": {
-                        "$gte": code,
-                        "$lt": code + 100
-                    }
-                })
+                or_conditions.append({"status_code": {"$gte": code, "$lt": code + 100}})
     if providers is not None:
         query["provider"] = {"$in": providers}
     if models is not None:
@@ -225,11 +221,34 @@ class TransactionParamExtractor:
         self.request_headers = parse_headers_to_dict(
             request.__dict__["headers"].__dict__["_list"]
         )
-        self.request_content = json.loads(request.__dict__["_content"].decode("utf8"))
+        self.request_content = self._decode_request_content(request)
+
         self.response = response
         self.response_content = response_content
         self.url = str(getattr(request, "url", ""))
         self.pattern = self._detect_pattern(self.url)
+
+    @staticmethod
+    def _decode_request_content(request):
+        try:
+            return json.loads(request.__dict__["_content"].decode("utf8"))
+        except UnicodeDecodeError:
+            data = {}
+            parts = request.__dict__["_content"].split(
+                request.__dict__["_content"].split(b"\r\n")[0]
+            )[:-1]
+            photo_part = parts[-1]
+            parts = parts[:-1]
+
+            for part in parts:
+                if part:
+                    part = part.strip().split(b"; ")[1]
+                    header, value = part.split(b"\r\n\r\n")
+                    header = header.split(b"=")[1].replace(b'"', b"").decode("utf-8")
+                    data[header] = value.decode("utf-8")
+            photo_bytes = photo_part.split(b"\r\n\r\n")[1]
+            data["image"] = base64.b64encode(photo_bytes).decode("utf-8")
+            return data
 
     @staticmethod
     def _detect_pattern(url):
@@ -239,6 +258,7 @@ class TransactionParamExtractor:
             "OpenAI Chat Completions": r".*api\.openai\.com.*chat.*completions.*",
             "OpenAI Completions": r".*api\.openai\.com(?!.*chat).*\/completions.*",
             "OpenAI Embeddings": r".*api\.openai\.com.*embeddings.*",
+            "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
         }
@@ -401,6 +421,38 @@ class TransactionParamExtractor:
 
         return extracted
 
+    def _extract_from_openai_images_variations(self) -> dict:
+        extracted = {
+            "type": "images variations",
+            "provider": "OpenAI",
+            "prompt": self.request_content["image"],
+            "model": self.request_content["model"],
+        }
+        messages = [{"role": "user", "content": self.request_content["image"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
+        else:
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "\n".join(
+                        [data["url"] for data in self.response_content["data"]]
+                    ),
+                }
+            )
+            extracted["messages"] = messages
+            extracted["last_message"] = "\n".join(
+                [data["url"] for data in self.response_content["data"]]
+            )
+
+        return extracted
+
     def _extract_from_openai_embeddings(self):
         extracted = {"type": "embedding", "provider": "OpenAI"}
         messages = []
@@ -550,12 +602,14 @@ class TransactionParamExtractor:
             extracted = self._extract_from_openai_chat_completions()
         if self.pattern == "OpenAI Completions":
             extracted = self._extract_from_openai_completions()
-        if self.pattern == "OpenAI Embedding":
+        if self.pattern == "OpenAI Embeddings":
             extracted = self._extract_from_openai_embeddings()
         if self.pattern == "Anthropic":
             extracted = self._extract_from_anthropic()
         if self.pattern == "VertexAI":
             extracted = self._extract_from_vertexai()
+        if self.pattern == "OpenAI Images Variations":
+            extracted = self._extract_from_openai_images_variations()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
 
@@ -576,7 +630,6 @@ class TransactionParamExtractor:
             transaction_params.add_output_tokens(extracted["output_tokens"])
 
         transaction_params.add_messages(extracted["messages"])
-
         return transaction_params.build()
 
 
