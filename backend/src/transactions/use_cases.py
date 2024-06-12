@@ -238,10 +238,10 @@ def store_transaction(
         response_content["usage"] = dict(
             prompt_tokens=0, completion_tokens=0, total_tokens=0
         )
-
-    params = utils.TransactionParamExtractor(
+    param_extractor = utils.TransactionParamExtractor(
         request, response, response_content
-    ).extract()
+    )
+    params = param_extractor.extract()
 
     ai_model_version = (
         ai_model_version if ai_model_version is not None else params["model"]
@@ -288,6 +288,11 @@ def store_transaction(
     else:
         generation_speed = 0
 
+    try:
+        content = json.loads(request.content)
+    except UnicodeDecodeError:
+        content = param_extractor.request_content
+
     transaction = Transaction(
         project_id=project_id,
         request=dict(
@@ -296,7 +301,7 @@ def store_transaction(
             host=request.headers.get("host", ""),
             headers=dict(request.headers),
             extensions=dict(request.extensions),
-            content=json.loads(request.content),
+            content=content,
         ),
         response=dict(
             status_code=response.status_code,
@@ -327,7 +332,6 @@ def store_transaction(
         request_time=request_time,
         generation_speed=generation_speed,
     )
-
     transaction_repository.add(transaction)
 
 
