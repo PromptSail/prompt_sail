@@ -9,6 +9,7 @@ const GoogleBtn: React.FC<{ onOk: (arg: string) => void; width: number }> = ({ o
             onError={() => console.error('Google - login failed')}
             width={width}
             theme="filled_blue"
+            size="large"
         />
     );
 };
