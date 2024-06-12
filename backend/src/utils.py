@@ -550,7 +550,7 @@ class TransactionParamExtractor:
             extracted = self._extract_from_openai_chat_completions()
         if self.pattern == "OpenAI Completions":
             extracted = self._extract_from_openai_completions()
-        if self.pattern == "OpenAI Embedding":
+        if self.pattern == "OpenAI Embeddings":
             extracted = self._extract_from_openai_embeddings()
         if self.pattern == "Anthropic":
             extracted = self._extract_from_anthropic()
