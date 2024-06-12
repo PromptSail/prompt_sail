@@ -9,15 +9,14 @@ import {
     EditOutlined,
     FileAddOutlined
 } from '@ant-design/icons';
-import { useEffect, useState } from 'react';
+import { isValidElement, useContext, useEffect, useState } from 'react';
+import { Context } from '../../context/Context';
 import { CollapsibleType } from 'antd/es/collapse/CollapsePanel';
 import { ItemType } from 'rc-collapse/es/interface';
 import AddProviderContainer from './AddProviderContainer';
 import { FormikValuesTemplate } from '../../components/ProjectForms/types';
 import ProviderEditableElement from '../../components/ProjectForms/ProviderDetails/ProvidersEditableElement';
 const { Text, Title, Paragraph } = Typography;
-
-import React from 'react';
 
 interface Props {
     list: getProjectResponse['ai_providers'];
@@ -27,6 +26,7 @@ interface Props {
 
 const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...rest }) => {
     const { token } = theme.useToken();
+    const { modal } = useContext(Context);
     const [collapseTrigger, setcollapseTrigger] = useState<CollapsibleType>('header');
     const ItemLabel = (name: string) => (
         <Flex justify="space-between" {...rest}>
@@ -103,7 +103,13 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                                                 )
                                                                             }
                                                               );
-                                                              setItems(CollapseItems(newList));
+                                                              setItems((prevItems) =>
+                                                                  newList.map((el, id) =>
+                                                                      id === index
+                                                                          ? CollapseItem(el, id)
+                                                                          : prevItems[id]
+                                                                  )
+                                                              );
                                                               onUpdateProviders(newList);
                                                               return newList;
                                                           });
@@ -135,14 +141,42 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                     onMouseEnter={() => setcollapseTrigger('icon')}
                     onMouseLeave={() => setcollapseTrigger('header')}
                     onClick={() => {
-                        setProviders((prevState) => {
-                            const newList = prevState.filter(
-                                (item) => item.deployment_name !== name
-                            );
-                            setItems(CollapseItems(newList));
-                            onUpdateProviders(newList);
-                            return newList;
-                        });
+                        if (modal)
+                            modal.confirm({
+                                title: 'Delete AI Provider',
+                                icon: <></>,
+                                content: (
+                                    <>
+                                        <Paragraph className="!m-0">
+                                            Are you sure you want to delete "{name}" AI Provider?
+                                        </Paragraph>
+                                        <Paragraph className="!m-0">
+                                            You will loose all your data.
+                                        </Paragraph>
+                                    </>
+                                ),
+                                onOk() {
+                                    const newList = providers.filter(
+                                        (el) => el.deployment_name !== name
+                                    );
+                                    setProviders(newList);
+                                    onUpdateProviders(newList);
+                                    setItems((prevItems) =>
+                                        prevItems.filter((el) => {
+                                            const childrenProps = isValidElement(el.children)
+                                                ? el.children.props
+                                                : {};
+                                            return childrenProps.el?.deployment_name !== name;
+                                        })
+                                    );
+                                },
+                                okButtonProps: {
+                                    danger: true,
+                                    icon: <DeleteOutlined />
+                                },
+                                okText: 'Delete',
+                                closable: true
+                            });
                     }}
                 />
                 <Divider type="vertical" className="h-full m-0" />
@@ -150,25 +184,27 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
         </Flex>
     );
     const [providers, setProviders] = useState(list);
-    const CollapseItems = (list: typeof FormikValuesTemplate.ai_providers) =>
-        list.map((el, item_id) => ({
-            key: item_id,
-            label: ItemLabel(el.deployment_name),
-            style: {
-                background: token.colorBgContainer,
-                // @ts-expect-error token.Collapse.colorBorder is correctly defined in /ui/src/theme-light.tsx
-                border: `1px solid ${token.Collapse.colorBorder}`,
-                borderRadius: '8px'
-            },
-            onItemClick: () => {
-                setActiveKeys((old) =>
-                    old.includes(item_id) ? old.filter((key) => key !== item_id) : [...old, item_id]
-                );
-            },
-            children: <ProviderDescription el={el} slug={slug} />
-        }));
+    const CollapseItem = (
+        elem: (typeof FormikValuesTemplate.ai_providers)[number],
+        id: number
+    ): ItemType => ({
+        key: id,
+        label: ItemLabel(elem.deployment_name),
+        style: {
+            background: token.colorBgContainer,
+            // @ts-expect-error token.Collapse.colorBorder is correctly defined in /ui/src/theme-light.tsx
+            border: `1px solid ${token.Collapse.colorBorder}`,
+            borderRadius: '8px'
+        },
+        onItemClick: () => {
+            setActiveKeys((old) =>
+                old.includes(id) ? old.filter((key) => key !== id) : [...old, id]
+            );
+        },
+        children: <ProviderDescription el={elem} slug={slug} />
+    });
 
-    const [items, setItems] = useState<ItemType[]>(CollapseItems(providers));
+    const [items, setItems] = useState<ItemType[]>(providers.map((el, id) => CollapseItem(el, id)));
     const [activeKeys, setActiveKeys] = useState<number[]>(
         items.length < 4 ? items.map((_el, id) => id) : []
     );
@@ -208,7 +244,16 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                 slug: toSlug(values.deployment_name)
                             }
                         ];
-                        setItems(CollapseItems(newList));
+                        setItems((prevItems) => [
+                            ...prevItems,
+                            CollapseItem(
+                                {
+                                    ...values,
+                                    slug: toSlug(values.deployment_name)
+                                },
+                                prevItems.length
+                            )
+                        ]);
                         onUpdateProviders(newList);
                         return newList;
                     });

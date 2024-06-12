@@ -1,7 +1,6 @@
 import { UseMutationResult, UseQueryResult, useMutation, useQuery } from 'react-query';
 import api from './api';
 import { AxiosError, AxiosResponse } from 'axios';
-import { useNavigate } from 'react-router-dom';
 import {
     getAllTransactionResponse,
     addProjectRequest,
@@ -19,7 +18,6 @@ import {
     getModels
 } from './interfaces';
 import { StatisticsParams, TransactionsFilters } from './types';
-import { notification } from 'antd';
 
 const linkParamsParser = <T extends { [key: string]: string }>(params: T): string => {
     let paramsStr = '?';
@@ -134,21 +132,11 @@ export const useUpdateProject = (): UseMutationResult<
 };
 
 export const useDeleteProject = (): UseMutationResult<AxiosResponse, AxiosError, string> => {
-    const navigate = useNavigate();
     return useMutation(
         async (id) => {
             return await api.deleteProject(id);
         },
         {
-            onSuccess: () => {
-                notification.warning({
-                    message: 'Success',
-                    description: 'Project successfully deleted',
-                    placement: 'bottomRight',
-                    duration: 5
-                });
-                navigate('/');
-            },
             onError: (err) => {
                 console.error(`${err.code}: ${err.message}`);
             }

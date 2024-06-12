@@ -118,9 +118,8 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                                         }
                                     });
                                     notification?.success({
-                                        message: 'Success',
-                                        description: 'Providers successfully updated',
-                                        placement: 'bottomRight',
+                                        message: 'Changes saved!',
+                                        placement: 'topRight',
                                         duration: 5
                                     });
                                 }}

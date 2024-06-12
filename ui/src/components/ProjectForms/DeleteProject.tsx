@@ -3,6 +3,7 @@ import { Button, Typography } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Context } from '../../context/Context';
 import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const { Paragraph } = Typography;
 
@@ -13,6 +14,7 @@ interface Props {
 
 const DeleteProject: React.FC<Props> = ({ name, projectId }) => {
     const { notification, modal } = useContext(Context);
+    const navigate = useNavigate();
     const deleteProject = useDeleteProject();
     return (
         <Button
@@ -28,7 +30,9 @@ const DeleteProject: React.FC<Props> = ({ name, projectId }) => {
                                 <Paragraph className="!m-0">
                                     Are you sure you want to delete "{name}" project?
                                 </Paragraph>
-                                <Paragraph className="!m-0">You will looseall your data.</Paragraph>
+                                <Paragraph className="!m-0">
+                                    You will loose all your data.
+                                </Paragraph>
                             </>
                         ),
                         onOk() {
@@ -40,6 +44,7 @@ const DeleteProject: React.FC<Props> = ({ name, projectId }) => {
                                         duration: 5
                                     });
                             });
+                            navigate('/');
                         },
                         okButtonProps: {
                             danger: true,
