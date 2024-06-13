@@ -237,8 +237,16 @@ class TransactionParamExtractor:
             parts = request.__dict__["_content"].split(
                 request.__dict__["_content"].split(b"\r\n")[0]
             )[:-1]
-            photo_part = parts[-1]
-            parts = parts[:-1]
+
+            if b"mask" not in request.__dict__["_content"]:
+                photo_part = parts[-1]
+                parts = parts[:-1]
+            else:
+                mask_part = parts[-1]
+                photo_part = parts[-2]
+                parts = parts[:-2]
+                mask_bytes = mask_part.split(b"\r\n\r\n")[1]
+                data["mask"] = base64.b64encode(mask_bytes).decode("utf-8")
 
             for part in parts:
                 if part:
@@ -246,8 +254,10 @@ class TransactionParamExtractor:
                     header, value = part.split(b"\r\n\r\n")
                     header = header.split(b"=")[1].replace(b'"', b"").decode("utf-8")
                     data[header] = value.decode("utf-8")
+
             photo_bytes = photo_part.split(b"\r\n\r\n")[1]
             data["image"] = base64.b64encode(photo_bytes).decode("utf-8")
+
             return data
 
     @staticmethod
@@ -260,6 +270,7 @@ class TransactionParamExtractor:
             "OpenAI Embeddings": r".*api\.openai\.com.*embeddings.*",
             "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
             "OpenAI Image Generations": r".*api\.openai\.com.*images.*generations.*",
+            "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
         }
@@ -453,7 +464,7 @@ class TransactionParamExtractor:
             )
 
         return extracted
-    
+
     def _extract_from_openai_images_generations(self) -> dict:
         extracted = {
             "type": "images generations",
@@ -483,7 +494,45 @@ class TransactionParamExtractor:
             extracted["last_message"] = "\n".join(
                 [data["url"] for data in self.response_content["data"]]
             )
-        
+
+        return extracted
+
+    def _extract_from_openai_images_edit(self) -> dict:
+        extracted = {
+            "type": "images edits",
+            "provider": "OpenAI",
+            "prompt": self.request_content["prompt"],
+            "model": self.request_content["model"],
+        }
+        messages = [
+            {
+                "role": "user",
+                "content": self.request_content["prompt"],
+                "image": self.request_content["image"],
+                "mask": self.request_content["mask"],
+            }
+        ]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
+        else:
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "\n".join(
+                        [data["url"] for data in self.response_content["data"]]
+                    ),
+                }
+            )
+            extracted["messages"] = messages
+            extracted["last_message"] = "\n".join(
+                [data["url"] for data in self.response_content["data"]]
+            )
         return extracted
 
     def _extract_from_openai_embeddings(self):
@@ -645,6 +694,8 @@ class TransactionParamExtractor:
             extracted = self._extract_from_openai_images_variations()
         if self.pattern == "OpenAI Image Generations":
             extracted = self._extract_from_openai_images_generations()
+        if self.pattern == "OpenAI Image Edits":
+            extracted = self._extract_from_openai_images_edit()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
 
