@@ -4,7 +4,7 @@ import { Context } from '../../context/Context';
 import api from '../../api/api';
 import { useFormikContext } from 'formik';
 import { FormikValuesTemplate } from './types';
-import defAvatar from '../../assets/logo/symbol-white.svg';
+import DefaultAvatar from '../DefaultAvatar/DefaultAvatar';
 const { Text } = Typography;
 
 interface Props extends SelectProps {}
@@ -89,14 +89,7 @@ const UserComponent: React.FC<{ img: string | null; label: string }> = ({ img, l
                     className="w-[32px] h-[32px] rounded-full"
                 />
             ) : (
-                // <iframe src={img} />
-                <div className="w-[32px] h-[32px] bg-Primary/colorPrimary rounded-full relative my-auto">
-                    <img
-                        src={defAvatar}
-                        alt={`avatar_${label}`}
-                        className="w-[21px] h-[21px] absolute top-[14%] left-[13%]"
-                    />
-                </div>
+                <DefaultAvatar />
             )}
 
             <Text className="my-auto">{label}</Text>
