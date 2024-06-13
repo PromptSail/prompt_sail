@@ -16,15 +16,34 @@ const UserSelect: React.FC<Props> = ({ ...rest }) => {
     useEffect(() => {
         if (config !== null) {
             if (config.authorization) {
-                api.getUsers().then((data) => {
-                    setOptions(
-                        data.data.map((user) => ({
-                            label: <UserComponent img={user.picture} label={user.email} />,
-                            value: user.email
-                        }))
-                    );
-                    setFieldValue('owner', data.data[0].email);
-                });
+                if (values.owner !== '__UPDATE__')
+                    api.getUsers().then((data) => {
+                        setOptions(() => {
+                            const list = data.data.map((user) => ({
+                                label: <UserComponent img={user.picture} label={user.email} />,
+                                value: user.email
+                            }));
+                            if (values.owner.length > 0) {
+                                if (list.map((item) => item.value).includes(values.owner)) {
+                                    const owner = list.filter(
+                                        (item) => item.value === values.owner
+                                    )[0];
+                                    const rest = list.filter((item) => item.value !== owner.value);
+                                    list.splice(0, list.length);
+                                    list.push(owner, ...rest);
+                                } else
+                                    list.unshift({
+                                        label: <UserComponent img={''} label={values.owner} />,
+                                        value: values.owner
+                                    });
+                            }
+                            return list;
+                        });
+                        setFieldValue(
+                            'owner',
+                            !values.owner.length ? data.data[0].email : values.owner
+                        );
+                    });
             } else {
                 api.whoami().then((data) => {
                     setOptions(() => [
@@ -39,7 +58,7 @@ const UserSelect: React.FC<Props> = ({ ...rest }) => {
                 });
             }
         }
-    }, [config]);
+    }, [config, values]);
     return (
         <Select
             {...rest}

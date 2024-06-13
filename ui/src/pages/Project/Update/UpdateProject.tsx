@@ -45,7 +45,7 @@ const UpdateProject: React.FC = () => {
         }
     }, [project.status]);
     const formikDetails = useFormik({
-        initialValues: FormikValuesTemplate,
+        initialValues: { ...FormikValuesTemplate, owner: '__UPDATE__' },
         onSubmit: async (values) => {
             submit(values);
         },
