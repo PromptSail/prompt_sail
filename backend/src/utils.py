@@ -259,6 +259,7 @@ class TransactionParamExtractor:
             "OpenAI Completions": r".*api\.openai\.com(?!.*chat).*\/completions.*",
             "OpenAI Embeddings": r".*api\.openai\.com.*embeddings.*",
             "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
+            "OpenAI Image Generations": r".*api\.openai\.com.*images.*generations.*",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
         }
@@ -452,6 +453,38 @@ class TransactionParamExtractor:
             )
 
         return extracted
+    
+    def _extract_from_openai_images_generations(self) -> dict:
+        extracted = {
+            "type": "images generations",
+            "provider": "OpenAI",
+            "prompt": self.request_content["prompt"],
+            "model": self.request_content["model"],
+        }
+        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
+        else:
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "\n".join(
+                        [data["url"] for data in self.response_content["data"]]
+                    ),
+                }
+            )
+            extracted["messages"] = messages
+            extracted["last_message"] = "\n".join(
+                [data["url"] for data in self.response_content["data"]]
+            )
+        
+        return extracted
 
     def _extract_from_openai_embeddings(self):
         extracted = {"type": "embedding", "provider": "OpenAI"}
@@ -610,6 +643,8 @@ class TransactionParamExtractor:
             extracted = self._extract_from_vertexai()
         if self.pattern == "OpenAI Images Variations":
             extracted = self._extract_from_openai_images_variations()
+        if self.pattern == "OpenAI Image Generations":
+            extracted = self._extract_from_openai_images_generations()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
 
