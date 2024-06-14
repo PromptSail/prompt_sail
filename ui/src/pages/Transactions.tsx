@@ -52,14 +52,15 @@ const Transactions = () => {
                     <div className="my-auto z-10">
                         <Title level={1} className="h4 m-auto">
                             Transactions{' '}
-                            {transactions.isSuccess
-                                ? `(${transactions.data.data.total_elements})`
-                                : `(An error has occurred ${(
-                                      <>
-                                          {console.log(transactions.error)}
-                                          {transactions.error?.code}
-                                      </>
-                                  )})`}
+                            {transactions.isSuccess ? (
+                                `(${transactions.data.data.total_elements})`
+                            ) : (
+                                <>
+                                    {console.error(transactions.error)}
+                                    {console.error(transactions.error?.message)}
+                                    <span>(An error has occurred {transactions.error?.code})</span>
+                                </>
+                            )}
                         </Title>
                     </div>
                 )}

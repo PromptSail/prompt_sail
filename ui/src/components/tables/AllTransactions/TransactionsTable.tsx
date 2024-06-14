@@ -31,7 +31,7 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
     useEffect(() => {
         if (transactions.isError) {
             console.error(transactions.error);
-            alert(`${transactions.error.code}: ${transactions.error.message}`);
+            setLoading(true);
         }
         if (transactions.isLoading) {
             setLoading(true);
