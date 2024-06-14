@@ -1,6 +1,6 @@
-import SyntaxHighlighter from 'react-syntax-highlighter';
+import { LightAsync } from 'react-syntax-highlighter';
 import { getTransactionResponse } from '../../api/interfaces';
-import * as styles from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { Collapse, CollapseProps, Typography, theme } from 'antd';
 import Container from '../../components/Container/Container';
 
@@ -26,9 +26,9 @@ const JSONformat: React.FC<Props> = ({ data }) => {
             ),
             style: itemStyle,
             children: (
-                <SyntaxHighlighter language="python" style={styles.atomOneDark}>
+                <LightAsync language="json" style={atomOneDark}>
                     {JSON.stringify(data.request, null, 4)}
-                </SyntaxHighlighter>
+                </LightAsync>
             )
         },
         {
@@ -40,9 +40,9 @@ const JSONformat: React.FC<Props> = ({ data }) => {
             ),
             style: itemStyle,
             children: (
-                <SyntaxHighlighter language="python" style={styles.atomOneDark}>
+                <LightAsync language="json" style={atomOneDark}>
                     {JSON.stringify(data.response, null, 4)}
-                </SyntaxHighlighter>
+                </LightAsync>
             )
         }
     ];
@@ -50,12 +50,12 @@ const JSONformat: React.FC<Props> = ({ data }) => {
         <>
             <Container>
                 <div>
-                    <SyntaxHighlighter language="python" style={styles.atomOneDark}>
+                    <LightAsync language="json" style={atomOneDark}>
                         {`request_time: ${JSON.stringify(data.request_time, null, 4)},
 response_time: ${JSON.stringify(data.response_time, null, 4)},
 status_code: ${JSON.stringify(data.response.status_code, null, 4)},
 processing_time: ${JSON.stringify(data.response.elapsed, null, 4)}`}
-                    </SyntaxHighlighter>
+                    </LightAsync>
                 </div>
             </Container>
             <Collapse

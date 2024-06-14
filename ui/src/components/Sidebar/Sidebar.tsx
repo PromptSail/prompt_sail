@@ -6,18 +6,16 @@ import { checkLogin } from '../../storage/login';
 import {
     HistoryOutlined,
     LeftSquareOutlined,
-    // LineChartOutlined,
     LogoutOutlined,
     QuestionCircleOutlined,
     RightSquareOutlined,
     RocketOutlined
-    // UserOutlined
 } from '@ant-design/icons';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import Logo from '../../assets/logo/Logo-teal_white.svg';
 import Symbol from '../../assets/logo/symbol-teal.svg';
 import { useGetConfig, useWhoami } from '../../api/queries';
-import defAvatar from '../../assets/logo/symbol-teal.svg';
+import DefaultAvatar from '../DefaultAvatar/DefaultAvatar';
 const { Text } = Typography;
 interface Props {
     setLoginState: (arg: SetStateAction<boolean>) => void;
@@ -161,17 +159,15 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
                                                 )
                                             }
                                         >
-                                            <img
-                                                src={
-                                                    isPictureValid
-                                                        ? user.data?.data.picture
-                                                        : defAvatar
-                                                }
-                                                className={`max-w-[32px] max-h-[32px] my-auto${
-                                                    isPictureValid ? ' rounded-[50%]' : ''
-                                                }`}
-                                                alt="avatar"
-                                            />
+                                            {isPictureValid ? (
+                                                <img
+                                                    src={user.data?.data.picture}
+                                                    className={`max-w-[32px] max-h-[32px] my-autorounded-[50%]`}
+                                                    alt="avatar"
+                                                />
+                                            ) : (
+                                                <DefaultAvatar />
+                                            )}
                                         </Tooltip>
                                     );
                                 })()}

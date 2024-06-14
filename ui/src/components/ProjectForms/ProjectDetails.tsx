@@ -27,7 +27,6 @@ const ProjectDetails: React.FC<Props> = ({ formik }) => {
                     id="projectForm_details"
                     layout="vertical"
                     onSubmitCapture={formik.handleSubmit}
-                    initialValues={{ tags: formik.values.tags, name: 'asdasd' }}
                     onFinishFailed={() => console.log(formik.errors)}
                     autoComplete="on"
                     noValidate={true}

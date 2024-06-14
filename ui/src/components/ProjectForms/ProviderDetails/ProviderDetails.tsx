@@ -1,14 +1,15 @@
 import { Button, Collapse, CollapseProps, Divider, Flex, Typography, theme } from 'antd';
 import { FormikValuesTemplate } from '../types';
-import { SetStateAction, useState } from 'react';
+import { SetStateAction, useContext, useState } from 'react';
 import { toSlug } from '../../../helpers/aiProvider';
 import { DeleteOutlined, DownOutlined, PlusSquareOutlined } from '@ant-design/icons';
 import ProviderEditableElement from './ProvidersEditableElement';
 import { CollapsibleType } from 'antd/es/collapse/CollapsePanel';
 import ProviderForm from './ProviderForm';
 import Container from '../../Container/Container';
+import { Context } from '../../../context/Context';
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 interface Props {
     projectDetails: typeof FormikValuesTemplate;
@@ -17,6 +18,7 @@ interface Props {
 
 const ProviderDetails: React.FC<Props> = ({ setProjectDetails, projectDetails }) => {
     const { token } = theme.useToken();
+    const { modal } = useContext(Context);
     const [collapseTrigger, setcollapseTrigger] = useState<CollapsibleType>('header');
     const items: CollapseProps['items'] = projectDetails.ai_providers.map((el, item_id) => ({
         key: item_id,
@@ -30,10 +32,37 @@ const ProviderDetails: React.FC<Props> = ({ setProjectDetails, projectDetails })
                         icon={<DeleteOutlined />}
                         size="small"
                         onClick={() => {
-                            const newAiProviders = projectDetails.ai_providers.filter(
-                                (_el, id) => id !== item_id
-                            );
-                            setProjectDetails((old) => ({ ...old, ai_providers: newAiProviders }));
+                            if (modal)
+                                modal.confirm({
+                                    title: 'Delete AI Provider',
+                                    icon: <></>,
+                                    content: (
+                                        <>
+                                            <Paragraph className="!m-0">
+                                                Are you sure you want to delete "
+                                                {el.deployment_name}" AI Provider?
+                                            </Paragraph>
+                                            <Paragraph className="!m-0">
+                                                You will loose all your data.
+                                            </Paragraph>
+                                        </>
+                                    ),
+                                    onOk() {
+                                        const newAiProviders = projectDetails.ai_providers.filter(
+                                            (_el, id) => id !== item_id
+                                        );
+                                        setProjectDetails((old) => ({
+                                            ...old,
+                                            ai_providers: newAiProviders
+                                        }));
+                                    },
+                                    okButtonProps: {
+                                        danger: true,
+                                        icon: <DeleteOutlined />
+                                    },
+                                    okText: 'Delete',
+                                    closable: true
+                                });
                         }}
                         type="text"
                         onMouseEnter={() => setcollapseTrigger('icon')}
@@ -96,7 +125,7 @@ const ProviderDetails: React.FC<Props> = ({ setProjectDetails, projectDetails })
                 />
             )}
             <Container>
-                <Title level={2} className="h5 m-0 px-[24px] py-[16px]">
+                <Title level={2} className="h5 m-0 pt-0 px-[24px] py-[16px]">
                     Project details
                 </Title>
                 <ProviderForm

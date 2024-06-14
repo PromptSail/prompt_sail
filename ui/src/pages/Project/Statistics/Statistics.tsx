@@ -26,7 +26,7 @@ export enum Period {
 
 const Statistics: React.FC<Params> = ({ projectId }) => {
     const [dates, setDates] = useState<{ start: Dayjs | null; end: Dayjs | null }>({
-        start: dayjs().add(-30, 'd').startOf('day'),
+        start: dayjs().add(-1, 'w').startOf('day'),
         end: dayjs()
     });
     const [granularity, setGranularity] = useState<Period>(Period.Daily);
