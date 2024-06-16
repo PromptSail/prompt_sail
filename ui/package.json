@@ -15,7 +15,7 @@
         "@ant-design/icons": "^5.3.1",
         "@azure/msal-browser": "^3.13.0",
         "@react-oauth/google": "^0.12.1",
-        "antd": "^5.14.2",
+        "antd": "^5.17.3",
         "axios": "^1.6.2",
         "d3-scale-chromatic": "^3.1.0",
         "dotenv": "^16.3.1",

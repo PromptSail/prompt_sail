@@ -144,13 +144,20 @@ Backend Service (API) by default should be operational at [http://localhost:8000
       - "8000:8000"
     environment:
       BASE_URL: "http://localhost:8000"
-      STATIC_DIRECTORY: "/static"
       MONGO_URL: "mongodb://root:password@mongodb:27017"
-      ORGANIZATION_NAME: "Default"
+      ORGANIZATION_NAME: "PromptSail"
       ADMIN_PASSWORD: "password"
+      DEBUG: "True"
+      SSO_AUTH: "True"
+      GOOGLE_CLIENT_ID: "xxx-xxx.apps.googleusercontent.com"
+      AZURE_CLIENT_ID="xxx-xx-xx-xx-xxx"
+      
 ```
 
-Be shure to check the `BASE_URL` and `MONGO_URL` environment variables. The `BASE_URL` should be set and is needed by UI, and the `MONGO_URL` should point to the MongoDB service, by default uses `root`:`password` credentials.
+Be sure to check the `BASE_URL` and `MONGO_URL` environment variables. The `BASE_URL` should be set and is needed by UI, and the `MONGO_URL` should point to the MongoDB service, by default uses `root`:`password` credentials.
+The `ORGANIZATION_NAME` is your Organization name displayed on frontend, and it is "PromptSail" by default. `DEBUG` don't need to be set, it is False by default. Debug mode provides returning error messages as response when request has an error.
+If you don't want to provide SSO authentication then set `SSO_AUTH` as false, and don't provide any `GOOGLE_CLIENT_ID` or `AZURE_CLIENT_ID`. 
+By default, if the value `SSO_AUTH` is true then one of the values `GOOGLE_CLIENT_ID` or `AZURE_CLIENT_ID` must be given. Here you can find how to get one of this variables: [SSO Configuration Guide](docs/sso-configuration/)
 
 
 

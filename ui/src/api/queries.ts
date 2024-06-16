@@ -1,7 +1,6 @@
 import { UseMutationResult, UseQueryResult, useMutation, useQuery } from 'react-query';
 import api from './api';
 import { AxiosError, AxiosResponse } from 'axios';
-import { useNavigate } from 'react-router-dom';
 import {
     getAllTransactionResponse,
     addProjectRequest,
@@ -12,10 +11,13 @@ import {
     getProviders,
     getStatisticsTransactionsCount,
     getStatisticsTransactionsCost,
-    getStatisticsTransactionsSpeed
+    getStatisticsTransactionsSpeed,
+    getLoggedUser,
+    getUsers,
+    getConfig,
+    getModels
 } from './interfaces';
 import { StatisticsParams, TransactionsFilters } from './types';
-import { notification } from 'antd';
 
 const linkParamsParser = <T extends { [key: string]: string }>(params: T): string => {
     let paramsStr = '?';
@@ -105,14 +107,6 @@ export const useAddProject = (): UseMutationResult<
             return await api.addProject(data);
         },
         {
-            onSuccess: () => {
-                notification.success({
-                    message: 'Success',
-                    description: 'Project successfully added',
-                    placement: 'bottomRight',
-                    duration: 5
-                });
-            },
             onError: (err) => {
                 console.error(`${err.code}: ${err.message}`);
             }
@@ -130,14 +124,6 @@ export const useUpdateProject = (): UseMutationResult<
             return await api.updateProject(id, data);
         },
         {
-            onSuccess: () => {
-                notification.success({
-                    message: 'Success',
-                    description: 'Project successfully edited',
-                    placement: 'bottomRight',
-                    duration: 5
-                });
-            },
             onError: (err) => {
                 console.error(`${err.code}: ${err.message}`);
             }
@@ -146,32 +132,22 @@ export const useUpdateProject = (): UseMutationResult<
 };
 
 export const useDeleteProject = (): UseMutationResult<AxiosResponse, AxiosError, string> => {
-    const navigate = useNavigate();
     return useMutation(
         async (id) => {
             return await api.deleteProject(id);
         },
         {
-            onSuccess: () => {
-                notification.warning({
-                    message: 'Success',
-                    description: 'Project successfully deleted',
-                    placement: 'bottomRight',
-                    duration: 5
-                });
-                navigate('/');
-            },
             onError: (err) => {
                 console.error(`${err.code}: ${err.message}`);
             }
         }
     );
 };
-export const useGetProviders = (): UseQueryResult<AxiosResponse<getProviders[]>, AxiosError> => {
+export const useGetProviders = (): UseQueryResult<getProviders[], AxiosError> => {
     return useQuery(
         'providers',
         async () => {
-            return await api.getProviders();
+            return (await api.getProviders()).data;
         },
         {
             staleTime: Infinity,
@@ -232,15 +208,7 @@ export const useGetStatistics_TransactionsSpeed = (
         }
     );
 };
-export const useGetConfig = (): UseQueryResult<
-    AxiosResponse<{
-        organization: string;
-        authorization: boolean;
-        azure_auth: boolean;
-        google_auth: boolean;
-    }>,
-    AxiosError
-> => {
+export const useGetConfig = (): UseQueryResult<AxiosResponse<getConfig>, AxiosError> => {
     return useQuery(
         'config',
         async () => {
@@ -253,4 +221,28 @@ export const useGetConfig = (): UseQueryResult<
             refetchOnWindowFocus: false
         }
     );
+};
+export const useWhoami = (): UseQueryResult<AxiosResponse<getLoggedUser>, AxiosError> => {
+    return useQuery('whoami', async () => await api.whoami(), {
+        staleTime: Infinity,
+        retry: false,
+        cacheTime: 0,
+        refetchOnWindowFocus: false
+    });
+};
+export const useGetUsers = (): UseQueryResult<AxiosResponse<getUsers[]>, AxiosError> => {
+    return useQuery('users', async () => await api.getUsers(), {
+        staleTime: Infinity,
+        retry: false,
+        cacheTime: 0,
+        refetchOnWindowFocus: false
+    });
+};
+export const useGetModels = (): UseQueryResult<getModels[], AxiosError> => {
+    return useQuery('models', async () => (await api.getModels()).data, {
+        staleTime: Infinity,
+        retry: false,
+        cacheTime: 0,
+        refetchOnWindowFocus: false
+    });
 };

@@ -10,6 +10,9 @@ export type TransactionsFilters = {
     project_id?: string;
     sort_field?: keyof getTransactionResponse | '';
     sort_type?: 'asc' | '';
+    status_codes?: string;
+    providers?: string;
+    models?: string;
 };
 
 export type StatisticsParams = {

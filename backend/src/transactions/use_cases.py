@@ -1,13 +1,14 @@
 import json
 import re
 
+import utils
 from _datetime import datetime, timezone
 from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
+from transactions.schemas import CreateTransactionSchema
 from utils import (
     count_tokens_for_streaming_response,
     create_transaction_query_from_filters,
-    req_resp_to_transaction_parser,
 )
 
 
@@ -58,8 +59,10 @@ def count_transactions(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
-    status_code: int | None = None,
     null_generation_speed: bool = True,
+    status_codes: list[str] | None = None,
+    providers: list[str] | None = None,
+    models: list[str] | None = None,
 ) -> int:
     """
     Count the number of transactions based on specified filters.
@@ -69,12 +72,21 @@ def count_transactions(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
-    :param status_code: Optional. Status code to filter transactions by.
     :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
+    :param status_codes: Optional. Status codes to filter transactions by.
+    :param providers: Providers to filter transactions by.
+    :param models: Models to filter transactions by.
     :return: The count of transactions that meet the specified filtering criteria.
     """
     query = create_transaction_query_from_filters(
-        tags, date_from, date_to, project_id, status_code, null_generation_speed
+        tags,
+        date_from,
+        date_to,
+        project_id,
+        null_generation_speed,
+        status_codes,
+        providers,
+        models,
     )
     return transaction_repository.count(query)
 
@@ -104,12 +116,15 @@ def get_all_filtered_and_paginated_transactions(
     transaction_repository: TransactionRepository,
     page: int,
     page_size: int,
-    tags: str | None = None,
+    tags: list[str] | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
     sort_field: str | None = None,
     sort_type: str | None = None,
+    status_codes: list[int] | None = None,
+    providers: list[str] | None = None,
+    models: list[str] | None = None,
 ) -> list[Transaction]:
     """
     Retrieve a paginated and filtered list of transactions based on specified criteria.
@@ -123,9 +138,14 @@ def get_all_filtered_and_paginated_transactions(
     :param project_id: Optional. Project ID to filter transactions by.
     :param sort_field: Optional. Field to sort by.
     :param sort_type: Optional. Ordering method (asc or desc).
+    :param status_codes: The transactions' status codes.
+    :param providers: The transactions' providers.
+    :param models: The transactions' models.
     :return: A paginated and filtered list of Transaction objects based on the specified criteria.
     """
-    query = create_transaction_query_from_filters(tags, date_from, date_to, project_id)
+    query = create_transaction_query_from_filters(
+        tags, date_from, date_to, project_id, True, status_codes, providers, models
+    )
     transactions = transaction_repository.get_paginated_and_filtered(
         page, page_size, query, sort_field, sort_type
     )
@@ -185,14 +205,13 @@ def store_transaction(
             )
         content = "".join(content)
         example = json.loads(chunks[0])
-        prompt = [
-            message["content"]
+        messages = [
+            message
             for message in json.loads(request.__dict__["_content"].decode("utf8"))[
                 "messages"
             ]
-            if message["role"] == "user"
-        ][::-1][0]
-        input_tokens = count_tokens_for_streaming_response(prompt, example["model"])
+        ]
+        input_tokens = count_tokens_for_streaming_response(messages, example["model"])
         output_tokens = count_tokens_for_streaming_response(content, example["model"])
         response_content = dict(
             id=example["id"],
@@ -216,12 +235,13 @@ def store_transaction(
         )
 
     if "usage" not in response_content:
-        # TODO: check why we don't get usage data with streaming response
         response_content["usage"] = dict(
             prompt_tokens=0, completion_tokens=0, total_tokens=0
         )
-
-    params = req_resp_to_transaction_parser(request, response, response_content)
+    param_extractor = utils.TransactionParamExtractor(
+        request, response, response_content
+    )
+    params = param_extractor.extract()
 
     ai_model_version = (
         ai_model_version if ai_model_version is not None else params["model"]
@@ -268,6 +288,11 @@ def store_transaction(
     else:
         generation_speed = 0
 
+    try:
+        content = json.loads(request.content)
+    except UnicodeDecodeError:
+        content = param_extractor.request_content
+
     transaction = Transaction(
         project_id=project_id,
         request=dict(
@@ -276,7 +301,7 @@ def store_transaction(
             host=request.headers.get("host", ""),
             headers=dict(request.headers),
             extensions=dict(request.extensions),
-            content=json.loads(request.content),
+            content=content,
         ),
         response=dict(
             status_code=response.status_code,
@@ -307,7 +332,6 @@ def store_transaction(
         request_time=request_time,
         generation_speed=generation_speed,
     )
-
     transaction_repository.add(transaction)
 
 
@@ -316,8 +340,10 @@ def get_list_of_filtered_transactions(
     date_from: datetime,
     date_to: datetime,
     transaction_repository: TransactionRepository,
-    status_code: int | None = None,
     null_generation_speed: bool = True,
+    status_codes: list[str] | None = None,
+    providers: list[str] | None = None,
+    models: list[str] | None = None,
 ) -> list[Transaction]:
     """
     Retrieve a list of transactions filtered by project ID and date range.
@@ -329,16 +355,28 @@ def get_list_of_filtered_transactions(
     :param date_from: The starting date for the filter.
     :param date_to: The ending date for the filter.
     :param transaction_repository: An instance of TransactionRepository for data retrieval.
-    :param status_code: The transactions' status code.
     :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
+    :param status_codes: The transactions' status codes.
+    :param providers: The transactions' providers.
+    :param models: The transactions' models.
     :return: A list of Transaction objects that meet the specified criteria.
     """
     query = create_transaction_query_from_filters(
         date_from=date_from,
         date_to=date_to,
         project_id=project_id,
-        status_code=status_code,
         null_generation_speed=null_generation_speed,
+        status_codes=status_codes,
+        providers=providers,
+        models=models,
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions
+
+
+def add_transaction(
+    data: CreateTransactionSchema, transaction_repository: TransactionRepository
+) -> Transaction:
+    transaction = Transaction(**data.model_dump())
+    transaction_repository.add(transaction)
+    return transaction

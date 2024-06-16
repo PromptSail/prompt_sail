@@ -1,9 +1,15 @@
-import { Typography, Flex } from 'antd';
-import { useSearchParams } from 'react-router-dom';
+import { Typography, Flex, Spin } from 'antd';
+// import { useSearchParams } from 'react-router-dom';
 import { TransactionsFilters } from '../api/types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import TransactionsTable from '../components/tables/AllTransactions/TransactionsTable';
-import TableFilters from '../components/tables/AllTransactions/TableFilters';
+import HeaderContainer from '../components/HeaderContainer/HeaderContainer';
+import { useGetAllTransactions } from '../api/queries';
+import Container from '../components/Container/Container';
+import FilterDates from '../components/tables/filters/FilterDates';
+import { useSearchParams } from 'react-router-dom';
+
+const { Text } = Typography;
 
 const { Title } = Typography;
 const Transactions = () => {
@@ -13,6 +19,9 @@ const Transactions = () => {
         tags: params.get('tags') || '',
         date_from: params.get('date_from') || '',
         date_to: params.get('date_to') || '',
+        models: params.get('models') || '',
+        status_codes: params.get('status_codes') || '',
+        providers: params.get('providers') || '',
         page_size: params.get('page_size') || '10',
         page: params.get('page') || '1'
     });
@@ -25,20 +34,55 @@ const Transactions = () => {
         }
         setParams(newParam);
     };
+    useEffect(() => {
+        setURLParam(filters);
+    }, [filters]);
+    const transactions = useGetAllTransactions(filters);
+
     return (
-        <>
-            <Title level={1} style={{ margin: 0, marginBottom: 20 }}>
-                Transactions
-            </Title>
-            <Flex vertical gap={25}>
-                <TableFilters filters={filters} setFilters={setFilters} setURLParam={setURLParam} />
-                <TransactionsTable
-                    filters={filters}
-                    setFilters={setFilters}
-                    setURLParam={setURLParam}
-                />
+        <Flex gap={24} vertical>
+            <HeaderContainer>
+                {transactions.isLoading && (
+                    <Spin
+                        size="large"
+                        className="absolute top-1/3 left-1/2 -transtaction-x-1/2 -transtaction-y-1/3"
+                    />
+                )}
+                {!transactions.isLoading && (
+                    <div className="my-auto z-10">
+                        <Title level={1} className="h4 m-auto">
+                            Transactions{' '}
+                            {transactions.isSuccess ? (
+                                `(${transactions.data.data.total_elements})`
+                            ) : (
+                                <>
+                                    {console.error(transactions.error)}
+                                    {console.error(transactions.error?.message)}
+                                    <span>(An error has occurred {transactions.error?.code})</span>
+                                </>
+                            )}
+                        </Title>
+                    </div>
+                )}
+            </HeaderContainer>
+            <Flex vertical gap={8} className="px-[24px]">
+                <Container>
+                    <Flex gap={8}>
+                        <Text className="my-auto">Date:</Text>
+                        <FilterDates
+                            defaultValues={[filters.date_from || '', filters.date_to || '']}
+                            setFilters={setFilters}
+                            // setDates={() => console.log('setDates')}
+                        />
+                    </Flex>
+                </Container>
+                <Container>
+                    <div>
+                        <TransactionsTable filters={filters} setFilters={setFilters} />
+                    </div>
+                </Container>
             </Flex>
-        </>
+        </Flex>
     );
 };
 export default Transactions;

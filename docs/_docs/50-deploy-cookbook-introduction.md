@@ -11,22 +11,25 @@ toc_sticky: true
 
 
 ## Deployment Cookbook
+Promt Sail cloud deployment documentation, how to properly set the `environment variables`, configure SSO and container-based deployment 
+
+### SSO Configuration
+
+[How to configure SSO authorisation in your organisation](/docs/sso-configuration/), currently we support: 
+* Microsoft Azure
+* Google 
+
+### Environment variables
+
+[List of Prompt Sail deployment env's](/docs/env-variables)
 
 
-Is a self-hosted application that captures and logs all interactions with LLM APIs such as OpenAI, Anthropic, Google Gemini and others. It is a proxy between your framework of choice (LangChain, OpenAI etc) and LLM provider API. 
 
-For **developers**, it offers a way to analyze and optimize API prompts. 
-
-For **Project managers** can gain insights into project and experiment costs. 
-
-For **Business owners** can ensure compliance with regulations and maintain governance over prompts and responses.
-
-
-### Deployment Options
+### Cloud Deployment recipes
 
 There are several ways to deploy Prompt Sail:
-* [Local deployment](/docs/deploy-promptsail-local/
-* [Azure deployment](/docs/deploy-promptsail-azure) (help needed #good-first-issue)
+* [Local deployment](/docs/deploy-promptsail-local/)
+* [Azure deployment](/docs/deploy-promptsail-azure) 
 * [AWS deployment](/docs/deploy-promptsail-aws) (help needed #good-first-issue)
 * [GCP deployment](/docs/deploy-promptsail-gcp) (help needed #good-first-issue)
 

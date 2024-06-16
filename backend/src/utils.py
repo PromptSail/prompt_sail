@@ -1,3 +1,4 @@
+import base64
 import json
 import random
 import re
@@ -66,12 +67,14 @@ def detect_subdomain(host, base_url) -> str | None:
 
 
 def create_transaction_query_from_filters(
-    tags: str | None = None,
+    tags: list[str] | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     project_id: str | None = None,
-    status_code: int | None = None,
     null_generation_speed: bool = True,
+    status_codes: list[int] | None = None,
+    providers: list[str] | None = None,
+    models: list[str] | None = None,
 ) -> dict:
     """
     Create a MongoDB query dictionary based on specified filters for transactions.
@@ -80,11 +83,14 @@ def create_transaction_query_from_filters(
     :param date_from: Optional. Start date for filtering transactions.
     :param date_to: Optional. End date for filtering transactions.
     :param project_id: Optional. Project ID to filter transactions by.
-    :param status_code: Optional. Status code of the transactions.
     :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
+    :param status_codes: Optional. List of status codes of the transactions.
+    :param providers: Optional. List of providers of the transactions.
+    :param models: Optional. List of models of the transactions.
     :return: MongoDB query dictionary representing the specified filters.
     """
     query = {}
+    or_conditions = []
     if project_id is not None:
         query["project_id"] = project_id
     if tags is not None:
@@ -95,10 +101,18 @@ def create_transaction_query_from_filters(
         query["response_time"]["$gte"] = date_from
     if date_to is not None:
         query["response_time"]["$lte"] = date_to
-    if status_code is not None:
-        query["status_code"] = status_code
     if not null_generation_speed:
         query["generation_speed"] = {"$ne": None}
+    if status_codes is not None:
+        for code in status_codes:
+            if code % 100 == 0:
+                or_conditions.append({"status_code": {"$gte": code, "$lt": code + 100}})
+    if providers is not None:
+        query["provider"] = {"$in": providers}
+    if models is not None:
+        query["model"] = {"$in": models}
+    if or_conditions:
+        query["$or"] = or_conditions
     return query
 
 
@@ -191,271 +205,521 @@ class TransactionParamsBuilder:
         }
 
 
-def req_resp_to_transaction_parser(request, response, response_content) -> dict:
-    """
-    Parse information from a request, response, and response content into a dictionary representing a transaction.
+class UnsupportedProviderError(Exception):
+    """Exception raised for unsupported providers."""
 
-    :param request: The request object.
-    :param response: The response object.
-    :param response_content: The content of the response.
-    :return: A dictionary containing parsed information from the request, response, and response content.
-    """
-    response_headers = parse_headers_to_dict(
-        response.__dict__["headers"].__dict__["_list"]
-    )
-    request_headers = parse_headers_to_dict(
-        request.__dict__["headers"].__dict__["_list"]
-    )
-    request_content = json.loads(request.__dict__["_content"].decode("utf8"))
-    url = str(request.__dict__["url"])
+    def __init__(self, url):
+        self.message = f"Unsupported provider for URL: {url}"
+        super().__init__(self.message)
 
-    azure_embeddings_pattern = re.compile(r".*openai\.azure\.com.*embeddings.*")
-    azure_completions_pattern = re.compile(r".*openai\.azure\.com.*completions.*")
-    openai_chat_completions_pattern = re.compile(
-        r".*api\.openai\.com.*chat.*completions.*"
-    )
-    openai_completions_pattern = re.compile(
-        r".*api\.openai\.com(?!.*chat).*\/completions.*"
-    )
-    openai_embeddings_pattern = re.compile(r".*api\.openai\.com.*embeddings.*")
-    anthropic_pattern = re.compile(r".*anthropic\.com.*")
-    vertexai_pattern = re.compile(r".*-aiplatform\.googleapis\.com/v1.*")
 
-    transaction_params = TransactionParamsBuilder()
-    transaction_params.add_library(request_headers["user-agent"]).add_status_code(
-        response.__dict__["status_code"]
-    ).add_model(request_content.get("model", None)).add_os(
-        request_headers.get("x-stainless-os", None)
-    )
-    if "usage" in response_content:
-        transaction_params.add_input_tokens(
-            response_content["usage"].get("prompt_tokens", 0)
-        ).add_output_tokens(response_content["usage"].get("completion_tokens", 0))
+class TransactionParamExtractor:
+    def __init__(self, request, response, response_content) -> None:
+        self.response_headers = parse_headers_to_dict(
+            response.__dict__["headers"].__dict__["_list"]
+        )
+        self.request_headers = parse_headers_to_dict(
+            request.__dict__["headers"].__dict__["_list"]
+        )
+        self.request_content = self._decode_request_content(request)
 
-    if azure_embeddings_pattern.match(url):
-        transaction_params.add_type("embedding").add_provider("Azure OpenAI")
+        self.response = response
+        self.response_content = response_content
+        self.url = str(getattr(request, "url", ""))
+        self.pattern = self._detect_pattern(self.url)
+
+    @staticmethod
+    def _decode_request_content(request):
+        try:
+            return json.loads(request.__dict__["_content"].decode("utf8"))
+        except UnicodeDecodeError:
+            data = {}
+            parts = request.__dict__["_content"].split(
+                request.__dict__["_content"].split(b"\r\n")[0]
+            )[:-1]
+
+            if b"mask" not in request.__dict__["_content"]:
+                photo_part = parts[-1]
+                parts = parts[:-1]
+            else:
+                mask_part = parts[-1]
+                photo_part = parts[-2]
+                parts = parts[:-2]
+                mask_bytes = mask_part.split(b"\r\n\r\n")[1]
+                data["mask"] = base64.b64encode(mask_bytes).decode("utf-8")
+
+            for part in parts:
+                if part:
+                    part = part.strip().split(b"; ")[1]
+                    header, value = part.split(b"\r\n\r\n")
+                    header = header.split(b"=")[1].replace(b'"', b"").decode("utf-8")
+                    data[header] = value.decode("utf-8")
+
+            photo_bytes = photo_part.split(b"\r\n\r\n")[1]
+            data["image"] = base64.b64encode(photo_bytes).decode("utf-8")
+
+            return data
+
+    @staticmethod
+    def _detect_pattern(url):
+        patterns = {
+            "Azure Embeddings": r".*openai\.azure\.com.*embeddings.*",
+            "Azure Completions": r".*openai\.azure\.com.*completions.*",
+            "OpenAI Chat Completions": r".*api\.openai\.com.*chat.*completions.*",
+            "OpenAI Completions": r".*api\.openai\.com(?!.*chat).*\/completions.*",
+            "OpenAI Embeddings": r".*api\.openai\.com.*embeddings.*",
+            "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
+            "OpenAI Image Generations": r".*api\.openai\.com.*images.*generations.*",
+            "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
+            "Anthropic": r".*anthropic\.com.*",
+            "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
+        }
+
+        for pattern_name, pattern_regex in patterns.items():
+            if re.match(pattern_regex, url):
+                return pattern_name
+        return "Unsupported"
+
+    def _extract_from_azure_embeddings(self) -> dict:
+        extracted = {
+            "type": "embedding",
+            "provider": "Azure OpenAI",
+        }
         messages = []
-        if isinstance(request_content["input"], list):
+        if isinstance(self.request_content["input"], list):
             prompt = (
-                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+                "["
+                + ", ".join(map(lambda x: str(x), self.request_content["input"]))
+                + "]"
             )
         else:
-            prompt = request_content["input"]
-        transaction_params.add_prompt(prompt)
+            prompt = self.request_content["input"]
+        extracted["prompt"] = prompt
         messages.append({"role": "user", "content": prompt})
-        if response.__dict__["status_code"] > 200:
-            last_message = response_content["error"]["message"]
-            transaction_params.add_error_message(last_message)
+
+        if self.response.__dict__["status_code"] > 200:
+            last_message = self.response_content["error"]["message"]
+            extracted["error_message"] = last_message
+            extracted["last_message"] = last_message
             messages.append({"role": "error", "content": last_message})
         else:
-            transaction_params.add_model(response_content["model"])
-            if isinstance(response_content["data"][0]["embedding"], list):
+            extracted["model"] = self.response_content["model"]
+            if isinstance(self.response_content["data"][0]["embedding"], list):
                 last_message = (
                     "["
                     + ", ".join(
-                        map(lambda x: str(x), response_content["data"][0]["embedding"])
+                        map(
+                            lambda x: str(x),
+                            self.response_content["data"][0]["embedding"],
+                        )
                     )
                     + "]"
                 )
             else:
-                last_message = response_content["data"][0]["embedding"]
-            transaction_params.add_last_message(last_message)
+                last_message = self.response_content["data"][0]["embedding"]
+            extracted["last_message"] = last_message
             messages.append({"role": "system", "content": last_message})
-        transaction_params.add_messages(messages)
+        extracted["messages"] = messages
 
-    if azure_completions_pattern.match(url):
+        return extracted
+
+    def _extract_from_azure_completions(self) -> dict:
+        extracted = {
+            "type": "completions",
+            "provider": "Azure OpenAI",
+        }
         prompt = [
             message["content"]
-            for message in request_content["messages"]
+            for message in self.request_content["messages"]
             if message["role"] == "user"
         ][::-1][0]
-        transaction_params.add_type("completions").add_provider(
-            "Azure OpenAI"
-        ).add_prompt(prompt if prompt else request_content["messages"][0]["content"])
-        messages = request_content["messages"]
-        if response.__dict__["status_code"] > 200:
+        extracted["prompt"] = (
+            prompt if prompt else self.request_content["messages"][0]["content"]
+        )
+        messages = self.request_content["messages"]
+        if self.response.__dict__["status_code"] > 200:
             messages.append(
                 {
                     "role": "error",
-                    "content": response_content["error"]["message"]
-                    if "error" in response_content.keys()
-                    else response_content["message"],
+                    "content": self.response_content["error"]["message"]
+                    if "error" in self.response_content.keys()
+                    else self.response_content["message"],
                 }
             )
-
-            transaction_params.add_error_message(
-                response_content["error"]["message"]
-                if "error" in response_content.keys()
-                else response_content["message"]
-            ).add_last_message(
-                response_content["error"]["message"]
-                if "error" in response_content.keys()
-                else response_content["message"]
-            ).add_messages(
-                messages
+            extracted["error_message"] = (
+                self.response_content["error"]["message"]
+                if "error" in self.response_content.keys()
+                else self.response_content["message"]
             )
+            extracted["last_message"] = (
+                self.response_content["error"]["message"]
+                if "error" in self.response_content.keys()
+                else self.response_content["message"]
+            )
+            extracted["messages"] = messages
         else:
-            messages.append(response_content["choices"][0]["message"])
+            messages.append(self.response_content["choices"][0]["message"])
+            extracted["messages"] = messages
+            extracted["model"] = self.response_content["model"]
+            extracted["last_message"] = self.response_content["choices"][0]["message"][
+                "content"
+            ]
 
-            transaction_params.add_messages(messages).add_model(
-                response_content["model"]
-            ).add_last_message(response_content["choices"][0]["message"]["content"])
+        return extracted
 
-    if openai_chat_completions_pattern.match(url):
+    def _extract_from_openai_chat_completions(self) -> dict:
+        extracted = {
+            "type": "chat completions",
+            "provider": "OpenAI",
+        }
         prompt = [
             message["content"]
-            for message in request_content["messages"]
+            for message in self.request_content["messages"]
             if message["role"] == "user"
         ][::-1][0]
-        transaction_params.add_type("chat completions").add_provider(
-            "OpenAI"
-        ).add_prompt(prompt if prompt else request_content["messages"][0]["content"])
-        messages = request_content["messages"]
-        if response.__dict__["status_code"] > 200:
-            messages.append(
-                {"role": "error", "content": response_content["error"]["message"]}
-            )
-            transaction_params.add_error_message(
-                response_content["error"]["message"]
-            ).add_last_message(response_content["error"]["message"]).add_messages(
-                messages
-            )
-        else:
-            messages.append(response_content["choices"][0]["message"])
-            transaction_params.add_messages(messages).add_model(
-                response_headers["openai-model"]
-                if "openai-model" in response_headers
-                else response_content["model"]
-            ).add_last_message(response_content["choices"][0]["message"]["content"])
 
-    if openai_completions_pattern.match(url):
-        transaction_params.add_type("completions").add_provider("OpenAI").add_prompt(
-            request_content["prompt"]
+        if len(prompt) == 2:
+            prompt = [cont for cont in prompt if cont["type"] == "text"][0]["text"]
+
+        extracted["prompt"] = (
+            prompt if prompt else self.request_content["messages"][0]["content"]
         )
-        messages = [{"role": "user", "content": request_content["prompt"]}]
-        if response.__dict__["status_code"] > 200:
+        messages = self.request_content["messages"]
+        if self.response.__dict__["status_code"] > 200:
             messages.append(
-                {"role": "error", "content": response_content["error"]["message"]}
+                {"role": "error", "content": self.response_content["error"]["message"]}
             )
-            transaction_params.add_error_message(
-                response_content["error"]["message"]
-            ).add_last_message(response_content["error"]["message"]).add_messages(
-                messages
-            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
         else:
-            messages.append(
-                {"role": "system", "content": response_content["choices"][0]["text"]}
+            messages.append(self.response_content["choices"][0]["message"])
+            extracted["messages"] = messages
+            extracted["model"] = (
+                self.response_headers["openai-model"]
+                if "openai-model" in self.response_headers
+                else self.response_content["model"]
             )
-            transaction_params.add_messages(messages).add_model(
-                response_headers["openai-model"]
-                if "openai-model" in response_headers
-                else response_content["model"]
-            ).add_last_message(response_content["choices"][0]["text"])
+            extracted["last_message"] = self.response_content["choices"][0]["message"][
+                "content"
+            ]
 
-    if openai_embeddings_pattern.match(url):
-        transaction_params.add_type("embedding").add_provider("OpenAI")
+        return extracted
+
+    def _extract_from_openai_completions(self) -> dict:
+        extracted = {
+            "type": "completions",
+            "provider": "OpenAI",
+            "prompt": self.request_content["prompt"],
+        }
+        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+        if self.response.__dict__["status_code"] > 200:
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
+
+        else:
+            messages.append(
+                {
+                    "role": "system",
+                    "content": self.response_content["choices"][0]["text"],
+                }
+            )
+            extracted["messages"] = messages
+            extracted["model"] = (
+                self.response_headers["openai-model"]
+                if "openai-model" in self.response_headers
+                else self.response_content["model"]
+            )
+            extracted["last_message"] = self.response_content["choices"][0]["text"]
+
+        return extracted
+
+    def _extract_from_openai_images_variations(self) -> dict:
+        extracted = {
+            "type": "images variations",
+            "provider": "OpenAI",
+            "prompt": self.request_content["image"],
+            "model": self.request_content["model"],
+        }
+        messages = [{"role": "user", "content": self.request_content["image"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
+        else:
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "\n".join(
+                        [data["url"] for data in self.response_content["data"]]
+                    ),
+                }
+            )
+            extracted["messages"] = messages
+            extracted["last_message"] = "\n".join(
+                [data["url"] for data in self.response_content["data"]]
+            )
+
+        return extracted
+
+    def _extract_from_openai_images_generations(self) -> dict:
+        extracted = {
+            "type": "images generations",
+            "provider": "OpenAI",
+            "prompt": self.request_content["prompt"],
+            "model": self.request_content["model"],
+        }
+        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
+        else:
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "\n".join(
+                        [data["url"] for data in self.response_content["data"]]
+                    ),
+                }
+            )
+            extracted["messages"] = messages
+            extracted["last_message"] = "\n".join(
+                [data["url"] for data in self.response_content["data"]]
+            )
+
+        return extracted
+
+    def _extract_from_openai_images_edit(self) -> dict:
+        extracted = {
+            "type": "images edits",
+            "provider": "OpenAI",
+            "prompt": self.request_content["prompt"],
+            "model": self.request_content["model"],
+        }
+        messages = [
+            {
+                "role": "user",
+                "content": self.request_content["prompt"],
+                "image": self.request_content["image"],
+                "mask": self.request_content["mask"],
+            }
+        ]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
+        else:
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "\n".join(
+                        [data["url"] for data in self.response_content["data"]]
+                    ),
+                }
+            )
+            extracted["messages"] = messages
+            extracted["last_message"] = "\n".join(
+                [data["url"] for data in self.response_content["data"]]
+            )
+        return extracted
+
+    def _extract_from_openai_embeddings(self):
+        extracted = {"type": "embedding", "provider": "OpenAI"}
         messages = []
-        if isinstance(request_content["input"], list):
+        if isinstance(self.request_content["input"], list):
             prompt = (
-                "[" + ", ".join(map(lambda x: str(x), request_content["input"])) + "]"
+                "["
+                + ", ".join(map(lambda x: str(x), self.request_content["input"]))
+                + "]"
             )
         else:
-            prompt = request_content["input"]
+            prompt = self.request_content["input"]
         messages.append({"role": "user", "content": prompt})
-        transaction_params.add_prompt(prompt)
-        if response.__dict__["status_code"] > 200:
-            last_message = response_content["error"]["message"]
-            transaction_params.add_error_message(last_message).add_last_message(None)
+        extracted["prompt"] = prompt
+        if self.response.__dict__["status_code"] > 200:
+            last_message = self.response_content["error"]["message"]
+            extracted["error_message"] = last_message
+            extracted["last_message"] = last_message
             messages.append({"role": "error", "content": last_message})
         else:
-            transaction_params.add_model(response_content["model"])
-            if isinstance(response_content["data"][0]["embedding"], list):
+            extracted["model"] = self.response_content["model"]
+            if isinstance(self.response_content["data"][0]["embedding"], list):
                 last_message = (
                     "["
                     + ", ".join(
-                        map(lambda x: str(x), response_content["data"][0]["embedding"])
+                        map(
+                            lambda x: str(x),
+                            self.response_content["data"][0]["embedding"],
+                        )
                     )
                     + "]"
                 )
             else:
-                last_message = response_content["data"][0]["embedding"]
-            transaction_params.add_last_message(last_message)
+                last_message = self.response_content["data"][0]["embedding"]
+            extracted["last_message"] = last_message
             messages.append({"role": "system", "content": last_message})
-        transaction_params.add_messages(messages)
+        extracted["messages"] = messages
 
-    if anthropic_pattern.match(url):
-        transaction_params.add_type("chat").add_provider("Anthropic")
-        transaction_params.add_prompt(request_content["messages"][0]["content"])
-        messages = request_content["messages"]
-        if response.__dict__["status_code"] > 200:
-            messages.append(
-                {"role": "error", "content": response_content["error"]["message"]}
-            )
-            transaction_params.add_error_message(
-                response_content["error"]["message"]
-            ).add_last_message(response_content["error"]["message"]).add_messages(
-                messages
-            )
-        else:
-            messages.append(
-                {"role": "assistant", "content": response_content["content"][0]["text"]}
-            )
-            transaction_params.add_messages(messages).add_model(
-                response_content["model"]
-            ).add_last_message(response_content["content"][0]["text"])
-            transaction_params.add_input_tokens(
-                response_content["usage"].get("input_tokens", 0)
-            ).add_output_tokens(response_content["usage"].get("output_tokens", 0))
+        return extracted
 
-    if vertexai_pattern.match(url):
-        transaction_params.add_type("chat").add_provider("Google VertexAI")
-        transaction_params.add_prompt(
-            request_content["contents"][::-1][0]["parts"]["text"]
-        )
-        messages = [
-            {"role": message["role"], "content": message["parts"]["text"]}
-            for message in request_content["contents"]
-        ]
-        if response.__dict__["status_code"] > 200:
+    def _extract_from_anthropic(self):
+        extracted = {
+            "type": "chat",
+            "provider": "Anthropic",
+            "prompt": self.request_content["messages"][0]["content"],
+        }
+        messages = self.request_content["messages"]
+
+        if self.response.__dict__["status_code"] > 200:
             messages.append(
-                {"role": "error", "content": response_content["error"]["message"]}
+                {"role": "error", "content": self.response_content["error"]["message"]}
             )
-            transaction_params.add_error_message(
-                response_content["error"]["message"]
-            ).add_last_message(response_content["error"]["message"]).add_messages(
-                messages
-            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
         else:
             messages.append(
                 {
-                    "role": response_content["candidates"][0]["content"]["role"],
+                    "role": "assistant",
+                    "content": self.response_content["content"][0]["text"],
+                }
+            )
+            extracted["messages"] = messages
+            extracted["model"] = self.response_content["model"]
+            extracted["last_message"] = self.response_content["content"][0]["text"]
+            extracted["input_tokens"] = self.response_content["usage"].get(
+                "input_tokens", 0
+            )
+            extracted["output_tokens"] = self.response_content["usage"].get(
+                "output_tokens", 0
+            )
+
+        return extracted
+
+    def _extract_from_vertexai(self):
+        extracted = {
+            "type": "chat",
+            "provider": "Google VertexAI",
+            "prompt": self.request_content["contents"][::-1][0]["parts"]["text"],
+            "model": self.url.split("/")[-1].split(":")[0],
+        }
+        messages = [
+            {"role": message["role"], "content": message["parts"]["text"]}
+            for message in self.request_content["contents"]
+        ]
+        if self.response.__dict__["status_code"] > 200:
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["messages"] = messages
+        else:
+            messages.append(
+                {
+                    "role": self.response_content["candidates"][0]["content"]["role"],
                     "content": " ".join(
                         [
                             message["text"]
-                            for message in response_content["candidates"][0]["content"][
-                                "parts"
-                            ]
+                            for message in self.response_content["candidates"][0][
+                                "content"
+                            ]["parts"]
                         ]
                     ),
                 }
             )
-            transaction_params.add_messages(messages).add_model(
-                url.split("/")[-1].split(":")[0]
-            ).add_last_message(
-                " ".join(
-                    [
-                        part["text"]
-                        for part in response_content["candidates"][0]["content"][
-                            "parts"
-                        ]
+            extracted["messages"] = messages
+            extracted["last_message"] = " ".join(
+                [
+                    part["text"]
+                    for part in self.response_content["candidates"][0]["content"][
+                        "parts"
                     ]
-                )
+                ]
             )
-            transaction_params.add_input_tokens(
-                response_content["usage"].get("prompt_tokens", 0)
-            ).add_output_tokens(response_content["usage"].get("completion_tokens", 0))
+            extracted["input_tokens"] = self.response_content["usageMetadata"].get(
+                "promptTokenCount", 0
+            )
+            extracted["output_tokens"] = self.response_content["usageMetadata"].get(
+                "candidatesTokenCount", 0
+            )
 
-    return transaction_params.build()
+        return extracted
+
+    def extract(self) -> dict:
+        transaction_params = TransactionParamsBuilder()
+        transaction_params.add_library(
+            self.request_headers["user-agent"]
+        ).add_status_code(self.response.__dict__["status_code"]).add_model(
+            self.request_content.get("model", None)
+        ).add_os(
+            self.request_headers.get("x-stainless-os", None)
+        )
+
+        if "usage" in self.response_content:
+            transaction_params.add_input_tokens(
+                self.response_content["usage"].get("prompt_tokens", 0)
+            )
+            output_tokens = self.response_content["usage"].get("completion_tokens", 0)
+            transaction_params.add_output_tokens(output_tokens)
+
+        if self.pattern == "Azure Embeddings":
+            extracted = self._extract_from_azure_embeddings()
+        if self.pattern == "Azure Completions":
+            extracted = self._extract_from_azure_completions()
+        if self.pattern == "OpenAI Chat Completions":
+            extracted = self._extract_from_openai_chat_completions()
+        if self.pattern == "OpenAI Completions":
+            extracted = self._extract_from_openai_completions()
+        if self.pattern == "OpenAI Embeddings":
+            extracted = self._extract_from_openai_embeddings()
+        if self.pattern == "Anthropic":
+            extracted = self._extract_from_anthropic()
+        if self.pattern == "VertexAI":
+            extracted = self._extract_from_vertexai()
+        if self.pattern == "OpenAI Images Variations":
+            extracted = self._extract_from_openai_images_variations()
+        if self.pattern == "OpenAI Image Generations":
+            extracted = self._extract_from_openai_images_generations()
+        if self.pattern == "OpenAI Image Edits":
+            extracted = self._extract_from_openai_images_edit()
+        if self.pattern == "Unsupported":
+            raise UnsupportedProviderError(self.url)
+
+        transaction_params.add_type(extracted["type"])
+        transaction_params.add_provider(extracted["provider"])
+        transaction_params.add_prompt(extracted["prompt"])
+
+        if self.response.__dict__["status_code"] > 200:
+            transaction_params.add_error_message(extracted["error_message"])
+        else:
+            transaction_params.add_last_message(extracted["last_message"])
+
+        if "model" in extracted:
+            transaction_params.add_model(extracted["model"])
+        if "input_tokens" in extracted:
+            transaction_params.add_input_tokens(extracted["input_tokens"])
+        if "output_tokens" in extracted:
+            transaction_params.add_output_tokens(extracted["output_tokens"])
+
+        transaction_params.add_messages(extracted["messages"])
+        return transaction_params.build()
 
 
 def token_counter_for_transactions(
@@ -1110,11 +1374,9 @@ def count_tokens_for_streaming_response(messages: list | str, model: str) -> int
     if isinstance(messages, str):
         tokens = encoder.encode(messages)
     else:
-        full_prompt = ""
-        for message in messages:
-            role = message["role"]
-            content = message["content"]
-            full_prompt += f"{role}: {content}\n"
+        full_prompt = "\n".join(
+            [f"{message['role']}: {message['content']}" for message in messages]
+        )
         tokens = encoder.encode(full_prompt)
     return len(tokens)
 
@@ -1126,6 +1388,15 @@ class MockResponse:
 
     def json(self):
         return self.content
+
+
+def truncate_float(number, decimals):
+    if isinstance(number, float):
+        str_number = str(number)
+        integer_part, decimal_part = str_number.split(".")
+        truncated_decimal_part = decimal_part[:decimals]
+        return float(f"{integer_part}.{truncated_decimal_part}")
+    return number
 
 
 class PeriodEnum(str, Enum):
