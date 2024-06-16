@@ -1,10 +1,13 @@
+import re
 from typing import Annotated, Any
 
 import utils
 from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from auth.authorization import decode_and_validate_token
-from auth.schemas import GetUserSchema
+from auth.models import User
+from auth.schemas import GetPartialUserSchema, GetUserSchema
+from auth.use_cases import get_all_users
 from fastapi import Depends, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
@@ -27,8 +30,10 @@ from settings.use_cases import get_organization_name
 from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
+    CreateTransactionSchema,
     GetTransactionLatencyStatisticsWithoutDateSchema,
     GetTransactionPageResponseSchema,
+    GetTransactionSchema,
     GetTransactionsLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionsUsageStatisticsSchema,
@@ -37,6 +42,7 @@ from transactions.schemas import (
     StatisticTransactionSchema,
 )
 from transactions.use_cases import (
+    add_transaction,
     count_token_usage_for_project,
     count_transactions,
     delete_multiple_transactions,
@@ -51,7 +57,7 @@ from .app import app
 
 @app.get("/api/auth/whoami", dependencies=[Security(decode_and_validate_token)])
 def whoami(
-    request: Request, user: dict = Depends(decode_and_validate_token)
+    request: Request, user: User = Depends(decode_and_validate_token)
 ) -> GetUserSchema:
     return GetUserSchema(
         external_id=user.external_id,
@@ -256,6 +262,9 @@ async def get_paginated_transactions(
     project_id: str | None = None,
     sort_field: str | None = None,
     sort_type: str | None = None,
+    status_codes: str | None = None,
+    providers: str | None = None,
+    models: str | None = None,
 ) -> GetTransactionPageResponseSchema:
     """
     API endpoint to retrieve a paginated list of transactions based on specified filters.
@@ -269,9 +278,18 @@ async def get_paginated_transactions(
     :param project_id: Optional. Project ID to filter transactions by.
     :param sort_field: Optional. Field to sort by.
     :param sort_type: Optional. Ordering method (asc or desc).
+    :param status_codes: Optional. List of status codes for filtering transactions.
+    :param providers: Optional. List of providers for filtering transactions.
+    :param models: Optional. List of models for filtering transactions.
     """
     if tags is not None:
         tags = tags.split(",")
+    if status_codes is not None:
+        status_codes = list(map(lambda x: int(x), status_codes.split(",")))
+    if providers is not None:
+        providers = providers.split(",")
+    if models is not None:
+        models = models.split(",")
 
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
@@ -283,6 +301,9 @@ async def get_paginated_transactions(
         project_id=project_id,
         sort_field=sort_field,
         sort_type=sort_type,
+        status_codes=status_codes,
+        providers=providers,
+        models=models,
     )
 
     projects = ctx.call(get_all_projects)
@@ -305,6 +326,9 @@ async def get_paginated_transactions(
         date_from=date_from,
         date_to=date_to,
         project_id=project_id,
+        status_codes=status_codes,
+        providers=providers,
+        models=models,
     )
     page_response = GetTransactionPageResponseSchema(
         items=new_transactions,
@@ -355,7 +379,7 @@ async def get_transaction_usage_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200,
+        status_codes=[200],
     )
     if count == 0:
         return []
@@ -365,7 +389,7 @@ async def get_transaction_usage_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200,
+        status_codes=[200],
     )
     transactions = [
         StatisticTransactionSchema(
@@ -527,7 +551,7 @@ async def get_transaction_latency_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200,
+        status_codes=[200],
         null_generation_speed=False,
     )
     if count == 0:
@@ -538,7 +562,7 @@ async def get_transaction_latency_statistics_over_time(
         project_id=project_id,
         date_from=date_from,
         date_to=date_to,
-        status_code=200,
+        status_codes=[200],
         null_generation_speed=False,
     )
     transactions = [
@@ -638,6 +662,87 @@ async def get_config(
         "azure_auth": config.AZURE_CLIENT_ID is not None,
         "google_auth": config.GOOGLE_CLIENT_ID is not None,
     }
+
+
+@app.get("/api/users", dependencies=[Security(decode_and_validate_token)])
+async def get_users(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    auth_user: User = Depends(decode_and_validate_token),
+) -> list[GetPartialUserSchema]:
+    users = ctx.call(get_all_users)
+    idx = next(
+        (i for i, usr in enumerate(users) if usr.external_id == auth_user.external_id),
+        None,
+    )
+    if idx is not None:
+        temp = users.pop(idx)
+        users.insert(0, temp)
+    else:
+        users.insert(0, User(**auth_user.model_dump()))
+
+    parsed_users = map(
+        lambda user: GetPartialUserSchema(
+            id=user.id,
+            email=user.email,
+            full_name=str(user.given_name + " " + user.family_name),
+            picture=user.picture,
+        ),
+        users,
+    )
+    return list(parsed_users)
+
+
+@app.post(
+    "/api/transactions",
+    response_class=JSONResponse,
+    status_code=201,
+    dependencies=[Security(decode_and_validate_token)],
+)
+def create_transaction(
+    request: Request,
+    data: CreateTransactionSchema,
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+) -> GetTransactionSchema:
+    if ((data.status_code == 200) and data.model and data.provider) and not (
+        data.input_cost or data.output_cost or data.total_cost
+    ):
+        pricelist = get_provider_pricelist(request)
+        pricelist = [
+            item
+            for item in pricelist
+            if item.provider == data.provider
+            and re.match(item.match_pattern, data.model)
+        ]
+        if len(pricelist) > 0:
+            if pricelist[0].input_price == 0:
+                data.input_cost, data.output_cost = 0, 0
+                data.total_cost = (
+                    (data.input_tokens + data.output_tokens)
+                    / 1000
+                    * pricelist[0].total_price
+                )
+            else:
+                data.input_cost = pricelist[0].input_price * (data.input_tokens / 1000)
+                data.output_cost = pricelist[0].output_price * (
+                    data.output_tokens / 1000
+                )
+                data.total_cost = data.input_cost + data.output_cost
+        else:
+            data.input_cost, data.output_cost, data.total_cost = None, None, None
+
+    if not data.generation_speed:
+        if data.output_tokens is not None and (data.output_tokens > 0):
+            data.generation_speed = (
+                data.output_tokens
+                / (datetime.now(tz=timezone.utc) - data.request_time).total_seconds()
+            )
+        elif data.output_tokens == 0:
+            data.generation_speed = None
+        else:
+            data.generation_speed = 0
+
+    created_transaction = ctx.call(add_transaction, data=data)
+    return GetTransactionSchema(**created_transaction.model_dump())
 
 
 @app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse)

@@ -1,6 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap')
+@import url('https://fonts.googleapis.com/css2?family=Unica+One&display=swap')
+
 body
   margin: 0
   overflow: hidden
+  font-family: 'Roboto Flex'
     
 @import './func.sass'
 
@@ -10,8 +14,65 @@ body
 
 @import './components/Sign/styles'
 
+$headers:("fontSize1": 38, "fontSize2": 30, "fontSize3": 24, "fontSize4": 20, "fontSize5": 16, "lineHeight1": 2.875, "lineHeight2": 2.375, "lineHeight3": 2, "lineHeight4": 1.75, "lineHeight5": 1.5)
+
+@for $i from 1 through 5
+  .h#{$i}
+    font-size: #{map-get($headers, "fontSize#{$i}")} + px !important
+    line-height: #{map-get($headers, "lineHeight#{$i}")} !important
+
 .ant-table-body
   overflow-y: hidden !important
 
-iframe
-  margin: auto
+.ant-btn-dashed
+  @apply text-Primary/colorPrimary border-Primary/colorPrimary
+.ant-btn-sm
+  padding-top: 0
+  padding-bottom: 0
+.header-tab
+  & > .ant-tabs-nav::before
+    content: none
+
+// .test
+//   // background: orange
+//   height: 200px
+//   overflow: auto
+//   & > div
+//     height: 500px
+
+.ant-table-body
+  scrollbar-width: auto
+  scrollbar-color: auto
+  tbody
+    tr:last-child
+      td
+        border-bottom: none
+      
+div
+  &::-webkit-scrollbar
+    width: 8px // Width of the scrollbar
+    height: 8px // Height of the scrollbar
+
+  &::-webkit-scrollbar-track // Color of the track (the area behind the scrollbar)
+    @apply bg-Background/colorBgBase
+
+  &::-webkit-scrollbar-thumb
+    // Color of the scrollbar thumb
+    @apply bg-Border/colorBorder
+    border-radius: 14px
+  &::-webkit-scrollbar-button
+    width: 4px
+.transactions-table
+  .ant-table
+    @apply border-Border/colorBorderSecondary #{!important}
+    border-radius: 8px !important
+    border-width: 1px
+    border-style: solid
+    padding-bottom: 4px !important
+  .ant-table-thead th
+    @apply text-Text/colorText #{!important}
+    padding: 8px !important
+  .ant-table-tbody td
+    padding-left: 8px !important
+    padding-right: 8px !important
+    

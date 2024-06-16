@@ -2,18 +2,19 @@ import { WindowsFilled } from '@ant-design/icons';
 import { PublicClientApplication } from '@azure/msal-browser';
 import { Button } from 'antd';
 const { CLIENT_ID, SCOPES, AUTHORITY } = SSO_AZURE;
-const msalInstance = new PublicClientApplication({
-    auth: {
-        clientId: CLIENT_ID,
-        redirectUri: window.location.href,
-        authority: AUTHORITY
-    },
-    cache: {
-        cacheLocation: 'sessionStorage',
-        storeAuthStateInCookie: true
-    }
-});
+
 const AzureBtn: React.FC<{ onOk: (arg: string) => void }> = ({ onOk }) => {
+    const msalInstance = new PublicClientApplication({
+        auth: {
+            clientId: CLIENT_ID,
+            redirectUri: window.location.href,
+            authority: AUTHORITY
+        },
+        cache: {
+            cacheLocation: 'sessionStorage',
+            storeAuthStateInCookie: true
+        }
+    });
     const handleClick = async () => {
         try {
             await msalInstance.initialize();
@@ -31,7 +32,7 @@ const AzureBtn: React.FC<{ onOk: (arg: string) => void }> = ({ onOk }) => {
         <Button
             type="primary"
             size="large"
-            className="w-full mt-3"
+            className="w-full"
             icon={<WindowsFilled />}
             onClick={handleClick}
         >

@@ -4,18 +4,20 @@ import {
     addProjectRequest,
     getAllProjects,
     getAllTransactionResponse,
+    getModels,
     getProjectResponse,
     getProviders,
     getStatisticsTransactionsCost,
     getStatisticsTransactionsCount,
     getStatisticsTransactionsSpeed,
     getTransactionResponse,
+    getUsers,
     updateProjectRequest
 } from './interfaces';
 
 const api = {
     whoami: (): Promise<AxiosResponse> => {
-        return client.get('/api/whoami');
+        return client.get('/api/auth/whoami');
     },
     config: (): Promise<AxiosResponse> => {
         return client.get('/api/config');
@@ -58,6 +60,12 @@ const api = {
         params: string
     ): Promise<AxiosResponse<getStatisticsTransactionsSpeed[]>> => {
         return client.get(`/api/statistics/transactions_speed${params}`);
+    },
+    getUsers: (): Promise<AxiosResponse<getUsers[]>> => {
+        return client.get('/api/users');
+    },
+    getModels: (): Promise<AxiosResponse<getModels>> => {
+        return client.get('/api/statistics/pricelist');
     }
 };
 

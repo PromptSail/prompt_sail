@@ -1,4 +1,6 @@
-export const FormikValues = {
+import { addProjectRequest } from '../../api/interfaces';
+
+export const FormikValuesTemplate: addProjectRequest = {
     name: '',
     slug: '',
     description: '',
@@ -12,5 +14,6 @@ export const FormikValues = {
         }
     ],
     tags: [] as string[],
-    org_id: ''
+    org_id: '',
+    owner: ''
 };

@@ -1,85 +1,44 @@
 import { getAllProjects } from '../../api/interfaces';
-import { Card, Flex, Space, Typography } from 'antd';
-import { CSSProperties } from 'react';
+import { Col, Flex, Row, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { TagsContainer } from '../../helpers/dataContainer';
+import { useContext } from 'react';
+import { Context } from '../../context/Context';
 const { Title, Text } = Typography;
-
 interface Props {
     data: getAllProjects;
-    isListStyled: boolean;
 }
-const ProjectTile: React.FC<Props> = ({ isListStyled, data }) => {
-    const titleStyles: CSSProperties = { margin: '0' };
-
-    const desc = data.description;
+const ProjectTile: React.FC<Props> = ({ data }) => {
+    const auth = useContext(Context).config?.authorization;
     return (
         <Link
             to={`/projects/${data.id}`}
-            style={{ gridColumn: `${isListStyled ? '1 / -1' : 'auto'}` }}
+            className={
+                'relative overflow-hidden px-[24px] py-[16px] h-[82px] bg-Background/colorBgBase border border-solid border-Border/colorBorderSecondary rounded-[8px] hover:border-Primary/colorPrimaryBorderHover focus:border-Primary/colorPrimaryBorderHover  focus-visible:border-Primary/colorPrimaryBorderHover focus:shadow-FocusPrimary focus-visible:shadow-FocusPrimary transition ease-in-out duration-300'
+            }
         >
-            <Card hoverable styles={{ body: { padding: '16px 24px' } }}>
-                {!isListStyled && (
-                    <Flex vertical gap={20}>
-                        <Space direction="vertical" size={1}>
-                            <Title level={2} style={titleStyles}>
-                                {data.name}
-                            </Title>
-                            <Text>{desc.length > 25 ? desc.substring(0, 25) + '...' : desc}</Text>
-                        </Space>
-                        <Flex vertical gap={1} style={{ fontWeight: 500 }}>
-                            <Flex justify="space-between" gap={5}>
-                                <Text>Members:</Text>
-                                <Text>1</Text>
-                            </Flex>
-                            <Flex justify="space-between" gap={5}>
-                                <Text>Total transactions:</Text>
-                                <Text>{data.total_transactions}</Text>
-                            </Flex>
-                            <Flex justify="space-between" gap={5}>
-                                <Text>Total cost:</Text>
-                                <Text>{`$ ${data.total_cost.toFixed(4)}`}</Text>
-                            </Flex>
-                            <Flex justify="space-between" gap={5}>
-                                <Text>Tags:</Text>
-                                <TagsContainer tags={data.tags} />
-                            </Flex>
-                        </Flex>
+            <Row justify="space-between" className="flex-nowrap gap-[24px] h-full">
+                <Col className="max-w-[50%] min-w-[50%] w-full">
+                    <Flex vertical justify="space-between" gap={4}>
+                        <Title level={2} className="h5 m-0">
+                            {data.name}
+                        </Title>
+                        <TagsContainer tags={data.tags} />
                     </Flex>
+                </Col>
+                {auth && (
+                    <Col className="w-full my-auto">
+                        <Text>{data.owner}</Text>
+                    </Col>
                 )}
-                {isListStyled && (
-                    <Flex justify="space-between" gap={20}>
-                        <Space direction="vertical" size={1}>
-                            <Title level={2} style={titleStyles}>
-                                {data.name}
-                            </Title>
-                            <Text>{desc.length > 25 ? desc.substring(0, 25) + '...' : desc}</Text>
-                        </Space>
-                        <Space direction="vertical">
-                            <Text type="secondary">Members</Text>
-                            <Title level={3} style={titleStyles}>
-                                1
-                            </Title>
-                        </Space>
-                        <Space direction="vertical">
-                            <Text type="secondary">Total transactions</Text>
-                            <Title level={3} style={titleStyles}>
-                                {data.total_transactions}
-                            </Title>
-                        </Space>
-                        <Space direction="vertical">
-                            <Text type="secondary">Total cost</Text>
-                            <Title level={3} style={titleStyles}>
-                                {`$ ${data.total_cost.toFixed(4)}`}
-                            </Title>
-                        </Space>
-                        <Space direction="vertical">
-                            <Text type="secondary">Tags</Text>
-                            <TagsContainer tags={data.tags} />
-                        </Space>
-                    </Flex>
-                )}
-            </Card>
+                <Col className="w-full text-end my-auto">
+                    <Text>{data.total_transactions}</Text>
+                </Col>
+                <Col className="w-full text-end my-auto">
+                    <Text>{`$ ${data.total_cost.toFixed(4)}`}</Text>
+                </Col>
+            </Row>
+            <div className="absolute top-[12px] -left-[4px] h-[32px] w-[8px] rounded-[8px] bg-Primary/colorPrimary"></div>
         </Link>
     );
 };

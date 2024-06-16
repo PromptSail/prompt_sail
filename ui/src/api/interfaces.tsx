@@ -11,24 +11,13 @@ export interface addProjectRequest {
     }[];
     tags: string[];
     org_id: string;
+    owner: string;
 }
 
 export interface updateProjectRequest extends addProjectRequest {}
 
-export interface getAllProjects {
+export interface getAllProjects extends addProjectRequest {
     id: string;
-    name: string;
-    slug: string;
-    description: string;
-    ai_providers: {
-        deployment_name: string;
-        slug: string;
-        api_base: string;
-        description: string;
-        provider_name: string;
-    }[];
-    tags: string[];
-    org_id: string | undefined;
     total_cost: number;
     total_transactions: number;
 }
@@ -73,6 +62,7 @@ export interface getTransactionResponse {
     os: string | null;
     input_tokens: number | null;
     output_tokens: number | null;
+    total_tokens: number | null;
     library: string;
     status_code: number;
     messages:
@@ -133,4 +123,34 @@ export interface getStatisticsTransactionsSpeed {
         tokens_per_second: number;
         total_transactions: number;
     }[];
+}
+export interface getLoggedUser {
+    external_id: string;
+    email: string;
+    organization: string;
+    given_name: string;
+    family_name: string;
+    picture: string;
+    issuer: string;
+}
+export interface getConfig {
+    organization: string;
+    authorization: boolean;
+    azure_auth: boolean;
+    google_auth: boolean;
+}
+export interface getUsers {
+    id: string;
+    email: string;
+    full_name: string;
+    picture: string | null;
+}
+[];
+export interface getModels {
+    model_name: string;
+    start_date: null | string;
+    match_pattern: string;
+    input_price: number;
+    output_price: number;
+    total_price: number;
 }

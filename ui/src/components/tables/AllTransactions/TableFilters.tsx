@@ -3,7 +3,7 @@ import { TransactionsFilters } from '../../../api/types';
 import { Dispatch, SetStateAction } from 'react';
 import FilterProject from '../filters/FilterProject';
 import FilterDates from '../filters/FilterDates';
-import FilterTags from '../filters/FilterTags';
+// import FilterTags from '../filters/FilterTags';
 
 interface Props {
     filters: TransactionsFilters;
@@ -24,17 +24,17 @@ const TableFilters: React.FC<Props> = ({ filters, setFilters, setURLParam }) => 
             <FilterDates
                 defaultValues={[filters.date_from || '', filters.date_to || '']}
                 setFilters={setFilters}
-                setDates={(date_from: string, date_to: string) => {
-                    setURLParam({ date_from, date_to });
-                }}
+                // setDates={(date_from: string, date_to: string) => {
+                // setURLParam({ date_from, date_to });
+                // }}
             />
-            <FilterTags
+            {/* <FilterTags
                 defaultValue={filters.tags || ''}
                 setFilters={setFilters}
                 setTags={(tags: string) => {
                     setURLParam({ tags });
                 }}
-            />
+            /> */}
         </Flex>
     );
 };
