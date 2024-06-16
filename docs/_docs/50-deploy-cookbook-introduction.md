@@ -25,8 +25,8 @@ For **Business owners** can ensure compliance with regulations and maintain gove
 ### Deployment Options
 
 There are several ways to deploy Prompt Sail:
-* [Local deployment](/docs/deploy-promptsail-local/
-* [Azure deployment](/docs/deploy-promptsail-azure) (help needed #good-first-issue)
+* [Local deployment](/docs/deploy-promptsail-local/)
+* [Azure deployment](/docs/deploy-promptsail-azure) 
 * [AWS deployment](/docs/deploy-promptsail-aws) (help needed #good-first-issue)
 * [GCP deployment](/docs/deploy-promptsail-gcp) (help needed #good-first-issue)
 
