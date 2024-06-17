@@ -15,7 +15,7 @@ async def fastapi_lifespan(app: FastAPI):
     from dotenv import find_dotenv, load_dotenv
     from projects.models import AIProvider, Project
     from projects.use_cases import add_project
-    from settings.models import OrganizationSettings, User
+    from settings.models import OrganizationSettings
     from settings.use_cases import add_settings
 
     load_dotenv(find_dotenv())
@@ -27,9 +27,9 @@ async def fastapi_lifespan(app: FastAPI):
 
         if project_repository.count() == 0:
             data1 = Project(
-                name="Project 1",
-                slug="project1",
-                description="Project 1 description",
+                name="Models Playground",
+                slug="models-playground",
+                description="Default description for models playground project.",
                 ai_providers=[
                     AIProvider(
                         deployment_name="openai",
@@ -39,14 +39,14 @@ async def fastapi_lifespan(app: FastAPI):
                         provider_name="OpenAI",
                     ),
                 ],
-                tags=["tag1", "tag2"],
-                org_id="organization",
-                owner="admin",
+                tags=["research", "internal", "experiment", "east-us"],
+                org_id=os.getenv("ORGANIZATION_NAME", "PromptSail"),
+                owner="anonymous@unknown.com",
             )
             data2 = Project(
-                name="Project 2",
-                slug="project2",
-                description="Project 2 description",
+                name="Client campaign",
+                slug="client-campaign",
+                description="Default description for client campaign project.",
                 ai_providers=[
                     AIProvider(
                         deployment_name="openai",
@@ -56,26 +56,25 @@ async def fastapi_lifespan(app: FastAPI):
                         provider_name="OpenAI",
                     ),
                 ],
-                tags=["tag1", "tag2", "tag3"],
-                org_id="organization",
-                owner="admin",
+                tags=["client-zebra", "team-tigers", "central-eu", "production-system"],
+                org_id=os.getenv("ORGANIZATION_NAME", "PromptSail"),
+                owner="anonymous@unknown.com",
             )
             ctx.call(add_project, data1)
             ctx.call(add_project, data2)
 
         if settings_repository.count() == 0:
             organization_name = os.getenv("ORGANIZATION_NAME", None)
-            admin_password = os.getenv("ADMIN_PASSWORD", None)
-            if (admin_password and organization_name) is not None:
+
+            if organization_name is not None:
                 data = OrganizationSettings(
                     id="settings",
                     organization_name=organization_name,
-                    users=[User(username="admin", password=admin_password)],
                 )
                 ctx.call(add_settings, data)
             else:
                 raise ValueError(
-                    "Theres no ORGANIZATION_NAME or ADMIN_PASSWORD in environment variables!"
+                    "Theres no ORGANIZATION_NAME in environment variables!"
                 )
     yield
     ...

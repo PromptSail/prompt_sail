@@ -22,7 +22,6 @@ services:
       BASE_URL: "http://localhost:8000"
       MONGO_URL: "mongodb://root:password@mongodb:27017"
       ORGANIZATION_NAME: "PromptSail"
-      ADMIN_PASSWORD: "password"
       SSO_AUTH: "False"
     depends_on:
       mongodb:
