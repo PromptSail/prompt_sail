@@ -1,4 +1,4 @@
-import { SetStateAction, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { checkLogin } from '../../storage/login';
 import Logo from '../../assets/logo/symbol-teal.svg';
 import { Button, Divider, Flex, Space, Spin, Typography } from 'antd';
@@ -9,6 +9,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useGetConfig } from '../../api/queries';
 import Container from '../../components/Container/Container';
 import { ArrowRightOutlined } from '@ant-design/icons';
+import { useLogin } from '../../context/LoginContext';
 
 // symbol from ../../assets/logo/symbol-teal-outline.svg
 const symbol = (
@@ -22,12 +23,11 @@ const symbol = (
 );
 
 const { Title, Paragraph, Text } = Typography;
-const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }> = ({
-    setLoginState
-}) => {
+const Signin: React.FC = () => {
     const [token, setToken] = useState<null | string>(null);
     const config = useGetConfig();
     const [googleBtnWidth, setGoogleBtnWidth] = useState(300);
+    const { setLoginState } = useLogin();
     useEffect(() => {
         if (token !== null) {
             localStorage.setItem('PS_TOKEN', token);

@@ -1,6 +1,6 @@
 import { Divider, Flex, Menu, Skeleton, Tooltip, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';
-import { SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { checkLogin } from '../../storage/login';
 import {
@@ -16,17 +16,16 @@ import Logo from '../../assets/logo/Logo-teal_white.svg';
 import Symbol from '../../assets/logo/symbol-teal.svg';
 import { useGetConfig, useWhoami } from '../../api/queries';
 import DefaultAvatar from '../DefaultAvatar/DefaultAvatar';
+import { useLogin } from '../../context/LoginContext';
 const { Text } = Typography;
-interface Props {
-    setLoginState: (arg: SetStateAction<boolean>) => void;
-}
 
-const Sidebar: React.FC<Props> = ({ setLoginState }) => {
+const Sidebar: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
     const user = useWhoami();
     const config = useGetConfig();
     const navigate = useNavigate();
+    const { setLoginState } = useLogin();
     useEffect(() => {
         setSelectMenuItem(location.pathname);
     }, [location]);

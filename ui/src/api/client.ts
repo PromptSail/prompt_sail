@@ -2,6 +2,7 @@ import axios from 'axios';
 import { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useError } from '../context/ErrorContext';
+import { useLogin } from '../context/LoginContext';
 
 const client = axios.create({
     baseURL: `/api`,
@@ -13,6 +14,7 @@ const client = axios.create({
 
 const AxiosInterceptor: React.FC<{ children: ReactNode }> = ({ children }) => {
     const navigate = useNavigate();
+    const { setLoginState } = useLogin();
     const { hasServerError, setHasServerError } = useError();
     useEffect(() => {
         client.interceptors.request.use(
@@ -39,7 +41,7 @@ const AxiosInterceptor: React.FC<{ children: ReactNode }> = ({ children }) => {
                 const status = error.response.status;
                 if (status >= 400 && status < 500) {
                     localStorage.removeItem('PS_TOKEN');
-                    navigate('/signin');
+                    setLoginState(false);
                 }
                 if (status >= 500) {
                     console.error(error);
