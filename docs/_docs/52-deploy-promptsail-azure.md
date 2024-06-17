@@ -31,11 +31,6 @@ Example pre-created variables for your proxy:
 ```json
 [
   {
-    "name": "ADMIN_PASSWORD",
-    "value": "password",
-    "slotSetting": false
-  },
-  {
     "name": "AZURE_CLIENT_ID",
     "value": "d3bxyz-xxxx-xxxx-xxxx-d0xyzxyzd9",
     "slotSetting": false
