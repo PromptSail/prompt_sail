@@ -15,6 +15,7 @@ import { useGetConfig } from './api/queries';
 import { getConfig } from './api/interfaces';
 import { ErrorProvider } from './context/ErrorContext';
 import LoginProvider from './context/LoginContext';
+import Page404 from './components/errorPages/page404';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
@@ -56,7 +57,8 @@ const App = () => {
                                             path="/transactions/:transactionId"
                                             element={<Transaction />}
                                         />
-                                        <Route path="*" element={<Navigate to="/" />} />
+                                        <Route path="*" element={<Page404 />} />
+                                        <Route path="/signin" element={<Navigate to="/" />} />
                                     </Routes>
                                 </Layout>
                             </Layout>

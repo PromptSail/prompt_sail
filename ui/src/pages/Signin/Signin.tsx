@@ -10,6 +10,7 @@ import { useGetConfig } from '../../api/queries';
 import Container from '../../components/Container/Container';
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { useLogin } from '../../context/LoginContext';
+import { useNavigate } from 'react-router-dom';
 
 // symbol from ../../assets/logo/symbol-teal-outline.svg
 const symbol = (
@@ -25,6 +26,7 @@ const symbol = (
 const { Title, Paragraph, Text } = Typography;
 const Signin: React.FC = () => {
     const [token, setToken] = useState<null | string>(null);
+    const navigate = useNavigate();
     const config = useGetConfig();
     const [googleBtnWidth, setGoogleBtnWidth] = useState(300);
     const { setLoginState } = useLogin();
@@ -34,6 +36,7 @@ const Signin: React.FC = () => {
             api.whoami()
                 .then(() => {
                     setLoginState(checkLogin());
+                    navigate('/');
                 })
                 .catch((err) => {
                     console.error(err);

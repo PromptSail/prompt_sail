@@ -36,7 +36,7 @@ const AxiosInterceptor: React.FC<{ children: ReactNode }> = ({ children }) => {
         (error) => {
             console.error('inter response error');
             const status = error.response.status;
-            if (status >= 400 && status < 500) {
+            if (status === 401) {
                 localStorage.removeItem('PS_TOKEN');
                 setLoginState(false);
             }

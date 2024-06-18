@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useGetProject, useUpdateProject } from '../../api/queries';
 import { getProjectResponse } from '../../api/interfaces';
 import { AxiosResponse } from 'axios';
@@ -16,6 +16,7 @@ import ProjectTransactions from './ProjectTransactions';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
 import { Context } from '../../context/Context';
 import { useContext } from 'react';
+import Page404 from '../../components/errorPages/page404';
 const { Title } = Typography;
 
 interface AddProps {
@@ -23,7 +24,6 @@ interface AddProps {
 }
 
 const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => {
-    const navigate = useNavigate();
     const { notification } = useContext(Context);
     const [currentTab, setCurrentTab] = useState('1');
     const params = useParams();
@@ -40,14 +40,7 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                 <div>loading...</div>
             </>
         );
-    if (project.isError)
-        return (
-            <>
-                <div>An error has occurred</div>
-                {console.error(project.error)}
-                {navigate('/')}
-            </>
-        );
+    if (project.isError) return <Page404 />;
     if (project.isSuccess) {
         const data = project.data.data;
         return (

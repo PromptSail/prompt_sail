@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useGetTransaction } from '../../api/queries';
 import { Breadcrumb, Flex, Spin, Tabs, Typography } from 'antd';
 import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
@@ -6,11 +6,11 @@ import { useState } from 'react';
 import Overview from './Overview';
 import Messages from './Messages';
 import JSONformat from './JSONformat';
+import Page404 from '../../components/errorPages/page404';
 const { Title } = Typography;
 
 const Transaction: React.FC = () => {
     const params = useParams();
-    const navigate = useNavigate();
     const transaction = useGetTransaction(params.transactionId || '');
     const [currentTab, setCurrentTab] = useState('1');
     if (transaction)
@@ -21,14 +21,7 @@ const Transaction: React.FC = () => {
                     className="absolute top-1/3 left-1/2 -transtaction-x-1/2 -transtaction-y-1/3"
                 />
             );
-    if (transaction.isError)
-        return (
-            <>
-                <div>An error has occurred</div>
-                {console.error(transaction.error)}
-                {navigate('/')}
-            </>
-        );
+    if (transaction.isError) return <Page404 />;
     if (transaction.isSuccess) {
         const data = transaction.data.data;
         return (
