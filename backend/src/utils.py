@@ -333,10 +333,10 @@ class TransactionParamExtractor:
             for message in self.request_content["messages"]
             if message["role"] == "user"
         ][::-1][0]
-        
+
         if len(prompt) == 2:
             prompt = [cont for cont in prompt if cont["type"] == "text"][0]["text"]
-        
+
         extracted["prompt"] = (
             prompt if prompt else self.request_content["messages"][0]["content"]
         )

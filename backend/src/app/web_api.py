@@ -8,7 +8,7 @@ from auth.authorization import decode_and_validate_token
 from auth.models import User
 from auth.schemas import GetPartialUserSchema, GetUserSchema
 from auth.use_cases import get_all_users
-from fastapi import Depends, Request, Security, HTTPException
+from fastapi import Depends, HTTPException, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from projects.models import AIProvider, Project
@@ -124,7 +124,7 @@ async def get_project_details(
         project = ctx.call(get_project, project_id=project_id)
     except DocumentNotFoundException:
         raise HTTPException(status_code=404, detail="Project not found")
-        
+
     transactions = ctx.call(get_transactions_for_project, project_id=project_id)
     cost = 0
     transaction_count = ctx.call(count_transactions, project_id=project_id)
