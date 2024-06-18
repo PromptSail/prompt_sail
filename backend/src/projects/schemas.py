@@ -16,6 +16,7 @@ class GetAIProviderSchema(BaseModel):
 
 
 class GetAIProviderPriceSchema(BaseModel):
+    provider: str
     model_name: str
     start_date: datetime | str | None
     match_pattern: str
