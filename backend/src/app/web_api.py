@@ -8,7 +8,7 @@ from auth.authorization import decode_and_validate_token
 from auth.models import User
 from auth.schemas import GetPartialUserSchema, GetUserSchema
 from auth.use_cases import get_all_users
-from fastapi import Depends, Request, Security
+from fastapi import Depends, Request, Security, HTTPException
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from projects.models import AIProvider, Project
@@ -26,6 +26,7 @@ from projects.use_cases import (
     get_project,
     update_project,
 )
+from seedwork.repositories import DocumentNotFoundException
 from settings.use_cases import get_organization_name
 from slugify import slugify
 from transactions.models import generate_uuid
@@ -119,7 +120,11 @@ async def get_project_details(
     :param ctx: The transaction context dependency.
     :return: A GetProjectSchema object representing the project details.
     """
-    project = ctx.call(get_project, project_id=project_id)
+    try:
+        project = ctx.call(get_project, project_id=project_id)
+    except DocumentNotFoundException:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
     transactions = ctx.call(get_transactions_for_project, project_id=project_id)
     cost = 0
     transaction_count = ctx.call(count_transactions, project_id=project_id)
@@ -234,7 +239,10 @@ async def get_transaction_details(
     :param transaction_id: The identifier of the transaction.
     :param ctx: The transaction context dependency.
     """
-    transaction = ctx.call(get_transaction, transaction_id=transaction_id)
+    try:
+        transaction = ctx.call(get_transaction, transaction_id=transaction_id)
+    except DocumentNotFoundException:
+        raise HTTPException(status_code=404, detail="Transaction not found")
     project = ctx.call(get_project, project_id=transaction.project_id)
     transaction = GetTransactionWithProjectSlugSchema(
         **transaction.model_dump(),
