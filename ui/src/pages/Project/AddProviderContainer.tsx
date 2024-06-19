@@ -86,16 +86,20 @@ const AddProviderContainer: React.FC<Props> = ({
                             </Button>
                         </Flex>
                     </Flex>
-                    <ProviderForm
-                        slug={slug}
-                        onOk={(values) => {
-                            onSubmitSuccess(values);
-                            setOpenForm(false);
-                        }}
-                        providers={providers}
-                        formId={'projectDetails_addProvider'}
-                        handleFormikInstance={(formik) => setLabel(formik.values.deployment_name)}
-                    />
+                    <div className="px-[24px] py-[16px] ">
+                        <ProviderForm
+                            slug={slug}
+                            onOk={(values) => {
+                                onSubmitSuccess(values);
+                                setOpenForm(false);
+                            }}
+                            providers={providers}
+                            formId={'projectDetails_addProvider'}
+                            handleFormikInstance={(formik) =>
+                                setLabel(formik.values.deployment_name)
+                            }
+                        />
+                    </div>
                 </Container>
             )}
         </>

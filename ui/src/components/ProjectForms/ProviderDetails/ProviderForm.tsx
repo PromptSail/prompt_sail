@@ -44,7 +44,7 @@ const ProviderForm: React.FC<Props> = ({ slug, providers, onOk, formId, handleFo
     return (
         <Form
             name={formId}
-            className="px-[24px] py-[16px] border-0"
+            className="border-0"
             id={formId}
             layout="vertical"
             onSubmitCapture={formik.handleSubmit}

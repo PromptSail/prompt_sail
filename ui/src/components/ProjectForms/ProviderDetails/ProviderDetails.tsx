@@ -19,6 +19,7 @@ interface Props {
 const ProviderDetails: React.FC<Props> = ({ setProjectDetails, projectDetails }) => {
     const { token } = theme.useToken();
     const { modal } = useContext(Context);
+    const [newFormOpened, setNewFormOpened] = useState(true);
     const [collapseTrigger, setcollapseTrigger] = useState<CollapsibleType>('header');
     const items: CollapseProps['items'] = projectDetails.ai_providers.map((el, item_id) => ({
         key: item_id,
@@ -124,33 +125,48 @@ const ProviderDetails: React.FC<Props> = ({ setProjectDetails, projectDetails })
                     items={items}
                 />
             )}
-            <Container>
-                <Title level={2} className="h5 m-0 pt-0 px-[24px] py-[16px]">
-                    Project details
-                </Title>
-                <ProviderForm
-                    onOk={(values) =>
-                        setProjectDetails((old) => ({
-                            ...old,
-                            ai_providers: [
-                                ...old.ai_providers,
-                                { ...values, slug: toSlug(values.deployment_name) }
-                            ]
-                        }))
-                    }
-                    providers={projectDetails.ai_providers}
-                    slug={projectDetails.slug}
-                    formId="projectForm_providerAdd"
-                />
-            </Container>
+            {newFormOpened && (
+                <Container>
+                    <Title level={2} className="h5 m-0 pt-0 px-[24px] py-[16px]">
+                        Project details
+                    </Title>
+                    <div>
+                        <ProviderForm
+                            onOk={(values) => {
+                                setProjectDetails((old) => ({
+                                    ...old,
+                                    ai_providers: [
+                                        ...old.ai_providers,
+                                        { ...values, slug: toSlug(values.deployment_name) }
+                                    ]
+                                }));
+                                setNewFormOpened(false);
+                            }}
+                            providers={projectDetails.ai_providers}
+                            slug={projectDetails.slug}
+                            formId="projectForm_providerAdd"
+                        />
+                        <Button
+                            className="my-auto"
+                            type="primary"
+                            //   icon={<CheckSquareOutlined />}
+                            htmlType="submit"
+                            form="projectForm_providerAdd"
+                        >
+                            Save
+                        </Button>
+                    </div>
+                </Container>
+            )}
             <Button
                 className="me-auto mb-[12px]"
                 type="dashed"
                 icon={<PlusSquareOutlined />}
                 htmlType="submit"
-                form="projectForm_providerAdd"
+                onClick={() => setNewFormOpened(true)}
+                disabled={newFormOpened}
             >
-                Add{projectDetails.ai_providers.length > 0 ? ' next' : ''} AI Provider
+                Add next AI Provider
             </Button>
         </Flex>
     );

@@ -1,7 +1,6 @@
 import { Button, Form, Input, Typography } from 'antd';
 import { useFormik } from 'formik';
 import { makeUrl } from '../../../helpers/aiProvider';
-import { UpSquareOutlined } from '@ant-design/icons';
 import { providerSchema } from '../../../api/formSchemas';
 import ProviderSelect from './ProviderSelect';
 import { FormikValuesTemplate } from '../types';
@@ -121,12 +120,20 @@ const ProviderEditableElement: React.FC<Props> = ({
             {showSubmitButton && (
                 <Button
                     className="me-auto"
-                    type="dashed"
-                    icon={<UpSquareOutlined />}
+                    type="primary"
                     htmlType="submit"
                     form={formId}
+                    disabled={(() => {
+                        const isValuesNotEdited = Object.keys(initialValues)
+                            .filter((el) => el !== 'slug')
+                            .map((el) => {
+                                const key = el as keyof typeof initialValues;
+                                return initialValues[key] === formik.values[key];
+                            });
+                        return isValuesNotEdited.reduce((a, b) => a && b);
+                    })()}
                 >
-                    Update AI Provider
+                    Save
                 </Button>
             )}
         </>
