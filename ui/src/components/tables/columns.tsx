@@ -177,7 +177,7 @@ const columns = (
                     filters={filters as ColumnFilterItem[] & TransactionsFilters}
                     setFilters={setFilters}
                     query={{ hook: useGetModels, label: 'model_name' }}
-                    target="providers"
+                    target="models"
                     multiselect={true}
                 />
             )
