@@ -58,10 +58,43 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                       <Title level={2} className="h5 m-0 lh-0">
                                                           {el.deployment_name}
                                                       </Title>
+                                                  </Flex>
+                                              ),
+                                              children: (
+                                                  <>
+                                                      <ProviderEditableElement
+                                                          initialValues={prevState[index]}
+                                                          onSubmit={(values) => {
+                                                              setProviders((prevState) => {
+                                                                  const newList = prevState.map(
+                                                                      (el, id) =>
+                                                                          id !== index
+                                                                              ? el
+                                                                              : {
+                                                                                    ...values,
+                                                                                    slug: toSlug(
+                                                                                        values.deployment_name
+                                                                                    )
+                                                                                }
+                                                                  );
+                                                                  setItems((prevItems) =>
+                                                                      newList.map((el, id) =>
+                                                                          id === index
+                                                                              ? CollapseItem(el, id)
+                                                                              : prevItems[id]
+                                                                      )
+                                                                  );
+                                                                  onUpdateProviders(newList);
+                                                                  return newList;
+                                                              });
+                                                          }}
+                                                          showSubmitButton={false}
+                                                          slugForProxy={slug}
+                                                          formId={`projectDetails_editProvider${index}`}
+                                                      />{' '}
                                                       <Flex gap={8}>
                                                           <Button
                                                               className="my-auto"
-                                                              size="small"
                                                               onClick={() => {
                                                                   setItems((innerPrevItems) =>
                                                                       innerPrevItems.map((el, id) =>
@@ -77,7 +110,6 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                           <Button
                                                               className="my-auto"
                                                               type="primary"
-                                                              size="small"
                                                               icon={<CheckSquareOutlined />}
                                                               htmlType="submit"
                                                               form={`projectDetails_editProvider${index}`}
@@ -85,39 +117,7 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                               Save
                                                           </Button>
                                                       </Flex>
-                                                  </Flex>
-                                              ),
-                                              children: (
-                                                  <ProviderEditableElement
-                                                      initialValues={prevState[index]}
-                                                      onSubmit={(values) => {
-                                                          setProviders((prevState) => {
-                                                              const newList = prevState.map(
-                                                                  (el, id) =>
-                                                                      id !== index
-                                                                          ? el
-                                                                          : {
-                                                                                ...values,
-                                                                                slug: toSlug(
-                                                                                    values.deployment_name
-                                                                                )
-                                                                            }
-                                                              );
-                                                              setItems((prevItems) =>
-                                                                  newList.map((el, id) =>
-                                                                      id === index
-                                                                          ? CollapseItem(el, id)
-                                                                          : prevItems[id]
-                                                                  )
-                                                              );
-                                                              onUpdateProviders(newList);
-                                                              return newList;
-                                                          });
-                                                      }}
-                                                      showSubmitButton={false}
-                                                      slugForProxy={slug}
-                                                      formId={`projectDetails_editProvider${index}`}
-                                                  />
+                                                  </>
                                               )
                                           }
                                 );
