@@ -37,7 +37,6 @@ const AddProviderContainer: React.FC<Props> = ({
                     icon={<PlusSquareOutlined />}
                     onClick={() => {
                         setOpenForm(true);
-                        // return array of keys: return key if collapsible === 'disabled'
                         const disabledItems = items
                             .filter((item) => item.collapsible === 'disabled')
                             .map((item) => item.key) as number[];
@@ -54,10 +53,23 @@ const AddProviderContainer: React.FC<Props> = ({
                         <Title level={2} className="h5 m-0 lh-0">
                             {label.length > 0 ? label : 'New AI Provider'}
                         </Title>
+                    </Flex>
+                    <div className="px-[24px] py-[16px] ">
+                        <ProviderForm
+                            slug={slug}
+                            onOk={(values) => {
+                                onSubmitSuccess(values);
+                                setOpenForm(false);
+                            }}
+                            providers={providers}
+                            formId={'projectDetails_addProvider'}
+                            handleFormikInstance={(formik) =>
+                                setLabel(formik.values.deployment_name)
+                            }
+                        />
                         <Flex gap={8}>
                             <Button
                                 className="my-auto"
-                                size="small"
                                 onClick={() => {
                                     setOpenForm(false);
                                     const disabledItems = items
@@ -77,7 +89,6 @@ const AddProviderContainer: React.FC<Props> = ({
                             <Button
                                 className="my-auto"
                                 type="primary"
-                                size="small"
                                 icon={<CheckSquareOutlined />}
                                 htmlType="submit"
                                 form="projectDetails_addProvider"
@@ -85,20 +96,6 @@ const AddProviderContainer: React.FC<Props> = ({
                                 Save
                             </Button>
                         </Flex>
-                    </Flex>
-                    <div className="px-[24px] py-[16px] ">
-                        <ProviderForm
-                            slug={slug}
-                            onOk={(values) => {
-                                onSubmitSuccess(values);
-                                setOpenForm(false);
-                            }}
-                            providers={providers}
-                            formId={'projectDetails_addProvider'}
-                            handleFormikInstance={(formik) =>
-                                setLabel(formik.values.deployment_name)
-                            }
-                        />
                     </div>
                 </Container>
             )}
