@@ -13,9 +13,15 @@ interface Props {
     filters: TransactionsFilters;
     setFilters: (attr: SetStateAction<TransactionsFilters>) => void;
     setTransactionsCount?: (attr: number) => void;
+    projectFilters?: boolean;
 }
 
-const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setTransactionsCount }) => {
+const TransactionsTable: React.FC<Props> = ({
+    filters,
+    setFilters,
+    setTransactionsCount,
+    projectFilters = false
+}) => {
     const transactions = useGetAllTransactions(filters);
     const [isLoading, setLoading] = useState(true);
     const [tableData, setTableData] = useState<{
@@ -143,18 +149,16 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setTransactio
     return (
         <Table
             dataSource={tableData.items}
-            columns={columns(filters, setFilters)}
+            columns={columns(filters, setFilters, projectFilters)}
             loading={isLoading}
             pagination={{
                 position: ['bottomRight'],
                 onChange: (page, pageSize) => {
                     if (filters.page !== `${page}`) {
                         setFilters((old) => ({ ...old, page: `${page}` }));
-                        // setURLParam({ page: `${page}` });
                     }
                     if (filters.page_size !== `${pageSize}`) {
                         setFilters((old) => ({ ...old, page_size: `${pageSize}` }));
-                        // setURLParam({ page_size: `${pageSize}` });
                     }
                 },
                 total: tableData.total_elements,

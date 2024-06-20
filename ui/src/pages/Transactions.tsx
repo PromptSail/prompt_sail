@@ -77,6 +77,7 @@ const Transactions: React.FC = () => {
                             filters={filters}
                             setFilters={setFilters}
                             setTransactionsCount={setTransactionsCount}
+                            projectFilters
                         />
                     </div>
                 </Container>

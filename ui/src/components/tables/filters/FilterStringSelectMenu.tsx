@@ -118,7 +118,7 @@ const FilterStringSelectMenu: React.FC<
                         confirm();
                     }}
                 >
-                    Save
+                    Search
                 </Button>
             </Flex>
         </Flex>
