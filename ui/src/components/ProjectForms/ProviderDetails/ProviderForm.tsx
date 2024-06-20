@@ -116,9 +116,10 @@ const ProviderForm: React.FC<Props> = ({ slug, providers, onOk, formId, handleFo
                 validateStatus={formik.errors.slug ? 'error' : ''}
                 className="mb-[10px]"
             >
-                <Paragraph className="!m-0 text-Text/colorText">API Base URL:</Paragraph>
+                <Paragraph className="!m-0 text-Text/colorText">Proxy URL:</Paragraph>
                 <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                    Enter the base URL for the LLM endpoint you want to connect with
+                    A proxy URL is auto-generated from the slug and the deployment name and is used
+                    to log all interactions with LLM provider.
                 </Paragraph>
                 <Input
                     className="max-w-[50%]"

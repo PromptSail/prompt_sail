@@ -128,7 +128,7 @@ const ProviderDetails: React.FC<Props> = ({ setProjectDetails, projectDetails })
             {newFormOpened && (
                 <Container>
                     <Title level={2} className="h5 m-0 pt-0 px-[24px] py-[16px]">
-                        Project details
+                        Provider details
                     </Title>
                     <div>
                         <ProviderForm
@@ -149,7 +149,6 @@ const ProviderDetails: React.FC<Props> = ({ setProjectDetails, projectDetails })
                         <Button
                             className="my-auto"
                             type="primary"
-                            //   icon={<CheckSquareOutlined />}
                             htmlType="submit"
                             form="projectForm_providerAdd"
                         >
