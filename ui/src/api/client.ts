@@ -35,13 +35,12 @@ const AxiosInterceptor: React.FC<{ children: ReactNode }> = ({ children }) => {
         },
         (error) => {
             console.error('inter response error');
+            console.error(error);
             const status = error.response.status;
             if (status === 401) {
                 localStorage.removeItem('PS_TOKEN');
                 setLoginState(false);
-            }
-            if (status >= 500) {
-                console.error(error);
+            } else {
                 setHasServerError(true);
             }
             return Promise.reject(error);

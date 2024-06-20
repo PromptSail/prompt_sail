@@ -1,10 +1,8 @@
-import { Typography, Flex, Spin } from 'antd';
-// import { useSearchParams } from 'react-router-dom';
+import { Typography, Flex, Skeleton } from 'antd';
 import { TransactionsFilters } from '../api/types';
 import { useEffect, useState } from 'react';
 import TransactionsTable from '../components/tables/AllTransactions/TransactionsTable';
 import HeaderContainer from '../components/HeaderContainer/HeaderContainer';
-import { useGetAllTransactions } from '../api/queries';
 import Container from '../components/Container/Container';
 import FilterDates from '../components/tables/filters/FilterDates';
 import { useSearchParams } from 'react-router-dom';
@@ -12,7 +10,7 @@ import { useSearchParams } from 'react-router-dom';
 const { Text } = Typography;
 
 const { Title } = Typography;
-const Transactions = () => {
+const Transactions: React.FC = () => {
     const [params, setParams] = useSearchParams();
     const [filters, setFilters] = useState<TransactionsFilters>({
         project_id: params.get('project_id') || '',
@@ -37,33 +35,31 @@ const Transactions = () => {
     useEffect(() => {
         setURLParam(filters);
     }, [filters]);
-    const transactions = useGetAllTransactions(filters);
+    const [transactionsCount, setTransactionsCount] = useState<number | null>(null);
 
     return (
         <Flex gap={24} vertical>
             <HeaderContainer>
-                {transactions.isLoading && (
-                    <Spin
-                        size="large"
-                        className="absolute top-1/3 left-1/2 -transtaction-x-1/2 -transtaction-y-1/3"
-                    />
-                )}
-                {!transactions.isLoading && (
-                    <div className="my-auto z-10">
-                        <Title level={1} className="h4 m-auto">
-                            Transactions{' '}
-                            {transactions.isSuccess ? (
-                                `(${transactions.data.data.total_elements})`
-                            ) : (
-                                <>
-                                    {console.error(transactions.error)}
-                                    {console.error(transactions.error?.message)}
-                                    <span>(An error has occurred {transactions.error?.code})</span>
-                                </>
-                            )}
-                        </Title>
-                    </div>
-                )}
+                <div className="my-auto z-10">
+                    <Title level={1} className="h4 m-auto">
+                        Transactions{' '}
+                        <Skeleton
+                            active
+                            className="inline-block w-[36px] h-[16px] translate-y-[2px]"
+                            paragraph={{
+                                rows: 0,
+                                className: '!m-0'
+                            }}
+                            loading={!transactionsCount}
+                            title={{
+                                width: '36px',
+                                className: 'm-0'
+                            }}
+                        >
+                            ({transactionsCount})
+                        </Skeleton>
+                    </Title>
+                </div>
             </HeaderContainer>
             <Flex vertical gap={8} className="px-[24px]">
                 <Container>
@@ -72,13 +68,16 @@ const Transactions = () => {
                         <FilterDates
                             defaultValues={[filters.date_from || '', filters.date_to || '']}
                             setFilters={setFilters}
-                            // setDates={() => console.log('setDates')}
                         />
                     </Flex>
                 </Container>
                 <Container>
                     <div>
-                        <TransactionsTable filters={filters} setFilters={setFilters} />
+                        <TransactionsTable
+                            filters={filters}
+                            setFilters={setFilters}
+                            setTransactionsCount={setTransactionsCount}
+                        />
                     </div>
                 </Container>
             </Flex>

@@ -23,64 +23,62 @@ interface Params {
 const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) => {
     const TransactionsCost = useGetStatistics_TransactionsCost(statisticsParams);
     const [TokensOrCost, setTokensOrCost] = useState<'tokens' | 'cost'>('cost');
-    if (TransactionsCost.isLoading) {
-        return (
-            <Spin
-                size="large"
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            />
-        );
-    }
-    if (TransactionsCost.isSuccess) {
-        const chartData = {
-            legend: [] as string[],
-            records: [] as Record<string, number>[]
-        };
-        const data = TransactionsCost.data.data;
-        data.map((el) => {
-            const record: (typeof chartData.records)[0] = {
-                date: new Date(el.date).getTime()
-            };
+    return (
+        <div className="relative flex flex-col min-h-[200px]">
+            <Flex justify="space-between">
+                <Title level={3} className="h5 m-0">
+                    {TokensOrCost === 'tokens' ? 'Used tokens ' : 'Transactions cost '} by model
+                </Title>
+                <Segmented
+                    options={[
+                        { label: 'Cost', value: 'cost' },
+                        { label: 'Tokens', value: 'tokens' }
+                    ]}
+                    onChange={(e: typeof TokensOrCost) => setTokensOrCost(e)}
+                    value={TokensOrCost}
+                    size="small"
+                />
+            </Flex>
+            <ResponsiveContainer height={210} className="mt-4">
+                {!TransactionsCost.isSuccess ? (
+                    <div className="w-full h-full relative">
+                        <Spin
+                            size="large"
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                        />
+                    </div>
+                ) : (
+                    (() => {
+                        const chartData = {
+                            legend: [] as string[],
+                            records: [] as Record<string, number>[]
+                        };
+                        const data = TransactionsCost.data.data;
+                        data.map((el) => {
+                            const record: (typeof chartData.records)[0] = {
+                                date: new Date(el.date).getTime()
+                            };
 
-            el.records.map((rec) => {
-                const legendName = `${rec.provider.substring(0, 2)}-${rec.model}`;
-                if (!chartData.legend.includes(legendName)) {
-                    chartData.legend.push(legendName);
-                }
-                record[`tokens_${legendName}`] =
-                    rec.input_cumulative_total + rec.output_cumulative_total;
-                record[`cost_${legendName}`] = rec.total_cost;
-            });
+                            el.records.map((rec) => {
+                                const legendName = `${rec.provider.substring(0, 2)}-${rec.model}`;
+                                if (!chartData.legend.includes(legendName)) {
+                                    chartData.legend.push(legendName);
+                                }
+                                record[`tokens_${legendName}`] =
+                                    rec.input_cumulative_total + rec.output_cumulative_total;
+                                record[`cost_${legendName}`] = rec.total_cost;
+                            });
 
-            chartData.records.push(record);
-        });
-        return (
-            <div className="relative flex flex-col min-h-[200px]">
-                <Flex justify="space-between">
-                    <Title level={3} className="h5 m-0">
-                        {TokensOrCost === 'tokens' ? 'Used tokens ' : 'Transactions cost '} by model
-                    </Title>
-                    <Segmented
-                        options={[
-                            { label: 'Cost', value: 'cost' },
-                            { label: 'Tokens', value: 'tokens' }
-                        ]}
-                        onChange={(e: typeof TokensOrCost) => setTokensOrCost(e)}
-                        value={TokensOrCost}
-                        size="small"
-                    />
-                </Flex>
-                {data.length < 1 && (
-                    <Title
-                        level={3}
-                        className="h1 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0"
-                    >
-                        No data found
-                    </Title>
-                )}
-                {data.length > 0 && (
-                    <>
-                        <ResponsiveContainer height={210} className="mt-4">
+                            chartData.records.push(record);
+                        });
+                        return data.length < 1 ? (
+                            <Title
+                                level={3}
+                                className="h1 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0"
+                            >
+                                No data found
+                            </Title>
+                        ) : (
                             <AreaChart
                                 data={chartData.records}
                                 margin={{
@@ -178,12 +176,12 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                     );
                                 })}
                             </AreaChart>
-                        </ResponsiveContainer>
-                    </>
+                        );
+                    })()
                 )}
-            </div>
-        );
-    }
+            </ResponsiveContainer>
+        </div>
+    );
 };
 
 export default TransactionsCostAndTokensChart;

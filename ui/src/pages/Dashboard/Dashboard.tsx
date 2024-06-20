@@ -1,5 +1,5 @@
-import { Flex, Typography, Button, Row, Col, Pagination } from 'antd';
-import { useContext, useEffect, useState } from 'react';
+import { Flex, Typography, Button, Row, Col, Pagination, Spin } from 'antd';
+import { useCallback, useContext, useState } from 'react';
 import { getAllProjects } from '../../api/interfaces';
 import { useGetAllProjects } from '../../api/queries';
 import { PlusSquareOutlined } from '@ant-design/icons';
@@ -61,7 +61,7 @@ const Dashboard = () => {
         }
     };
     const navigate = useNavigate();
-    useEffect(() => {
+    const loadData = useCallback(() => {
         if (projects.isSuccess) {
             const filteredData = projects.data
                 .filter(
@@ -89,36 +89,35 @@ const Dashboard = () => {
         filter,
         filterOwner
     ]);
-    return (
-        <Flex gap={24} vertical>
-            <HeaderContainer>
-                <div className="my-auto z-10">
-                    <Title level={1} className="h4 m-auto">
-                        Projects ({filteredProjects.length})
-                    </Title>
-                </div>
-                <Button
-                    className="my-auto z-10"
-                    type="primary"
+    if (projects.isLoading) {
+        return (
+            <div className="w-full h-full relative">
+                <Spin
                     size="large"
-                    icon={<PlusSquareOutlined />}
-                    onClick={() => navigate('/projects/add')}
-                >
-                    New project
-                </Button>
-            </HeaderContainer>
-            {projects.isLoading && (
-                <>
-                    <div>loading...</div>
-                </>
-            )}
-            {projects.isError && (
-                <>
-                    <div>An error has occurred</div>
-                    {console.error(projects.error)}
-                </>
-            )}
-            {projects.isSuccess && (
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                />
+            </div>
+        );
+    }
+    if (projects.isSuccess) {
+        return (
+            <Flex gap={24} vertical ref={loadData}>
+                <HeaderContainer>
+                    <div className="my-auto z-10">
+                        <Title level={1} className="h4 m-auto">
+                            Projects ({filteredProjects.length})
+                        </Title>
+                    </div>
+                    <Button
+                        className="my-auto z-10"
+                        type="primary"
+                        size="large"
+                        icon={<PlusSquareOutlined />}
+                        onClick={() => navigate('/projects/add')}
+                    >
+                        New project
+                    </Button>
+                </HeaderContainer>
                 <div className="px-[24px] max-w-[1600px] w-full mx-auto">
                     {projects.data.length < 1 && (
                         <Flex className="m-auto mt-24" vertical>
@@ -229,9 +228,9 @@ const Dashboard = () => {
                         </>
                     )}
                 </div>
-            )}
-        </Flex>
-    );
+            </Flex>
+        );
+    }
 };
 
 export default Dashboard;

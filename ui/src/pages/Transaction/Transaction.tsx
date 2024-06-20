@@ -16,10 +16,12 @@ const Transaction: React.FC = () => {
     if (transaction)
         if (transaction.isLoading)
             return (
-                <Spin
-                    size="large"
-                    className="absolute top-1/3 left-1/2 -transtaction-x-1/2 -transtaction-y-1/3"
-                />
+                <div className="w-full h-full relative">
+                    <Spin
+                        size="large"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                    />
+                </div>
             );
     if (transaction.isError) return <Page404 />;
     if (transaction.isSuccess) {

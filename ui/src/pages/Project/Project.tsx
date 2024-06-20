@@ -5,7 +5,7 @@ import { AxiosResponse } from 'axios';
 import { UseQueryResult } from 'react-query';
 import UpdateProject from './Update/UpdateProject';
 import AddProject from './Add/AddProject';
-import { Breadcrumb, Flex, Tabs, Typography } from 'antd';
+import { Breadcrumb, Flex, Spin, Tabs, Typography } from 'antd';
 import Statistics from './Statistics/Statistics';
 import { NotificationInstance } from 'antd/es/notification/interface';
 import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
@@ -36,9 +36,12 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
     }, [currentTab]);
     if (project.isLoading)
         return (
-            <>
-                <div>loading...</div>
-            </>
+            <div className="w-full h-full relative">
+                <Spin
+                    size="large"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                />
+            </div>
         );
     if (project.isError) return <Page404 />;
     if (project.isSuccess) {

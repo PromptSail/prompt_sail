@@ -12,9 +12,10 @@ import { SorterResult } from 'antd/es/table/interface';
 interface Props {
     filters: TransactionsFilters;
     setFilters: (attr: SetStateAction<TransactionsFilters>) => void;
+    setTransactionsCount?: (attr: number) => void;
 }
 
-const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
+const TransactionsTable: React.FC<Props> = ({ filters, setFilters, setTransactionsCount }) => {
     const transactions = useGetAllTransactions(filters);
     const [isLoading, setLoading] = useState(true);
     const [tableData, setTableData] = useState<{
@@ -37,6 +38,7 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
             setLoading(true);
         }
         if (transactions.isSuccess) {
+            setTransactionsCount && setTransactionsCount(transactions.data.data.total_elements);
             setTableData(() => {
                 const data = transactions.data.data;
                 return {

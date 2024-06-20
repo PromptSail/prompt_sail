@@ -21,7 +21,6 @@ const ProjectTransactions: React.FC<Props> = ({ projectId }) => {
                     <FilterDates
                         defaultValues={[filters.date_from || '', filters.date_to || '']}
                         setFilters={setFilters}
-                        // setDates={() => console.log('setDates')}
                     />
                 </Flex>
             </Container>
