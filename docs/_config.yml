@@ -2,7 +2,7 @@ remote_theme: "mmistakes/minimal-mistakes@4.26.2"
 title: "Prompt Sail"
 title_separator: "-"
 subtitle: "LLM Proxy"
-description: "LLM's proxy for prompt and response governance, monitoring, and analysis"
+description: &description "LLM's proxy for prompt and response governance, monitoring, and analysis"
 url: https://promptsail.com/
 baseurl: "/" # the subpath of your site, e.g. "/blog"
 repository: "PromptSail/prompt_sail"
