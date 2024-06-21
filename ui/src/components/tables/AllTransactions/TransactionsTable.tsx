@@ -93,7 +93,10 @@ const TransactionsTable: React.FC<Props> = ({
                             messages: (
                                 <Flex vertical>
                                     <div>
-                                        <b>Input:</b> {tr.prompt}
+                                        <b>Input:</b>{' '}
+                                        {tr.prompt.length > 25
+                                            ? tr.prompt.substring(0, 23) + '...'
+                                            : tr.prompt}
                                     </div>
                                     <div>
                                         <b>Output: </b>{' '}

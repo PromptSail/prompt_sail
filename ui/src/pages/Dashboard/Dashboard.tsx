@@ -144,10 +144,27 @@ const Dashboard = () => {
                             <FilterDashboard
                                 costRange={{
                                     ...costRange,
-                                    max: projects.data.reduce(
-                                        (max, current) =>
-                                            current.total_cost > max ? current.total_cost : max,
-                                        0
+                                    max: Number(
+                                        projects.data
+                                            .reduce(
+                                                (max, current) =>
+                                                    current.total_cost > max
+                                                        ? current.total_cost
+                                                        : max,
+                                                0
+                                            )
+                                            .toFixed(4)
+                                    ),
+                                    min: Number(
+                                        projects.data
+                                            .reduce(
+                                                (min, current) =>
+                                                    current.total_cost < min
+                                                        ? current.total_cost
+                                                        : min,
+                                                0
+                                            )
+                                            .toFixed(4)
                                     )
                                 }}
                                 transactionsRange={{
@@ -157,6 +174,13 @@ const Dashboard = () => {
                                             current.total_transactions > max
                                                 ? current.total_transactions
                                                 : max,
+                                        0
+                                    ),
+                                    min: projects.data.reduce(
+                                        (min, current) =>
+                                            current.total_transactions < min
+                                                ? current.total_transactions
+                                                : min,
                                         0
                                     )
                                 }}

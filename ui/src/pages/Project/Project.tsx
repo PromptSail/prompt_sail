@@ -55,7 +55,7 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                                 className="ms-1"
                                 items={[
                                     {
-                                        title: <Link to={'/projects'}>Projects</Link>
+                                        title: <Link to={'/'}>Projects</Link>
                                     },
                                     {
                                         title: data.name
