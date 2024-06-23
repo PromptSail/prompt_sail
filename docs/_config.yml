@@ -1,16 +1,25 @@
-remote_theme: "mmistakes/minimal-mistakes@4.24.0"
+remote_theme: "mmistakes/minimal-mistakes@4.26.2"
 title: "Prompt Sail"
 title_separator: "-"
 subtitle: "LLM Proxy"
 description: &description "LLM's proxy for prompt and response governance, monitoring, and analysis"
 url: https://promptsail.com/
 baseurl: "/" # the subpath of your site, e.g. "/blog"
-repository: "mmistakes/minimal-mistakes"
+repository: "PromptSail/prompt_sail"
 teaser: # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 logo: "/assets/images/prompt_sail_logo_teal.png" # path of logo image to display in the masthead, e.g. "/assets/images/88x88.png"
 masthead_title: # overrides the website title displayed in the masthead, use " " for no title
 # breadcrumbs            : false # true, false (default)
 words_per_minute: 200
+enable_copy_code_button  : true
+
+google_site_verification: #empty
+# Analytics
+analytics:
+  provider               : "google-gtag" # false (default), "google", "google-universal", "google-gtag", "custom"
+  google:
+    tracking_id          : "G-GGBJ953RE6" # Replace this with your ID, or delete
+    anonymize_ip         : true
 
 footer:
   links:
@@ -162,8 +171,8 @@ plugins:
   - jekyll-sitemap
   - jekyll-gist
   - jekyll-feed
-  - jemoji
   - jekyll-include-cache
+#  - jemoji
 
 # mimic GitHub Pages with --safe
 whitelist:
@@ -171,8 +180,8 @@ whitelist:
   - jekyll-sitemap
   - jekyll-gist
   - jekyll-feed
-  - jemoji
   - jekyll-include-cache
+#  - jemoji
 
 # Archives
 #  Type
