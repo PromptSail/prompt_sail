@@ -192,15 +192,28 @@ def store_transaction(
     """
     decoder = response._get_content_decoder()
     buf = b"".join(buffer)
-    
-    if "localhost" in str(request.__dict__['url']):
-        content = buf.decode('utf-8').split('\n')
+
+    if "localhost" in str(request.__dict__["url"]):
+        content = buf.decode("utf-8").split("\n")
         rest, content = content[-2], content[:-2]
-        response_content = {pair.split(':')[0]:pair.split(':')[1] for pair in rest.split(',"context"')[0][1:].replace('"', '').split(',')}
-        content = "".join(list(
-            map(lambda msg: [text for text in [text for text in msg[1:-1].split('response":"')][1].split('"')][0],
-                content)))
-        response_content['response'] = content
+        response_content = {
+            pair.split(":")[0]: pair.split(":")[1]
+            for pair in rest.split(',"context"')[0][1:].replace('"', "").split(",")
+        }
+        content = "".join(
+            list(
+                map(
+                    lambda msg: [
+                        text
+                        for text in [text for text in msg[1:-1].split('response":"')][
+                            1
+                        ].split('"')
+                    ][0],
+                    content,
+                )
+            )
+        )
+        response_content["response"] = content
     else:
         try:
             response_content = decoder.decode(buf)
@@ -208,7 +221,9 @@ def store_transaction(
         except json.JSONDecodeError:
             content = []
             for i in (
-                chunks := buf.decode().replace("data: ", "").split("\n\n")[::-1][3:][::-1]
+                chunks := buf.decode()
+                .replace("data: ", "")
+                .split("\n\n")[::-1][3:][::-1]
             ):
                 content.append(
                     json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")
@@ -221,8 +236,12 @@ def store_transaction(
                     "messages"
                 ]
             ]
-            input_tokens = count_tokens_for_streaming_response(messages, example["model"])
-            output_tokens = count_tokens_for_streaming_response(content, example["model"])
+            input_tokens = count_tokens_for_streaming_response(
+                messages, example["model"]
+            )
+            output_tokens = count_tokens_for_streaming_response(
+                content, example["model"]
+            )
             response_content = dict(
                 id=example["id"],
                 object="chat.completion",
@@ -243,12 +262,12 @@ def store_transaction(
                     total_tokens=input_tokens + output_tokens,
                 ),
             )
-    
+
     if "usage" not in response_content:
         response_content["usage"] = dict(
             prompt_tokens=0, completion_tokens=0, total_tokens=0
         )
-        
+
     param_extractor = utils.TransactionParamExtractor(
         request, response, response_content
     )

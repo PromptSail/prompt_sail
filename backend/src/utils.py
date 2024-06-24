@@ -666,22 +666,26 @@ class TransactionParamExtractor:
             )
 
         return extracted
-    
-    def _extract_from_ollama(self):      
+
+    def _extract_from_ollama(self):
         extracted = {
             "type": "chat",
             "provider": "Ollama | localhost",
-            "model": self.response_content['model'] if "model" in self.response_content else self.request_content["model"],
-            "prompt": self.request_content['prompt']
+            "model": self.response_content["model"]
+            if "model" in self.response_content
+            else self.request_content["model"],
+            "prompt": self.request_content["prompt"],
         }
-        
-        messages = [{"role": "user", "content": self.request_content['prompt']}]
-        
+
+        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+
         if self.response.__dict__["status_code"] > 200:
             # TODO: Find the way to make error, then handle it
             print(self.response.__dict__)
         else:
-            messages.append({"role": "system", "content": self.response_content["response"]})
+            messages.append(
+                {"role": "system", "content": self.response_content["response"]}
+            )
             extracted["messages"] = messages
             extracted["last_message"] = self.response_content["response"]
         return extracted
