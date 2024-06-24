@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { customSorter, dataRounding, dateFormatter } from './formatters';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
 import * as styles from '../../../styles.json';
+import noData from '../../../assets/box.svg';
 const { Title } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
@@ -72,12 +73,10 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                             chartData.records.push(record);
                         });
                         return data.length < 1 ? (
-                            <Title
-                                level={3}
-                                className="h1 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0"
-                            >
-                                No data found
-                            </Title>
+                            <Flex align="center" justify="center" className="h-full" vertical>
+                                <img src={noData} alt="No Data" width={150} />
+                                <Title level={3}>No data</Title>
+                            </Flex>
                         ) : (
                             <AreaChart
                                 data={chartData.records}

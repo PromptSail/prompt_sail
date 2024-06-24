@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Badge, Flex, Table, Tag, Tooltip } from 'antd';
+import { Badge, Flex, Table, Tag, Tooltip, Typography } from 'antd';
 import { TagsContainer } from '../../../helpers/dataContainer';
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { SetStateAction, useEffect, useState } from 'react';
@@ -8,6 +8,8 @@ import { useGetAllTransactions } from '../../../api/queries';
 import columns, { CustomColumns, DataType } from '../columns';
 import * as styles from '../../../styles.json';
 import { SorterResult } from 'antd/es/table/interface';
+import noData from '../../../assets/box.svg';
+const { Title } = Typography;
 
 interface Props {
     filters: TransactionsFilters;
@@ -150,37 +152,55 @@ const TransactionsTable: React.FC<Props> = ({
         }
     }, [transactions.status]);
     return (
-        <Table
-            dataSource={tableData.items}
-            columns={columns(filters, setFilters, projectFilters)}
-            loading={isLoading}
-            pagination={{
-                position: ['bottomRight'],
-                onChange: (page, pageSize) => {
-                    if (filters.page !== `${page}`) {
-                        setFilters((old) => ({ ...old, page: `${page}` }));
-                    }
-                    if (filters.page_size !== `${pageSize}`) {
-                        setFilters((old) => ({ ...old, page_size: `${pageSize}` }));
-                    }
-                },
-                total: tableData.total_elements,
-                current: tableData.page_index,
-                showSizeChanger: true,
-                pageSize: tableData.page_size,
-                pageSizeOptions: [5, 10, 20, 50]
-            }}
-            onChange={(_pagination, _filters, sorter) => {
-                const sortData = sorter as SorterResult<DataType>;
-                setFilters((old) => ({
-                    ...old,
-                    sort_field: sortData.column ? (sortData.column as CustomColumns).apiCol : '',
-                    sort_type: sortData.order === 'ascend' ? 'asc' : ''
-                }));
-            }}
-            scroll={{ y: 'true' }} // y: 'true' is a magic value that makes the table scrollbar styles work
-            className="transactions-table"
-        />
+        <div className="relative">
+            <Table
+                dataSource={tableData.items}
+                columns={columns(filters, setFilters, projectFilters)}
+                loading={isLoading}
+                locale={{
+                    emptyText: <div className="w-full h-[200px]"></div>
+                }}
+                pagination={{
+                    position: ['bottomRight'],
+                    onChange: (page, pageSize) => {
+                        if (filters.page !== `${page}`) {
+                            setFilters((old) => ({ ...old, page: `${page}` }));
+                        }
+                        if (filters.page_size !== `${pageSize}`) {
+                            setFilters((old) => ({ ...old, page_size: `${pageSize}` }));
+                        }
+                    },
+                    total: tableData.total_elements,
+                    current: tableData.page_index,
+                    showSizeChanger: true,
+                    pageSize: tableData.page_size,
+                    pageSizeOptions: [5, 10, 20, 50]
+                }}
+                onChange={(_pagination, _filters, sorter) => {
+                    const sortData = sorter as SorterResult<DataType>;
+                    setFilters((old) => ({
+                        ...old,
+                        sort_field: sortData.column
+                            ? (sortData.column as CustomColumns).apiCol
+                            : '',
+                        sort_type: sortData.order === 'ascend' ? 'asc' : ''
+                    }));
+                }}
+                scroll={{ y: 'true' }} // y: 'true' is a magic value that makes the table scrollbar styles work
+                className="transactions-table"
+            />
+            {!tableData.items.length && !isLoading && (
+                <Flex
+                    align="center"
+                    justify="center"
+                    vertical
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/3"
+                >
+                    <img src={noData} alt="No Data" width={150} />
+                    <Title level={3}>No data</Title>
+                </Flex>
+            )}
+        </div>
     );
 };
 

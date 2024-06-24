@@ -210,24 +210,28 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
     );
     return (
         <>
-            <Collapse
-                collapsible={collapseTrigger}
-                activeKey={activeKeys}
-                style={{
-                    background: token.Layout?.bodyBg,
-                    border: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                    padding: 0
-                }}
-                expandIcon={({ isActive }) => (
-                    <DownOutlined className="my-auto !text-[14px]" rotate={isActive ? 180 : 0} />
-                )}
-                expandIconPosition="end"
-                items={items}
-            />
-
+            {!!providers.length && (
+                <Collapse
+                    collapsible={collapseTrigger}
+                    activeKey={activeKeys}
+                    style={{
+                        background: token.Layout?.bodyBg,
+                        border: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 12,
+                        padding: 0
+                    }}
+                    expandIcon={({ isActive }) => (
+                        <DownOutlined
+                            className="my-auto !text-[14px]"
+                            rotate={isActive ? 180 : 0}
+                        />
+                    )}
+                    expandIconPosition="end"
+                    items={items}
+                />
+            )}
             <AddProviderContainer
                 providers={providers}
                 items={items}

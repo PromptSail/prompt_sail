@@ -9,11 +9,12 @@ import {
     YAxis
 } from 'recharts';
 import { useGetStatistics_TransactionsCount } from '../../../api/queries';
-import { Spin, Typography } from 'antd';
+import { Flex, Spin, Typography } from 'antd';
 import { StatisticsParams } from '../../../api/types';
 import { customSorter, dateFormatter } from './formatters';
 import * as styles from '../../../styles.json';
 import { interpolateRdYlGn as colors } from 'd3-scale-chromatic';
+import noData from '../../../assets/box.svg';
 const { Title } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
@@ -38,12 +39,10 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
                     (() => {
                         const data = TransactionsCount.data?.data || [];
                         return data.length < 1 ? (
-                            <Title
-                                level={3}
-                                className="h1 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-50 z-10 !m-0"
-                            >
-                                No data found
-                            </Title>
+                            <Flex align="center" justify="center" className="h-full" vertical>
+                                <img src={noData} alt="No Data" width={150} />
+                                <Title level={3}>No data</Title>
+                            </Flex>
                         ) : (
                             <BarChart
                                 title="Transactions count"

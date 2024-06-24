@@ -5,8 +5,9 @@ import { SetStateAction, useState } from 'react';
 import Container from '../../components/Container/Container';
 import ProviderForm from '../../components/ProjectForms/ProviderDetails/ProviderForm';
 import { ItemType } from 'rc-collapse/es/interface';
+import noData from '../../assets/box.svg';
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 interface Props {
     providers: typeof FormikValuesTemplate.ai_providers;
@@ -27,25 +28,45 @@ const AddProviderContainer: React.FC<Props> = ({
 }) => {
     const [isOpenForm, setOpenForm] = useState(false);
     const [label, setLabel] = useState('');
+    const buttonFunc = () => {
+        setOpenForm(true);
+        const disabledItems = items
+            .filter((item) => item.collapsible === 'disabled')
+            .map((item) => item.key) as number[];
+
+        setActiveKeys([...disabledItems, providers.length]);
+    };
 
     return (
         <>
             {!isOpenForm && (
-                <Button
-                    className="me-auto mb-[12px]"
-                    type="dashed"
-                    icon={<PlusSquareOutlined />}
-                    onClick={() => {
-                        setOpenForm(true);
-                        const disabledItems = items
-                            .filter((item) => item.collapsible === 'disabled')
-                            .map((item) => item.key) as number[];
-
-                        setActiveKeys([...disabledItems, providers.length]);
-                    }}
-                >
-                    Add{providers.length > 0 ? ' next' : ''} AI Provider
-                </Button>
+                <>
+                    {!providers.length ? (
+                        <Flex align="center" justify="center" vertical className="my-20">
+                            <img src={noData} alt="No Data" width={150} />
+                            <Title level={2}>No providers</Title>
+                            <Paragraph className="!mt-4">
+                                Add first AI Provider to this project
+                            </Paragraph>
+                            <Button
+                                type="primary"
+                                icon={<PlusSquareOutlined />}
+                                onClick={buttonFunc}
+                            >
+                                Add AI Provider
+                            </Button>
+                        </Flex>
+                    ) : (
+                        <Button
+                            className="me-auto mb-[12px]"
+                            type="dashed"
+                            icon={<PlusSquareOutlined />}
+                            onClick={buttonFunc}
+                        >
+                            Add{providers.length > 0 ? ' next' : ''} AI Provider
+                        </Button>
+                    )}
+                </>
             )}
             {isOpenForm && (
                 <Container>
