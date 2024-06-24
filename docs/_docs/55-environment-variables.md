@@ -31,10 +31,6 @@ Those variables are used by `backend/src/config/__init__.py` to build configurat
 -   Default: `None` - it needs to be provided
 -   Description: The name of your organization displayed on the frontend.
 
-#### `ADMIN_PASSWORD`
-
--   Default: `None` - it needs to be provided
--   Description: Password of a user with root privileges.
 
 ### SSO Authorization
 

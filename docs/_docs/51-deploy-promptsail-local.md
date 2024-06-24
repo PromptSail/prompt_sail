@@ -146,7 +146,6 @@ Backend Service (API) by default should be operational at [http://localhost:8000
       BASE_URL: "http://localhost:8000"
       MONGO_URL: "mongodb://root:password@mongodb:27017"
       ORGANIZATION_NAME: "PromptSail"
-      ADMIN_PASSWORD: "password"
       DEBUG: "True"
       SSO_AUTH: "True"
       GOOGLE_CLIENT_ID: "xxx-xxx.apps.googleusercontent.com"

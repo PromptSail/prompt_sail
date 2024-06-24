@@ -48,7 +48,7 @@ OPENAI_API_KEY="sk-your-api-key"
 MONGO_URL="mongodb://root:password@localhost:27017"
 BASE_URL="http://promptsail.local:8000"
 ORGANIZATION_NAME="your-organization-name"
-ADMIN_PASSWORD="your-admin-password"
+SSO_AUTH: "False"
 ```
 
 Remember that you need a working instance of the mongoDB database for the backend to work properly. You can run it for example from the docker position. To do this, use the following command:
