@@ -273,6 +273,7 @@ class TransactionParamExtractor:
             "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
+            "Ollama": r".*localhost.*",
         }
 
         for pattern_name, pattern_regex in patterns.items():
@@ -665,6 +666,25 @@ class TransactionParamExtractor:
             )
 
         return extracted
+    
+    def _extract_from_ollama(self):      
+        extracted = {
+            "type": "chat",
+            "provider": "Ollama | localhost",
+            "model": self.response_content['model'] if "model" in self.response_content else self.request_content["model"],
+            "prompt": self.request_content['prompt']
+        }
+        
+        messages = [{"role": "user", "content": self.request_content['prompt']}]
+        
+        if self.response.__dict__["status_code"] > 200:
+            # TODO: Find the way to make error, then handle it
+            print(self.response.__dict__)
+        else:
+            messages.append({"role": "system", "content": self.response_content["response"]})
+            extracted["messages"] = messages
+            extracted["last_message"] = self.response_content["response"]
+        return extracted
 
     def extract(self) -> dict:
         transaction_params = TransactionParamsBuilder()
@@ -703,6 +723,8 @@ class TransactionParamExtractor:
             extracted = self._extract_from_openai_images_generations()
         if self.pattern == "OpenAI Image Edits":
             extracted = self._extract_from_openai_images_edit()
+        if self.pattern == "Ollama":
+            extracted = self._extract_from_ollama()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
 
@@ -1425,6 +1447,10 @@ known_ai_providers = [
     {
         "provider_name": "Google VertexAI",
         "api_base_placeholder": "https://<location>-aiplatform.googleapis.com/v1",
+    },
+    {
+        "provider_name": "Ollama",
+        "api_base_placeholder": "http://localhost:11434/api/generate",
     },
     {
         "provider_name": "Other",
