@@ -16,6 +16,7 @@ import { ItemType } from 'rc-collapse/es/interface';
 import AddProviderContainer from './AddProviderContainer';
 import { FormikValuesTemplate } from '../../components/ProjectForms/types';
 import ProviderEditableElement from '../../components/ProjectForms/ProviderDetails/ProvidersEditableElement';
+import { useGetModels } from '../../api/queries';
 const { Text, Title, Paragraph } = Typography;
 
 interface Props {
@@ -275,6 +276,7 @@ const ProviderDescription: React.FC<{
     const [AllTags, setAllTags] = useState<string>('');
     const [Tags, setTags] = useState<string>('');
     const [AIModelVersionTag, setAIModelVersionTag] = useState<string>('');
+    const priceList = useGetModels();
     useEffect(() => {
         const model = (Tags.length > 0 ? `&` : '?') + AIModelVersionTag;
         setAllTags(Tags + (AIModelVersionTag.length > 0 ? model : ''));
@@ -351,31 +353,40 @@ const ProviderDescription: React.FC<{
                                     }}
                                 />
                             </div>
-                            <div>
-                                <Paragraph className="!m-0 text-Text/colorText">
-                                    AI Model Name and Version Tag:
-                                </Paragraph>
-                                <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                                    Specifying the model name and version is only necessary for
-                                    Azure deployments - it will allow calculate cost properly.
-                                </Paragraph>
-                                <Select
-                                    showSearch
-                                    className="max-w-[50%] w-full"
-                                    placeholder="AI Model Name and Version Tag"
-                                    options={Array.from({ length: 10 }, (_, i) => ({
-                                        value: `model${i}`,
-                                        label: `model${i}`
-                                    }))}
-                                    onChange={(value) => {
-                                        console.log(value);
-                                        console.log(value.length > 0);
-                                        setAIModelVersionTag(
-                                            value.length > 0 ? 'ai_model_version=' + value : ''
-                                        );
-                                    }}
-                                />
-                            </div>
+                            {el.provider_name.toLowerCase().includes('azure') && (
+                                <div>
+                                    <Paragraph className="!m-0 text-Text/colorText">
+                                        AI Model Name and Version Tag:
+                                    </Paragraph>
+                                    <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
+                                        Specifying the model name and version is only necessary for
+                                        Azure deployments - it will allow calculate cost properly.
+                                    </Paragraph>
+                                    <Select
+                                        showSearch
+                                        className="max-w-[50%] w-full"
+                                        placeholder="AI Model Name and Version Tag"
+                                        loading={priceList.isLoading}
+                                        options={(() => {
+                                            if (priceList.isSuccess) {
+                                                return priceList.data
+                                                    .filter((el) =>
+                                                        el.provider.toLowerCase().includes('azure')
+                                                    )
+                                                    .map((el) => ({
+                                                        label: el.model_name,
+                                                        value: el.model_name
+                                                    }));
+                                            } else return [{ label: 'loading', value: 'loading' }];
+                                        })()}
+                                        onChange={(value) => {
+                                            setAIModelVersionTag(
+                                                value.length > 0 ? 'ai_model_version=' + value : ''
+                                            );
+                                        }}
+                                    />
+                                </div>
+                            )}
                             <div>
                                 <Paragraph className="!m-0 text-Text/colorText">
                                     Proxy URL:

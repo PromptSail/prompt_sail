@@ -147,6 +147,7 @@ export interface getUsers {
 }
 [];
 export interface getModels {
+    provider: string;
     model_name: string;
     start_date: null | string;
     match_pattern: string;
