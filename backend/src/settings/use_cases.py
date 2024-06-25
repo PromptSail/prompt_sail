@@ -1,4 +1,4 @@
-from settings.models import OrganizationSettings, User
+from settings.models import OrganizationSettings
 from settings.repositories import SettingsRepository
 
 
@@ -25,14 +25,3 @@ def get_organization_name(settings_repository: SettingsRepository) -> str:
     """
     settings = settings_repository.get("settings")
     return settings.organization_name
-
-
-def get_users_for_organization(settings_repository: SettingsRepository) -> list[User]:
-    """
-    Retrieve a list of users associated with an organization.
-
-    :param settings_repository: An instance of SettingsRepository used for accessing organization settings.
-    :return: A list of User objects associated with the organization.
-    """
-    organization = settings_repository.get("settings")
-    return organization.users

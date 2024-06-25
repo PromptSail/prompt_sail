@@ -2,6 +2,9 @@ BUILD_SHA ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 run:
 	docker-compose up
+
+run-build:
+	docker-compose -f docker-compose-build.yml up --build
 	
 run-dev:
 	cd backend/src && uvicorn app:app --reload --proxy-headers --host 0.0.0.0
