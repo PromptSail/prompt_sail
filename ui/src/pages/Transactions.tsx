@@ -36,7 +36,6 @@ const Transactions: React.FC = () => {
         setURLParam(filters);
     }, [filters]);
     const [transactionsCount, setTransactionsCount] = useState<number | null>(null);
-
     return (
         <Flex gap={24} vertical>
             <HeaderContainer>
@@ -50,7 +49,7 @@ const Transactions: React.FC = () => {
                                 rows: 0,
                                 className: '!m-0'
                             }}
-                            loading={!transactionsCount}
+                            loading={transactionsCount === null}
                             title={{
                                 width: '36px',
                                 className: 'm-0'
@@ -67,7 +66,9 @@ const Transactions: React.FC = () => {
                         <Text className="my-auto">Date:</Text>
                         <FilterDates
                             defaultValues={[filters.date_from || '', filters.date_to || '']}
-                            setFilters={setFilters}
+                            onSetDates={(dates) => {
+                                setFilters({ ...filters, date_from: dates[0], date_to: dates[1] });
+                            }}
                         />
                     </Flex>
                 </Container>
