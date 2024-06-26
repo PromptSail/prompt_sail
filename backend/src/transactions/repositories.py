@@ -70,9 +70,20 @@ class TransactionRepository(MongoRepository):
         transactions = self.find(query)
         sort = False if sort_type == "asc" else True
         if sort_field:
+            transactions_to_sort = [
+                transaction
+                for transaction in transactions
+                if getattr(transaction, sort_field) is not None
+            ]
+            transactions_rest = [
+                transaction
+                for transaction in transactions
+                if getattr(transaction, sort_field) is None
+            ]
             sorted_transactions = sorted(
-                transactions, key=attrgetter(sort_field), reverse=sort
+                transactions_to_sort, key=attrgetter(sort_field), reverse=sort
             )
+            sorted_transactions += transactions_rest
         else:
             sorted_transactions = transactions[::-1]
 
