@@ -278,8 +278,9 @@ const ProviderDescription: React.FC<{
     const [AIModelVersionTag, setAIModelVersionTag] = useState<string>('');
     const priceList = useGetModels();
     useEffect(() => {
-        const model = (Tags.length > 0 ? `&` : '?') + AIModelVersionTag;
-        setAllTags(Tags + (AIModelVersionTag.length > 0 ? model : ''));
+        const model = (Tags.length ? `&` : '?') + AIModelVersionTag;
+        const alltags = Tags + (AIModelVersionTag.length ? model : '');
+        setAllTags(alltags + (alltags.length ? '&' : '?') + 'target_path=');
     }, [Tags, AIModelVersionTag]);
     return (
         <Flex vertical gap={16}>
@@ -348,6 +349,9 @@ const ProviderDescription: React.FC<{
                                     mode="tags"
                                     className="max-w-[50%] w-full"
                                     placeholder="General Tags"
+                                    dropdownStyle={{ display: 'none' }}
+                                    allowClear
+                                    suffixIcon={<></>}
                                     onChange={(value: string[]) => {
                                         setTags(value.length > 0 ? '?tags=' + value.join(',') : '');
                                     }}
