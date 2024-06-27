@@ -97,7 +97,6 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                     : true
         };
     });
-    console.log(dates);
     return (
         <Container>
             <Flex justify="space-between">
