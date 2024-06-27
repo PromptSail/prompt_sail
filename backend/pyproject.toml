@@ -22,6 +22,7 @@ pyzmq = "~25"
 tiktoken = "^0.5.2"
 pyjwt = "^2.8.0"
 cryptography = "^42.0.5"
+pillow = "^10.3.0"
 
 
 

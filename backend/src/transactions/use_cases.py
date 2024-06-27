@@ -339,7 +339,7 @@ def store_transaction(
             next_requset=response.next_request,
             is_error=response.is_error,
             is_success=response.is_success,
-            content=response_content,
+            content=param_extractor.response_content,
             elapsed=response.elapsed.total_seconds(),
             encoding=response.encoding,
         ),
