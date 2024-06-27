@@ -12,9 +12,7 @@ import numpy as np
 import pandas as pd
 import tiktoken
 from _datetime import datetime, timedelta
-
 from PIL import Image
-
 from transactions.models import Transaction
 from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
@@ -447,14 +445,16 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_openai_images_variations(self) -> dict:
-        self.request_content["image"] = resize_b64_image(self.request_content["image"], (128, 128))
+        self.request_content["image"] = resize_b64_image(
+            self.request_content["image"], (128, 128)
+        )
         extracted = {
             "type": "images variations",
             "provider": "OpenAI",
             "prompt": self.request_content["image"],
             "model": self.request_content["model"],
         }
-        
+
         messages = [{"role": "user", "content": self.request_content["image"]}]
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
@@ -476,7 +476,9 @@ class TransactionParamExtractor:
                 extracted["last_message"] = self.response_content["data"][-1]["url"]
             except KeyError:
                 for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(data["b64_json"], (128, 128))
+                    self.response_content["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
                     messages.append(
                         {
                             "role": "system",
@@ -516,7 +518,9 @@ class TransactionParamExtractor:
                 extracted["last_message"] = self.response_content["data"][-1]["url"]
             except KeyError:
                 for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(data["b64_json"], (128, 128))
+                    self.response_content["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
                     messages.append(
                         {
                             "role": "system",
@@ -529,8 +533,12 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_openai_images_edit(self) -> dict:
-        self.request_content["image"] = resize_b64_image(self.request_content["image"], (128, 128))
-        self.request_content["mask"] = resize_b64_image(self.request_content["mask"], (128, 128))
+        self.request_content["image"] = resize_b64_image(
+            self.request_content["image"], (128, 128)
+        )
+        self.request_content["mask"] = resize_b64_image(
+            self.request_content["mask"], (128, 128)
+        )
         extracted = {
             "type": "images edits",
             "provider": "OpenAI",
@@ -565,7 +573,9 @@ class TransactionParamExtractor:
                 extracted["last_message"] = self.response_content["data"][-1]["url"]
             except KeyError:
                 for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(data["b64_json"], (128, 128))
+                    self.response_content["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
                     messages.append(
                         {
                             "role": "system",
@@ -1469,7 +1479,7 @@ def resize_b64_image(b64_image: str | str, new_size: tuple[int, int]) -> str:
     buffered = BytesIO()
     resized_image.save(buffered, format=image.format)
     resized_image_bytes = buffered.getvalue()
-    resized_b64_string = base64.b64encode(resized_image_bytes).decode('utf-8')
+    resized_b64_string = base64.b64encode(resized_image_bytes).decode("utf-8")
     return resized_b64_string
 
 
