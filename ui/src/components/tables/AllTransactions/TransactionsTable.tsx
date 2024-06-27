@@ -2,13 +2,14 @@ import { Link } from 'react-router-dom';
 import { Badge, Flex, Table, Tag, Tooltip, Typography } from 'antd';
 import { TagsContainer } from '../../../helpers/dataContainer';
 import { ArrowRightOutlined } from '@ant-design/icons';
-import { SetStateAction, useEffect, useState } from 'react';
+import { SetStateAction, cloneElement, useEffect, useState } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllTransactions } from '../../../api/queries';
 import columns, { CustomColumns, DataType } from '../columns';
 import * as styles from '../../../styles.json';
 import { SorterResult } from 'antd/es/table/interface';
 import noData from '../../../assets/box.svg';
+import { useHandleTransactionImage } from '../../../helpers/handleTransactionImage';
 const { Title } = Typography;
 
 interface Props {
@@ -17,6 +18,16 @@ interface Props {
     setTransactionsCount?: (attr: number) => void;
     projectFilters?: boolean;
 }
+
+const DisplayMessage: React.FC<{ str: string }> = ({ str }) => {
+    const message = useHandleTransactionImage(str);
+    if (typeof message === 'string')
+        return <>{message.length > 25 ? message.substring(0, 23) + '...' : message}</>;
+    else {
+        const element = cloneElement(message, { ...message.props, className: 'max-h-[25px]' });
+        return element;
+    }
+};
 
 const TransactionsTable: React.FC<Props> = ({
     filters,
@@ -95,16 +106,10 @@ const TransactionsTable: React.FC<Props> = ({
                             messages: (
                                 <Flex vertical>
                                     <div>
-                                        <b>Input:</b>{' '}
-                                        {tr.prompt.length > 25
-                                            ? tr.prompt.substring(0, 23) + '...'
-                                            : tr.prompt}
+                                        <b>Input:</b> <DisplayMessage str={tr.prompt} />
                                     </div>
                                     <div>
-                                        <b>Output: </b>{' '}
-                                        {rightMessage.length > 25
-                                            ? rightMessage.substring(0, 23) + '...'
-                                            : rightMessage}
+                                        <b>Output: </b> <DisplayMessage str={rightMessage} />
                                     </div>
                                 </Flex>
                             ),

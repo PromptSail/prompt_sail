@@ -2,6 +2,8 @@ import { Collapse, Typography } from 'antd';
 import { getTransactionResponse } from '../../api/interfaces';
 import Container from '../../components/Container/Container';
 import { DownOutlined } from '@ant-design/icons';
+import { useHandleTransactionImage } from '../../helpers/handleTransactionImage';
+import React from 'react';
 
 const { Title, Text } = Typography;
 
@@ -9,11 +11,16 @@ interface Props {
     data: getTransactionResponse;
 }
 
+const CollapseChild: React.FC<{ str: string }> = ({ str }) => {
+    const message = useHandleTransactionImage(str);
+    return <Text>{message}</Text>;
+};
+
 const Messages: React.FC<Props> = ({ data }) => {
     const collapseItems = data.messages?.map((el, id) => ({
         key: id,
         label: el.role,
-        children: <Text>{el.content}</Text>
+        children: <CollapseChild str={el.content} />
     })) || [
         {
             key: 0,
