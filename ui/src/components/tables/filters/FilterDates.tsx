@@ -10,7 +10,6 @@ interface Props extends GetProps<typeof RangePicker> {
 
 const FilterDates: React.FC<Props> = ({ defaultValues, onSetDates, ...props }) => {
     let rangeOK = false;
-    console.log(defaultValues);
     const [dates, setDates] = useState<[Dayjs | null, Dayjs | null]>([
         defaultValues && defaultValues[0] ? dayjs(defaultValues[0]) : null,
         defaultValues && defaultValues[1] ? dayjs(defaultValues[1]) : null
