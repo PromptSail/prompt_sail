@@ -327,6 +327,19 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_azure_completions(self) -> dict:
+        for idx_message, message in enumerate(self.request_content["messages"]):
+            if message["role"] == "user" and len(message["content"]) > 1:
+                for idx_content, content in enumerate(message["content"]):
+                    if content["type"] == "image_url":
+                        self.request_content["messages"][idx_message]["content"][
+                            idx_content
+                        ]["image_url"]["url"] = resize_b64_image(
+                            content["image_url"]["url"].replace(
+                                "data:image/png;base64,", ""
+                            ),
+                            (128, 128),
+                        )
+
         extracted = {
             "type": "completions",
             "provider": "Azure OpenAI",
@@ -375,6 +388,19 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_openai_chat_completions(self) -> dict:
+        for idx_message, message in enumerate(self.request_content["messages"]):
+            if message["role"] == "user" and len(message["content"]) > 1:
+                for idx_content, content in enumerate(message["content"]):
+                    if content["type"] == "image_url":
+                        self.request_content["messages"][idx_message]["content"][
+                            idx_content
+                        ]["image_url"]["url"] = resize_b64_image(
+                            content["image_url"]["url"].replace(
+                                "data:image/png;base64,", ""
+                            ),
+                            (128, 128),
+                        )
+
         extracted = {
             "type": "chat completions",
             "provider": "OpenAI",

@@ -340,7 +340,7 @@ def store_transaction(
             host=request.headers.get("host", ""),
             headers=dict(request.headers),
             extensions=dict(request.extensions),
-            content=content,
+            content=param_extractor.request_content,
         ),
         response=dict(
             status_code=response.status_code,
