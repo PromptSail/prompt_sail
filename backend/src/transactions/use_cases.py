@@ -290,19 +290,28 @@ def store_transaction(
         and params["output_tokens"] is not None
     ):
         if len(pricelist) > 0:
-            if pricelist[0].input_price == 0:
-                input_cost, output_cost = 0, 0
-                total_cost = (
-                    (params["input_tokens"] + params["output_tokens"])
-                    / 1000
-                    * pricelist[0].total_price
+            if pricelist[0].mode == "image_generation":
+                input_cost = 0
+                output_cost = (
+                    int(param_extractor.request_content["n"]) * pricelist[0].total_price
                 )
+                total_cost = output_cost
             else:
-                input_cost = pricelist[0].input_price * (params["input_tokens"] / 1000)
-                output_cost = pricelist[0].output_price * (
-                    params["output_tokens"] / 1000
-                )
-                total_cost = input_cost + output_cost
+                if pricelist[0].input_price == 0:
+                    input_cost, output_cost = 0, 0
+                    total_cost = (
+                        (params["input_tokens"] + params["output_tokens"])
+                        / 1000
+                        * pricelist[0].total_price
+                    )
+                else:
+                    input_cost = pricelist[0].input_price * (
+                        params["input_tokens"] / 1000
+                    )
+                    output_cost = pricelist[0].output_price * (
+                        params["output_tokens"] / 1000
+                    )
+                    total_cost = input_cost + output_cost
         else:
             input_cost, output_cost, total_cost = None, None, None
     else:

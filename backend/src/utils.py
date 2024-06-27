@@ -448,11 +448,20 @@ class TransactionParamExtractor:
         self.request_content["image"] = resize_b64_image(
             self.request_content["image"], (128, 128)
         )
+
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
         extracted = {
             "type": "images variations",
             "provider": "OpenAI",
             "prompt": self.request_content["image"],
-            "model": self.request_content["model"],
+            "model": model,
         }
 
         messages = [{"role": "user", "content": self.request_content["image"]}]
@@ -491,11 +500,19 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_openai_images_generations(self) -> dict:
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
         extracted = {
             "type": "images generations",
             "provider": "OpenAI",
             "prompt": self.request_content["prompt"],
-            "model": self.request_content["model"],
+            "model": model,
         }
         messages = [{"role": "user", "content": self.request_content["prompt"]}]
         if self.response.__dict__["status_code"] > 200:
@@ -533,6 +550,14 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_openai_images_edit(self) -> dict:
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
         self.request_content["image"] = resize_b64_image(
             self.request_content["image"], (128, 128)
         )
@@ -543,7 +568,7 @@ class TransactionParamExtractor:
             "type": "images edits",
             "provider": "OpenAI",
             "prompt": self.request_content["prompt"],
-            "model": self.request_content["model"],
+            "model": model,
         }
         messages = [
             {
@@ -1116,6 +1141,7 @@ class ProviderPrice:
         output_price: int | float,
         total_price: int | float,
         is_active: bool,
+        mode: str,
     ) -> None:
         """
         Initialize a ProviderPrice object.
@@ -1137,6 +1163,7 @@ class ProviderPrice:
         self.output_price = output_price
         self.total_price = total_price
         self.is_active = is_active
+        self.mode = mode
 
     def __repr__(self):
         """
@@ -1146,7 +1173,7 @@ class ProviderPrice:
         """
         return (
             "{"
-            + f"model_name: {self.model_name}, provider: {self.provider}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}"
+            + f"model_name: {self.model_name}, provider: {self.provider}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}, mode: {self.mode}"
             + "}"
         )
 
