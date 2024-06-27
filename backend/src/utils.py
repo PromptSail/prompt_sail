@@ -459,18 +459,27 @@ class TransactionParamExtractor:
             extracted["last_message"] = self.response_content["error"]["message"]
             extracted["messages"] = messages
         else:
-            messages.append(
-                {
-                    "role": "system",
-                    "content": "\n".join(
-                        [data["url"] for data in self.response_content["data"]]
-                    ),
-                }
-            )
+            try:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]["url"]
+            except KeyError:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["b64_json"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1][
+                    "b64_json"
+                ]
             extracted["messages"] = messages
-            extracted["last_message"] = "\n".join(
-                [data["url"] for data in self.response_content["data"]]
-            )
 
         return extracted
 
@@ -491,18 +500,27 @@ class TransactionParamExtractor:
             extracted["last_message"] = self.response_content["error"]["message"]
             extracted["messages"] = messages
         else:
-            messages.append(
-                {
-                    "role": "system",
-                    "content": "\n".join(
-                        [data["url"] for data in self.response_content["data"]]
-                    ),
-                }
-            )
+            try:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]["url"]
+            except KeyError:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["b64_json"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1][
+                    "b64_json"
+                ]
             extracted["messages"] = messages
-            extracted["last_message"] = "\n".join(
-                [data["url"] for data in self.response_content["data"]]
-            )
 
         return extracted
 
@@ -530,18 +548,29 @@ class TransactionParamExtractor:
             extracted["last_message"] = self.response_content["error"]["message"]
             extracted["messages"] = messages
         else:
-            messages.append(
-                {
-                    "role": "system",
-                    "content": "\n".join(
-                        [data["url"] for data in self.response_content["data"]]
-                    ),
-                }
-            )
+            try:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]["url"]
+            except KeyError:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["b64_json"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1][
+                    "b64_json"
+                ]
+
             extracted["messages"] = messages
-            extracted["last_message"] = "\n".join(
-                [data["url"] for data in self.response_content["data"]]
-            )
+
         return extracted
 
     def _extract_from_openai_embeddings(self):
