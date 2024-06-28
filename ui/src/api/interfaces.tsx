@@ -68,7 +68,7 @@ export interface getTransactionResponse {
     messages:
         | {
               role: string;
-              content: string;
+              content: string | Array<any>;
           }[]
         | null;
     last_message: string;
