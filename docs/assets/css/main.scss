@@ -7,40 +7,39 @@ $primary-color: #1F504E !default;
     font-weight: 400;
 }
 
-.greedy-nav a {
+// .greedy-nav a {
 
-    color: #0B1D1C; /* $primary-color */
+//     color: #0B1D1C;
 
-}
+// }
 
-/*
 .masthead {
     background-color: $primary-color;
 }
 
 .greedy-nav {
     background-color: $primary-color;
+}
 
-    a {
-        color: white;
-
-    }
-
+.greedy-nav a {
+    color: white;
 }
 
 
 .layout--splash .masthead {
     background-color: white;
-
-    .greedy-nav {
-        background-color: white;
-
-        a {
-            color: $primary-color;
-        }
-    }
 }
-*/
+
+.layout--splash .masthead .greedy-nav {
+    background-color: white;
+}
+
+.layout--splash .greedy-nav a {
+    color: $primary-color;
+}
+
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
+
+
