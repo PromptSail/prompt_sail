@@ -21,7 +21,9 @@ $primary-color: #1F504E !default;
 }
 
 
-
+.splahs .masthead {
+    background-color: white;
+}
 
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
