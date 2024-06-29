@@ -11,33 +11,28 @@ $info-color: #307C78 !default;
 
 
 
-.layout--single,
-.layout--post {
-    .masthead {
-        background-color: $primary-color;
-    }
-
-    .greedy-nav {
-        background-color: $primary-color;
-
-        a {
-            color: white;
-        }
-    }
+.layout--single .masthead {
+    background-color: $primary-color;
 }
 
-.layout--splash {
-    .masthead {
-        background-color: white;
-    }
+.layout--single .masthead .greedy-nav {
+    background-color: $primary-color;
+}
 
-    .greedy-nav {
-        background-color: white;
+.layout--single .masthead .greedy-nav a {
+    color: white;
+}
 
-        a {
-            color: $primary-color;
-        }
-    }
+.layout--splash .masthead {
+    background-color: white;
+}
+
+.layout--splash .masthead .greedy-nav {
+    background-color: white;
+}
+
+.layout--splash .masthead .greedy-nav a {
+    color: $primary-color;
 }
 
 
