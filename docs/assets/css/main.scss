@@ -6,10 +6,15 @@ search: false
 @charset "utf-8";
 
 
+$primary-color: #1F504E !default;
+
 .page__title {
     font-weight: 400;
   }
 
+.greedy-nav a{ 
+    color: #0B1D1C
+}
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials

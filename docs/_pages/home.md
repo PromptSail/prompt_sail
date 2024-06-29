@@ -10,8 +10,8 @@ header:
         - label: "<i class='fas fa-solid fa-code'></i> Try now"
           url: "/docs/quick-start-guide/"
 excerpt: >
-    Platform for <strong>monitoring, analysis, and governance the Generative AI communication</strong> <br />
-    Act like a proxy between your code and Gen AI API.<br />
+    Platform for monitoring, analysis, and governance the Generative AI communication <br />
+    A transparent proxy between your code and Gen AI APIs.<br />
     <small><a href="https://github.com/PromptSail/prompt_sail/releases/">Latest release</a></small>
 intro:
     - excerpt: "Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with Gen APIs such as OpenAI, Cohere, and others. It integrates with OpenAI, langchain, and other LLM frameworks and libraries."

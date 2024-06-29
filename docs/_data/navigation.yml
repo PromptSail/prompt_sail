@@ -1,8 +1,8 @@
 # main links
 main:
-  - title: "Documentation"
+  - title: "Docs"
     url: /docs/introduction/
-  - title: "News"
+  - title: "Blog"
     url: /year-archive/
   - title: "Discord"
     url: "https://discord.gg/NvpVbw3aqW"
