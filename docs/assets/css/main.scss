@@ -1,4 +1,10 @@
---- # Only the main Sass file needs front matter (the dashes are enough) search: false --- @charset "utf-8";
+--- 
+# Only the main Sass file needs front matter (the dashes are enough) 
+search: false 
+--- 
+
+
+@charset "utf-8";
 
 
 $primary-color: #1F504E !default;
@@ -6,12 +12,6 @@ $primary-color: #1F504E !default;
 .page__title {
     font-weight: 400;
 }
-
-// .greedy-nav a {
-
-//     color: #0B1D1C;
-
-// }
 
 .masthead {
     background-color: $primary-color;
@@ -38,8 +38,5 @@ $primary-color: #1F504E !default;
     color: $primary-color;
 }
 
-
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
-
-
