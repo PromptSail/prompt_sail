@@ -4,18 +4,19 @@ permalink: /
 hidden: true
 header:
     overlay_color: "#1F504E"
-    overlay_filter: "0.3 0.1"
+    #overlay_filter: "0.3 0.1"
     overlay_image: /assets/images/web/home-page-feature-bckg.png
     actions:
         - label: "<i class='fas fa-solid fa-code'></i> Try now"
           url: "/docs/quick-start-guide/"
 excerpt: >
-    LLM's proxy for prompt and response governance, monitoring, and cost analysis.<br />
+    Platform for <strong>monitoring, analysis, and governance the Generative AI communication</strong> <br />
+    Act like a proxy between your code and Gen AI API.<br />
     <small><a href="https://github.com/PromptSail/prompt_sail/releases/">Latest release</a></small>
 intro:
-    - excerpt: "Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with LLM APIs such as OpenAI, Cohere, and others. It integrates with OpenAI, langchain, and other LLM frameworks and libraries."
+    - excerpt: "Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with Gen APIs such as OpenAI, Cohere, and others. It integrates with OpenAI, langchain, and other LLM frameworks and libraries."
 feature_row:
-    - image_path: #/assets/images/mm-customizable-feature.png
+    - image_path: /assets/images/mm-customizable-feature.png
       alt: "Easy Integration"
       title: "Easy Integration"
       excerpt: "Engineered as a transparent Proxy for your LLM calls, it seamlessly integrates into your existing workflow, and your LLM framework."
