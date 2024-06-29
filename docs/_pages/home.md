@@ -3,9 +3,9 @@ layout: splash
 permalink: /
 hidden: true
 header:
-    overlay_color: "#38928d"
+    overlay_color: "#1F504E"
     overlay_filter: "0.3 0.1"
-    overlay_image: /assets/images/home-page-feature-bckg.png
+    overlay_image: /assets/images/web/home-page-feature-bckg.png
     actions:
         - label: "<i class='fas fa-solid fa-code'></i> Try now"
           url: "/docs/quick-start-guide/"
