@@ -7,32 +7,39 @@ $primary-color: #1F504E !default;
     font-weight: 400;
 }
 
-.masthead {
-    background-color: $primary-color;
-}
+.greedy-nav a {
 
-.greedy-nav {
-    background-color: $primary-color;
-
-    a {
-        color: white;
-        
-    }
+    color: #0B1D1C; /* $primary-color */
 
 }
 
 
-.layout--splash .masthead {
-    background-color: white;
+// .masthead {
+//     background-color: $primary-color;
+// }
 
-    .greedy-nav {
-        background-color: white;
+// .greedy-nav {
+//     background-color: $primary-color;
 
-        a {
-            color: $primary-color;
-        }
-    }
-}
+//     a {
+//         color: white;
+
+//     }
+
+// }
+
+
+// .layout--splash .masthead {
+//     background-color: white;
+
+//     .greedy-nav {
+//         background-color: white;
+
+//         a {
+//             color: $primary-color; /* #0B1D1C */
+//         }
+//     }
+// }
 
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
