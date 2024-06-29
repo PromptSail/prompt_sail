@@ -16,7 +16,7 @@ excerpt: >
 intro:
     - excerpt: "Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with Gen APIs such as OpenAI, Cohere, and others. It integrates with OpenAI, langchain, and other LLM frameworks and libraries."
 feature_row:
-    - image_path: /assets/images/mm-customizable-feature.png
+    - image_path: #/assets/images/mm-customizable-feature.png
       alt: "Easy Integration"
       title: "Easy Integration"
       excerpt: "Engineered as a transparent Proxy for your LLM calls, it seamlessly integrates into your existing workflow, and your LLM framework."
