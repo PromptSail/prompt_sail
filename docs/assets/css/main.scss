@@ -29,17 +29,18 @@ $info-color: #307C78 !default;
 .layout--splash {
     .masthead {
         background-color: white;
-
-        .greedy-nav {
-            background-color: white;
-
-            a {
-                color: $primary-color;
-            }
-        }
     }
 
+    .greedy-nav {
+        background-color: white;
+
+        a {
+            color: $primary-color;
+        }
+    }
+}
 
 
-    @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
-    @import "minimal-mistakes"; // main partials
+
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
+@import "minimal-mistakes"; // main partials
