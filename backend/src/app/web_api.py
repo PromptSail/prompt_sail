@@ -16,11 +16,14 @@ from projects.schemas import (
     CreateProjectSchema,
     GetAIProviderPriceSchema,
     GetAIProviderSchema,
+    GetPortfolioDetailsSchema,
+    GetProjectPortfolioSchema,
     GetProjectSchema,
     UpdateProjectSchema,
 )
 from projects.use_cases import (
     add_project,
+    count_projects,
     delete_project,
     get_all_projects,
     get_project,
@@ -627,6 +630,48 @@ async def get_transaction_latency_statistics_over_time(
     new_stats.sort(key=lambda statistic: statistic.date)
 
     return new_stats
+
+
+@app.get(
+    "/api/portfolio/details",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
+async def get_portfolio_details(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> GetPortfolioDetailsSchema:
+    project_count = ctx.call(count_projects)
+    total_cost_per_project, total_transactions_per_project = {}, {}
+    total_cost, total_transactions = 0, 0
+    projects = []
+    if project_count > 0:
+        projects = ctx.call(get_all_projects)
+        projects_ids = [project.id for project in projects]
+        for idx in projects_ids:
+            transactions = ctx.call(get_transactions_for_project, project_id=idx)
+            cost = sum(
+                [
+                    transaction.total_cost if transaction.total_cost is not None else 0
+                    for transaction in transactions
+                ]
+            )
+            total_cost_per_project[idx] = cost
+            total_cost += cost
+            count = len(transactions)
+            total_transactions_per_project[idx] = count
+            total_transactions += count
+        projects = [
+            GetProjectPortfolioSchema(
+                **project.model_dump(),
+                total_transactions=total_transactions_per_project[project.id],
+                total_cost=total_cost_per_project[project.id],
+            )
+            for project in projects
+        ]
+
+    return GetPortfolioDetailsSchema(
+        total_cost=total_cost, total_transactions=total_transactions, projects=projects
+    )
 
 
 @app.get(

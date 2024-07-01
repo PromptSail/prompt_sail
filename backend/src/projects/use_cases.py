@@ -87,3 +87,7 @@ def delete_project(
     :return: None
     """
     project_repository.delete(project_id)
+
+
+def count_projects(project_repository: ProjectRepository) -> int:
+    return project_repository.count()

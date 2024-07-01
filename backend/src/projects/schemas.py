@@ -57,3 +57,20 @@ class GetProjectSchema(BaseModel):
     owner: str
     total_cost: int | float = 0
     total_transactions: int = 0
+
+
+class GetProjectPortfolioSchema(BaseModel):
+    id: str
+    name: str
+    slug: str
+    tags: list[str] = 0
+    created_at: datetime
+    owner: str
+    total_transactions: int
+    total_cost: int | float
+
+
+class GetPortfolioDetailsSchema(BaseModel):
+    total_cost: int | float
+    total_transactions: int
+    projects: list[GetProjectPortfolioSchema]
