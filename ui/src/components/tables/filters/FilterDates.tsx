@@ -25,21 +25,23 @@ const FilterDates: React.FC<Props> = ({ defaultValues, onSetDates, ...props }) =
                         dateStart = new Date(dates[0]).toISOString();
                         dateEnd = new Date(dates[1]).toISOString();
                     }
-                    setDates(() => {
-                        const start = dateStart.length ? dayjs(dates[0]) : null;
-                        const end = dateEnd.length ? dayjs(dates[1]) : null;
-                        onSetDates([dateStart, dateEnd]);
-                        return [start, end];
-                    });
+                    if (!dateStart.length || dateStart !== dateEnd)
+                        setDates(() => {
+                            const start = dateStart.length ? dayjs(dates[0]) : null;
+                            const end = dateEnd.length ? dayjs(dates[1]) : null;
+                            onSetDates([dateStart, dateEnd]);
+                            return [start, end];
+                        });
                 }
                 rangeOK = false;
             }}
             onOk={(v) => {
-                setDates(() => {
-                    console.log(v);
-                    onSetDates([v[0]?.toISOString() || '', v[1]?.toISOString() || '']);
-                    return [v[0], v[1]];
-                });
+                if (v[0]?.toISOString() !== v[1]?.toISOString())
+                    setDates(() => {
+                        console.log(v);
+                        onSetDates([v[0]?.toISOString() || '', v[1]?.toISOString() || '']);
+                        return [v[0], v[1]];
+                    });
                 rangeOK = true;
             }}
             value={[dates[0], dates[1]]}
