@@ -408,7 +408,11 @@ class TransactionParamExtractor:
 
     def _extract_from_azure_completions(self) -> dict:
         for idx_message, message in enumerate(self.request_content["messages"]):
-            if message["role"] == "user" and len(message["content"]) > 1:
+            if (
+                message["role"] == "user"
+                and not isinstance(message["content"], str)
+                and len(message["content"]) > 1
+            ):
                 for idx_content, content in enumerate(message["content"]):
                     if content["type"] == "image_url":
                         self.request_content["messages"][idx_message]["content"][
@@ -469,7 +473,11 @@ class TransactionParamExtractor:
 
     def _extract_from_openai_chat_completions(self) -> dict:
         for idx_message, message in enumerate(self.request_content["messages"]):
-            if message["role"] == "user" and len(message["content"]) > 1:
+            if (
+                message["role"] == "user"
+                and not isinstance(message["content"], str)
+                and len(message["content"]) > 1
+            ):
                 for idx_content, content in enumerate(message["content"]):
                     if content["type"] == "image_url":
                         self.request_content["messages"][idx_message]["content"][
