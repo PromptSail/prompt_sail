@@ -118,6 +118,86 @@ def create_transaction_query_from_filters(
     return query
 
 
+def create_transaction_list_query_from_filters(
+    tags: list[str] | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None,
+    null_generation_speed: bool = True,
+    status_codes: list[int] | None = None,
+    provider_models: list[dict[str, list[str]]] = None,
+) -> dict:
+    """
+    Create a MongoDB query dictionary based on specified filters for transactions.
+
+    :param tags: Optional. List of tags to filter transactions by.
+    :param date_from: Optional. Start date for filtering transactions.
+    :param date_to: Optional. End date for filtering transactions.
+    :param project_id: Optional. Project ID to filter transactions by.
+    :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
+    :param status_codes: Optional. List of status codes of the transactions.
+    :param provider_models: Optional. List of providers and models of the transactions.
+    :return: MongoDB query dictionary representing the specified filters.
+    """
+    base_query = {}
+
+    if project_id is not None:
+        base_query["project_id"] = project_id
+
+    if tags is not None:
+        base_query["tags"] = {"$all": tags}
+
+    if date_from is not None or date_to is not None:
+        base_query["response_time"] = {}
+
+    if date_from is not None:
+        base_query["response_time"]["$gte"] = date_from
+
+    if date_to is not None:
+        base_query["response_time"]["$lte"] = date_to
+
+    if not null_generation_speed:
+        base_query["generation_speed"] = {"$ne": None}
+
+    or_conditions = []
+
+    if provider_models is not None:
+        for provider, models in provider_models.items():
+            provider_model_conditions = []
+            if models:
+                provider_model_conditions.append(
+                    {"provider": provider, "model": {"$in": models}}
+                )
+            else:
+                provider_model_conditions.append({"provider": provider})
+            for code in status_codes or []:
+                if code % 100 == 0:
+                    condition = base_query.copy()
+                    condition["$and"] = [
+                        *provider_model_conditions,
+                        {"status_code": {"$gte": code, "$lt": code + 100}},
+                    ]
+                    or_conditions.append(condition)
+            if not status_codes:
+                condition = base_query.copy()
+                condition["$and"] = provider_model_conditions
+                or_conditions.append(condition)
+    else:
+        for code in status_codes or []:
+            if code % 100 == 0:
+                condition = base_query.copy()
+                condition["status_code"] = {"$gte": code, "$lt": code + 100}
+                or_conditions.append(condition)
+
+    if or_conditions:
+        query = {"$or": or_conditions}
+    else:
+        query = base_query
+
+    print(query)
+    return query
+
+
 def parse_headers_to_dict(headers: list[tuple[bytes]]) -> dict:
     """
     Parse a list of header tuples into a dictionary.
@@ -275,7 +355,7 @@ class TransactionParamExtractor:
             "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
-            "Ollama": r".*localhost.*",
+            "Ollama": r".*(host\.docker\.internal|localhost).*\/api\/generate",
         }
 
         for pattern_name, pattern_regex in patterns.items():
@@ -764,7 +844,7 @@ class TransactionParamExtractor:
     def _extract_from_ollama(self):
         extracted = {
             "type": "chat",
-            "provider": "Ollama | localhost",
+            "provider": "Ollama",
             "model": self.response_content["model"]
             if "model" in self.response_content
             else self.request_content["model"],

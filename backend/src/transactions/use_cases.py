@@ -91,6 +91,41 @@ def count_transactions(
     return transaction_repository.count(query)
 
 
+def count_transactions_for_list(
+    transaction_repository: TransactionRepository,
+    tags: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None,
+    null_generation_speed: bool = True,
+    status_codes: list[str] | None = None,
+    provider_models: list[dict[str, list[str]]] = None,
+) -> int:
+    """
+    Count the number of transactions based on specified filters.
+
+    :param transaction_repository: An instance of TransactionRepository used for accessing transaction data.
+    :param tags: Optional. List of tags to filter transactions by.
+    :param date_from: Optional. Start date for filtering transactions.
+    :param date_to: Optional. End date for filtering transactions.
+    :param project_id: Optional. Project ID to filter transactions by.
+    :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
+    :param status_codes: Optional. Status codes to filter transactions by.
+    :param provider_models: Providers and models to filter transactions by.
+    :return: The count of transactions that meet the specified filtering criteria.
+    """
+    query = utils.create_transaction_list_query_from_filters(
+        tags,
+        date_from,
+        date_to,
+        project_id,
+        null_generation_speed,
+        status_codes,
+        provider_models,
+    )
+    return transaction_repository.count(query)
+
+
 def count_token_usage_for_project(
     transaction_repository: TransactionRepository,
     project_id: str | None = None,
@@ -123,8 +158,7 @@ def get_all_filtered_and_paginated_transactions(
     sort_field: str | None = None,
     sort_type: str | None = None,
     status_codes: list[int] | None = None,
-    providers: list[str] | None = None,
-    models: list[str] | None = None,
+    provider_models: list[dict[str, list[str]]] = None,
 ) -> list[Transaction]:
     """
     Retrieve a paginated and filtered list of transactions based on specified criteria.
@@ -139,13 +173,13 @@ def get_all_filtered_and_paginated_transactions(
     :param sort_field: Optional. Field to sort by.
     :param sort_type: Optional. Ordering method (asc or desc).
     :param status_codes: The transactions' status codes.
-    :param providers: The transactions' providers.
-    :param models: The transactions' models.
+    :param provider_models: The transactions' providers and models.
     :return: A paginated and filtered list of Transaction objects based on the specified criteria.
     """
-    query = create_transaction_query_from_filters(
-        tags, date_from, date_to, project_id, True, status_codes, providers, models
+    query = utils.create_transaction_list_query_from_filters(
+        tags, date_from, date_to, project_id, True, status_codes, provider_models
     )
+
     transactions = transaction_repository.get_paginated_and_filtered(
         page, page_size, query, sort_field, sort_type
     )

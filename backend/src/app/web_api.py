@@ -46,6 +46,7 @@ from transactions.use_cases import (
     add_transaction,
     count_token_usage_for_project,
     count_transactions,
+    count_transactions_for_list,
     delete_multiple_transactions,
     get_all_filtered_and_paginated_transactions,
     get_list_of_filtered_transactions,
@@ -271,8 +272,7 @@ async def get_paginated_transactions(
     sort_field: str | None = None,
     sort_type: str | None = None,
     status_codes: str | None = None,
-    providers: str | None = None,
-    models: str | None = None,
+    provider_models: str | None = None,
 ) -> GetTransactionPageResponseSchema:
     """
     API endpoint to retrieve a paginated list of transactions based on specified filters.
@@ -287,17 +287,27 @@ async def get_paginated_transactions(
     :param sort_field: Optional. Field to sort by.
     :param sort_type: Optional. Ordering method (asc or desc).
     :param status_codes: Optional. List of status codes for filtering transactions.
-    :param providers: Optional. List of providers for filtering transactions.
-    :param models: Optional. List of models for filtering transactions.
+    :param provider_models: Optional. List of providers and models for filtering transactions.
     """
     if tags is not None:
         tags = tags.split(",")
     if status_codes is not None:
         status_codes = list(map(lambda x: int(x), status_codes.split(",")))
-    if providers is not None:
-        providers = providers.split(",")
-    if models is not None:
-        models = models.split(",")
+    if provider_models is not None:
+        if provider_models is not None:
+            provider_models = list(
+                map(lambda x: x.split("."), provider_models.split(","))
+            )
+            pairs = {}
+            for pair in provider_models:
+                if pair[0] not in pairs:
+                    try:
+                        pairs[pair[0]] = [pair[1]]
+                    except IndexError:
+                        pairs[pair[0]] = []
+                else:
+                    pairs[pair[0]].append(pair[1])
+            provider_models = pairs
 
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
@@ -310,8 +320,7 @@ async def get_paginated_transactions(
         sort_field=sort_field,
         sort_type=sort_type,
         status_codes=status_codes,
-        providers=providers,
-        models=models,
+        provider_models=provider_models,
     )
 
     projects = ctx.call(get_all_projects)
@@ -329,15 +338,15 @@ async def get_paginated_transactions(
         )
 
     count = ctx.call(
-        count_transactions,
+        count_transactions_for_list,
         tags=tags,
         date_from=date_from,
         date_to=date_to,
         project_id=project_id,
         status_codes=status_codes,
-        providers=providers,
-        models=models,
+        provider_models=provider_models,
     )
+    print("dupa")
     page_response = GetTransactionPageResponseSchema(
         items=new_transactions,
         page_index=page,
