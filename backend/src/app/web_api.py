@@ -349,7 +349,6 @@ async def get_paginated_transactions(
         status_codes=status_codes,
         provider_models=provider_models,
     )
-    print("dupa")
     page_response = GetTransactionPageResponseSchema(
         items=new_transactions,
         page_index=page,
