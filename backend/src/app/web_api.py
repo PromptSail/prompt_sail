@@ -305,7 +305,7 @@ async def get_paginated_transactions(
             for pair in provider_models:
                 if pair[0] not in pairs:
                     try:
-                        pairs[pair[0]] = [pair[1]]
+                        pairs[pair[0]] = [".".join(pair[1:])]
                     except IndexError:
                         pairs[pair[0]] = []
                 else:

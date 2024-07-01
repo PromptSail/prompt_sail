@@ -194,7 +194,6 @@ def create_transaction_list_query_from_filters(
     else:
         query = base_query
 
-    print(query)
     return query
 
 
