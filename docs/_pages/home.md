@@ -26,14 +26,14 @@ feature_row:
     - image_path: #/assets/images/mm-responsive-feature.png
       alt: "Cost Monitoring"
       title: "Cost Monitoring"
-      excerpt: "Provides a comprehensive dashboard for tracking your usage and budgeting your GenAI API calls."
+      excerpt: "Provides a comprehensive organistaion level and project level cost dashboard for tracking usage of your GenAI API calls."
       url: "docs/project-dashboard"
       btn_class: "btn--primary"
       btn_label: "Learn more"
     - image_path: #/assets/images/mm-free-feature.png
       alt: "Tracking GenAI usage"
       title: "Tracking GenAI usage"
-      excerpt: "Track, analyze, and optimize your GenAI API calls with detailed logs and insights."
+      excerpt: "Track and store all your communictaion with GenAI models on the  organisation level, one proxy for all your departments and projects."
       url: "docs/transations-view"
       btn_class: "btn--primary"
       btn_label: "Learn more"
