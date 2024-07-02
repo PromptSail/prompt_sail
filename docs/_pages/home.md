@@ -16,23 +16,23 @@ excerpt: >
 intro:
     - excerpt: "Prompt Sail is a transparent and user-friendly tool designed to capture and log all interactions with Gen APIs such as OpenAI, Cohere, and others. It integrates with OpenAI, langchain, and other LLM frameworks and libraries."
 feature_row:
-    - image_path: #/assets/images/mm-customizable-feature.png
+    - image_path: /assets/images/mm-customizable-feature.png
       alt: "Easy Integration"
       title: "Easy Integration"
-      excerpt: "Engineered as a transparent Proxy for your LLM calls, it seamlessly integrates into your existing workflow, and your LLM framework."
+      excerpt: "Engineered as a transparent proxy for your GenAI API calls, it seamlessly integrates into your existing workflow, regardless of language or framework."
       url: "/docs/quick-start-guide/"
       btn_class: "btn--primary"
       btn_label: "Learn more"
-    - image_path: #/assets/images/mm-responsive-feature.png
-      alt: "fully responsive"
+    - image_path: /assets/images/mm-responsive-feature.png
+      alt: "Cost Monitoring"
       title: "Cost Monitoring"
-      excerpt: "Provides a comprehensive dashboard for tracking your usage and budgeting your LLM API calls."
+      excerpt: "Provides a comprehensive dashboard for tracking your usage and budgeting your GenAI API calls."
       url: "/docs/layouts/"
       btn_class: "btn--primary"
       btn_label: "Learn more"
     - image_path: #/assets/images/mm-free-feature.png
-      alt: "100% free and MIT licensed"
-      title: "100% free"
+      alt: "Open Source"
+      title: "Open Source"
       excerpt: "Free to use however you want under the MIT License. Clone it, fork it, customize it... whatever!"
       url: "/docs/license/"
       btn_class: "btn--primary"

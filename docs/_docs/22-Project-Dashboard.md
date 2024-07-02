@@ -42,18 +42,4 @@ This bar chart provides a visual representation of transactions categorized by s
 - **500 Server Error** (Red)
 
 
-The Project Dashboard page provides detailed information about a specific project. The main container displays key project details such as name, description, slug, tags, list of AI providers, number of members, number of transactions, URL address utilizing the slug, which is used by `Promptsail` to add transactions.
-
-## Buttons
-
--   **Delete:** Displays a popup to delete the project.
--   **Update:** Redirects to the project form for editing.
--   **Install:** Displays a popup with instructions on how to add transactions for this project.
-
-## LLM Transactions
-
--   **Transactions Table:** Displays a table with the last five transactions for this project.
--   **"All Project Transactions" Button:** Redirects to a table with all transactions for this project.
-
-
 

@@ -11,7 +11,7 @@ toc_sticky: true
 
 
 
-## Organisation Dashboard Overview
+## Overview
 
 The Organization Dashboard page serves as a central hub for managing projects within the organization. It provides users with easy access to all pertinent project information and enables quick searching and creation of new projects.
 
