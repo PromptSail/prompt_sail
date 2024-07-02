@@ -75,12 +75,14 @@ const FilterStringSelectMenu: React.FC<
                             const normalizedKeys = [
                                 ...keys.filter(
                                     (key) =>
-                                        !parents.some(
-                                            (parent) => (key as string).split('.')[0] === parent
+                                        !parents.some((parent) =>
+                                            !search.length
+                                                ? (key as string).split('.')[0] === parent
+                                                : (key as string) === parent
                                         )
-                                ),
-                                ...parents
+                                )
                             ];
+                            if (!search.length) normalizedKeys.push(...parents);
                             setSelectedKeys(normalizedKeys);
                         }}
                         checkedKeys={selectedKeys}
