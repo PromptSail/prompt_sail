@@ -1,6 +1,6 @@
 ---
 title: "Project Dashboard"
-permalink: /docs/project-dashboard/
+permalink: /docs/project-dashboard
 excerpt: "The Project Dashboard page provides detailed information about a specific project"
 last_modified_at: 2024-02-01T15:36:00+01:00
 redirect_from:

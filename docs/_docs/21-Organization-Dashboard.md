@@ -1,6 +1,6 @@
 ---
 title: "Organization Dashboard"
-permalink: /docs/organization-dashboard/
+permalink: /docs/organization-dashboard
 excerpt: "The Organization Dashboard page serves as a central hub for managing projects within the organization"
 last_modified_at: 2024-06-03T14:06:00+01:00
 redirect_from:
