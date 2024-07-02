@@ -25,7 +25,7 @@ docs:
       - title: "Input/output capturing"
         url: /docs/storing-transactions/
       - title: "Programmatic API"
-        url: /docs/programmatic-api/
+        url: /docs/backend-rest-api
       - title: "Supported Models"
         url: /docs/supported-gen-ai-models
   - title: Deployment Cookbook
