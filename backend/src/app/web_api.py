@@ -305,13 +305,13 @@ async def get_paginated_transactions(
             for pair in provider_models:
                 if pair[0] not in pairs:
                     try:
-                        pairs[pair[0]] = [".".join(pair[1:])]
+                        pairs[pair[0]] = [".".join(pair[1:])] if ".".join(pair[1:]) is not "" else []
                     except IndexError:
                         pairs[pair[0]] = []
                 else:
                     pairs[pair[0]].append(pair[1])
             provider_models = pairs
-
+    print(provider_models)
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
         page=page,
