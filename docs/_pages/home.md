@@ -99,7 +99,7 @@ by project, API provider, LLM model, or tags. Navigate through your LLM interact
 
 ### 🚀 Lets build something great togather 🚀
 Have a question or business inquiry? We're here to help! Reach out to us at:
-* Email [contact@promptsail.com](contact@promptsail.com). 📧
+* Email contact@promptsail.com  📧
 * [GitHub project page](https://github.com/PromptSail/prompt_sail) and download the PromptSail Docker image now or contribute to the project.
 * [Discord community server](https://discord.gg/NvpVbw3aqW) to connect with other LLM enthusiasts and get support from the PromptSail team.
 * [Linkedin page](https://www.linkedin.com/company/prompt-sail/) to stay up-to-date with the latest news and updates from PromptSail.

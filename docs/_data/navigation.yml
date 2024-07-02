@@ -24,7 +24,7 @@ docs:
     children:
       - title: "Input/output capturing"
         url: /docs/storing-transactions/
-      - title: "Programmatic API"
+      - title: "REST API"
         url: /docs/backend-rest-api
       - title: "Supported Models"
         url: /docs/supported-gen-ai-models
