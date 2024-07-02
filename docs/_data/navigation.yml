@@ -26,8 +26,8 @@ docs:
         url: /docs/storing-transactions/
       - title: "Programmatic API"
         url: /docs/programmatic-api/
-      - title: "LLM frameworks integration"
-        url: /docs/llm-integrations/
+      - title: "Supported Models"
+        url: /docs/supported-gen-ai-models
   - title: Deployment Cookbook
     children:
       - title: "Deployment recepies"

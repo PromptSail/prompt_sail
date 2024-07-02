@@ -1,11 +1,11 @@
 ---
-title: "LLM integrations"
-permalink: /docs/llm-integrations/
-excerpt: "Integrations with most common LLM libraries and providers"
-last_modified_at: 2024-01-04T18:18:15+01:00
+title: "Supported Generative AI Model"
+permalink: /docs/supported-gen-ai-models
+excerpt: "Supported Generative AI Models and Providers"
+last_modified_at: 2024-07-02T18:18:15+01:00
 redirect_from:
   - /theme-setup/
-toc: true
+toc: false
 toc_sticky: true
 ---
 
