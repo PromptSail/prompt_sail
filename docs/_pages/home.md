@@ -31,10 +31,10 @@ feature_row:
       btn_class: "btn--primary"
       btn_label: "Learn more"
     - image_path: #/assets/images/mm-free-feature.png
-      alt: "Open Source"
-      title: "Open Source"
-      excerpt: ""
-      url: "/docs/license/"
+      alt: "Tracking GenAI usage""
+      title: "Tracking GenAI usage"
+      excerpt: "Track, analyze, and optimize your GenAI API calls with detailed logs and insights."
+      url: "docs/transations-view"
       btn_class: "btn--primary"
       btn_label: "Learn more"
 ---
