@@ -11,8 +11,7 @@ export type TransactionsFilters = {
     sort_field?: keyof getTransactionResponse | '';
     sort_type?: 'asc' | '';
     status_codes?: string;
-    providers?: string;
-    models?: string;
+    provider_models?: string;
 };
 
 export type StatisticsParams = {

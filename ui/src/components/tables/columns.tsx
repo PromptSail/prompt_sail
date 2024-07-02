@@ -2,7 +2,7 @@ import { ArrowRightOutlined } from '@ant-design/icons';
 import { Badge, Button, Divider, Flex, Menu, Tooltip } from 'antd';
 import { ColumnProps } from 'antd/es/table';
 import { TransactionsFilters } from '../../api/types';
-import { useGetAllProjects, useGetModels, useGetProviders } from '../../api/queries';
+import { useGetAllProjects, useGetModels } from '../../api/queries';
 import { ColumnFilterItem } from 'antd/es/table/interface';
 import { SetStateAction } from 'react';
 import FilterStringSelectMenu from './filters/FilterStringSelectMenu';
@@ -155,17 +155,17 @@ const columns = (
             key: 'aiProvider',
             sorter: true,
             apiCol: 'provider',
-            width: 200,
-            filterDropdown: (props) => (
-                <FilterStringSelectMenu
-                    {...props}
-                    filters={filters as ColumnFilterItem[] & TransactionsFilters}
-                    setFilters={setFilters}
-                    query={{ hook: useGetProviders, label: 'provider_name' }}
-                    target="providers"
-                    multiselect={true}
-                />
-            )
+            width: 200
+            // filterDropdown: (props) => (
+            //     <FilterStringSelectMenu
+            //         {...props}
+            //         filters={filters as ColumnFilterItem[] & TransactionsFilters}
+            //         setFilters={setFilters}
+            //         query={{ hook: useGetProviders, label: 'provider_name' }}
+            //         target="providers"
+            //         multiselect={true}
+            //     />
+            // )
         },
         {
             title: 'Model',
@@ -180,7 +180,7 @@ const columns = (
                     filters={filters as ColumnFilterItem[] & TransactionsFilters}
                     setFilters={setFilters}
                     query={{ hook: useGetModels, label: 'model_name' }}
-                    target="models"
+                    target="provider_models"
                     multiselect={true}
                 />
             )
