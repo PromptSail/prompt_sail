@@ -11,8 +11,41 @@ toc_sticky: true
 
 
 todo: Under construction
+## Supported Providers and Models
 
-## Supported LLM libraries and providers
+| Provider     | Model Name   |   Type       |  Support     |
+|:-------------|:-------------|:-------------|:-------------|
+|   OpenAI     | babbage      | completion   |
+|   OpenAI     | davinci      | completion   |
+|   OpenAI     |              | Cell 9       |
+
+
+| Provider | Model Name | Model Type | Support |
+|----------|------------|------------|---------|
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+| OpenAI   | gpt-4      | chat       | - [x]  |
+
+
+
+## Supported LLM libraries
 
 * [LangChain](#langchain-integration)
 * [OpenAI](#openai-integration)
