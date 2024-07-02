@@ -167,3 +167,4 @@ cython_debug/
 backend/poetry.lock
 **/.env
 private_examples/*
+docker-compose-wk.yml
