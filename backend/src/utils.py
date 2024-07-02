@@ -871,7 +871,7 @@ class TransactionParamExtractor:
             extracted["messages"] = messages
             extracted["last_message"] = self.response_content["response"]
         return extracted
-    
+
     def _extract_from_groq(self):
         extracted = {
             "type": "chat completion",
@@ -879,7 +879,7 @@ class TransactionParamExtractor:
             "prompt": self.request_content["messages"][-1]["content"],
             "model": self.request_content["model"],
             "input_tokens": self.response_content["usage"]["prompt_tokens"],
-            "output_tokens": self.response_content["usage"]["completion_tokens"]
+            "output_tokens": self.response_content["usage"]["completion_tokens"],
         }
 
         messages = self.request_content["messages"]
@@ -887,13 +887,23 @@ class TransactionParamExtractor:
         if self.response.__dict__["status_code"] > 200:
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            messages.append({"role": "error", "content": self.response_content["error"]["message"]})
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
             extracted["messages"] = messages
         else:
-            messages.append({"role": self.response_content["choices"][0]["message"]["role"],
-                             "content": self.response_content["choices"][0]["message"]["content"]})
+            messages.append(
+                {
+                    "role": self.response_content["choices"][0]["message"]["role"],
+                    "content": self.response_content["choices"][0]["message"][
+                        "content"
+                    ],
+                }
+            )
             extracted["messages"] = messages
-            extracted["last_message"] = self.response_content["choices"][0]["message"]["content"]
+            extracted["last_message"] = self.response_content["choices"][0]["message"][
+                "content"
+            ]
 
         return extracted
 
@@ -1678,7 +1688,7 @@ known_ai_providers = [
         "provider_name": "Ollama",
         "api_base_placeholder": "http://localhost:11434/api/generate",
     },
-{
+    {
         "provider_name": "Groq",
         "api_base_placeholder": "https://api.groq.com",
     },

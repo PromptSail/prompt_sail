@@ -47,7 +47,6 @@ from transactions.schemas import (
 )
 from transactions.use_cases import (
     add_transaction,
-    count_token_usage_for_project,
     count_transactions,
     count_transactions_for_list,
     delete_multiple_transactions,
@@ -201,10 +200,7 @@ async def update_existing_project(
             data["ai_providers"][idx] = AIProvider(**data["ai_providers"][idx])
             data["ai_providers"][idx].slug = slugify(data["ai_providers"][idx].slug)
     updated = ctx.call(update_project, project_id=project_id, fields_to_update=data)
-    total_tokens_usage = ctx.call(count_token_usage_for_project, project_id=project_id)
-    return GetProjectSchema(
-        **updated.model_dump(), total_tokens_usage=total_tokens_usage
-    )
+    return GetProjectSchema(**updated.model_dump())
 
 
 @app.delete(
@@ -305,7 +301,9 @@ async def get_paginated_transactions(
             for pair in provider_models:
                 if pair[0] not in pairs:
                     try:
-                        pairs[pair[0]] = [".".join(pair[1:])] if ".".join(pair[1:]) is not "" else []
+                        pairs[pair[0]] = (
+                            [".".join(pair[1:])] if ".".join(pair[1:]) is not "" else []
+                        )
                     except IndexError:
                         pairs[pair[0]] = []
                 else:
