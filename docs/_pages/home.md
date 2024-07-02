@@ -97,9 +97,9 @@ All prompts and responses are stored in a MongoDB, making it easy to find and an
 PromptSail's simple and intuitive UI allows you to easily view and filter your transactions (prompts and responses)
 by project, API provider, LLM model, or tags. Navigate through your LLM interactions with ease and efficiency.
 
-### 🚀 Lets build something great togather 🚀
+### 🚀 Let's build something great together. 🚀
 Have a question or business inquiry? We're here to help! Reach out to us at:
 * Email contact@promptsail.com  📧
-* [GitHub project page](https://github.com/PromptSail/prompt_sail) and download the PromptSail Docker image now or contribute to the project.
+* [GitHub project page](https://github.com/PromptSail/prompt_sail) to contribute, pull images, report issues, or request new features
 * [Discord community server](https://discord.gg/NvpVbw3aqW) to connect with other LLM enthusiasts and get support from the PromptSail team.
 * [Linkedin page](https://www.linkedin.com/company/prompt-sail/) to stay up-to-date with the latest news and updates from PromptSail.
