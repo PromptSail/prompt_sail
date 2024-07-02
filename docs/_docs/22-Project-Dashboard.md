@@ -55,6 +55,5 @@ The Project Dashboard page provides detailed information about a specific projec
 -   **Transactions Table:** Displays a table with the last five transactions for this project.
 -   **"All Project Transactions" Button:** Redirects to a table with all transactions for this project.
 
-**Notes:**
 
 
