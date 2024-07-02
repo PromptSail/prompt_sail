@@ -280,7 +280,7 @@ const ProviderDescription: React.FC<{
     useEffect(() => {
         const model = (Tags.length ? `&` : '?') + AIModelVersionTag;
         const alltags = Tags + (AIModelVersionTag.length ? model : '');
-        setAllTags(alltags + (alltags.length ? '&' : '?') + 'target_path=');
+        setAllTags('/' + alltags + (alltags.length ? '&' : '?') + 'target_path=');
     }, [Tags, AIModelVersionTag]);
     return (
         <Flex vertical gap={16}>
