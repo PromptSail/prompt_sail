@@ -53,7 +53,7 @@ from transactions.use_cases import (
     get_all_filtered_and_paginated_transactions,
     get_list_of_filtered_transactions,
     get_transaction,
-    get_transactions_for_project,
+    get_transactions_for_project, get_all_transactions,
 )
 
 from .app import app
@@ -670,6 +670,28 @@ async def get_portfolio_details(
     )
 
 
+@app.get(
+"/api/portfolio/costs_by_tag",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
+async def get_costs_by_tag(ctx: Annotated[TransactionContext, Depends(get_transaction_context)]) -> dict:
+    transactions = ctx.call(get_all_transactions)
+    cost_by_tag = {}
+    for transaction in transactions:
+        if len(transaction.tags) > 0:
+            for tag in transaction.tags:
+                try:
+                    cost_by_tag[tag] += transaction.total_cost if transaction.total_cost is not None else 0
+                except KeyError:
+                    cost_by_tag[tag] = transaction.total_cost if transaction.total_cost is not None else 0
+        try:
+            cost_by_tag["untagged-transactions"] += transaction.total_cost if transaction.total_cost is not None else 0
+        except KeyError:
+            cost_by_tag["untagged-transactions"] = transaction.total_cost if transaction.total_cost is not None else 0
+    return cost_by_tag
+    
+    
 @app.get(
     "/api/statistics/pricelist",
     response_class=JSONResponse,
