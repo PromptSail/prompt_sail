@@ -352,6 +352,7 @@ class TransactionParamExtractor:
             "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
             "OpenAI Image Generations": r".*api\.openai\.com.*images.*generations.*",
             "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
+            "Groq": r".*api\.groq\.com.*\/openai\/v1\/chat\/completions",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
             "Ollama": r".*(host\.docker\.internal|localhost).*\/api\/generate",
@@ -871,6 +872,41 @@ class TransactionParamExtractor:
             extracted["last_message"] = self.response_content["response"]
         return extracted
 
+    def _extract_from_groq(self):
+        extracted = {
+            "type": "chat completion",
+            "provider": "Groq",
+            "prompt": self.request_content["messages"][-1]["content"],
+            "model": self.request_content["model"],
+            "input_tokens": self.response_content["usage"]["prompt_tokens"],
+            "output_tokens": self.response_content["usage"]["completion_tokens"],
+        }
+
+        messages = self.request_content["messages"]
+
+        if self.response.__dict__["status_code"] > 200:
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+            extracted["messages"] = messages
+        else:
+            messages.append(
+                {
+                    "role": self.response_content["choices"][0]["message"]["role"],
+                    "content": self.response_content["choices"][0]["message"][
+                        "content"
+                    ],
+                }
+            )
+            extracted["messages"] = messages
+            extracted["last_message"] = self.response_content["choices"][0]["message"][
+                "content"
+            ]
+
+        return extracted
+
     def extract(self) -> dict:
         transaction_params = TransactionParamsBuilder()
         transaction_params.add_library(
@@ -910,6 +946,8 @@ class TransactionParamExtractor:
             extracted = self._extract_from_openai_images_edit()
         if self.pattern == "Ollama":
             extracted = self._extract_from_ollama()
+        if self.pattern == "Groq":
+            extracted = self._extract_from_groq()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
 
@@ -1649,6 +1687,10 @@ known_ai_providers = [
     {
         "provider_name": "Ollama",
         "api_base_placeholder": "http://localhost:11434/api/generate",
+    },
+    {
+        "provider_name": "Groq",
+        "api_base_placeholder": "https://api.groq.com",
     },
     {
         "provider_name": "Other",

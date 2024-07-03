@@ -126,27 +126,6 @@ def count_transactions_for_list(
     return transaction_repository.count(query)
 
 
-def count_token_usage_for_project(
-    transaction_repository: TransactionRepository,
-    project_id: str | None = None,
-) -> int:
-    """
-    Count the total token usage for transactions associated with a specific project.
-
-    :param transaction_repository: An instance of TransactionRepository used for accessing transaction data.
-    :param project_id: Optional. Project ID to filter transactions by.
-    :return: The sum of token usage across all transactions for the specified project.
-    """
-    transactions = transaction_repository.get_for_project(project_id)
-    return sum(
-        [
-            transaction.token_usage
-            for transaction in transactions
-            if transaction.token_usage is not None
-        ]
-    )
-
-
 def get_all_filtered_and_paginated_transactions(
     transaction_repository: TransactionRepository,
     page: int,

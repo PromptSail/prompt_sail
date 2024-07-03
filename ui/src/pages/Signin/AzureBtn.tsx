@@ -18,11 +18,11 @@ const AzureBtn: React.FC<{ onOk: (arg: string) => void }> = ({ onOk }) => {
     const handleClick = async () => {
         try {
             await msalInstance.initialize();
-            await msalInstance.loginPopup({
+            const accountInfo = await msalInstance.loginPopup({
                 scopes: SCOPES,
                 prompt: 'select_account'
             });
-            onOk(msalInstance.getAllAccounts()[0].idToken || '');
+            onOk(accountInfo.idToken);
         } catch (error) {
             console.error('Azure - login failed');
             console.error(error);
