@@ -293,23 +293,22 @@ async def get_paginated_transactions(
     if status_codes is not None:
         status_codes = list(map(lambda x: int(x), status_codes.split(",")))
     if provider_models is not None:
-        if provider_models is not None:
-            provider_models = list(
-                map(lambda x: x.split("."), provider_models.split(","))
-            )
-            pairs = {}
-            for pair in provider_models:
-                if pair[0] not in pairs:
-                    try:
-                        pairs[pair[0]] = (
-                            [".".join(pair[1:])] if ".".join(pair[1:]) is not "" else []
-                        )
-                    except IndexError:
-                        pairs[pair[0]] = []
-                else:
-                    pairs[pair[0]].append(pair[1])
-            provider_models = pairs
-    print(provider_models)
+        provider_models = list(
+            map(lambda x: x.split("."), provider_models.split(","))
+        )
+        pairs = {}
+        for pair in provider_models:
+            if pair[0] not in pairs:
+                try:
+                    pairs[pair[0]] = (
+                        [".".join(pair[1:])] if ".".join(pair[1:]) != "" else []
+                    )
+                except IndexError:
+                    pairs[pair[0]] = []
+            else:
+                pairs[pair[0]].append(pair[1])
+        provider_models = pairs
+
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
         page=page,

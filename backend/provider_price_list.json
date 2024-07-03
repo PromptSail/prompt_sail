@@ -253,6 +253,16 @@
         "mode": "chat"
     },
     {
+        "model_name": "claude-3.5-sonnet-20240620",
+        "provider": "Anthropic",
+        "start_date": "",
+        "match_pattern": "(?i)^(claude-3-5-sonnet-20240620)$",
+        "input_price": 0.003,
+        "output_price": 0.015,
+        "total_price": 0,
+        "mode": "chat"
+    },
+    {
         "model_name": "claude-instant-1.2",
         "provider": "Anthropic",
         "start_date": "",
