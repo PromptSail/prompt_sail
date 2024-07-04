@@ -53,7 +53,7 @@ from transactions.use_cases import (
     get_all_filtered_and_paginated_transactions,
     get_list_of_filtered_transactions,
     get_transaction,
-    get_transactions_for_project,
+    get_transactions_for_project, get_all_transactions,
 )
 
 from .app import app
@@ -293,23 +293,22 @@ async def get_paginated_transactions(
     if status_codes is not None:
         status_codes = list(map(lambda x: int(x), status_codes.split(",")))
     if provider_models is not None:
-        if provider_models is not None:
-            provider_models = list(
-                map(lambda x: x.split("."), provider_models.split(","))
-            )
-            pairs = {}
-            for pair in provider_models:
-                if pair[0] not in pairs:
-                    try:
-                        pairs[pair[0]] = (
-                            [".".join(pair[1:])] if ".".join(pair[1:]) is not "" else []
-                        )
-                    except IndexError:
-                        pairs[pair[0]] = []
-                else:
-                    pairs[pair[0]].append(pair[1])
-            provider_models = pairs
-    print(provider_models)
+        provider_models = list(
+            map(lambda x: x.split("."), provider_models.split(","))
+        )
+        pairs = {}
+        for pair in provider_models:
+            if pair[0] not in pairs:
+                try:
+                    pairs[pair[0]] = (
+                        [".".join(pair[1:])] if ".".join(pair[1:]) != "" else []
+                    )
+                except IndexError:
+                    pairs[pair[0]] = []
+            else:
+                pairs[pair[0]].append(pair[1])
+        provider_models = pairs
+
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
         page=page,
@@ -671,6 +670,28 @@ async def get_portfolio_details(
     )
 
 
+@app.get(
+"/api/portfolio/costs_by_tag",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
+async def get_costs_by_tag(ctx: Annotated[TransactionContext, Depends(get_transaction_context)]) -> dict:
+    transactions = ctx.call(get_all_transactions)
+    cost_by_tag = {}
+    for transaction in transactions:
+        if len(transaction.tags) > 0:
+            for tag in transaction.tags:
+                try:
+                    cost_by_tag[tag] += transaction.total_cost if transaction.total_cost is not None else 0
+                except KeyError:
+                    cost_by_tag[tag] = transaction.total_cost if transaction.total_cost is not None else 0
+        try:
+            cost_by_tag["untagged-transactions"] += transaction.total_cost if transaction.total_cost is not None else 0
+        except KeyError:
+            cost_by_tag["untagged-transactions"] = transaction.total_cost if transaction.total_cost is not None else 0
+    return cost_by_tag
+    
+    
 @app.get(
     "/api/statistics/pricelist",
     response_class=JSONResponse,

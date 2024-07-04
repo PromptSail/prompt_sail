@@ -36,9 +36,8 @@ const FilterDates: React.FC<Props> = ({ defaultValues, onSetDates, ...props }) =
                 rangeOK = false;
             }}
             onOk={(v) => {
-                if (v[0]?.toISOString() !== v[1]?.toISOString())
+                if (v[0]?.toString() !== v[1]?.toString())
                     setDates(() => {
-                        console.log(v);
                         onSetDates([v[0]?.toISOString() || '', v[1]?.toISOString() || '']);
                         return [v[0], v[1]];
                     });

@@ -24,10 +24,10 @@ docs:
     children:
       - title: "Input/output capturing"
         url: /docs/storing-transactions/
-      - title: "Programmatic API"
-        url: /docs/programmatic-api/
-      - title: "LLM frameworks integration"
-        url: /docs/llm-integrations/
+      - title: "REST API"
+        url: /docs/backend-rest-api
+      - title: "Supported Models"
+        url: /docs/supported-gen-ai-models
   - title: Deployment Cookbook
     children:
       - title: "Deployment recepies"
@@ -47,13 +47,13 @@ docs:
   - title: User UI Guide
     children:
       - title: "Login Page"
-        url: /docs/login-page/
+        url: /docs/login-page
       - title: "Organization Dashboard"
-        url: /docs/organization-dashboard/
+        url: /docs/organization-dashboard
       - title: "Project Dashboard"
-        url: /docs/project-dashboard/
+        url: /docs/project-dashboard
       - title: "Transactions View"
-        url: /docs/todo/
+        url: /docs/transations-view
 
   - title: Developer Guide
     children:
