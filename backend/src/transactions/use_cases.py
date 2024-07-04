@@ -276,6 +276,9 @@ def store_transaction(
                 ),
             )
 
+    if isinstance(response_content, list):
+        response_content = response_content[0]
+
     if "usage" not in response_content:
         response_content["usage"] = dict(
             prompt_tokens=0, completion_tokens=0, total_tokens=0

@@ -356,6 +356,7 @@ class TransactionParamExtractor:
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
             "Ollama": r".*(host\.docker\.internal|localhost).*\/api\/generate",
+            "Huggingface": r".*huggingface\.cloud.*",
         }
 
         for pattern_name, pattern_regex in patterns.items():
@@ -460,15 +461,13 @@ class TransactionParamExtractor:
                 if "error" in self.response_content.keys()
                 else self.response_content["message"]
             )
-            extracted["messages"] = messages
         else:
             messages.append(self.response_content["choices"][0]["message"])
-            extracted["messages"] = messages
             extracted["model"] = self.response_content["model"]
             extracted["last_message"] = self.response_content["choices"][0]["message"][
                 "content"
             ]
-
+        extracted["messages"] = messages
         return extracted
 
     def _extract_from_openai_chat_completions(self) -> dict:
@@ -514,7 +513,6 @@ class TransactionParamExtractor:
             extracted["last_message"] = self.response_content["error"]["message"]
         else:
             messages.append(self.response_content["choices"][0]["message"])
-            extracted["messages"] = messages
             extracted["model"] = (
                 self.response_headers["openai-model"]
                 if "openai-model" in self.response_headers
@@ -523,7 +521,7 @@ class TransactionParamExtractor:
             extracted["last_message"] = self.response_content["choices"][0]["message"][
                 "content"
             ]
-
+        extracted["messages"] = messages
         return extracted
 
     def _extract_from_openai_completions(self) -> dict:
@@ -539,8 +537,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
-
         else:
             messages.append(
                 {
@@ -548,14 +544,13 @@ class TransactionParamExtractor:
                     "content": self.response_content["choices"][0]["text"],
                 }
             )
-            extracted["messages"] = messages
             extracted["model"] = (
                 self.response_headers["openai-model"]
                 if "openai-model" in self.response_headers
                 else self.response_content["model"]
             )
             extracted["last_message"] = self.response_content["choices"][0]["text"]
-
+        extracted["messages"] = messages
         return extracted
 
     def _extract_from_openai_images_variations(self) -> dict:
@@ -586,7 +581,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
             try:
                 for data in self.response_content["data"]:
@@ -609,7 +603,7 @@ class TransactionParamExtractor:
                         }
                     )
                 extracted["last_message"] = self.response_content["data"][-1]
-            extracted["messages"] = messages
+        extracted["messages"] = messages
 
         return extracted
 
@@ -636,7 +630,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
             try:
                 for data in self.response_content["data"]:
@@ -659,7 +652,7 @@ class TransactionParamExtractor:
                         }
                     )
                 extracted["last_message"] = self.response_content["data"][-1]
-            extracted["messages"] = messages
+        extracted["messages"] = messages
 
         return extracted
 
@@ -699,7 +692,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
             try:
                 for data in self.response_content["data"]:
@@ -722,11 +714,11 @@ class TransactionParamExtractor:
                         }
                     )
                 extracted["last_message"] = self.response_content["data"][-1]
-            extracted["messages"] = messages
+        extracted["messages"] = messages
 
         return extracted
 
-    def _extract_from_openai_embeddings(self):
+    def _extract_from_openai_embeddings(self) -> dict:
         extracted = {"type": "embedding", "provider": "OpenAI"}
         messages = []
         if isinstance(self.request_content["input"], list):
@@ -765,7 +757,7 @@ class TransactionParamExtractor:
 
         return extracted
 
-    def _extract_from_anthropic(self):
+    def _extract_from_anthropic(self) -> dict:
         extracted = {
             "type": "chat",
             "provider": "Anthropic",
@@ -779,7 +771,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
             messages.append(
                 {
@@ -787,7 +778,6 @@ class TransactionParamExtractor:
                     "content": self.response_content["content"][0]["text"],
                 }
             )
-            extracted["messages"] = messages
             extracted["model"] = self.response_content["model"]
             extracted["last_message"] = self.response_content["content"][0]["text"]
             extracted["input_tokens"] = self.response_content["usage"].get(
@@ -796,10 +786,10 @@ class TransactionParamExtractor:
             extracted["output_tokens"] = self.response_content["usage"].get(
                 "output_tokens", 0
             )
-
+        extracted["messages"] = messages
         return extracted
 
-    def _extract_from_vertexai(self):
+    def _extract_from_vertexai(self) -> dict:
         extracted = {
             "type": "chat",
             "provider": "Google VertexAI",
@@ -816,7 +806,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
             messages.append(
                 {
@@ -831,7 +820,6 @@ class TransactionParamExtractor:
                     ),
                 }
             )
-            extracted["messages"] = messages
             extracted["last_message"] = " ".join(
                 [
                     part["text"]
@@ -846,10 +834,10 @@ class TransactionParamExtractor:
             extracted["output_tokens"] = self.response_content["usageMetadata"].get(
                 "candidatesTokenCount", 0
             )
-
+        extracted["messages"] = messages
         return extracted
 
-    def _extract_from_ollama(self):
+    def _extract_from_ollama(self) -> dict:
         extracted = {
             "type": "chat",
             "provider": "Ollama",
@@ -868,11 +856,11 @@ class TransactionParamExtractor:
             messages.append(
                 {"role": "system", "content": self.response_content["response"]}
             )
-            extracted["messages"] = messages
             extracted["last_message"] = self.response_content["response"]
+        extracted["messages"] = messages
         return extracted
 
-    def _extract_from_groq(self):
+    def _extract_from_groq(self) -> dict:
         extracted = {
             "type": "chat completion",
             "provider": "Groq",
@@ -890,7 +878,6 @@ class TransactionParamExtractor:
             messages.append(
                 {"role": "error", "content": self.response_content["error"]["message"]}
             )
-            extracted["messages"] = messages
         else:
             messages.append(
                 {
@@ -900,10 +887,35 @@ class TransactionParamExtractor:
                     ],
                 }
             )
-            extracted["messages"] = messages
             extracted["last_message"] = self.response_content["choices"][0]["message"][
                 "content"
             ]
+        extracted["messages"] = messages
+
+        return extracted
+
+    def _extract_from_huggingface(self) -> dict:
+        extracted = {
+            "type": "chat",
+            "provider": "Huggingface",
+            "prompt": self.request_content["inputs"],
+            "model": "Unknown",
+        }
+
+        messages = [{"role": "user", "content": self.request_content["inputs"]}]
+
+        if self.response.__dict__["status_code"] > 200:
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+        else:
+            extracted["last_message"] = self.response_content["generated_text"]
+            messages.append(
+                {"role": "system", "content": self.response_content["generated_text"]}
+            )
+        extracted["messages"] = messages
 
         return extracted
 
@@ -948,6 +960,8 @@ class TransactionParamExtractor:
             extracted = self._extract_from_ollama()
         if self.pattern == "Groq":
             extracted = self._extract_from_groq()
+        if self.pattern == "Huggingface":
+            extracted = self._extract_from_huggingface()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
 
@@ -1691,6 +1705,10 @@ known_ai_providers = [
     {
         "provider_name": "Groq",
         "api_base_placeholder": "https://api.groq.com",
+    },
+    {
+        "provider_name": "Huggingface",
+        "api_base_placeholder": "https://<your-deployment-name>.us-east-1.aws.endpoints.huggingface.cloud",
     },
     {
         "provider_name": "Other",
