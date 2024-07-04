@@ -911,5 +911,49 @@
         "total_price": 0.0001,
         "is_active": false,
         "mode": "embedding"
+    },
+    {
+        "model_name": "llama3-8b-8192",
+        "provider": "Groq",
+        "start_date": "",
+        "match_pattern": "(?i)^(llama3)(-8b)(-8192)?$",
+        "input_price": 0.00005,
+        "output_price": 0.00008,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "llama3-70b-8192",
+        "provider": "Groq",
+        "start_date": "",
+        "match_pattern": "(?i)^(llama3)(-70b)(-8192)?$",
+        "input_price": 0.00059,
+        "output_price": 0.00079,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "mixtral-8x7b-32768",
+        "provider": "Groq",
+        "start_date": "",
+        "match_pattern": "(?i)^(mixtral)(-8x7b)(-32768)?$",
+        "input_price": 0.00024,
+        "output_price": 0.00024,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gemma-7b-it",
+        "provider": "Groq",
+        "start_date": "",
+        "match_pattern": "(?i)^(gemma)(-7b)(-it)?$",
+        "input_price": 0.00007,
+        "output_price": 0.00007,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
     }
 ]
