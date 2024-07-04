@@ -1,11 +1,11 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useGetProject, useUpdateProject } from '../../api/queries';
 import { getProjectResponse } from '../../api/interfaces';
 import { AxiosResponse } from 'axios';
 import { UseQueryResult } from 'react-query';
 import UpdateProject from './Update/UpdateProject';
 import AddProject from './Add/AddProject';
-import { Breadcrumb, Flex, Tabs, Typography } from 'antd';
+import { Breadcrumb, Flex, Spin, Tabs, Typography } from 'antd';
 import Statistics from './Statistics/Statistics';
 import { NotificationInstance } from 'antd/es/notification/interface';
 import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
@@ -16,6 +16,7 @@ import ProjectTransactions from './ProjectTransactions';
 import DeleteProject from '../../components/ProjectForms/DeleteProject';
 import { Context } from '../../context/Context';
 import { useContext } from 'react';
+import Page404 from '../../components/errorPages/page404';
 const { Title } = Typography;
 
 interface AddProps {
@@ -23,7 +24,6 @@ interface AddProps {
 }
 
 const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => {
-    const navigate = useNavigate();
     const { notification } = useContext(Context);
     const [currentTab, setCurrentTab] = useState('1');
     const params = useParams();
@@ -36,18 +36,14 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
     }, [currentTab]);
     if (project.isLoading)
         return (
-            <>
-                <div>loading...</div>
-            </>
+            <div className="w-full h-full relative">
+                <Spin
+                    size="large"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                />
+            </div>
         );
-    if (project.isError)
-        return (
-            <>
-                <div>An error has occurred</div>
-                {console.error(project.error)}
-                {navigate('/')}
-            </>
-        );
+    if (project.isError) return <Page404 />;
     if (project.isSuccess) {
         const data = project.data.data;
         return (
@@ -59,7 +55,7 @@ const Project: React.FC & { Add: React.FC<AddProps>; Update: React.FC } = () => 
                                 className="ms-1"
                                 items={[
                                     {
-                                        title: <Link to={'/projects'}>Projects</Link>
+                                        title: <Link to={'/'}>Projects</Link>
                                     },
                                     {
                                         title: data.name

@@ -1,6 +1,6 @@
 import { Divider, Flex, Menu, Skeleton, Tooltip, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';
-import { SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { checkLogin } from '../../storage/login';
 import {
@@ -16,17 +16,16 @@ import Logo from '../../assets/logo/Logo-teal_white.svg';
 import Symbol from '../../assets/logo/symbol-teal.svg';
 import { useGetConfig, useWhoami } from '../../api/queries';
 import DefaultAvatar from '../DefaultAvatar/DefaultAvatar';
+import { useLogin } from '../../context/LoginContext';
 const { Text } = Typography;
-interface Props {
-    setLoginState: (arg: SetStateAction<boolean>) => void;
-}
 
-const Sidebar: React.FC<Props> = ({ setLoginState }) => {
+const Sidebar: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
     const user = useWhoami();
     const config = useGetConfig();
     const navigate = useNavigate();
+    const { setLoginState } = useLogin();
     useEffect(() => {
         setSelectMenuItem(location.pathname);
     }, [location]);
@@ -125,7 +124,7 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
                     />
                     <div className="border border-solid border-white/[.08] rounded-[8px] p-[8px] mx-[16px]">
                         <Flex gap={8}>
-                            {user.isLoading && (
+                            {user.isLoading ? (
                                 <Skeleton.Avatar
                                     active
                                     shape="circle"
@@ -134,8 +133,7 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
                                         filter: 'brightness(.1) invert(1)'
                                     }}
                                 />
-                            )}
-                            {!user.isLoading &&
+                            ) : (
                                 (() => {
                                     const isPictureValid =
                                         user.isSuccess &&
@@ -159,18 +157,22 @@ const Sidebar: React.FC<Props> = ({ setLoginState }) => {
                                                 )
                                             }
                                         >
-                                            {isPictureValid ? (
-                                                <img
-                                                    src={user.data?.data.picture}
-                                                    className={`max-w-[32px] max-h-[32px] my-autorounded-[50%]`}
-                                                    alt="avatar"
-                                                />
-                                            ) : (
-                                                <DefaultAvatar />
-                                            )}
+                                            <div className="my-auto">
+                                                {isPictureValid ? (
+                                                    <img
+                                                        referrerPolicy="no-referrer"
+                                                        src={user.data?.data.picture}
+                                                        className={`max-w-[32px] max-h-[32px] my-auto rounded-[50%]`}
+                                                        alt="avatar"
+                                                    />
+                                                ) : (
+                                                    <DefaultAvatar />
+                                                )}
+                                            </div>
                                         </Tooltip>
                                     );
-                                })()}
+                                })()
+                            )}
                             {!collapsed && (
                                 <Flex vertical className="min-w-[100px]">
                                     <Text className="text-Text/colorTextLight">

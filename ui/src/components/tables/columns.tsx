@@ -2,7 +2,7 @@ import { ArrowRightOutlined } from '@ant-design/icons';
 import { Badge, Button, Divider, Flex, Menu, Tooltip } from 'antd';
 import { ColumnProps } from 'antd/es/table';
 import { TransactionsFilters } from '../../api/types';
-import { useGetAllProjects, useGetModels, useGetProviders } from '../../api/queries';
+import { useGetAllProjects, useGetModels } from '../../api/queries';
 import { ColumnFilterItem } from 'antd/es/table/interface';
 import { SetStateAction } from 'react';
 import FilterStringSelectMenu from './filters/FilterStringSelectMenu';
@@ -33,7 +33,8 @@ export type CustomColumns = ColumnProps<DataType> & {
 
 const columns = (
     filters: TransactionsFilters,
-    setFilters: (attr: SetStateAction<TransactionsFilters>) => void
+    setFilters: (attr: SetStateAction<TransactionsFilters>) => void,
+    projectFilter: boolean
 ): CustomColumns[] => {
     return [
         {
@@ -123,7 +124,7 @@ const columns = (
                                     confirm();
                                 }}
                             >
-                                Save
+                                Search
                             </Button>
                         </Flex>
                     </Flex>
@@ -135,16 +136,18 @@ const columns = (
             dataIndex: 'project',
             key: 'project',
             width: 200,
-            filterDropdown: (props) => (
-                <FilterStringSelectMenu
-                    {...props}
-                    filters={filters as ColumnFilterItem[] & TransactionsFilters}
-                    setFilters={setFilters}
-                    query={{ hook: useGetAllProjects, label: 'name' }}
-                    target="project_id"
-                    multiselect={false}
-                />
-            )
+            filterDropdown: projectFilter
+                ? (props) => (
+                      <FilterStringSelectMenu
+                          {...props}
+                          filters={filters as ColumnFilterItem[] & TransactionsFilters}
+                          setFilters={setFilters}
+                          query={{ hook: useGetAllProjects, label: 'name' }}
+                          target="project_id"
+                          multiselect={false}
+                      />
+                  )
+                : undefined
         },
         {
             title: 'AI provider',
@@ -152,17 +155,17 @@ const columns = (
             key: 'aiProvider',
             sorter: true,
             apiCol: 'provider',
-            width: 200,
-            filterDropdown: (props) => (
-                <FilterStringSelectMenu
-                    {...props}
-                    filters={filters as ColumnFilterItem[] & TransactionsFilters}
-                    setFilters={setFilters}
-                    query={{ hook: useGetProviders, label: 'provider_name' }}
-                    target="providers"
-                    multiselect={true}
-                />
-            )
+            width: 200
+            // filterDropdown: (props) => (
+            //     <FilterStringSelectMenu
+            //         {...props}
+            //         filters={filters as ColumnFilterItem[] & TransactionsFilters}
+            //         setFilters={setFilters}
+            //         query={{ hook: useGetProviders, label: 'provider_name' }}
+            //         target="providers"
+            //         multiselect={true}
+            //     />
+            // )
         },
         {
             title: 'Model',
@@ -177,7 +180,7 @@ const columns = (
                     filters={filters as ColumnFilterItem[] & TransactionsFilters}
                     setFilters={setFilters}
                     query={{ hook: useGetModels, label: 'model_name' }}
-                    target="providers"
+                    target="provider_models"
                     multiselect={true}
                 />
             )

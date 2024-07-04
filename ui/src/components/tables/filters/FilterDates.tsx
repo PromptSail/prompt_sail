@@ -1,41 +1,49 @@
-import { SetStateAction } from 'react';
+import { useState } from 'react';
 import dayjs from 'dayjs';
-import { TransactionsFilters } from '../../../api/types';
-import { DatePicker } from 'antd';
+import type { Dayjs } from 'dayjs';
+import { DatePicker, GetProps } from 'antd';
 const { RangePicker } = DatePicker;
-
-interface Props {
-    defaultValues: [string, string];
-    setFilters: (args: SetStateAction<TransactionsFilters>) => void;
-    // setDates: (date_from: string, date_to: string) => void;
+interface Props extends GetProps<typeof RangePicker> {
+    defaultValues?: [string, string];
+    onSetDates: (dates: [string, string]) => void;
 }
 
-const FilterDates: React.FC<Props> = ({
-    defaultValues,
-    setFilters
-    // setDates
-}) => {
+const FilterDates: React.FC<Props> = ({ defaultValues, onSetDates, ...props }) => {
+    let rangeOK = false;
+    const [dates, setDates] = useState<[Dayjs | null, Dayjs | null]>([
+        defaultValues && defaultValues[0] ? dayjs(defaultValues[0]) : null,
+        defaultValues && defaultValues[1] ? dayjs(defaultValues[1]) : null
+    ]);
     return (
         <RangePicker
+            {...props}
             onChange={(_, dates) => {
-                let dateStart = '';
-                let dateEnd = '';
-                if (dates[0].length > 0 && dates[1].length > 0) {
-                    dateStart = new Date(dates[0]).toISOString();
-                    dateEnd = new Date(dates[1]).toISOString();
+                if (!rangeOK) {
+                    let dateStart = '';
+                    let dateEnd = '';
+                    if (dates[0].length > 0 && dates[1].length > 0) {
+                        dateStart = new Date(dates[0]).toISOString();
+                        dateEnd = new Date(dates[1]).toISOString();
+                    }
+                    if (!dateStart.length || dateStart !== dateEnd)
+                        setDates(() => {
+                            const start = dateStart.length ? dayjs(dates[0]) : null;
+                            const end = dateEnd.length ? dayjs(dates[1]) : null;
+                            onSetDates([dateStart, dateEnd]);
+                            return [start, end];
+                        });
                 }
-                setFilters((old) => ({
-                    ...old,
-                    date_from: dateStart,
-                    date_to: dateEnd
-                }));
-                // setDates(dateStart, dateEnd);
+                rangeOK = false;
             }}
-            defaultValue={
-                defaultValues[0].length > 1
-                    ? [dayjs(defaultValues[0]), dayjs(defaultValues[1])]
-                    : undefined
-            }
+            onOk={(v) => {
+                if (v[0]?.toString() !== v[1]?.toString())
+                    setDates(() => {
+                        onSetDates([v[0]?.toISOString() || '', v[1]?.toISOString() || '']);
+                        return [v[0], v[1]];
+                    });
+                rangeOK = true;
+            }}
+            value={[dates[0], dates[1]]}
             showTime
         />
     );

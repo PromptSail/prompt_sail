@@ -1,10 +1,10 @@
-import { Button, Form, Input, Typography } from 'antd';
+import { Button, ConfigProvider, Form, Input, Typography } from 'antd';
 import { useFormik } from 'formik';
 import { makeUrl } from '../../../helpers/aiProvider';
-import { UpSquareOutlined } from '@ant-design/icons';
 import { providerSchema } from '../../../api/formSchemas';
 import ProviderSelect from './ProviderSelect';
 import { FormikValuesTemplate } from '../types';
+import { CheckOutlined } from '@ant-design/icons';
 
 const { Paragraph } = Typography;
 
@@ -29,6 +29,13 @@ const ProviderEditableElement: React.FC<Props> = ({
         validationSchema: providerSchema,
         validateOnChange: false
     });
+    const isValuesNotEdited = Object.keys(initialValues)
+        .filter((el) => el !== 'slug')
+        .map((el) => {
+            const key = el as keyof typeof initialValues;
+            return initialValues[key] === formik.values[key];
+        })
+        .reduce((a, b) => a && b);
     return (
         <>
             <Form
@@ -105,9 +112,10 @@ const ProviderEditableElement: React.FC<Props> = ({
                     validateStatus={formik.errors.slug ? 'error' : ''}
                     className="mb-[10px]"
                 >
-                    <Paragraph className="!m-0 text-Text/colorText">API Base URL:</Paragraph>
+                    <Paragraph className="!m-0 text-Text/colorText">Proxy URL:</Paragraph>
                     <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                        Enter the base URL for the LLM endpoint you want to connect with
+                        A proxy URL is auto-generated from the slug and the deployment name and is
+                        used to log all interactions with LLM provider.
                     </Paragraph>
                     <Input
                         className="max-w-[50%]"
@@ -119,15 +127,33 @@ const ProviderEditableElement: React.FC<Props> = ({
                 </Form.Item>
             </Form>
             {showSubmitButton && (
-                <Button
-                    className="me-auto"
-                    type="dashed"
-                    icon={<UpSquareOutlined />}
-                    htmlType="submit"
-                    form={formId}
-                >
-                    Update AI Provider
-                </Button>
+                <ConfigProvider wave={{ disabled: isValuesNotEdited }}>
+                    <Button
+                        className={`me-auto${
+                            isValuesNotEdited
+                                ? 'active:!bg-Primary/colorPrimary hover:!bg-Primary/colorPrimary opacity-50 cursor-default'
+                                : ''
+                        }`}
+                        style={{
+                            position: 'relative',
+                            transition: 'all .2s ease'
+                        }}
+                        type="primary"
+                        htmlType="submit"
+                        form={formId}
+                    >
+                        Save{' '}
+                        <CheckOutlined
+                            style={{
+                                position: 'relative',
+                                transition: 'width .2s ease',
+                                width: isValuesNotEdited ? '14px' : 0,
+                                marginLeft: isValuesNotEdited ? '10px' : 0,
+                                opacity: isValuesNotEdited ? 1 : 0
+                            }}
+                        />
+                    </Button>
+                </ConfigProvider>
             )}
         </>
     );

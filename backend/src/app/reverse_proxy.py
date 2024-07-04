@@ -119,7 +119,6 @@ async def reverse_proxy(
     rp_req = client.build_request(
         method=request.method,
         url=url,
-        # headers=request.headers.raw,
         headers={
             k: v for k, v in request.headers.items() if k.lower() not in ("host",)
         },
@@ -128,7 +127,7 @@ async def reverse_proxy(
         timeout=timeout,
     )
     logger.debug(f"Requesting on: {url}")
-    rp_resp = await client.send(rp_req, stream=True)
+    rp_resp = await client.send(rp_req, stream=True, follow_redirects=True)
 
     buffer = []
     return StreamingResponse(

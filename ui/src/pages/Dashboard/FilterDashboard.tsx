@@ -40,10 +40,10 @@ const FilterDashboard: React.FC<Props> = ({
     const auth = useContext(Context).config?.authorization;
     useEffect(() => {
         if (
-            costRange.start != null ||
-            costRange.end != null ||
-            transactionsRange.start != null ||
-            transactionsRange.end != null ||
+            (costRange.start != null && costRange.start != costRange.min) ||
+            (costRange.end != null && costRange.end != costRange.max) ||
+            (transactionsRange.start != null && transactionsRange.start != transactionsRange.min) ||
+            (transactionsRange.end != null && transactionsRange.end != transactionsRange.max) ||
             owner != null
         )
             setClear(true);
@@ -124,8 +124,8 @@ const FilterDashboard: React.FC<Props> = ({
                             values={costRange}
                             onChange={onChangeCost}
                             prefix="$ "
-                            max={costRange.max}
-                            fixed={7}
+                            max={Number((costRange.max || 0).toFixed(4))}
+                            fixed={4}
                         />
                     </Form.Item>
                     <Form.Item
@@ -146,8 +146,14 @@ const FilterDashboard: React.FC<Props> = ({
                             className="text-Primary/colorPrimary"
                             icon={<RedoOutlined />}
                             onClick={() => {
-                                onChangeCost({ start: null, end: null });
-                                onChangeTransactions({ start: null, end: null });
+                                onChangeCost({
+                                    start: costRange.min || 0,
+                                    end: costRange.max || 0
+                                });
+                                onChangeTransactions({
+                                    start: transactionsRange.min || 0,
+                                    end: transactionsRange.max || 0
+                                });
                                 onSetOwner(null);
                             }}
                         >

@@ -20,8 +20,9 @@ const ProjectTransactions: React.FC<Props> = ({ projectId }) => {
                     <Text className="my-auto">Date:</Text>
                     <FilterDates
                         defaultValues={[filters.date_from || '', filters.date_to || '']}
-                        setFilters={setFilters}
-                        // setDates={() => console.log('setDates')}
+                        onSetDates={(dates) => {
+                            setFilters({ ...filters, date_from: dates[0], date_to: dates[1] });
+                        }}
                     />
                 </Flex>
             </Container>

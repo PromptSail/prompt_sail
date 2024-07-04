@@ -17,22 +17,22 @@ const FilterTags: React.FC<FilterDropdownProps & Props> = ({
 }) => {
     const options = [
         {
-            value: 'tag1'
+            value: 'research'
         },
         {
-            value: 'tag2'
+            value: 'experiment'
         },
         {
-            value: 'tag3'
+            value: 'internal'
         },
         {
-            value: 'tag4'
+            value: 'education'
         },
         {
-            value: 'tag5'
+            value: 'finance'
         },
         {
-            value: 'tag6'
+            value: 'testing'
         }
     ];
     useEffect(() => {

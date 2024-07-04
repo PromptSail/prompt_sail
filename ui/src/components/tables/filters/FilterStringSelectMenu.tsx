@@ -1,9 +1,10 @@
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { TransactionsFilters } from '../../../api/types';
-import { SetStateAction, useEffect, useState } from 'react';
+import { Key, SetStateAction, useEffect, useState } from 'react';
 import { UseQueryResult } from 'react-query';
 import { AxiosError } from 'axios';
-import { Button, Divider, Flex, Input, Menu, Spin } from 'antd';
+import { Button, Divider, Flex, Input, Menu, Skeleton, Tree } from 'antd';
+import { DefaultOptionType } from 'antd/es/select';
 
 const FilterStringSelectMenu: React.FC<
     FilterDropdownProps & {
@@ -40,24 +41,87 @@ const FilterStringSelectMenu: React.FC<
                     : []
             );
     }, [strings.status]);
-    if (strings.isLoading) {
-        return (
-            <Spin
-                size="large"
-                className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/3"
+    return (
+        <Flex vertical>
+            <Input
+                className="m-[4px] w-[calc(100%-8px)]"
+                placeholder="Search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
             />
-        );
-    }
-    if (!strings.isLoading) {
-        return (
-            <Flex vertical>
-                <Input
-                    className="m-1 max-w-[150px]"
-                    placeholder="Search"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                <div className="max-h-[150px] overflow-y-auto overflow-x-hidden">
+            <div className="max-h-[150px] overflow-y-auto overflow-x-hidden">
+                {strings.isLoading ? (
+                    <div className="relative h-[150px]">
+                        <Skeleton
+                            className="w-full"
+                            active
+                            title={false}
+                            paragraph={{
+                                rows: 10,
+                                style: {
+                                    margin: '15px'
+                                }
+                            }}
+                        />
+                    </div>
+                ) : target === 'provider_models' ? (
+                    <Tree
+                        checkable
+                        className="m-1"
+                        defaultExpandAll
+                        onCheck={(k) => {
+                            const keys = k as Key[];
+                            const parents = keys.filter((key) => !(key as string).includes('.'));
+                            const normalizedKeys = [
+                                ...keys.filter(
+                                    (key) =>
+                                        !parents.some((parent) =>
+                                            !search.length
+                                                ? (key as string).split('.')[0] === parent
+                                                : (key as string) === parent
+                                        )
+                                )
+                            ];
+                            if (!search.length) normalizedKeys.push(...parents);
+                            setSelectedKeys(normalizedKeys);
+                        }}
+                        checkedKeys={selectedKeys}
+                        treeData={(() => {
+                            const grouped: { [key: string]: string[] } = {};
+                            strings.data?.map((el) => {
+                                const model = el['model_name'];
+                                const provider = el['provider'];
+                                if (!grouped[provider]) grouped[provider] = [];
+                                grouped[provider].push(model);
+                            });
+                            const items: DefaultOptionType[] = Object.keys(grouped).map(
+                                (provider) => ({
+                                    key: provider,
+                                    title: provider,
+                                    children: grouped[provider].map((model: string) => ({
+                                        key: provider + '.' + model,
+                                        title: model
+                                    }))
+                                })
+                            );
+                            // console.log(items);
+                            return items;
+                        })()
+                            .filter(
+                                (el) =>
+                                    el.title?.toLowerCase().includes(search) ||
+                                    el.children?.some((child) =>
+                                        child.title?.toLowerCase().includes(search)
+                                    )
+                            )
+                            .map((el) => ({
+                                ...el,
+                                children: el.children?.filter((child) =>
+                                    child.title?.toLowerCase().includes(search)
+                                )
+                            }))}
+                    />
+                ) : (
                     <Menu
                         className="!max-h-full"
                         items={
@@ -89,33 +153,33 @@ const FilterStringSelectMenu: React.FC<
                         }}
                         selectedKeys={selectedKeys as string[]}
                     />
-                </div>
-                <Divider className="my-1" />
-                <Flex justify="space-between" className="my-2 mx-2">
-                    <Button
-                        type="text"
-                        size="small"
-                        onClick={() => setSelectedKeys([])}
-                        disabled={!selectedKeys.length}
-                    >
-                        Reset
-                    </Button>
-                    <Button
-                        type="primary"
-                        size="small"
-                        onClick={() => {
-                            setFilters((prevFilters) => ({
-                                ...prevFilters,
-                                [target]: `${multiselect ? selectedKeys.join(',') : selectedKeys}`
-                            }));
-                            confirm();
-                        }}
-                    >
-                        Save
-                    </Button>
-                </Flex>
+                )}
+            </div>
+            <Divider className="my-1" />
+            <Flex justify="space-between" className="my-2 mx-2">
+                <Button
+                    type="text"
+                    size="small"
+                    onClick={() => setSelectedKeys([])}
+                    disabled={!selectedKeys.length}
+                >
+                    Reset
+                </Button>
+                <Button
+                    type="primary"
+                    size="small"
+                    onClick={() => {
+                        setFilters((prevFilters) => ({
+                            ...prevFilters,
+                            [target]: `${multiselect ? selectedKeys.join(',') : selectedKeys}`
+                        }));
+                        confirm();
+                    }}
+                >
+                    Search
+                </Button>
             </Flex>
-        );
-    }
+        </Flex>
+    );
 };
 export default FilterStringSelectMenu;

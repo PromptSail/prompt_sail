@@ -1,7 +1,7 @@
 import { Flex, Select, SelectProps, Typography } from 'antd';
-import defAvatar from '../../assets/logo/symbol-white.svg';
 import { useGetUsers } from '../../api/queries';
 import { useEffect, useState } from 'react';
+import DefaultAvatar from '../../components/DefaultAvatar/DefaultAvatar';
 const { Text } = Typography;
 interface Props extends SelectProps {}
 const UserFilter: React.FC<Props> = ({ ...rest }) => {
@@ -29,7 +29,7 @@ const UserFilter: React.FC<Props> = ({ ...rest }) => {
 };
 const UserComponent: React.FC<{ img: string | null; label: string }> = ({ img, label }) => {
     return (
-        <Flex gap={8} className="overflow-hidden max-w-[200px]">
+        <Flex gap={8}>
             {img !== null && img.length > 0 ? (
                 <img
                     referrerPolicy="no-referrer"
@@ -38,15 +38,7 @@ const UserComponent: React.FC<{ img: string | null; label: string }> = ({ img, l
                     className="w-[24px] h-[24px] rounded-full"
                 />
             ) : (
-                <div>
-                    <div className="!w-[24px] h-[24px] bg-Primary/colorPrimary rounded-full relative my-auto">
-                        <img
-                            src={defAvatar}
-                            alt={`avatar_${label}`}
-                            className="w-[16px] h-[16px] absolute top-[15%] left-[13%]"
-                        />
-                    </div>
-                </div>
+                <DefaultAvatar circle={24} icon={14} />
             )}
 
             <Text className="my-auto">{label}</Text>

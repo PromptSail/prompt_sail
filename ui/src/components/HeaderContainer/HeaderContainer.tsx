@@ -14,7 +14,7 @@ const HeaderContainer: React.FC<Props> = ({ children, height = 80 }) => {
             className={`w-full border-0 border-b border-solid border-[#F0F0F0] relative overflow-hidden`}
             style={{ height }}
         >
-            <Flex className="h-full" justify="space-between">
+            <Flex className="relative h-full z-10" justify="space-between">
                 {children}
             </Flex>
             <img

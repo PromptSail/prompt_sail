@@ -8,7 +8,7 @@ from auth.authorization import decode_and_validate_token
 from auth.models import User
 from auth.schemas import GetPartialUserSchema, GetUserSchema
 from auth.use_cases import get_all_users
-from fastapi import Depends, Request, Security
+from fastapi import Depends, HTTPException, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from projects.models import AIProvider, Project
@@ -16,16 +16,20 @@ from projects.schemas import (
     CreateProjectSchema,
     GetAIProviderPriceSchema,
     GetAIProviderSchema,
+    GetPortfolioDetailsSchema,
+    GetProjectPortfolioSchema,
     GetProjectSchema,
     UpdateProjectSchema,
 )
 from projects.use_cases import (
     add_project,
+    count_projects,
     delete_project,
     get_all_projects,
     get_project,
     update_project,
 )
+from seedwork.repositories import DocumentNotFoundException
 from settings.use_cases import get_organization_name
 from slugify import slugify
 from transactions.models import generate_uuid
@@ -43,10 +47,11 @@ from transactions.schemas import (
 )
 from transactions.use_cases import (
     add_transaction,
-    count_token_usage_for_project,
     count_transactions,
+    count_transactions_for_list,
     delete_multiple_transactions,
     get_all_filtered_and_paginated_transactions,
+    get_all_transactions,
     get_list_of_filtered_transactions,
     get_transaction,
     get_transactions_for_project,
@@ -119,7 +124,11 @@ async def get_project_details(
     :param ctx: The transaction context dependency.
     :return: A GetProjectSchema object representing the project details.
     """
-    project = ctx.call(get_project, project_id=project_id)
+    try:
+        project = ctx.call(get_project, project_id=project_id)
+    except DocumentNotFoundException:
+        raise HTTPException(status_code=404, detail="Project not found")
+
     transactions = ctx.call(get_transactions_for_project, project_id=project_id)
     cost = 0
     transaction_count = ctx.call(count_transactions, project_id=project_id)
@@ -192,10 +201,7 @@ async def update_existing_project(
             data["ai_providers"][idx] = AIProvider(**data["ai_providers"][idx])
             data["ai_providers"][idx].slug = slugify(data["ai_providers"][idx].slug)
     updated = ctx.call(update_project, project_id=project_id, fields_to_update=data)
-    total_tokens_usage = ctx.call(count_token_usage_for_project, project_id=project_id)
-    return GetProjectSchema(
-        **updated.model_dump(), total_tokens_usage=total_tokens_usage
-    )
+    return GetProjectSchema(**updated.model_dump())
 
 
 @app.delete(
@@ -234,7 +240,10 @@ async def get_transaction_details(
     :param transaction_id: The identifier of the transaction.
     :param ctx: The transaction context dependency.
     """
-    transaction = ctx.call(get_transaction, transaction_id=transaction_id)
+    try:
+        transaction = ctx.call(get_transaction, transaction_id=transaction_id)
+    except DocumentNotFoundException:
+        raise HTTPException(status_code=404, detail="Transaction not found")
     project = ctx.call(get_project, project_id=transaction.project_id)
     transaction = GetTransactionWithProjectSlugSchema(
         **transaction.model_dump(),
@@ -263,8 +272,7 @@ async def get_paginated_transactions(
     sort_field: str | None = None,
     sort_type: str | None = None,
     status_codes: str | None = None,
-    providers: str | None = None,
-    models: str | None = None,
+    provider_models: str | None = None,
 ) -> GetTransactionPageResponseSchema:
     """
     API endpoint to retrieve a paginated list of transactions based on specified filters.
@@ -279,17 +287,26 @@ async def get_paginated_transactions(
     :param sort_field: Optional. Field to sort by.
     :param sort_type: Optional. Ordering method (asc or desc).
     :param status_codes: Optional. List of status codes for filtering transactions.
-    :param providers: Optional. List of providers for filtering transactions.
-    :param models: Optional. List of models for filtering transactions.
+    :param provider_models: Optional. List of providers and models for filtering transactions.
     """
     if tags is not None:
         tags = tags.split(",")
     if status_codes is not None:
         status_codes = list(map(lambda x: int(x), status_codes.split(",")))
-    if providers is not None:
-        providers = providers.split(",")
-    if models is not None:
-        models = models.split(",")
+    if provider_models is not None:
+        provider_models = list(map(lambda x: x.split("."), provider_models.split(",")))
+        pairs = {}
+        for pair in provider_models:
+            if pair[0] not in pairs:
+                try:
+                    pairs[pair[0]] = (
+                        [".".join(pair[1:])] if ".".join(pair[1:]) != "" else []
+                    )
+                except IndexError:
+                    pairs[pair[0]] = []
+            else:
+                pairs[pair[0]].append(pair[1])
+        provider_models = pairs
 
     transactions = ctx.call(
         get_all_filtered_and_paginated_transactions,
@@ -302,8 +319,7 @@ async def get_paginated_transactions(
         sort_field=sort_field,
         sort_type=sort_type,
         status_codes=status_codes,
-        providers=providers,
-        models=models,
+        provider_models=provider_models,
     )
 
     projects = ctx.call(get_all_projects)
@@ -321,14 +337,13 @@ async def get_paginated_transactions(
         )
 
     count = ctx.call(
-        count_transactions,
+        count_transactions_for_list,
         tags=tags,
         date_from=date_from,
         date_to=date_to,
         project_id=project_id,
         status_codes=status_codes,
-        providers=providers,
-        models=models,
+        provider_models=provider_models,
     )
     page_response = GetTransactionPageResponseSchema(
         items=new_transactions,
@@ -610,6 +625,84 @@ async def get_transaction_latency_statistics_over_time(
     new_stats.sort(key=lambda statistic: statistic.date)
 
     return new_stats
+
+
+@app.get(
+    "/api/portfolio/details",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
+async def get_portfolio_details(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> GetPortfolioDetailsSchema:
+    project_count = ctx.call(count_projects)
+    total_cost_per_project, total_transactions_per_project = {}, {}
+    total_cost, total_transactions = 0, 0
+    projects = []
+    if project_count > 0:
+        projects = ctx.call(get_all_projects)
+        projects_ids = [project.id for project in projects]
+        for idx in projects_ids:
+            transactions = ctx.call(get_transactions_for_project, project_id=idx)
+            cost = sum(
+                [
+                    transaction.total_cost if transaction.total_cost is not None else 0
+                    for transaction in transactions
+                ]
+            )
+            total_cost_per_project[idx] = cost
+            total_cost += cost
+            count = len(transactions)
+            total_transactions_per_project[idx] = count
+            total_transactions += count
+        projects = [
+            GetProjectPortfolioSchema(
+                **project.model_dump(),
+                total_transactions=total_transactions_per_project[project.id],
+                total_cost=total_cost_per_project[project.id],
+            )
+            for project in projects
+        ]
+
+    return GetPortfolioDetailsSchema(
+        total_cost=total_cost, total_transactions=total_transactions, projects=projects
+    )
+
+
+@app.get(
+    "/api/portfolio/costs_by_tag",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
+async def get_costs_by_tag(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> dict:
+    transactions = ctx.call(get_all_transactions)
+    cost_by_tag = {}
+    for transaction in transactions:
+        if len(transaction.tags) > 0:
+            for tag in transaction.tags:
+                try:
+                    cost_by_tag[tag] += (
+                        transaction.total_cost
+                        if transaction.total_cost is not None
+                        else 0
+                    )
+                except KeyError:
+                    cost_by_tag[tag] = (
+                        transaction.total_cost
+                        if transaction.total_cost is not None
+                        else 0
+                    )
+        try:
+            cost_by_tag["untagged-transactions"] += (
+                transaction.total_cost if transaction.total_cost is not None else 0
+            )
+        except KeyError:
+            cost_by_tag["untagged-transactions"] = (
+                transaction.total_cost if transaction.total_cost is not None else 0
+            )
+    return cost_by_tag
 
 
 @app.get(

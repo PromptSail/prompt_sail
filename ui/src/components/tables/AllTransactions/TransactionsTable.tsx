@@ -1,20 +1,40 @@
 import { Link } from 'react-router-dom';
-import { Badge, Flex, Table, Tag, Tooltip } from 'antd';
+import { Badge, Flex, Table, Tag, Tooltip, Typography } from 'antd';
 import { TagsContainer } from '../../../helpers/dataContainer';
 import { ArrowRightOutlined } from '@ant-design/icons';
-import { SetStateAction, useEffect, useState } from 'react';
+import { SetStateAction, cloneElement, useEffect, useState } from 'react';
 import { TransactionsFilters } from '../../../api/types';
 import { useGetAllTransactions } from '../../../api/queries';
 import columns, { CustomColumns, DataType } from '../columns';
 import * as styles from '../../../styles.json';
 import { SorterResult } from 'antd/es/table/interface';
+import noData from '../../../assets/box.svg';
+import { useHandleTransactionImage } from '../../../helpers/handleTransactionImage';
+const { Title } = Typography;
 
 interface Props {
     filters: TransactionsFilters;
     setFilters: (attr: SetStateAction<TransactionsFilters>) => void;
+    setTransactionsCount?: (attr: number) => void;
+    projectFilters?: boolean;
 }
 
-const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
+const DisplayMessage: React.FC<{ str: string }> = ({ str }) => {
+    const message = useHandleTransactionImage(str);
+    if (typeof message === 'string')
+        return <>{message.length > 25 ? message.substring(0, 23) + '...' : message}</>;
+    else {
+        const element = cloneElement(message, { ...message.props, className: 'max-h-[25px]' });
+        return element;
+    }
+};
+
+const TransactionsTable: React.FC<Props> = ({
+    filters,
+    setFilters,
+    setTransactionsCount,
+    projectFilters = false
+}) => {
     const transactions = useGetAllTransactions(filters);
     const [isLoading, setLoading] = useState(true);
     const [tableData, setTableData] = useState<{
@@ -37,6 +57,7 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
             setLoading(true);
         }
         if (transactions.isSuccess) {
+            setTransactionsCount && setTransactionsCount(transactions.data.data.total_elements);
             setTableData(() => {
                 const data = transactions.data.data;
                 return {
@@ -85,13 +106,10 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                             messages: (
                                 <Flex vertical>
                                     <div>
-                                        <b>Input:</b> {tr.prompt}
+                                        <b>Input:</b> <DisplayMessage str={tr.prompt} />
                                     </div>
                                     <div>
-                                        <b>Output: </b>{' '}
-                                        {rightMessage.length > 25
-                                            ? rightMessage.substring(0, 23) + '...'
-                                            : rightMessage}
+                                        <b>Output: </b> <DisplayMessage str={rightMessage} />
                                     </div>
                                 </Flex>
                             ),
@@ -118,10 +136,12 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
                                     ? `$ ${tr.total_cost.toFixed(4)}`
                                     : 'null',
                             tokens:
-                                tr.status_code < 300 && tr.total_tokens !== null ? (
+                                tr.status_code < 300 &&
+                                tr.input_tokens !== null &&
+                                tr.output_tokens !== null ? (
                                     <span>
                                         {tr.input_tokens} <ArrowRightOutlined /> {tr.output_tokens}{' '}
-                                        (Σ {tr.total_tokens})
+                                        (Σ {tr.input_tokens + tr.output_tokens})
                                     </span>
                                 ) : (
                                     <span>null</span>
@@ -137,39 +157,55 @@ const TransactionsTable: React.FC<Props> = ({ filters, setFilters }) => {
         }
     }, [transactions.status]);
     return (
-        <Table
-            dataSource={tableData.items}
-            columns={columns(filters, setFilters)}
-            loading={isLoading}
-            pagination={{
-                position: ['bottomRight'],
-                onChange: (page, pageSize) => {
-                    if (filters.page !== `${page}`) {
-                        setFilters((old) => ({ ...old, page: `${page}` }));
-                        // setURLParam({ page: `${page}` });
-                    }
-                    if (filters.page_size !== `${pageSize}`) {
-                        setFilters((old) => ({ ...old, page_size: `${pageSize}` }));
-                        // setURLParam({ page_size: `${pageSize}` });
-                    }
-                },
-                total: tableData.total_elements,
-                current: tableData.page_index,
-                showSizeChanger: true,
-                pageSize: tableData.page_size,
-                pageSizeOptions: [5, 10, 20, 50]
-            }}
-            onChange={(_pagination, _filters, sorter) => {
-                const sortData = sorter as SorterResult<DataType>;
-                setFilters((old) => ({
-                    ...old,
-                    sort_field: sortData.column ? (sortData.column as CustomColumns).apiCol : '',
-                    sort_type: sortData.order === 'ascend' ? 'asc' : ''
-                }));
-            }}
-            scroll={{ y: 'true' }} // y: 'true' is a magic value that makes the table scrollbar styles work
-            className="transactions-table"
-        />
+        <div className="relative">
+            <Table
+                dataSource={tableData.items}
+                columns={columns(filters, setFilters, projectFilters)}
+                loading={isLoading}
+                locale={{
+                    emptyText: <div className="w-full h-[200px]"></div>
+                }}
+                pagination={{
+                    position: ['bottomRight'],
+                    onChange: (page, pageSize) => {
+                        if (filters.page !== `${page}`) {
+                            setFilters((old) => ({ ...old, page: `${page}` }));
+                        }
+                        if (filters.page_size !== `${pageSize}`) {
+                            setFilters((old) => ({ ...old, page_size: `${pageSize}` }));
+                        }
+                    },
+                    total: tableData.total_elements,
+                    current: tableData.page_index,
+                    showSizeChanger: true,
+                    pageSize: tableData.page_size,
+                    pageSizeOptions: [5, 10, 20, 50]
+                }}
+                onChange={(_pagination, _filters, sorter) => {
+                    const sortData = sorter as SorterResult<DataType>;
+                    setFilters((old) => ({
+                        ...old,
+                        sort_field: sortData.column
+                            ? (sortData.column as CustomColumns).apiCol
+                            : '',
+                        sort_type: sortData.order === 'ascend' ? 'asc' : ''
+                    }));
+                }}
+                scroll={{ y: 'true' }} // y: 'true' is a magic value that makes the table scrollbar styles work
+                className="transactions-table"
+            />
+            {!tableData.items.length && !isLoading && (
+                <Flex
+                    align="center"
+                    justify="center"
+                    vertical
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/3"
+                >
+                    <img src={noData} alt="No Data" width={150} />
+                    <Title level={3}>No data</Title>
+                </Flex>
+            )}
+        </div>
     );
 };
 

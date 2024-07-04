@@ -12,7 +12,7 @@ python-dotenv = "^1.0.0"
 dependency-injector = "^4.41.0"
 pymongo = "^4.5.0"
 pydantic-settings = "^2.0.3"
-gunicorn = "^21.2.0"
+gunicorn = "^22.0.0"
 brotli = "^1.1.0"
 pandas = "^2.2.1"
 lato = "^0.8.0"
@@ -22,6 +22,7 @@ pyzmq = "~25"
 tiktoken = "^0.5.2"
 pyjwt = "^2.8.0"
 cryptography = "^42.0.5"
+pillow = "^10.3.0"
 
 
 

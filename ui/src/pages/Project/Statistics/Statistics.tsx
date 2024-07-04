@@ -1,14 +1,14 @@
-import { DatePicker, Flex, Select, Typography } from 'antd';
+import { Flex, Select, Typography } from 'antd';
 import Container from '../../../components/Container/Container';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import { StatisticsParams } from '../../../api/types';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import TransactionsCountChart from './TransactionsCountChart';
 import TransactionsCostAndTokensChart from './TransactionsCostAndTokensChart';
 import TransactionsSpeedChart from './TransactionsSpeedChart';
+import FilterDates from '../../../components/tables/filters/FilterDates';
 const { Title } = Typography;
-const { RangePicker } = DatePicker;
 
 interface Params {
     projectId: string;
@@ -36,7 +36,6 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
         date_to: dates.end?.toISOString().substring(0, 19) || undefined,
         period: granularity
     });
-    const rangeOKRef = useRef(false);
     const getEnablePeriodOptions = (start: Dayjs | null, end: Dayjs | null) => {
         const options: Array<Period> = [];
         if (start == null || end == null) return options;
@@ -105,8 +104,21 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                     Statistics
                 </Title>
                 <Flex gap={16}>
-                    <RangePicker
+                    <FilterDates
+                        defaultValues={[
+                            dates.start?.toISOString() || '',
+                            dates.end?.toISOString() || ''
+                        ]}
+                        onSetDates={(dates) => {
+                            setDates({
+                                start: dates.length > 0 ? dayjs(dates[0]) : null,
+                                end: dates.length > 0 ? dayjs(dates[1]) : null
+                            });
+                            setGranularityAndUpdateApi(dayjs(dates[0]), dayjs(dates[1]));
+                        }}
                         maxDate={dayjs()}
+                        allowClear={false}
+                        allowEmpty={false}
                         presets={[
                             {
                                 label: 'Last 30 minutes',
@@ -136,35 +148,6 @@ const Statistics: React.FC<Params> = ({ projectId }) => {
                                 value: [dayjs().add(-30, 'd').startOf('day'), dayjs()]
                             }
                         ]}
-                        onChange={(_, dates) => {
-                            if (!rangeOKRef.current) {
-                                let dateStart = '';
-                                let dateEnd = '';
-                                if (dates[0].length > 0 && dates[1].length > 0) {
-                                    dateStart = new Date(dates[0] + 'Z')
-                                        .toISOString()
-                                        .substring(0, 19);
-                                    dateEnd = new Date(dates[1] + 'Z')
-                                        .toISOString()
-                                        .substring(0, 19);
-                                }
-                                setDates({
-                                    start: dateStart.length > 0 ? dayjs(dateStart) : null,
-                                    end: dateEnd.length > 0 ? dayjs(dateEnd) : null
-                                });
-                                setGranularityAndUpdateApi(dayjs(dateStart), dayjs(dateEnd));
-                            }
-                            rangeOKRef.current = false;
-                        }}
-                        onOk={(v) => {
-                            setDates({ start: v[0], end: v[1] });
-                            setGranularityAndUpdateApi(v[0], v[1]);
-                            rangeOKRef.current = true;
-                        }}
-                        value={[dates.start, dates.end]}
-                        showTime
-                        allowClear={false}
-                        allowEmpty={false}
                     />
                     <Select
                         options={periodOptions}

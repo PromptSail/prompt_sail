@@ -86,9 +86,8 @@ All the environment variables are set to default and non-production deployment i
 
 🖥️ **User Interface (UI)**
 
-The UI should be up and running at [http://localhost:80/](http://localhost:80/). 
-- Default login credentials: `admin`:`password`
-- Default organization name: `Default`
+The UI should be up and running at [http://localhost:80/](http://localhost:80/).
+- Default organization name: `PromptSail`
 - 🛠️ You can edit the organization name in the database using mongo-express.
 
 

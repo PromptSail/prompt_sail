@@ -1,4 +1,4 @@
-import { SetStateAction, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { checkLogin } from '../../storage/login';
 import Logo from '../../assets/logo/symbol-teal.svg';
 import { Button, Divider, Flex, Space, Spin, Typography } from 'antd';
@@ -9,31 +9,34 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useGetConfig } from '../../api/queries';
 import Container from '../../components/Container/Container';
 import { ArrowRightOutlined } from '@ant-design/icons';
+import { useLogin } from '../../context/LoginContext';
+import { useNavigate } from 'react-router-dom';
 
 // symbol from ../../assets/logo/symbol-teal-outline.svg
 const symbol = (
     <svg fill="none" viewBox="55 5 55 45" xmlns="http://www.w3.org/2000/svg">
         <path
             d="M56 48.999C64.9374 46.2027 71.4229 37.8582 71.4229 27.999C71.4229 18.1398 64.9374 9.79535 56 6.99902H88.4228C100.021 6.99902 109.423 16.4011 109.423 27.999C109.423 39.597 100.021 48.999 88.4228 48.999H56Z"
-            stroke-width=".06"
+            strokeWidth=".06"
             stroke="white"
         />
     </svg>
 );
 
 const { Title, Paragraph, Text } = Typography;
-const Signin: React.FC<{ setLoginState: (arg: SetStateAction<boolean>) => void }> = ({
-    setLoginState
-}) => {
+const Signin: React.FC = () => {
     const [token, setToken] = useState<null | string>(null);
+    const navigate = useNavigate();
     const config = useGetConfig();
     const [googleBtnWidth, setGoogleBtnWidth] = useState(300);
+    const { setLoginState } = useLogin();
     useEffect(() => {
         if (token !== null) {
             localStorage.setItem('PS_TOKEN', token);
             api.whoami()
                 .then(() => {
                     setLoginState(checkLogin());
+                    navigate('/');
                 })
                 .catch((err) => {
                     console.error(err);

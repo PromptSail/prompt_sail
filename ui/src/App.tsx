@@ -13,6 +13,9 @@ import theme from './theme-light';
 import { Context } from './context/Context';
 import { useGetConfig } from './api/queries';
 import { getConfig } from './api/interfaces';
+import { ErrorProvider } from './context/ErrorContext';
+import LoginProvider from './context/LoginContext';
+import Page404 from './components/errorPages/page404';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
@@ -28,48 +31,49 @@ const App = () => {
 
     return (
         <ConfigProvider theme={theme}>
-            <Context.Provider value={{ notification: noteApi, modal: modalApi, config }}>
-                {noteContextHolder}
-                {modalContextHolder}
-                {isLogged && (
-                    <Layout>
-                        <Sidebar setLoginState={setLoginState} />
-                        <Layout className="h-screen overflow-auto">
-                            <Routes>
-                                <Route path="/" element={<Dashboard />} />
-                                <Route
-                                    path="/projects/:projectId/edit-project-details"
-                                    element={<Project.Update />}
-                                />
-                                <Route path="/projects/:projectId" element={<Project />} />
-                                <Route
-                                    path="/projects/add"
-                                    element={<Project.Add notification={noteApi} />}
-                                />
-                                <Route path="/transactions" element={<Transactions />} />
-                                <Route
-                                    path="/transactions/:transactionId"
-                                    element={<Transaction />}
-                                />
-                                <Route path="*" element={<Navigate to="/" />} />
-                            </Routes>
-                        </Layout>
-                    </Layout>
-                )}
-                {!isLogged && (
-                    <Layout className="h-screen">
-                        <Routes>
-                            <Route
-                                path="/signin"
-                                element={<Signin setLoginState={setLoginState} />}
-                            />
-                            <Route path="*" element={<Navigate to="/signin" />} />
-                        </Routes>
-                    </Layout>
-                )}
-            </Context.Provider>
+            <LoginProvider value={{ isLogged, setLoginState }}>
+                <ErrorProvider>
+                    <Context.Provider value={{ notification: noteApi, modal: modalApi, config }}>
+                        {noteContextHolder}
+                        {modalContextHolder}
+
+                        {isLogged ? (
+                            <Layout>
+                                <Sidebar />
+                                <Layout className="h-screen overflow-auto">
+                                    <Routes>
+                                        <Route path="/" element={<Dashboard />} />
+                                        <Route
+                                            path="/projects/:projectId/edit-project-details"
+                                            element={<Project.Update />}
+                                        />
+                                        <Route path="/projects/:projectId" element={<Project />} />
+                                        <Route
+                                            path="/projects/add"
+                                            element={<Project.Add notification={noteApi} />}
+                                        />
+                                        <Route path="/transactions" element={<Transactions />} />
+                                        <Route
+                                            path="/transactions/:transactionId"
+                                            element={<Transaction />}
+                                        />
+                                        <Route path="*" element={<Page404 />} />
+                                        <Route path="/signin" element={<Navigate to="/" />} />
+                                    </Routes>
+                                </Layout>
+                            </Layout>
+                        ) : (
+                            <Layout className="h-screen">
+                                <Routes>
+                                    <Route path="/signin" element={<Signin />} />
+                                    <Route path="*" element={<Navigate to="/signin" />} />
+                                </Routes>
+                            </Layout>
+                        )}
+                    </Context.Provider>
+                </ErrorProvider>
+            </LoginProvider>
         </ConfigProvider>
     );
 };
-
 export default App;

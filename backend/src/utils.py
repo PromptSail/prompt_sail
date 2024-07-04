@@ -4,6 +4,7 @@ import random
 import re
 from collections import OrderedDict
 from enum import Enum
+from io import BytesIO
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -11,6 +12,7 @@ import numpy as np
 import pandas as pd
 import tiktoken
 from _datetime import datetime, timedelta
+from PIL import Image
 from transactions.models import Transaction
 from transactions.schemas import (
     GetTransactionLatencyStatisticsSchema,
@@ -113,6 +115,85 @@ def create_transaction_query_from_filters(
         query["model"] = {"$in": models}
     if or_conditions:
         query["$or"] = or_conditions
+    return query
+
+
+def create_transaction_list_query_from_filters(
+    tags: list[str] | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    project_id: str | None = None,
+    null_generation_speed: bool = True,
+    status_codes: list[int] | None = None,
+    provider_models: list[dict[str, list[str]]] = None,
+) -> dict:
+    """
+    Create a MongoDB query dictionary based on specified filters for transactions.
+
+    :param tags: Optional. List of tags to filter transactions by.
+    :param date_from: Optional. Start date for filtering transactions.
+    :param date_to: Optional. End date for filtering transactions.
+    :param project_id: Optional. Project ID to filter transactions by.
+    :param null_generation_speed: Optional. Flag to include transactions with null generation speed.
+    :param status_codes: Optional. List of status codes of the transactions.
+    :param provider_models: Optional. List of providers and models of the transactions.
+    :return: MongoDB query dictionary representing the specified filters.
+    """
+    base_query = {}
+
+    if project_id is not None:
+        base_query["project_id"] = project_id
+
+    if tags is not None:
+        base_query["tags"] = {"$all": tags}
+
+    if date_from is not None or date_to is not None:
+        base_query["response_time"] = {}
+
+    if date_from is not None:
+        base_query["response_time"]["$gte"] = date_from
+
+    if date_to is not None:
+        base_query["response_time"]["$lte"] = date_to
+
+    if not null_generation_speed:
+        base_query["generation_speed"] = {"$ne": None}
+
+    or_conditions = []
+
+    if provider_models is not None:
+        for provider, models in provider_models.items():
+            provider_model_conditions = []
+            if models:
+                provider_model_conditions.append(
+                    {"provider": provider, "model": {"$in": models}}
+                )
+            else:
+                provider_model_conditions.append({"provider": provider})
+            for code in status_codes or []:
+                if code % 100 == 0:
+                    condition = base_query.copy()
+                    condition["$and"] = [
+                        *provider_model_conditions,
+                        {"status_code": {"$gte": code, "$lt": code + 100}},
+                    ]
+                    or_conditions.append(condition)
+            if not status_codes:
+                condition = base_query.copy()
+                condition["$and"] = provider_model_conditions
+                or_conditions.append(condition)
+    else:
+        for code in status_codes or []:
+            if code % 100 == 0:
+                condition = base_query.copy()
+                condition["status_code"] = {"$gte": code, "$lt": code + 100}
+                or_conditions.append(condition)
+
+    if or_conditions:
+        query = {"$or": or_conditions}
+    else:
+        query = base_query
+
     return query
 
 
@@ -271,8 +352,11 @@ class TransactionParamExtractor:
             "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
             "OpenAI Image Generations": r".*api\.openai\.com.*images.*generations.*",
             "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
+            "Groq": r".*api\.groq\.com.*\/openai\/v1\/chat\/completions",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
+            "Ollama": r".*(host\.docker\.internal|localhost).*\/api\/generate",
+            "Huggingface": r".*huggingface\.cloud.*",
         }
 
         for pattern_name, pattern_regex in patterns.items():
@@ -324,6 +408,23 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_azure_completions(self) -> dict:
+        for idx_message, message in enumerate(self.request_content["messages"]):
+            if (
+                message["role"] == "user"
+                and not isinstance(message["content"], str)
+                and len(message["content"]) > 1
+            ):
+                for idx_content, content in enumerate(message["content"]):
+                    if content["type"] == "image_url":
+                        self.request_content["messages"][idx_message]["content"][
+                            idx_content
+                        ]["image_url"]["url"] = resize_b64_image(
+                            content["image_url"]["url"].replace(
+                                "data:image/png;base64,", ""
+                            ),
+                            (128, 128),
+                        )
+
         extracted = {
             "type": "completions",
             "provider": "Azure OpenAI",
@@ -333,6 +434,10 @@ class TransactionParamExtractor:
             for message in self.request_content["messages"]
             if message["role"] == "user"
         ][::-1][0]
+
+        if len(prompt) == 2:
+            prompt = [cont for cont in prompt if cont["type"] == "text"][0]["text"]
+
         extracted["prompt"] = (
             prompt if prompt else self.request_content["messages"][0]["content"]
         )
@@ -356,18 +461,33 @@ class TransactionParamExtractor:
                 if "error" in self.response_content.keys()
                 else self.response_content["message"]
             )
-            extracted["messages"] = messages
         else:
             messages.append(self.response_content["choices"][0]["message"])
-            extracted["messages"] = messages
             extracted["model"] = self.response_content["model"]
             extracted["last_message"] = self.response_content["choices"][0]["message"][
                 "content"
             ]
-
+        extracted["messages"] = messages
         return extracted
 
     def _extract_from_openai_chat_completions(self) -> dict:
+        for idx_message, message in enumerate(self.request_content["messages"]):
+            if (
+                message["role"] == "user"
+                and not isinstance(message["content"], str)
+                and len(message["content"]) > 1
+            ):
+                for idx_content, content in enumerate(message["content"]):
+                    if content["type"] == "image_url":
+                        self.request_content["messages"][idx_message]["content"][
+                            idx_content
+                        ]["image_url"]["url"] = resize_b64_image(
+                            content["image_url"]["url"].replace(
+                                "data:image/png;base64,", ""
+                            ),
+                            (128, 128),
+                        )
+
         extracted = {
             "type": "chat completions",
             "provider": "OpenAI",
@@ -393,7 +513,6 @@ class TransactionParamExtractor:
             extracted["last_message"] = self.response_content["error"]["message"]
         else:
             messages.append(self.response_content["choices"][0]["message"])
-            extracted["messages"] = messages
             extracted["model"] = (
                 self.response_headers["openai-model"]
                 if "openai-model" in self.response_headers
@@ -402,7 +521,7 @@ class TransactionParamExtractor:
             extracted["last_message"] = self.response_content["choices"][0]["message"][
                 "content"
             ]
-
+        extracted["messages"] = messages
         return extracted
 
     def _extract_from_openai_completions(self) -> dict:
@@ -418,8 +537,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
-
         else:
             messages.append(
                 {
@@ -427,23 +544,35 @@ class TransactionParamExtractor:
                     "content": self.response_content["choices"][0]["text"],
                 }
             )
-            extracted["messages"] = messages
             extracted["model"] = (
                 self.response_headers["openai-model"]
                 if "openai-model" in self.response_headers
                 else self.response_content["model"]
             )
             extracted["last_message"] = self.response_content["choices"][0]["text"]
-
+        extracted["messages"] = messages
         return extracted
 
     def _extract_from_openai_images_variations(self) -> dict:
+        self.request_content["image"] = resize_b64_image(
+            self.request_content["image"], (128, 128)
+        )
+
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
         extracted = {
             "type": "images variations",
             "provider": "OpenAI",
             "prompt": self.request_content["image"],
-            "model": self.request_content["model"],
+            "model": model,
         }
+
         messages = [{"role": "user", "content": self.request_content["image"]}]
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
@@ -452,29 +581,46 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
-            messages.append(
-                {
-                    "role": "system",
-                    "content": "\n".join(
-                        [data["url"] for data in self.response_content["data"]]
-                    ),
-                }
-            )
-            extracted["messages"] = messages
-            extracted["last_message"] = "\n".join(
-                [data["url"] for data in self.response_content["data"]]
-            )
+            try:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]["url"]
+            except KeyError:
+                for idx, data in enumerate(self.response_content["data"]):
+                    self.response_content["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]
+        extracted["messages"] = messages
 
         return extracted
 
     def _extract_from_openai_images_generations(self) -> dict:
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
         extracted = {
             "type": "images generations",
             "provider": "OpenAI",
             "prompt": self.request_content["prompt"],
-            "model": self.request_content["model"],
+            "model": model,
         }
         messages = [{"role": "user", "content": self.request_content["prompt"]}]
         if self.response.__dict__["status_code"] > 200:
@@ -484,29 +630,52 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
-            messages.append(
-                {
-                    "role": "system",
-                    "content": "\n".join(
-                        [data["url"] for data in self.response_content["data"]]
-                    ),
-                }
-            )
-            extracted["messages"] = messages
-            extracted["last_message"] = "\n".join(
-                [data["url"] for data in self.response_content["data"]]
-            )
+            try:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]["url"]
+            except KeyError:
+                for idx, data in enumerate(self.response_content["data"]):
+                    self.response_content["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]
+        extracted["messages"] = messages
 
         return extracted
 
     def _extract_from_openai_images_edit(self) -> dict:
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
+        self.request_content["image"] = resize_b64_image(
+            self.request_content["image"], (128, 128)
+        )
+        self.request_content["mask"] = resize_b64_image(
+            self.request_content["mask"], (128, 128)
+        )
         extracted = {
             "type": "images edits",
             "provider": "OpenAI",
             "prompt": self.request_content["prompt"],
-            "model": self.request_content["model"],
+            "model": model,
         }
         messages = [
             {
@@ -523,23 +692,33 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
-            messages.append(
-                {
-                    "role": "system",
-                    "content": "\n".join(
-                        [data["url"] for data in self.response_content["data"]]
-                    ),
-                }
-            )
-            extracted["messages"] = messages
-            extracted["last_message"] = "\n".join(
-                [data["url"] for data in self.response_content["data"]]
-            )
+            try:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]["url"]
+            except KeyError:
+                for idx, data in enumerate(self.response_content["data"]):
+                    self.response_content["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content["data"][-1]
+        extracted["messages"] = messages
+
         return extracted
 
-    def _extract_from_openai_embeddings(self):
+    def _extract_from_openai_embeddings(self) -> dict:
         extracted = {"type": "embedding", "provider": "OpenAI"}
         messages = []
         if isinstance(self.request_content["input"], list):
@@ -578,7 +757,7 @@ class TransactionParamExtractor:
 
         return extracted
 
-    def _extract_from_anthropic(self):
+    def _extract_from_anthropic(self) -> dict:
         extracted = {
             "type": "chat",
             "provider": "Anthropic",
@@ -592,7 +771,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
             messages.append(
                 {
@@ -600,7 +778,6 @@ class TransactionParamExtractor:
                     "content": self.response_content["content"][0]["text"],
                 }
             )
-            extracted["messages"] = messages
             extracted["model"] = self.response_content["model"]
             extracted["last_message"] = self.response_content["content"][0]["text"]
             extracted["input_tokens"] = self.response_content["usage"].get(
@@ -609,10 +786,10 @@ class TransactionParamExtractor:
             extracted["output_tokens"] = self.response_content["usage"].get(
                 "output_tokens", 0
             )
-
+        extracted["messages"] = messages
         return extracted
 
-    def _extract_from_vertexai(self):
+    def _extract_from_vertexai(self) -> dict:
         extracted = {
             "type": "chat",
             "provider": "Google VertexAI",
@@ -629,7 +806,6 @@ class TransactionParamExtractor:
             )
             extracted["error_message"] = self.response_content["error"]["message"]
             extracted["last_message"] = self.response_content["error"]["message"]
-            extracted["messages"] = messages
         else:
             messages.append(
                 {
@@ -644,7 +820,6 @@ class TransactionParamExtractor:
                     ),
                 }
             )
-            extracted["messages"] = messages
             extracted["last_message"] = " ".join(
                 [
                     part["text"]
@@ -659,6 +834,88 @@ class TransactionParamExtractor:
             extracted["output_tokens"] = self.response_content["usageMetadata"].get(
                 "candidatesTokenCount", 0
             )
+        extracted["messages"] = messages
+        return extracted
+
+    def _extract_from_ollama(self) -> dict:
+        extracted = {
+            "type": "chat",
+            "provider": "Ollama",
+            "model": self.response_content["model"]
+            if "model" in self.response_content
+            else self.request_content["model"],
+            "prompt": self.request_content["prompt"],
+        }
+
+        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+
+        if self.response.__dict__["status_code"] > 200:
+            # TODO: Find the way to make error, then handle it
+            print(self.response.__dict__)
+        else:
+            messages.append(
+                {"role": "system", "content": self.response_content["response"]}
+            )
+            extracted["last_message"] = self.response_content["response"]
+        extracted["messages"] = messages
+        return extracted
+
+    def _extract_from_groq(self) -> dict:
+        extracted = {
+            "type": "chat completion",
+            "provider": "Groq",
+            "prompt": self.request_content["messages"][-1]["content"],
+            "model": self.request_content["model"],
+            "input_tokens": self.response_content["usage"]["prompt_tokens"],
+            "output_tokens": self.response_content["usage"]["completion_tokens"],
+        }
+
+        messages = self.request_content["messages"]
+
+        if self.response.__dict__["status_code"] > 200:
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+        else:
+            messages.append(
+                {
+                    "role": self.response_content["choices"][0]["message"]["role"],
+                    "content": self.response_content["choices"][0]["message"][
+                        "content"
+                    ],
+                }
+            )
+            extracted["last_message"] = self.response_content["choices"][0]["message"][
+                "content"
+            ]
+        extracted["messages"] = messages
+
+        return extracted
+
+    def _extract_from_huggingface(self) -> dict:
+        extracted = {
+            "type": "chat",
+            "provider": "Huggingface",
+            "prompt": self.request_content["inputs"],
+            "model": "Unknown",
+        }
+
+        messages = [{"role": "user", "content": self.request_content["inputs"]}]
+
+        if self.response.__dict__["status_code"] > 200:
+            extracted["error_message"] = self.response_content["error"]["message"]
+            extracted["last_message"] = self.response_content["error"]["message"]
+            messages.append(
+                {"role": "error", "content": self.response_content["error"]["message"]}
+            )
+        else:
+            extracted["last_message"] = self.response_content["generated_text"]
+            messages.append(
+                {"role": "system", "content": self.response_content["generated_text"]}
+            )
+        extracted["messages"] = messages
 
         return extracted
 
@@ -699,6 +956,12 @@ class TransactionParamExtractor:
             extracted = self._extract_from_openai_images_generations()
         if self.pattern == "OpenAI Image Edits":
             extracted = self._extract_from_openai_images_edit()
+        if self.pattern == "Ollama":
+            extracted = self._extract_from_ollama()
+        if self.pattern == "Groq":
+            extracted = self._extract_from_groq()
+        if self.pattern == "Huggingface":
+            extracted = self._extract_from_huggingface()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
 
@@ -1043,6 +1306,7 @@ class ProviderPrice:
         output_price: int | float,
         total_price: int | float,
         is_active: bool,
+        mode: str,
     ) -> None:
         """
         Initialize a ProviderPrice object.
@@ -1064,6 +1328,7 @@ class ProviderPrice:
         self.output_price = output_price
         self.total_price = total_price
         self.is_active = is_active
+        self.mode = mode
 
     def __repr__(self):
         """
@@ -1073,7 +1338,7 @@ class ProviderPrice:
         """
         return (
             "{"
-            + f"model_name: {self.model_name}, provider: {self.provider}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}"
+            + f"model_name: {self.model_name}, provider: {self.provider}, start_date: {self.start_date}, match_pattern: {self.match_pattern}, input_price: {self.input_price}, output_price: {self.output_price}, total_price: {self.total_price}, mode: {self.mode}"
             + "}"
         )
 
@@ -1399,6 +1664,17 @@ def truncate_float(number, decimals):
     return number
 
 
+def resize_b64_image(b64_image: str | str, new_size: tuple[int, int]) -> str:
+    image_data = base64.b64decode(b64_image)
+    image = Image.open(BytesIO(image_data))
+    resized_image = image.resize(new_size)
+    buffered = BytesIO()
+    resized_image.save(buffered, format=image.format)
+    resized_image_bytes = buffered.getvalue()
+    resized_b64_string = base64.b64encode(resized_image_bytes).decode("utf-8")
+    return resized_b64_string
+
+
 class PeriodEnum(str, Enum):
     week = "week"
     year = "year"
@@ -1421,6 +1697,18 @@ known_ai_providers = [
     {
         "provider_name": "Google VertexAI",
         "api_base_placeholder": "https://<location>-aiplatform.googleapis.com/v1",
+    },
+    {
+        "provider_name": "Ollama",
+        "api_base_placeholder": "http://localhost:11434/api/generate",
+    },
+    {
+        "provider_name": "Groq",
+        "api_base_placeholder": "https://api.groq.com",
+    },
+    {
+        "provider_name": "Huggingface",
+        "api_base_placeholder": "https://<your-deployment-name>.us-east-1.aws.endpoints.huggingface.cloud",
     },
     {
         "provider_name": "Other",

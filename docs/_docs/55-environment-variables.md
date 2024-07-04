@@ -16,46 +16,41 @@ Those variables are used by `backend/src/config/__init__.py` to build configurat
 
 ### General
 
-#### `MONGO_URL`
+`MONGO_URL`
 
 -   Default: `mongodb://localhost:27017`
 -   Description: Connection URL to your mongo database.
 
-#### `BASE_URL`
+`BASE_URL`
 
 -   Default: `http://localhost:8000`
 -   Description: The base url of your application.
 
-#### `ORGANIZATION_NAME`
+`ORGANIZATION_NAME`
 
 -   Default: `None` - it needs to be provided
 -   Description: The name of your organization displayed on the frontend.
 
-#### `ADMIN_PASSWORD`
-
--   Default: `None` - it needs to be provided
--   Description: Password of a user with root privileges.
-
 ### SSO Authorization
 
-#### `SSO_AUTH`
+`SSO_AUTH`
 
 -   Default: `False`
 -   Description: When false authentication is disabled. The default is false. If true, additionally enter `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_ID`.
 
-#### `GOOGLE_CLIENT_ID`
+`GOOGLE_CLIENT_ID`
 
 -   Default: `None`
 -   Description: Customer ID needed to authorize login using Google broker. Possible to obtain at the stage of creating a verification point on the intermediary side.
 
-#### `AZURE_CLIENT_ID`
+`AZURE_CLIENT_ID`
 
 -   Default: `None`
 -   Description: Customer ID needed to authorize login using Azure broker. Possible to obtain at the stage of creating a verification point on the intermediary side.
 
 ### Test cases
 
-#### `DEBUG`
+`DEBUG`
 
 -   Default: `True` - it should be set as false for deployment
 -   Description: Option for debugging and development purpose. Allows to display errors as the content of the response from the server.
@@ -66,44 +61,44 @@ Here is a list of supported environment variables that you should provide in the
 
 ### General
 
-#### `PORT`
+`PORT`
 
 -   Default: `80`
 -   Description: The port on which the application will run.
 
-#### `PROMPT_SAIL_ENV_PLACEHOLDER_BACKEND_URL`
+`PROMPT_SAIL_ENV_PLACEHOLDER_BACKEND_URL`
 
 -   Default: `http://promptsail-backend:8000`
 -   Description: The backend URL of the application.
 
-#### `PROMPT_SAIL_ENV_PLACEHOLDER_PROXY_URL_HOST`
+`PROMPT_SAIL_ENV_PLACEHOLDER_PROXY_URL_HOST`
 
 -   Default: `http://localhost:8000`
 -   Description: The proxy URL host used by the application.
 
 ### SSO Authorization
 
-#### `PROMPT_SAIL_ENV_PLACEHOLDER_SSO_GOOGLE_CLIENT_ID`
+`PROMPT_SAIL_ENV_PLACEHOLDER_SSO_GOOGLE_CLIENT_ID`
 
 -   Default: `None`
 -   Description: Client ID required for Google [SSO authentication](/docs/sso-configuration/#sso-google-configuration).
 
-#### `PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_CLIENT_ID`
+`PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_CLIENT_ID`
 
 -   Default: `None`
 -   Description: Client ID required for Azure [SSO authentication](/docs/sso-configuration/#sso-microsoft-azure-configuration).
 
-#### `PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_TENANT`
+`PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_TENANT`
 
 -   Default: `None`
 -   Description: Azure tenant ID required for Azure [SSO authentication](/docs/sso-configuration/#sso-microsoft-azure-configuration).
 
-#### `PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_SCOPES`
+`PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_SCOPES`
 
 -   Default: `user.read`
 -   Description: Scopes required for Azure [SSO authentication](/docs/sso-configuration/#sso-microsoft-azure-configuration).
 
-#### `PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_AUTHORITY`
+`PROMPT_SAIL_ENV_PLACEHOLDER_SSO_AZURE_AUTHORITY`
 
 -   Default: `None`
 -   Description: The authority URL for Azure [SSO authentication](/docs/sso-configuration/#sso-microsoft-azure-configuration).

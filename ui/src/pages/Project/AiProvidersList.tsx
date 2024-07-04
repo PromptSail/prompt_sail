@@ -16,6 +16,7 @@ import { ItemType } from 'rc-collapse/es/interface';
 import AddProviderContainer from './AddProviderContainer';
 import { FormikValuesTemplate } from '../../components/ProjectForms/types';
 import ProviderEditableElement from '../../components/ProjectForms/ProviderDetails/ProvidersEditableElement';
+import { useGetModels } from '../../api/queries';
 const { Text, Title, Paragraph } = Typography;
 
 interface Props {
@@ -58,10 +59,43 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                       <Title level={2} className="h5 m-0 lh-0">
                                                           {el.deployment_name}
                                                       </Title>
+                                                  </Flex>
+                                              ),
+                                              children: (
+                                                  <>
+                                                      <ProviderEditableElement
+                                                          initialValues={prevState[index]}
+                                                          onSubmit={(values) => {
+                                                              setProviders((prevState) => {
+                                                                  const newList = prevState.map(
+                                                                      (el, id) =>
+                                                                          id !== index
+                                                                              ? el
+                                                                              : {
+                                                                                    ...values,
+                                                                                    slug: toSlug(
+                                                                                        values.deployment_name
+                                                                                    )
+                                                                                }
+                                                                  );
+                                                                  setItems((prevItems) =>
+                                                                      newList.map((el, id) =>
+                                                                          id === index
+                                                                              ? CollapseItem(el, id)
+                                                                              : prevItems[id]
+                                                                      )
+                                                                  );
+                                                                  onUpdateProviders(newList);
+                                                                  return newList;
+                                                              });
+                                                          }}
+                                                          showSubmitButton={false}
+                                                          slugForProxy={slug}
+                                                          formId={`projectDetails_editProvider${index}`}
+                                                      />{' '}
                                                       <Flex gap={8}>
                                                           <Button
                                                               className="my-auto"
-                                                              size="small"
                                                               onClick={() => {
                                                                   setItems((innerPrevItems) =>
                                                                       innerPrevItems.map((el, id) =>
@@ -77,7 +111,6 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                           <Button
                                                               className="my-auto"
                                                               type="primary"
-                                                              size="small"
                                                               icon={<CheckSquareOutlined />}
                                                               htmlType="submit"
                                                               form={`projectDetails_editProvider${index}`}
@@ -85,39 +118,7 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
                                                               Save
                                                           </Button>
                                                       </Flex>
-                                                  </Flex>
-                                              ),
-                                              children: (
-                                                  <ProviderEditableElement
-                                                      initialValues={prevState[index]}
-                                                      onSubmit={(values) => {
-                                                          setProviders((prevState) => {
-                                                              const newList = prevState.map(
-                                                                  (el, id) =>
-                                                                      id !== index
-                                                                          ? el
-                                                                          : {
-                                                                                ...values,
-                                                                                slug: toSlug(
-                                                                                    values.deployment_name
-                                                                                )
-                                                                            }
-                                                              );
-                                                              setItems((prevItems) =>
-                                                                  newList.map((el, id) =>
-                                                                      id === index
-                                                                          ? CollapseItem(el, id)
-                                                                          : prevItems[id]
-                                                                  )
-                                                              );
-                                                              onUpdateProviders(newList);
-                                                              return newList;
-                                                          });
-                                                      }}
-                                                      showSubmitButton={false}
-                                                      slugForProxy={slug}
-                                                      formId={`projectDetails_editProvider${index}`}
-                                                  />
+                                                  </>
                                               )
                                           }
                                 );
@@ -210,24 +211,28 @@ const AiProvidersList: React.FC<Props> = ({ list, slug, onUpdateProviders, ...re
     );
     return (
         <>
-            <Collapse
-                collapsible={collapseTrigger}
-                activeKey={activeKeys}
-                style={{
-                    background: token.Layout?.bodyBg,
-                    border: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                    padding: 0
-                }}
-                expandIcon={({ isActive }) => (
-                    <DownOutlined className="my-auto !text-[14px]" rotate={isActive ? 180 : 0} />
-                )}
-                expandIconPosition="end"
-                items={items}
-            />
-
+            {!!providers.length && (
+                <Collapse
+                    collapsible={collapseTrigger}
+                    activeKey={activeKeys}
+                    style={{
+                        background: token.Layout?.bodyBg,
+                        border: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 12,
+                        padding: 0
+                    }}
+                    expandIcon={({ isActive }) => (
+                        <DownOutlined
+                            className="my-auto !text-[14px]"
+                            rotate={isActive ? 180 : 0}
+                        />
+                    )}
+                    expandIconPosition="end"
+                    items={items}
+                />
+            )}
             <AddProviderContainer
                 providers={providers}
                 items={items}
@@ -271,9 +276,11 @@ const ProviderDescription: React.FC<{
     const [AllTags, setAllTags] = useState<string>('');
     const [Tags, setTags] = useState<string>('');
     const [AIModelVersionTag, setAIModelVersionTag] = useState<string>('');
+    const priceList = useGetModels();
     useEffect(() => {
-        const model = (Tags.length > 0 ? `&` : '?') + AIModelVersionTag;
-        setAllTags(Tags + (AIModelVersionTag.length > 0 ? model : ''));
+        const model = (Tags.length ? `&` : '?') + AIModelVersionTag;
+        const alltags = Tags + (AIModelVersionTag.length ? model : '');
+        setAllTags('/' + alltags + (alltags.length ? '&' : '?') + 'target_path=');
     }, [Tags, AIModelVersionTag]);
     return (
         <Flex vertical gap={16}>
@@ -342,36 +349,48 @@ const ProviderDescription: React.FC<{
                                     mode="tags"
                                     className="max-w-[50%] w-full"
                                     placeholder="General Tags"
+                                    dropdownStyle={{ display: 'none' }}
+                                    allowClear
+                                    suffixIcon={<></>}
                                     onChange={(value: string[]) => {
                                         setTags(value.length > 0 ? '?tags=' + value.join(',') : '');
                                     }}
                                 />
                             </div>
-                            <div>
-                                <Paragraph className="!m-0 text-Text/colorText">
-                                    AI Model Name and Version Tag:
-                                </Paragraph>
-                                <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                                    Specifying the model name and version is only necessary for
-                                    Azure deployments - it will allow calculate cost properly.
-                                </Paragraph>
-                                <Select
-                                    showSearch
-                                    className="max-w-[50%] w-full"
-                                    placeholder="AI Model Name and Version Tag"
-                                    options={Array.from({ length: 10 }, (_, i) => ({
-                                        value: `model${i}`,
-                                        label: `model${i}`
-                                    }))}
-                                    onChange={(value) => {
-                                        console.log(value);
-                                        console.log(value.length > 0);
-                                        setAIModelVersionTag(
-                                            value.length > 0 ? 'ai_model_version=' + value : ''
-                                        );
-                                    }}
-                                />
-                            </div>
+                            {el.provider_name.toLowerCase().includes('azure') && (
+                                <div>
+                                    <Paragraph className="!m-0 text-Text/colorText">
+                                        AI Model Name and Version Tag:
+                                    </Paragraph>
+                                    <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
+                                        Specifying the model name and version is only necessary for
+                                        Azure deployments - it will allow calculate cost properly.
+                                    </Paragraph>
+                                    <Select
+                                        showSearch
+                                        className="max-w-[50%] w-full"
+                                        placeholder="AI Model Name and Version Tag"
+                                        loading={priceList.isLoading}
+                                        options={(() => {
+                                            if (priceList.isSuccess) {
+                                                return priceList.data
+                                                    .filter((el) =>
+                                                        el.provider.toLowerCase().includes('azure')
+                                                    )
+                                                    .map((el) => ({
+                                                        label: el.model_name,
+                                                        value: el.model_name
+                                                    }));
+                                            } else return [{ label: 'loading', value: 'loading' }];
+                                        })()}
+                                        onChange={(value) => {
+                                            setAIModelVersionTag(
+                                                value.length > 0 ? 'ai_model_version=' + value : ''
+                                            );
+                                        }}
+                                    />
+                                </div>
+                            )}
                             <div>
                                 <Paragraph className="!m-0 text-Text/colorText">
                                     Proxy URL:

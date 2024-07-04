@@ -68,7 +68,7 @@ export interface getTransactionResponse {
     messages:
         | {
               role: string;
-              content: string;
+              content: string | Array<any>;
           }[]
         | null;
     last_message: string;
@@ -147,6 +147,7 @@ export interface getUsers {
 }
 [];
 export interface getModels {
+    provider: string;
     model_name: string;
     start_date: null | string;
     match_pattern: string;

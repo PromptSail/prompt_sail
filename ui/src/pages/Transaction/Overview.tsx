@@ -125,14 +125,12 @@ const Overview: React.FC<Props> = ({ data }) => {
                     </Col>
                     <Col flex="auto">
                         <Text>
-                            {data.status_code < 300 ? (
+                            {data.status_code < 300 &&
+                            data.input_tokens !== null &&
+                            data.output_tokens !== null ? (
                                 <span>
                                     {data.input_tokens} <ArrowRightOutlined /> {data.output_tokens}{' '}
-                                    (Σ{' '}
-                                    {data.input_tokens !== null && data.output_tokens !== null
-                                        ? data.input_tokens + data.output_tokens
-                                        : 'null'}
-                                    )
+                                    (Σ {data.input_tokens + data.output_tokens})
                                 </span>
                             ) : (
                                 <span>null</span>
