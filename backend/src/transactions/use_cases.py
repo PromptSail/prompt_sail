@@ -206,7 +206,7 @@ def store_transaction(
     decoder = response._get_content_decoder()
     buf = b"".join(buffer)
 
-    if "localhost" in str(request.__dict__["url"]):
+    if "localhost" in str(request.__dict__["url"]) or "host.docker.internal" in str(request.__dict__["url"]):
         content = buf.decode("utf-8").split("\n")
         rest, content = content[-2], content[:-2]
         response_content = {
