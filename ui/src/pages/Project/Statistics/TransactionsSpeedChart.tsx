@@ -19,6 +19,7 @@ import createTrend from 'trendline';
 import React from 'react';
 import * as styles from '../../../styles.json';
 import noData from '../../../assets/box.svg';
+import { shortenProviderName } from '../../../helpers/shortenProviderName';
 const { Title } = Typography;
 interface Params {
     statisticsParams: StatisticsParams;
@@ -51,7 +52,9 @@ const TransactionsSpeedChart: React.FC<Params> = ({ statisticsParams }) => {
                                 date: new Date(el.date).getTime()
                             };
                             el.records.map((rec) => {
-                                const legendName = `${rec.provider.substring(0, 2)}-${rec.model}`;
+                                const legendName = `${shortenProviderName(rec.provider)}-${
+                                    rec.model
+                                }`;
                                 if (!chartData.legend.includes(legendName)) {
                                     chartData.legend.push(legendName);
                                 }
