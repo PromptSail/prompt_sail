@@ -11,5 +11,5 @@ export const toSlug = (text: string) => {
 export const makeUrl = (slug: string, name: string) => {
     return `${import.meta.env.PROXY_URL_HOST}/${toSlug(slug) || '<slug>'}/${
         toSlug(name) || '<name>'
-    }`;
+    }/`;
 };
