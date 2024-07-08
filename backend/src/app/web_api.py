@@ -630,22 +630,56 @@ async def get_transaction_latency_statistics_over_time(
     return new_stats
 
 
+@app.get("/api/portfolio/details")
+async def get_portfolio_details(ctx: Annotated[TransactionContext, Depends(get_transaction_context)]) -> GetPortfolioDetailsSchema:
+    project_count = ctx.call(count_projects)
+    total_cost_per_project, total_transactions_per_project = {}, {}
+    total_cost, total_transactions = 0, 0
+    projects = []
+    if project_count > 0:
+        projects = ctx.call(get_all_projects)
+        projects_ids = [project.id for project in projects]
+        for idx in projects_ids:
+            transactions = ctx.call(get_transactions_for_project, project_id=idx)
+            cost = sum([transaction.total_cost if transaction.total_cost is not None else 0 for transaction in transactions])
+            total_cost_per_project[idx] = cost
+            total_cost += cost
+            count = len(transactions)
+            total_transactions_per_project[idx] = count
+            total_transactions += count
+        projects = [
+            GetProjectPortfolioSchema(
+                **project.model_dump(),
+                total_transactions=total_transactions_per_project[project.id],
+                total_cost=total_cost_per_project[project.id],
+                )
+            for project in projects
+        ]
+    return GetPortfolioDetailsSchema(
+        total_cost=total_cost, total_transactions=total_transactions, projects=projects
+    )
 @app.get(
-    "/api/portfolio/details",
+    "/api/portfolio/usage_in_time",
     response_class=JSONResponse,
     dependencies=[Security(decode_and_validate_token)],
 )
-async def get_portfolio_details(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
-) -> GetPortfolioDetailsSchema:
+async def get_portfolio_usage_in_time(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    date_from: datetime | str | None = None,
+    date_to: datetime | str | None = None,
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
+) -> list[GetProjectsUsageInTimeSchema]:
     project_count = ctx.call(count_projects)
+    projects_usage_in_time = []
     results = {}
     if project_count > 0:
         projects = ctx.call(get_all_projects)
         project_ids = [project.id for project in projects]
         for idx in project_ids:
-            date_from = [project.created_at for project in projects if project.id == idx][0]
-            date_to = datetime.now()
+            if not date_from:
+                date_from = [project.created_at for project in projects if project.id == idx][0]
+            if not date_to:
+                date_to = datetime.now()
             date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
             
             count = ctx.call(
@@ -681,7 +715,7 @@ async def get_portfolio_details(
                 ]
                 
                 stats = utils.token_counter_for_transactions(
-                    transactions, utils.PeriodEnum.day, date_from, date_to
+                    transactions, period, date_from, date_to
                 )
                 results[idx] = stats
 
@@ -718,7 +752,6 @@ async def get_portfolio_details(
                 date_record["records"].append(record)
             result.append(date_record)
             
-        projects_usage_in_time = []
         for usage in result:
             records = []
             for record in usage['records']:
@@ -726,16 +759,7 @@ async def get_portfolio_details(
                 records.append(GetProjectUsageSchema(**record, project_name=project_name))
             projects_usage_in_time.append(GetProjectsUsageInTimeSchema(date=usage["date"], records=records))
 
-        projects = [
-            GetProjectPortfolioSchema(
-                **project.model_dump()
-            )
-            for project in projects
-        ]
-        to_return = GetPortfolioDetailsSchema(projects=projects, projects_usage_in_time=projects_usage_in_time)
-    else:
-        to_return = GetPortfolioDetailsSchema(projects=[], projects_usage_in_time=[])
-    return to_return   
+    return projects_usage_in_time
 
 
 @app.get(
@@ -743,7 +767,7 @@ async def get_portfolio_details(
     response_class=JSONResponse,
     dependencies=[Security(decode_and_validate_token)],
 )
-async def get_costs_by_tag(
+async def get_portfolio_costs_by_tag(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
 ) -> list[GetProjectPortfolioCostPerTagSchema]:
     transactions = ctx.call(get_all_transactions)

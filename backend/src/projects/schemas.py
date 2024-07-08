@@ -95,5 +95,7 @@ class GetProjectPortfolioCostPerTagSchema(BaseModel):
 
 
 class GetPortfolioDetailsSchema(BaseModel):
+    total_cost: int | float
+    total_transactions: int
     projects: list[GetProjectPortfolioSchema]
-    projects_usage_in_time: list[GetProjectsUsageInTimeSchema]
+    projects: list[GetProjectPortfolioSchema]
