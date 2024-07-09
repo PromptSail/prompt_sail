@@ -5,6 +5,7 @@ import { useGetConfig, useGetPortfolio } from '../../api/queries';
 import Page404 from '../../components/errorPages/page404';
 import ProjectsCosts from './ProjectsCosts';
 import useGetRangeDatesAndGranularity from '../../hooks/useGetRangeDatesAndGranularity';
+import TagCosts from './TagCosts';
 const { Title, Text, Paragraph } = Typography;
 
 const Portfolio: React.FC = () => {
@@ -69,6 +70,9 @@ const Portfolio: React.FC = () => {
                         </Flex>
                         <div>
                             <ProjectsCosts dateParams={params} />
+                        </div>
+                        <div>
+                            <TagCosts dateParams={params} />
                         </div>
                     </Container>
                 </Flex>

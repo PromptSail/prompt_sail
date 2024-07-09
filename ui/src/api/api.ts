@@ -72,6 +72,9 @@ const api = {
     },
     getPortfolio_projectsUsage: (params: string): Promise<AxiosResponse<any>> => {
         return client.get(`/api/portfolio/usage_in_time${params}`);
+    },
+    getPortfolio_tagsUsage: (params: string): Promise<AxiosResponse<any>> => {
+        return client.get(`/api/portfolio/costs_by_tag${params}`);
     }
 };
 

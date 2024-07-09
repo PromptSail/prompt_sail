@@ -1,6 +1,7 @@
 import {
     Area,
     AreaChart,
+    Brush,
     CartesianGrid,
     Legend,
     ResponsiveContainer,
@@ -13,22 +14,23 @@ import { customSorter, dataRounding, dateFormatter } from '../Project/Statistics
 import noData from '../../assets/box.svg';
 import * as styles from '../../styles.json';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
-import { useGetProjectsUsage } from '../../api/queries';
-import { StatisticsParams } from '../../api/types';
 import { Period } from '../../hooks/useGetRangeDatesAndGranularity';
+import { StatisticsParams } from '../../api/types';
+import { useGetTagsUsage } from '../../api/queries';
 const { Title } = Typography;
 
-const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> = ({
+const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> = ({
     dateParams
 }) => {
-    const projects = useGetProjectsUsage(dateParams);
+    const tags = useGetTagsUsage(dateParams);
+    console.log(tags);
     return (
         <>
             <Title level={2} className="h5 m-0">
-                Projects costs
+                Tags costs
             </Title>
             <ResponsiveContainer height={210} className="mt-4">
-                {projects.isLoading ? (
+                {tags.isLoading ? (
                     <div className="w-full h-full relative">
                         <Spin
                             size="large"
@@ -42,13 +44,12 @@ const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'>
                             records: [] as Record<string, number>[]
                         };
 
-                        projects.data?.map(
+                        tags.data?.map(
                             (el: {
                                 date: string;
                                 records: {
-                                    project_name: string;
-                                    project_id: string;
-                                    total_cost: number;
+                                    tag: string;
+                                    cost: number;
                                 }[];
                             }) => {
                                 const record: (typeof chartData.records)[0] = {
@@ -56,11 +57,11 @@ const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'>
                                 };
 
                                 el.records.map((rec) => {
-                                    const legendName = `${rec.project_name}-${rec.project_id}`;
+                                    const legendName = `${rec.tag}`;
                                     if (!chartData.legend.includes(legendName)) {
                                         chartData.legend.push(legendName);
                                     }
-                                    record[`cost_${legendName}`] = rec.total_cost;
+                                    record[`cost_${legendName}`] = rec.cost;
                                 });
 
                                 chartData.records.push(record);
@@ -134,6 +135,10 @@ const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'>
                                     formatter={(v) => '$ ' + dataRounding(v, 4)}
                                     itemSorter={customSorter}
                                 />
+                                <Brush
+                                    dataKey="date"
+                                    tickFormatter={(v) => dateFormatter(v, Period.Daily)}
+                                />
                                 <Legend
                                     align="left"
                                     wrapperStyle={{ marginLeft: '60px' }}
@@ -169,4 +174,4 @@ const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'>
     );
 };
 
-export default ProjectsCosts;
+export default TagCosts;

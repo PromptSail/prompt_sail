@@ -269,3 +269,18 @@ export const useGetProjectsUsage = (
         }
     );
 };
+export const useGetTagsUsage = (
+    params: Omit<StatisticsParams, 'project_id'>
+): UseQueryResult<any[], AxiosError> => {
+    return useQuery(
+        ['portfolio_tagsUsage', params],
+        async () => (await api.getPortfolio_tagsUsage(linkParamsParser(params))).data,
+        {
+            enabled: !!params,
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
+        }
+    );
+};
