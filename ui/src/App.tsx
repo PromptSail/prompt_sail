@@ -16,6 +16,7 @@ import { getConfig } from './api/interfaces';
 import { ErrorProvider } from './context/ErrorContext';
 import LoginProvider from './context/LoginContext';
 import Page404 from './components/errorPages/page404';
+import Portfolio from './pages/Portfolio/Portfolio';
 
 const App = () => {
     const [isLogged, setLoginState] = useState(checkLogin());
@@ -57,6 +58,7 @@ const App = () => {
                                             path="/transactions/:transactionId"
                                             element={<Transaction />}
                                         />
+                                        <Route path="/portfolio" element={<Portfolio />} />
                                         <Route path="*" element={<Page404 />} />
                                         <Route path="/signin" element={<Navigate to="/" />} />
                                     </Routes>
