@@ -1,4 +1,3 @@
-import json
 import re
 from collections import defaultdict
 from typing import Annotated, Any
@@ -18,11 +17,14 @@ from projects.schemas import (
     CreateProjectSchema,
     GetAIProviderPriceSchema,
     GetAIProviderSchema,
+    GetCostPerTagSchema,
     GetPortfolioDetailsSchema,
+    GetProjectPortfolioCostPerTagSchema,
     GetProjectPortfolioSchema,
     GetProjectSchema,
-    UpdateProjectSchema, GetProjectPortfolioCostPerTagSchema, GetCostPerTagSchema, GetProjectsUsageInTimeSchema,
+    GetProjectsUsageInTimeSchema,
     GetProjectUsageSchema,
+    UpdateProjectSchema,
 )
 from projects.use_cases import (
     add_project,
@@ -631,7 +633,9 @@ async def get_transaction_latency_statistics_over_time(
 
 
 @app.get("/api/portfolio/details")
-async def get_portfolio_details(ctx: Annotated[TransactionContext, Depends(get_transaction_context)]) -> GetPortfolioDetailsSchema:
+async def get_portfolio_details(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> GetPortfolioDetailsSchema:
     project_count = ctx.call(count_projects)
     total_cost_per_project, total_transactions_per_project = {}, {}
     total_cost, total_transactions = 0, 0
@@ -641,7 +645,12 @@ async def get_portfolio_details(ctx: Annotated[TransactionContext, Depends(get_t
         projects_ids = [project.id for project in projects]
         for idx in projects_ids:
             transactions = ctx.call(get_transactions_for_project, project_id=idx)
-            cost = sum([transaction.total_cost if transaction.total_cost is not None else 0 for transaction in transactions])
+            cost = sum(
+                [
+                    transaction.total_cost if transaction.total_cost is not None else 0
+                    for transaction in transactions
+                ]
+            )
             total_cost_per_project[idx] = cost
             total_cost += cost
             count = len(transactions)
@@ -652,12 +661,14 @@ async def get_portfolio_details(ctx: Annotated[TransactionContext, Depends(get_t
                 **project.model_dump(),
                 total_transactions=total_transactions_per_project[project.id],
                 total_cost=total_cost_per_project[project.id],
-                )
+            )
             for project in projects
         ]
     return GetPortfolioDetailsSchema(
         total_cost=total_cost, total_transactions=total_transactions, projects=projects
     )
+
+
 @app.get(
     "/api/portfolio/usage_in_time",
     response_class=JSONResponse,
@@ -677,11 +688,13 @@ async def get_portfolio_usage_in_time(
         project_ids = [project.id for project in projects]
         for idx in project_ids:
             if not date_from:
-                date_from = [project.created_at for project in projects if project.id == idx][0]
+                date_from = [
+                    project.created_at for project in projects if project.id == idx
+                ][0]
             if not date_to:
                 date_to = datetime.now()
             date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
-            
+
             count = ctx.call(
                 count_transactions,
                 project_id=idx,
@@ -692,7 +705,13 @@ async def get_portfolio_usage_in_time(
             if count == 0:
                 results[idx] = []
             else:
-                transactions = ctx.call(get_list_of_filtered_transactions, project_id=idx, date_from=date_from, date_to=date_to, status_codes=[200])
+                transactions = ctx.call(
+                    get_list_of_filtered_transactions,
+                    project_id=idx,
+                    date_from=date_from,
+                    date_to=date_to,
+                    status_codes=[200],
+                )
                 transactions = [
                     StatisticTransactionSchema(
                         project_id=idx,
@@ -713,32 +732,39 @@ async def get_portfolio_usage_in_time(
                     )
                     for transaction in transactions
                 ]
-                
+
                 stats = utils.token_counter_for_transactions(
-                    transactions, period, date_from, date_to
+                    transactions, period, date_from, date_to, False
                 )
                 results[idx] = stats
 
         aggregated_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
         for project_id, records in results.items():
-            if len(records) > 0: 
+            if len(records) > 0:
                 for record in records:
                     date = record.date
-                    aggregated_data[date][project_id]["total_input_tokens"] += record.total_input_tokens
-                    aggregated_data[date][project_id]["total_output_tokens"] += record.total_output_tokens
-                    aggregated_data[date][project_id]["input_cumulative_total"] += record.input_cumulative_total
-                    aggregated_data[date][project_id]["output_cumulative_total"] += record.output_cumulative_total
-                    aggregated_data[date][project_id]["total_transactions"] += record.total_transactions
+                    aggregated_data[date][project_id][
+                        "total_input_tokens"
+                    ] += record.total_input_tokens
+                    aggregated_data[date][project_id][
+                        "total_output_tokens"
+                    ] += record.total_output_tokens
+                    aggregated_data[date][project_id][
+                        "input_cumulative_total"
+                    ] += record.input_cumulative_total
+                    aggregated_data[date][project_id][
+                        "output_cumulative_total"
+                    ] += record.output_cumulative_total
+                    aggregated_data[date][project_id][
+                        "total_transactions"
+                    ] += record.total_transactions
                     aggregated_data[date][project_id]["total_cost"] += record.total_cost
 
         result = []
 
         for date, statistics in aggregated_data.items():
-            date_record = {
-                "date": date,
-                "records": []
-            }
+            date_record = {"date": date, "records": []}
             for project_id, stats in statistics.items():
                 record = {
                     "project_id": project_id,
@@ -747,17 +773,25 @@ async def get_portfolio_usage_in_time(
                     "input_cumulative_total": stats["input_cumulative_total"],
                     "output_cumulative_total": stats["output_cumulative_total"],
                     "total_transactions": stats["total_transactions"],
-                    "total_cost": stats["total_cost"]
+                    "total_cost": stats["total_cost"],
                 }
                 date_record["records"].append(record)
             result.append(date_record)
-            
+
         for usage in result:
             records = []
-            for record in usage['records']:
-                project_name = [project.name for project in projects if project.id == record["project_id"]][0]
-                records.append(GetProjectUsageSchema(**record, project_name=project_name))
-            projects_usage_in_time.append(GetProjectsUsageInTimeSchema(date=usage["date"], records=records))
+            for record in usage["records"]:
+                project_name = [
+                    project.name
+                    for project in projects
+                    if project.id == record["project_id"]
+                ][0]
+                records.append(
+                    GetProjectUsageSchema(**record, project_name=project_name)
+                )
+            projects_usage_in_time.append(
+                GetProjectsUsageInTimeSchema(date=usage["date"], records=records)
+            )
 
     return projects_usage_in_time
 
@@ -779,28 +813,58 @@ async def get_portfolio_costs_by_tag(
         if len(transaction.tags) > 0:
             for tag in transaction.tags:
                 try:
-                    tags[tag] += transaction.total_cost if transaction.total_cost is not None else 0
+                    tags[tag] += (
+                        transaction.total_cost
+                        if transaction.total_cost is not None
+                        else 0
+                    )
                 except KeyError:
-                    tags[tag] = transaction.total_cost if transaction.total_cost is not None else 0
-                
+                    tags[tag] = (
+                        transaction.total_cost
+                        if transaction.total_cost is not None
+                        else 0
+                    )
+
                 try:
-                    idx = cost_by_tag[date].index([stat for stat in cost_by_tag[date] if stat["tag"] == tag][0])
-                    cost_by_tag[date][idx]["cost"] += transaction.total_cost if transaction.total_cost is not None else 0
+                    idx = cost_by_tag[date].index(
+                        [stat for stat in cost_by_tag[date] if stat["tag"] == tag][0]
+                    )
+                    cost_by_tag[date][idx]["cost"] += (
+                        transaction.total_cost
+                        if transaction.total_cost is not None
+                        else 0
+                    )
                 except IndexError:
                     cost_by_tag[date].append({"tag": tag, "cost": tags[tag]})
         else:
-            tags["untagged-transactions"] += transaction.total_cost if transaction.total_cost is not None else 0
+            tags["untagged-transactions"] += (
+                transaction.total_cost if transaction.total_cost is not None else 0
+            )
             try:
-                idx = cost_by_tag[date].index([stat for stat in cost_by_tag[date] if stat["tag"] == "untagged-transactions"][0])
-                cost_by_tag[date][idx]["cost"] += transaction.total_cost if transaction.total_cost is not None else 0
+                idx = cost_by_tag[date].index(
+                    [
+                        stat
+                        for stat in cost_by_tag[date]
+                        if stat["tag"] == "untagged-transactions"
+                    ][0]
+                )
+                cost_by_tag[date][idx]["cost"] += (
+                    transaction.total_cost if transaction.total_cost is not None else 0
+                )
             except IndexError:
-                cost_by_tag[date].append({"tag": "untagged-transactions", "cost": tags["untagged-transactions"]})
-                
+                cost_by_tag[date].append(
+                    {
+                        "tag": "untagged-transactions",
+                        "cost": tags["untagged-transactions"],
+                    }
+                )
+
     results = []
     for key, values in cost_by_tag.items():
         values = [GetCostPerTagSchema(**value) for value in values]
         results.append(GetProjectPortfolioCostPerTagSchema(date=key, records=values))
     return results
+
 
 @app.get(
     "/api/statistics/pricelist",

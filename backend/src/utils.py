@@ -990,6 +990,7 @@ def token_counter_for_transactions(
     period: str,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
+    cumulative_total_cost: bool = True,
 ) -> list[GetTransactionUsageStatisticsSchema]:
     """
     Calculate token usage statistics based on a given period.
@@ -1002,6 +1003,7 @@ def token_counter_for_transactions(
         Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
     :param date_from: The starting date for the filter.
     :param date_to: The ending date for the filter.
+    :param cumulative_total_cost: The switch that decides if total cost is cumulative or not.
     :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
@@ -1093,7 +1095,9 @@ def token_counter_for_transactions(
             input_cumulative_total=data["input_cumulative_total"],
             output_cumulative_total=data["output_cumulative_total"],
             total_transactions=data["total_transactions"],
-            total_cost=data["total_cumulative_cost"],
+            total_cost=data["total_cumulative_cost"]
+            if cumulative_total_cost
+            else data["total_cost"],
         )
         for data in data_dicts
     ]
