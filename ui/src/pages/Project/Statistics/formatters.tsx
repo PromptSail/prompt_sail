@@ -1,5 +1,5 @@
 import { Payload, NameType } from 'recharts/types/component/DefaultTooltipContent';
-import { Period } from './Statistics';
+import { Period } from '../../../hooks/useGetRangeDatesAndGranularity';
 
 export const dateFormatter = (val: string | number, granularity: Period | undefined) => {
     const date = new Date(val);

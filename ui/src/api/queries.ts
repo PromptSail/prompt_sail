@@ -246,3 +246,41 @@ export const useGetModels = (): UseQueryResult<getModels[], AxiosError> => {
         refetchOnWindowFocus: false
     });
 };
+export const useGetPortfolio = (): UseQueryResult<any, AxiosError> => {
+    return useQuery('portfolio', async () => (await api.getPortfolio()).data, {
+        staleTime: Infinity,
+        retry: false,
+        cacheTime: 0,
+        refetchOnWindowFocus: false
+    });
+};
+export const useGetProjectsUsage = (
+    params: Omit<StatisticsParams, 'project_id'>
+): UseQueryResult<any[], AxiosError> => {
+    return useQuery(
+        ['portfolio_projectUsage', params],
+        async () => (await api.getPortfolio_projectsUsage(linkParamsParser(params))).data,
+        {
+            enabled: !!params,
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
+        }
+    );
+};
+export const useGetTagsUsage = (
+    params: Omit<StatisticsParams, 'project_id'>
+): UseQueryResult<any[], AxiosError> => {
+    return useQuery(
+        ['portfolio_tagsUsage', params],
+        async () => (await api.getPortfolio_tagsUsage(linkParamsParser(params))).data,
+        {
+            enabled: !!params,
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
+        }
+    );
+};

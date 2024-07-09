@@ -66,13 +66,13 @@ class GetProjectPortfolioSchema(BaseModel):
     tags: list[str] = 0
     created_at: datetime
     owner: str
-    
-    
+
+
 class GetCostPerTagSchema(BaseModel):
     tag: str
     cost: int | float
-    
-    
+
+
 class GetProjectUsageSchema(BaseModel):
     project_name: str
     project_id: str
@@ -82,8 +82,8 @@ class GetProjectUsageSchema(BaseModel):
     output_cumulative_total: int
     total_transactions: int
     total_cost: int | float
-    
-    
+
+
 class GetProjectsUsageInTimeSchema(BaseModel):
     date: datetime
     records: list[GetProjectUsageSchema]
