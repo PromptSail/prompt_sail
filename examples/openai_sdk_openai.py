@@ -12,9 +12,9 @@ print(f"OpenAI api key={openai_key[0:3]}...{openai_key[-3:]}")
 
 
 # %%
-ps_api_base = "http://localhost:8000/project1/openai"
+ps_api_base = "http://localhost:8000/models-playground/openai/"
 
-# ps_api_base = "http://promptsail.local:8000/project1/?model=model1&tags=tag1,tag2&experiment=exp1&target_path="
+# ps_api_base = "http://promptsail.local:8000/models-playground/?model=model1&tags=tag1,tag2&experiment=exp1&target_path="
 
 # ps_api_base = "https://api.openai.com/v1/model1/"
 
