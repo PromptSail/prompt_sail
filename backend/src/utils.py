@@ -303,6 +303,7 @@ class TransactionParamExtractor:
             request.__dict__["headers"].__dict__["_list"]
         )
         self.request_content = self._decode_request_content(request)
+        self.request_content_updated = self.request_content
 
         self.response = response
         self.response_content = response_content
@@ -416,7 +417,7 @@ class TransactionParamExtractor:
             ):
                 for idx_content, content in enumerate(message["content"]):
                     if content["type"] == "image_url":
-                        self.request_content["messages"][idx_message]["content"][
+                        self.request_content_updated["messages"][idx_message]["content"][
                             idx_content
                         ]["image_url"]["url"] = resize_b64_image(
                             content["image_url"]["url"].replace(
@@ -431,7 +432,7 @@ class TransactionParamExtractor:
         }
         prompt = [
             message["content"]
-            for message in self.request_content["messages"]
+            for message in self.request_content_updated["messages"]
             if message["role"] == "user"
         ][::-1][0]
 
@@ -439,9 +440,9 @@ class TransactionParamExtractor:
             prompt = [cont for cont in prompt if cont["type"] == "text"][0]["text"]
 
         extracted["prompt"] = (
-            prompt if prompt else self.request_content["messages"][0]["content"]
+            prompt if prompt else self.request_content_updated["messages"][0]["content"]
         )
-        messages = self.request_content["messages"]
+        messages = self.request_content_updated["messages"]
         if self.response.__dict__["status_code"] > 200:
             messages.append(
                 {
@@ -479,7 +480,7 @@ class TransactionParamExtractor:
             ):
                 for idx_content, content in enumerate(message["content"]):
                     if content["type"] == "image_url":
-                        self.request_content["messages"][idx_message]["content"][
+                        self.request_content_updated["messages"][idx_message]["content"][
                             idx_content
                         ]["image_url"]["url"] = resize_b64_image(
                             content["image_url"]["url"].replace(
@@ -494,7 +495,7 @@ class TransactionParamExtractor:
         }
         prompt = [
             message["content"]
-            for message in self.request_content["messages"]
+            for message in self.request_content_updated["messages"]
             if message["role"] == "user"
         ][::-1][0]
 
@@ -502,9 +503,9 @@ class TransactionParamExtractor:
             prompt = [cont for cont in prompt if cont["type"] == "text"][0]["text"]
 
         extracted["prompt"] = (
-            prompt if prompt else self.request_content["messages"][0]["content"]
+            prompt if prompt else self.request_content_updated["messages"][0]["content"]
         )
-        messages = self.request_content["messages"]
+        messages = self.request_content_updated["messages"]
         if self.response.__dict__["status_code"] > 200:
             messages.append(
                 {"role": "error", "content": self.response_content["error"]["message"]}
@@ -554,16 +555,16 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_openai_images_variations(self) -> dict:
-        self.request_content["image"] = resize_b64_image(
-            self.request_content["image"], (128, 128)
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
         )
 
         model = []
-        if "quality" in self.request_content.keys():
-            model.append(self.request_content["quality"])
-        if "size" in self.request_content.keys():
-            model.append(self.request_content["size"])
-        model.append(self.request_content["model"])
+        if "quality" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["quality"])
+        if "size" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["size"])
+        model.append(self.request_content_updated["model"])
         model = "/".join(model)
 
         extracted = {
@@ -573,7 +574,7 @@ class TransactionParamExtractor:
             "model": model,
         }
 
-        messages = [{"role": "user", "content": self.request_content["image"]}]
+        messages = [{"role": "user", "content": self.request_content_updated["image"]}]
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
@@ -609,20 +610,20 @@ class TransactionParamExtractor:
 
     def _extract_from_openai_images_generations(self) -> dict:
         model = []
-        if "quality" in self.request_content.keys():
-            model.append(self.request_content["quality"])
-        if "size" in self.request_content.keys():
-            model.append(self.request_content["size"])
-        model.append(self.request_content["model"])
+        if "quality" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["quality"])
+        if "size" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["size"])
+        model.append(self.request_content_updated["model"])
         model = "/".join(model)
 
         extracted = {
             "type": "images generations",
             "provider": "OpenAI",
-            "prompt": self.request_content["prompt"],
+            "prompt": self.request_content_updated["prompt"],
             "model": model,
         }
-        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+        messages = [{"role": "user", "content": self.request_content_updated["prompt"]}]
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
@@ -658,31 +659,31 @@ class TransactionParamExtractor:
 
     def _extract_from_openai_images_edit(self) -> dict:
         model = []
-        if "quality" in self.request_content.keys():
-            model.append(self.request_content["quality"])
-        if "size" in self.request_content.keys():
-            model.append(self.request_content["size"])
-        model.append(self.request_content["model"])
+        if "quality" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["quality"])
+        if "size" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["size"])
+        model.append(self.request_content_updated["model"])
         model = "/".join(model)
 
-        self.request_content["image"] = resize_b64_image(
-            self.request_content["image"], (128, 128)
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
         )
-        self.request_content["mask"] = resize_b64_image(
-            self.request_content["mask"], (128, 128)
+        self.request_content_updated["mask"] = resize_b64_image(
+            self.request_content_updated["mask"], (128, 128)
         )
         extracted = {
             "type": "images edits",
             "provider": "OpenAI",
-            "prompt": self.request_content["prompt"],
+            "prompt": self.request_content_updated["prompt"],
             "model": model,
         }
         messages = [
             {
                 "role": "user",
-                "content": self.request_content["prompt"],
-                "image": self.request_content["image"],
-                "mask": self.request_content["mask"],
+                "content": self.request_content_updated["prompt"],
+                "image": self.request_content_updated["image"],
+                "mask": self.request_content_updated["mask"],
             }
         ]
         if self.response.__dict__["status_code"] > 200:
@@ -1677,6 +1678,89 @@ def resize_b64_image(b64_image: str | str, new_size: tuple[int, int]) -> str:
     resized_image_bytes = buffered.getvalue()
     resized_b64_string = base64.b64encode(resized_image_bytes).decode("utf-8")
     return resized_b64_string
+
+
+def preprocess_buffer(request, response, buffer) -> dict:
+    decoder = response._get_content_decoder()
+    buf = b"".join(buffer)
+    if "localhost" in str(request.__dict__["url"]) or "host.docker.internal" in str(
+        request.__dict__["url"]
+    ):
+        content = buf.decode("utf-8").split("\n")
+        rest, content = content[-2], content[:-2]
+        response_content = {
+            pair.split(":")[0]: pair.split(":")[1]
+            for pair in rest.split(',"context"')[0][1:].replace('"', "").split(",")
+        }
+        content = "".join(
+            list(
+                map(
+                    lambda msg: [
+                        text
+                        for text in [text for text in msg[1:-1].split('response":"')][
+                            1
+                        ].split('"')
+                    ][0],
+                    content,
+                )
+            )
+        )
+        response_content["response"] = content
+    else:
+        try:
+            response_content = decoder.decode(buf)
+            response_content = json.loads(response_content)
+        except json.JSONDecodeError:
+            content = []
+            for i in (
+                chunks := buf.decode()
+                              .replace("data: ", "")
+                              .split("\n\n")[::-1][3:][::-1]
+            ):
+                content.append(
+                    json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")
+                )
+            content = "".join(content)
+            example = json.loads(chunks[0])
+            messages = [
+                message
+                for message in json.loads(request.__dict__["_content"].decode("utf8"))[
+                    "messages"
+                ]
+            ]
+            input_tokens = count_tokens_for_streaming_response(
+                messages, example["model"]
+            )
+            output_tokens = count_tokens_for_streaming_response(
+                content, example["model"]
+            )
+            response_content = dict(
+                id=example["id"],
+                object="chat.completion",
+                created=example["created"],
+                model=example["model"],
+                choices=[
+                    dict(
+                        index=0,
+                        message=dict(role="assistant", content=content),
+                        logprobs=None,
+                        finish_reason="stop",
+                    )
+                ],
+                system_fingerprint=example["system_fingerprint"],
+                usage=dict(
+                    prompt_tokens=input_tokens,
+                    completion_tokens=output_tokens,
+                    total_tokens=input_tokens + output_tokens,
+                ),
+            )
+    if isinstance(response_content, list):
+        response_content = response_content[0]
+    if "usage" not in response_content:
+        response_content["usage"] = dict(
+            prompt_tokens=0, completion_tokens=0, total_tokens=0
+        )
+    return response_content
 
 
 class PeriodEnum(str, Enum):

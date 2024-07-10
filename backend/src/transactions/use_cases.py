@@ -3,7 +3,7 @@ import re
 
 import utils
 from _datetime import datetime, timezone
-from transactions.models import Transaction
+from transactions.models import Transaction, generate_uuid
 from transactions.repositories import TransactionRepository
 from transactions.schemas import CreateTransactionSchema
 from utils import (
@@ -187,8 +187,8 @@ def store_transaction(
     ai_model_version,
     pricelist,
     request_time,
-    transaction_repository: TransactionRepository,
-):
+    transaction_repository: TransactionRepository
+) -> dict:
     """
     Store a transaction in the repository based on request, response, and additional information.
 
@@ -201,90 +201,10 @@ def store_transaction(
     :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
     :param pricelist: The pricelist for the models.
     :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
+    :param transaction_id: Pre-generated primary ID for transaction.
     :return: None
     """
-    decoder = response._get_content_decoder()
-    buf = b"".join(buffer)
-
-    if "localhost" in str(request.__dict__["url"]) or "host.docker.internal" in str(
-        request.__dict__["url"]
-    ):
-        content = buf.decode("utf-8").split("\n")
-        rest, content = content[-2], content[:-2]
-        response_content = {
-            pair.split(":")[0]: pair.split(":")[1]
-            for pair in rest.split(',"context"')[0][1:].replace('"', "").split(",")
-        }
-        content = "".join(
-            list(
-                map(
-                    lambda msg: [
-                        text
-                        for text in [text for text in msg[1:-1].split('response":"')][
-                            1
-                        ].split('"')
-                    ][0],
-                    content,
-                )
-            )
-        )
-        response_content["response"] = content
-    else:
-        try:
-            response_content = decoder.decode(buf)
-            response_content = json.loads(response_content)
-        except json.JSONDecodeError:
-            content = []
-            for i in (
-                chunks := buf.decode()
-                .replace("data: ", "")
-                .split("\n\n")[::-1][3:][::-1]
-            ):
-                content.append(
-                    json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")
-                )
-            content = "".join(content)
-            example = json.loads(chunks[0])
-            messages = [
-                message
-                for message in json.loads(request.__dict__["_content"].decode("utf8"))[
-                    "messages"
-                ]
-            ]
-            input_tokens = count_tokens_for_streaming_response(
-                messages, example["model"]
-            )
-            output_tokens = count_tokens_for_streaming_response(
-                content, example["model"]
-            )
-            response_content = dict(
-                id=example["id"],
-                object="chat.completion",
-                created=example["created"],
-                model=example["model"],
-                choices=[
-                    dict(
-                        index=0,
-                        message=dict(role="assistant", content=content),
-                        logprobs=None,
-                        finish_reason="stop",
-                    )
-                ],
-                system_fingerprint=example["system_fingerprint"],
-                usage=dict(
-                    prompt_tokens=input_tokens,
-                    completion_tokens=output_tokens,
-                    total_tokens=input_tokens + output_tokens,
-                ),
-            )
-
-    if isinstance(response_content, list):
-        response_content = response_content[0]
-
-    if "usage" not in response_content:
-        response_content["usage"] = dict(
-            prompt_tokens=0, completion_tokens=0, total_tokens=0
-        )
+    response_content = utils.preprocess_buffer(request, response, buffer)
 
     param_extractor = utils.TransactionParamExtractor(
         request, response, response_content
@@ -352,24 +272,6 @@ def store_transaction(
 
     transaction = Transaction(
         project_id=project_id,
-        request=dict(
-            method=request.method,
-            url=str(request.url),
-            host=request.headers.get("host", ""),
-            headers=dict(request.headers),
-            extensions=dict(request.extensions),
-            content=param_extractor.request_content,
-        ),
-        response=dict(
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            next_requset=response.next_request,
-            is_error=response.is_error,
-            is_success=response.is_success,
-            content=param_extractor.response_content,
-            elapsed=response.elapsed.total_seconds(),
-            encoding=response.encoding,
-        ),
         tags=tags,
         provider=params["provider"],
         model=ai_model_version,
@@ -390,6 +292,7 @@ def store_transaction(
         generation_speed=generation_speed,
     )
     transaction_repository.add(transaction)
+    return {"response_content": response_content, "request_content": param_extractor.request_content, "transaction_id": transaction.id}
 
 
 def get_list_of_filtered_transactions(

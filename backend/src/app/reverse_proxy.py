@@ -9,6 +9,8 @@ from lato import Application, TransactionContext
 from projects.use_cases import get_project_by_slug
 from starlette.background import BackgroundTask
 from transactions.use_cases import store_transaction
+from raw_transactions.use_cases import store_raw_transactions
+from transactions.models import generate_uuid
 from utils import ApiURLBuilder
 
 from .app import app
@@ -53,7 +55,7 @@ async def close_stream(
     """
     await response.aclose()
     with app.transaction_context() as ctx:
-        ctx.call(
+        data = ctx.call(
             store_transaction,
             project_id=project_id,
             request=request,
@@ -63,6 +65,14 @@ async def close_stream(
             ai_model_version=ai_model_version,
             pricelist=pricelist,
             request_time=request_time,
+        )
+        ctx.call(
+            store_raw_transactions,
+            request=request,
+            request_content=data["request_content"],
+            response=response,
+            response_content=data["response_content"],
+            transaction_id=data["transaction_id"]
         )
 
 
