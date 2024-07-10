@@ -1,7 +1,7 @@
 ---
 title: "Introduction"
 permalink: /docs/introduction/
-excerpt: "Intorduction, key features and philosophy of Prompt Sail"
+excerpt: "Introduction, key features and philosophy of Prompt Sail"
 last_modified_at: 2023-12-28T14:48:05+01:00
 redirect_from:
   - /theme-setup/
@@ -35,7 +35,7 @@ There are two options to run the Prompt Sail docker containers:
 * [pull the images from Github Container Repository (ghcr.io)](/docs/quick-start-guide/#pull-and-run-the-docker-images-from-ghcr).
 
 
-In the next page you will:
+On the next page you will:
 
 * learn how to run Prompt Sail on your local machine
 * make your first API call to OpenAI
