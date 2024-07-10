@@ -123,7 +123,7 @@ Mongo-Express acts as a web-based MongoDB admin interface. It should be accessib
 
 ## Create your first project and add at least one AI provider
 
-In the UI, go to your [Organization's dashboard](/docs/organization-dashboard/) . Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
+In the UI, go to your [Organization's dashboard](/docs/organization-dashboard) . Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
 
 
 ## Make your first API call
