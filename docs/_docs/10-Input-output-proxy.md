@@ -14,10 +14,10 @@ toc_sticky: true
 
 Prompt Sail stores transactions by acting as a proxy for libraries and capturing the request and response data. 
 
-All the magic happens when you replace **api_base**(or similar parameter) which originaly points to your LLM provider endpoint by ours **proxy_url**. Thanks to this substitution we can bypass your request and grab response transparently. 
+All the magic happens when you replace **api_base**(or a similar parameter) which originally points to your LLM provider endpoint by our **proxy_url**. Thanks to this substitution we can bypass your request and grab a response transparently. 
 
 
-Before you start using Prompt Sail as a proxy, you need to configure the `project` and add `ai-providers` via UI, those information  eventaully will be used to create your unique **proxy_url**.
+Before you start using Prompt Sail as a proxy, you need to configure the `project` and add `ai-providers` via UI, those information eventually will be used to create your unique **proxy_url**.
 
 In one project you can have multiple AI deployments, each with its own **proxy_url**.
 
