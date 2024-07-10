@@ -20,6 +20,8 @@ docs:
         url: /docs/quick-start-guide/
       - title: "Project Setup"
         url: /docs/how-to-setup-llm-proxy-project/
+      - title: "Demo"
+        url: /docs/demo/
   - title: Advanced Settings
     children:
       - title: "Input/output capturing"
@@ -49,7 +51,7 @@ docs:
       - title: "Login Page"
         url: /docs/login-page
       - title: "Organization Dashboard"
-        url: /docs/organization-dashboard
+        url: /docs/organization-dashboard/
       - title: "Project Dashboard"
         url: /docs/project-dashboard
       - title: "Transactions View"
