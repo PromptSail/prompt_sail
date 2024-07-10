@@ -13,16 +13,17 @@ toc_sticky: true
 ## Prompt Sail demo
 
 
-Experience the functionalities of Prompt Sail firsthand by utilizing our demo at https://try-promptsail.azurewebsites.net/. 
-
-No installation or account creation is required, making it a straightforward process.
+Experience the functionalities of Prompt Sail firsthand by utilizing our [**demo**](https://try-promptsail.azurewebsites.net/). 
 {: .notice--warning}
+
+**No installation or account creation is required, making it a straightforward process.**
+
 
 The demo provides an insight into the user interface of Prompt Sail, and its architecture, and allows to test the capture of the transactions (Gen AI model calls).
 
 To logg your AI API call in the demo:
 
-1. Visit https://try-promptsail.azurewebsites.net/.
+1. Visit [**demo page**](https://try-promptsail.azurewebsites.net/).
 2. Access the list of projects by clicking the "Get Started" button. (No account creation or login is required.)
 3. Select an existing project or create a new one.
 4. Obtain the proxy URL required to initiate the logging of calls to Gen AI models.
@@ -33,5 +34,5 @@ To logg your AI API call in the demo:
 7. By clicking on the transaction ID, you will go to its details.  
 8. Whereas the Overview tab provides a comprehensive view of all transaction statistics for the project.
 
-**Warning**: The Prompt Sail demo is public, so avoid including any sensitive information in your prompts when testing the demo. Each new deployment of https://try-promptsail.azurewebsites.net/ resets the database, causing projects and transactions in the demo to be regularly deleted.
+**Warning**: The Prompt Sail demo is public, so avoid including any sensitive information in your prompts when testing the demo. Each new deployment of [**demo page**](https://try-promptsail.azurewebsites.net/) resets the database, causing projects and transactions in the demo to be regularly deleted.
 {: .notice--warning}
