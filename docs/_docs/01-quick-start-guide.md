@@ -123,7 +123,7 @@ Mongo-Express acts as a web-based MongoDB admin interface. It should be accessib
 
 ## Create your first project and add at least one AI provider
 
-In the UI, go to your [Organization's dashboard](/docs/organization-dashboard) . Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
+In the Prompt Sail UI, go to your [Organization's dashboard](/docs/organization-dashboard) . Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
 
 
 ## Make your first API call
@@ -157,12 +157,13 @@ openai_key = os.getenv("OPENAI_API_KEY")
 openai_org_id = os.getenv("OPENAI_ORG_ID")
 ```
 
-Make an API call to OpenAI via Prompt Sail without tagging. 
-What is and where to get **api_base** [see here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
+To make an API call to OpenAI via Prompt Sail, you will need a **proxy_url**. This can be obtained in the Prompt Sail UI - under the AI Providers tab in your project's dashboard. Before continuing, make sure that the OpenAI is in your project's AI providers list. If not, you will need to add it first. **Once you have the auto-generated proxy-url, replace the **api_base** address with it in your code.**
+
+More about **proxy_url** [you can learn here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
 
 ```python
 
-api_base = "http://localhost:8000/project1/openai/"
+api_base = "http://localhost:8000/projectxyz/openai/"
 
 ps_client = OpenAI(
     base_url=api_base,
@@ -189,8 +190,10 @@ pprint(response.choices[0].message)
 ```
 
 
-Make an API call to OpenAI via Prompt Sail adding some tags for the transaction. 
-How structure of **api_base** for passing tags looks like, [see here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
+It is also possible to tag API calls by passing tags in the **proxy_url**. To simplify this process, use the proxy url generator found in the AI Providers tab of your project dashboard. This tool is available for every AI provider you've added.
+
+More about the structure of **proxy_url** (aka **api_base**) for passing tags [here](/docs/storing-transactions/)
+
 
 ```python
 
