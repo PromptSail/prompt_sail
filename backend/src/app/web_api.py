@@ -34,6 +34,10 @@ from projects.use_cases import (
     get_project,
     update_project,
 )
+from raw_transactions.use_cases import (
+    get_request_for_transaction,
+    get_response_for_transaction,
+)
 from seedwork.repositories import DocumentNotFoundException
 from settings.use_cases import get_organization_name
 from slugify import slugify
@@ -48,6 +52,7 @@ from transactions.schemas import (
     GetTransactionsUsageStatisticsSchema,
     GetTransactionUsageStatisticsWithoutDateSchema,
     GetTransactionWithProjectSlugSchema,
+    GetTransactionWithRawDataSchema,
     StatisticTransactionSchema,
 )
 from transactions.use_cases import (
@@ -238,7 +243,7 @@ async def delete_existing_project(
 async def get_transaction_details(
     transaction_id: str,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
-) -> GetTransactionWithProjectSlugSchema:
+) -> GetTransactionWithRawDataSchema:
     """
     API endpoint to retrieve details of a specific transaction.
 
@@ -247,12 +252,20 @@ async def get_transaction_details(
     """
     try:
         transaction = ctx.call(get_transaction, transaction_id=transaction_id)
+        request_data = ctx.call(
+            get_request_for_transaction, transaction_id=transaction_id
+        )
+        response_data = ctx.call(
+            get_response_for_transaction, transaction_id=transaction_id
+        )
     except DocumentNotFoundException:
         raise HTTPException(status_code=404, detail="Transaction not found")
     project = ctx.call(get_project, project_id=transaction.project_id)
-    transaction = GetTransactionWithProjectSlugSchema(
+    transaction = GetTransactionWithRawDataSchema(
         **transaction.model_dump(),
         project_name=project.name if project else "",
+        request=request_data.data,
+        response=response_data.data,
         total_tokens=transaction.input_tokens + transaction.output_tokens
         if transaction.input_tokens and transaction.output_tokens
         else None,

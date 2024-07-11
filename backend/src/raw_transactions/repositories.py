@@ -47,7 +47,7 @@ class RawTransactionRepository(MongoRepository):
         :return: The RawTransaction object (type - request) corresponding to the specified transaction_id.
         """
         return self.find_one(
-            {"_id": transaction_id, "type": TransactionTypeEnum.request}
+            {"transaction_id": transaction_id, "type": TransactionTypeEnum.request}
         )
 
     def get_response_by_transaction_id(self, transaction_id: str) -> RawTransaction:
@@ -58,7 +58,7 @@ class RawTransactionRepository(MongoRepository):
         :return: The RawTransaction object (type - request) corresponding to the specified transaction_id.
         """
         return self.find_one(
-            {"_id": transaction_id, "type": TransactionTypeEnum.response}
+            {"transaction_id": transaction_id, "type": TransactionTypeEnum.response}
         )
 
     def delete_cascade(self, transaction_id: str):
