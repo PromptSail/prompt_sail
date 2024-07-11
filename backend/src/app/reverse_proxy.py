@@ -7,10 +7,9 @@ from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
 from lato import Application, TransactionContext
 from projects.use_cases import get_project_by_slug
+from raw_transactions.use_cases import store_raw_transactions
 from starlette.background import BackgroundTask
 from transactions.use_cases import store_transaction
-from raw_transactions.use_cases import store_raw_transactions
-from transactions.models import generate_uuid
 from utils import ApiURLBuilder
 
 from .app import app
@@ -72,7 +71,7 @@ async def close_stream(
             request_content=data["request_content"],
             response=response,
             response_content=data["response_content"],
-            transaction_id=data["transaction_id"]
+            transaction_id=data["transaction_id"],
         )
 
 

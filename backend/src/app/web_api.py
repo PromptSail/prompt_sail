@@ -632,7 +632,11 @@ async def get_transaction_latency_statistics_over_time(
     return new_stats
 
 
-@app.get("/api/portfolio/details", response_class=JSONResponse, dependencies=[Security(decode_and_validate_token)])
+@app.get(
+    "/api/portfolio/details",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def get_portfolio_details(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
 ) -> GetPortfolioDetailsSchema:

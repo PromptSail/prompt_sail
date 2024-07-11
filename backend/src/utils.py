@@ -3,6 +3,7 @@ import json
 import random
 import re
 from collections import OrderedDict
+from copy import deepcopy
 from enum import Enum
 from io import BytesIO
 from typing import Any
@@ -303,10 +304,11 @@ class TransactionParamExtractor:
             request.__dict__["headers"].__dict__["_list"]
         )
         self.request_content = self._decode_request_content(request)
-        self.request_content_updated = self.request_content
+        self.request_content_updated = deepcopy(self.request_content)
 
         self.response = response
         self.response_content = response_content
+        self.response_content_updated = deepcopy(response_content)
         self.url = str(getattr(request, "url", ""))
         self.pattern = self._detect_pattern(self.url)
 
@@ -417,9 +419,9 @@ class TransactionParamExtractor:
             ):
                 for idx_content, content in enumerate(message["content"]):
                     if content["type"] == "image_url":
-                        self.request_content_updated["messages"][idx_message]["content"][
-                            idx_content
-                        ]["image_url"]["url"] = resize_b64_image(
+                        self.request_content_updated["messages"][idx_message][
+                            "content"
+                        ][idx_content]["image_url"]["url"] = resize_b64_image(
                             content["image_url"]["url"].replace(
                                 "data:image/png;base64,", ""
                             ),
@@ -480,9 +482,9 @@ class TransactionParamExtractor:
             ):
                 for idx_content, content in enumerate(message["content"]):
                     if content["type"] == "image_url":
-                        self.request_content_updated["messages"][idx_message]["content"][
-                            idx_content
-                        ]["image_url"]["url"] = resize_b64_image(
+                        self.request_content_updated["messages"][idx_message][
+                            "content"
+                        ][idx_content]["image_url"]["url"] = resize_b64_image(
                             content["image_url"]["url"].replace(
                                 "data:image/png;base64,", ""
                             ),
@@ -578,32 +580,41 @@ class TransactionParamExtractor:
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
-                {"role": "error", "content": self.response_content["error"]["message"]}
+                {
+                    "role": "error",
+                    "content": self.response_content_updated["error"]["message"],
+                }
             )
-            extracted["error_message"] = self.response_content["error"]["message"]
-            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["error_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content_updated["error"][
+                "message"
+            ]
         else:
             try:
-                for data in self.response_content["data"]:
+                for data in self.response_content_updated["data"]:
                     messages.append(
                         {
                             "role": "system",
                             "content": data["url"],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]["url"]
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
             except KeyError:
-                for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
                         data["b64_json"], (128, 128)
                     )
                     messages.append(
                         {
                             "role": "system",
-                            "content": self.response_content["data"][idx],
+                            "content": self.response_content_updated["data"][idx],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]
+                extracted["last_message"] = self.response_content_updated["data"][-1]
         extracted["messages"] = messages
 
         return extracted
@@ -627,32 +638,41 @@ class TransactionParamExtractor:
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
-                {"role": "error", "content": self.response_content["error"]["message"]}
+                {
+                    "role": "error",
+                    "content": self.response_content_updated["error"]["message"],
+                }
             )
-            extracted["error_message"] = self.response_content["error"]["message"]
-            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["error_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content_updated["error"][
+                "message"
+            ]
         else:
             try:
-                for data in self.response_content["data"]:
+                for data in self.response_content_updated["data"]:
                     messages.append(
                         {
                             "role": "system",
                             "content": data["url"],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]["url"]
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
             except KeyError:
-                for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
                         data["b64_json"], (128, 128)
                     )
                     messages.append(
                         {
                             "role": "system",
-                            "content": self.response_content["data"][idx],
+                            "content": self.response_content_updated["data"][idx],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]
+                extracted["last_message"] = self.response_content_updated["data"][-1]
         extracted["messages"] = messages
 
         return extracted
@@ -689,32 +709,41 @@ class TransactionParamExtractor:
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
-                {"role": "error", "content": self.response_content["error"]["message"]}
+                {
+                    "role": "error",
+                    "content": self.response_content_updated["error"]["message"],
+                }
             )
-            extracted["error_message"] = self.response_content["error"]["message"]
-            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["error_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content_updated["error"][
+                "message"
+            ]
         else:
             try:
-                for data in self.response_content["data"]:
+                for data in self.response_content_updated["data"]:
                     messages.append(
                         {
                             "role": "system",
                             "content": data["url"],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]["url"]
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
             except KeyError:
-                for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
                         data["b64_json"], (128, 128)
                     )
                     messages.append(
                         {
                             "role": "system",
-                            "content": self.response_content["data"][idx],
+                            "content": self.response_content_updated["data"][idx],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]
+                extracted["last_message"] = self.response_content_updated["data"][-1]
         extracted["messages"] = messages
 
         return extracted
@@ -1714,8 +1743,8 @@ def preprocess_buffer(request, response, buffer) -> dict:
             content = []
             for i in (
                 chunks := buf.decode()
-                              .replace("data: ", "")
-                              .split("\n\n")[::-1][3:][::-1]
+                .replace("data: ", "")
+                .split("\n\n")[::-1][3:][::-1]
             ):
                 content.append(
                     json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")

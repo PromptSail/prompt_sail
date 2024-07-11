@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any
+
 from pydantic import BaseModel, Field
 from transactions.models import generate_uuid
 
@@ -14,4 +15,3 @@ class RawTransaction(BaseModel):
     transaction_id: str
     type: TransactionTypeEnum
     data: dict[str, Any]
-    

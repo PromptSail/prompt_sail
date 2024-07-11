@@ -3,13 +3,10 @@ import re
 
 import utils
 from _datetime import datetime, timezone
-from transactions.models import Transaction, generate_uuid
+from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 from transactions.schemas import CreateTransactionSchema
-from utils import (
-    count_tokens_for_streaming_response,
-    create_transaction_query_from_filters,
-)
+from utils import create_transaction_query_from_filters
 
 
 def get_transactions_for_project(
@@ -187,7 +184,7 @@ def store_transaction(
     ai_model_version,
     pricelist,
     request_time,
-    transaction_repository: TransactionRepository
+    transaction_repository: TransactionRepository,
 ) -> dict:
     """
     Store a transaction in the repository based on request, response, and additional information.
@@ -201,7 +198,6 @@ def store_transaction(
     :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
     :param pricelist: The pricelist for the models.
     :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
-    :param transaction_id: Pre-generated primary ID for transaction.
     :return: None
     """
     response_content = utils.preprocess_buffer(request, response, buffer)
@@ -292,7 +288,11 @@ def store_transaction(
         generation_speed=generation_speed,
     )
     transaction_repository.add(transaction)
-    return {"response_content": response_content, "request_content": param_extractor.request_content, "transaction_id": transaction.id}
+    return {
+        "response_content": response_content,
+        "request_content": param_extractor.request_content,
+        "transaction_id": transaction.id,
+    }
 
 
 def get_list_of_filtered_transactions(

@@ -1,7 +1,6 @@
 from .models import RawTransaction, TransactionTypeEnum
 from .repositories import RawTransactionRepository
-import utils
-import json
+
 
 def get_raw_transaction_for_transaction(
     transaction_id: str, raw_transaction_repository: RawTransactionRepository
@@ -56,12 +55,15 @@ def delete_raw_transactions(
     :return: None
     """
     raw_transaction_repository.delete_cascade(transaction_id=transaction_id)
-    
+
 
 def store_raw_transactions(
-    request, request_content, response, response_content, 
-    transaction_id: str, 
-    raw_transaction_repository: RawTransactionRepository
+    request,
+    request_content,
+    response,
+    response_content,
+    transaction_id: str,
+    raw_transaction_repository: RawTransactionRepository,
 ):
     request_data = RawTransaction(
         transaction_id=transaction_id,
@@ -73,7 +75,7 @@ def store_raw_transactions(
             headers=dict(request.headers),
             extensions=dict(request.extensions),
             content=request_content,
-        )
+        ),
     )
     response_data = RawTransaction(
         transaction_id=transaction_id,
@@ -87,8 +89,7 @@ def store_raw_transactions(
             content=response_content,
             elapsed=response.elapsed.total_seconds(),
             encoding=response.encoding,
-        )
+        ),
     )
     raw_transaction_repository.add(request_data)
     raw_transaction_repository.add(response_data)
-    

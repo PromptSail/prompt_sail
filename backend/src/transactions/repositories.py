@@ -10,7 +10,7 @@ class TransactionNotFoundException(NotFoundException):
     """
     Exception raised when a transaction is not found.
     """
-    
+
 
 class TransactionRepository(MongoRepository):
     """

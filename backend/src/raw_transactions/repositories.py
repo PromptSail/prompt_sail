@@ -1,15 +1,13 @@
-from datetime import datetime
-from operator import attrgetter
-
+from raw_transactions.models import RawTransaction, TransactionTypeEnum
 from seedwork.exceptions import NotFoundException
 from seedwork.repositories import MongoRepository
-from raw_transactions.models import RawTransaction, TransactionTypeEnum
 
 
 class RawTransactionNotFoundException(NotFoundException):
     """
     Exception raised when a raw transaction is not found.
     """
+
     ...
 
 
@@ -31,7 +29,7 @@ class RawTransactionRepository(MongoRepository):
         """
         result = super().add(doc)
         return result
-    
+
     def get_for_transaction(self, transaction_id: str) -> list[RawTransaction]:
         """
         Retrieve a list of transactions associated with a specific project.
@@ -40,7 +38,7 @@ class RawTransactionRepository(MongoRepository):
         :return: A list of RawTransaction objects associated with the specified transaction.
         """
         return self.find({"transaction_id": transaction_id})
-     
+
     def get_request_by_transaction_id(self, transaction_id: str) -> RawTransaction:
         """
         Retrieve a specific transaction by its unique identifier.
@@ -48,7 +46,9 @@ class RawTransactionRepository(MongoRepository):
         :param transaction_id: The unique identifier of the transaction to retrieve.
         :return: The RawTransaction object (type - request) corresponding to the specified transaction_id.
         """
-        return self.find_one({"_id": transaction_id, "type": TransactionTypeEnum.request})
+        return self.find_one(
+            {"_id": transaction_id, "type": TransactionTypeEnum.request}
+        )
 
     def get_response_by_transaction_id(self, transaction_id: str) -> RawTransaction:
         """
@@ -57,7 +57,9 @@ class RawTransactionRepository(MongoRepository):
         :param transaction_id: The unique identifier of the transaction to retrieve.
         :return: The RawTransaction object (type - request) corresponding to the specified transaction_id.
         """
-        return self.find_one({"_id": transaction_id, "type": TransactionTypeEnum.response})
+        return self.find_one(
+            {"_id": transaction_id, "type": TransactionTypeEnum.response}
+        )
 
     def delete_cascade(self, transaction_id: str):
         """

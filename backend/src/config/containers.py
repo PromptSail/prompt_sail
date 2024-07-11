@@ -15,9 +15,9 @@ from dependency_injector.providers import Dependency, Factory, Provider, Singlet
 from dependency_injector.wiring import Provide, inject  # noqa
 from lato import Application, DependencyProvider, TransactionContext
 from projects.repositories import ProjectRepository
+from raw_transactions.repositories import RawTransactionRepository
 from settings.repositories import SettingsRepository
 from transactions.repositories import TransactionRepository
-from raw_transactions.repositories import RawTransactionRepository
 from utils import read_provider_pricelist
 
 # logger = logging.getLogger("ps")
@@ -268,7 +268,9 @@ class TransactionContainer(containers.DeclarativeContainer):
         TransactionRepository, db_client=db_client, collection_name="transactions"
     )
     raw_transaction_repository = providers.Singleton(
-        RawTransactionRepository, db_client=db_client, collection_name="raw_transactions"
+        RawTransactionRepository,
+        db_client=db_client,
+        collection_name="raw_transactions",
     )
     settings_repository = providers.Singleton(
         SettingsRepository, db_client=db_client, collection_name="settings"
