@@ -34,7 +34,10 @@ from projects.use_cases import (
     get_project,
     update_project,
 )
+from raw_transactions.models import TransactionTypeEnum
+from raw_transactions.schemas import CreateRawTransactionSchema
 from raw_transactions.use_cases import (
+    add_raw_transaction,
     get_request_for_transaction,
     get_response_for_transaction,
 )
@@ -43,7 +46,7 @@ from settings.use_cases import get_organization_name
 from slugify import slugify
 from transactions.models import generate_uuid
 from transactions.schemas import (
-    CreateTransactionSchema,
+    CreateTransactionWithRawDataSchema,
     GetTransactionLatencyStatisticsWithoutDateSchema,
     GetTransactionPageResponseSchema,
     GetTransactionSchema,
@@ -971,7 +974,7 @@ async def get_users(
 )
 def create_transaction(
     request: Request,
-    data: CreateTransactionSchema,
+    data: CreateTransactionWithRawDataSchema,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> GetTransactionSchema:
     if ((data.status_code == 200) and data.model and data.provider) and not (
@@ -1013,7 +1016,30 @@ def create_transaction(
             data.generation_speed = 0
 
     created_transaction = ctx.call(add_transaction, data=data)
-    return GetTransactionSchema(**created_transaction.model_dump())
+
+    request_data = CreateRawTransactionSchema(
+        transaction_id=created_transaction.id,
+        type=TransactionTypeEnum.request,
+        data=data.request,
+    )
+
+    response_data = CreateRawTransactionSchema(
+        transaction_id=created_transaction.id,
+        type=TransactionTypeEnum.response,
+        data=data.response,
+    )
+
+    raw_transaction_request = ctx.call(add_raw_transaction, data=request_data)
+    raw_transaction_response = ctx.call(add_raw_transaction, data=response_data)
+
+    project = ctx.call(get_project, project_id=created_transaction.project_id)
+
+    return GetTransactionWithRawDataSchema(
+        **created_transaction.model_dump(),
+        project_name=project.name,
+        request=raw_transaction_request.data,
+        response=raw_transaction_response.data,
+    )
 
 
 @app.post("/api/only_for_purpose/mock_transactions", response_class=JSONResponse)
@@ -1024,7 +1050,7 @@ async def mock_transactions(
     date_to: datetime,
 ) -> dict[str, Any]:
     """
-    API endpoint to generate a set of mock transactions. Warining! This endpoint is only for testing purposes and will delete all transactions for project-test.
+    API endpoint to generate a set of mock transactions. Warning! This endpoint is only for testing purposes and will delete all transactions for project-test.
 
     :param count: How many transactions you want to mock.
     :param date_from: The start date from which transactions should be added.
@@ -1035,7 +1061,7 @@ async def mock_transactions(
     time_start = datetime.now(tz=timezone.utc)
     repo = ctx["transaction_repository"]
 
-    # Delete all transactions for project-test in order to avoid duplicates transations keys
+    # Delete all transactions for project-test in order to avoid duplicates transactions keys
     repo.delete_cascade(project_id="project-test")
 
     # generate random transactions, with different models and providers

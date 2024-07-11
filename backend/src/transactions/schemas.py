@@ -121,10 +121,33 @@ class GetTransactionPageResponseSchema(BaseModel):
     total_elements: int
 
 
-class CreateTransactionSchema(BaseModel):
+class CreateTransactionWithRawDataSchema(BaseModel):
     project_id: str
     request: dict[str, Any]
     response: dict[str, Any]
+    tags: list[str]
+    provider: str
+    model: str | None
+    type: str
+    os: str | None
+    input_tokens: int | None
+    output_tokens: int | None
+    library: str
+    status_code: int
+    messages: list[dict[str, Any]] | str | None
+    last_message: str | None
+    prompt: str
+    error_message: str | None
+    generation_speed: int | float | None
+    request_time: datetime
+    input_cost: int | float | None
+    output_cost: int | float | None
+    total_cost: int | float | None
+    response_time: datetime | None
+
+
+class CreateTransactionSchema(BaseModel):
+    project_id: str
     tags: list[str]
     provider: str
     model: str | None

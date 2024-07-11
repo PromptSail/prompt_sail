@@ -1,5 +1,6 @@
 from .models import RawTransaction, TransactionTypeEnum
 from .repositories import RawTransactionRepository
+from .schemas import CreateRawTransactionSchema
 
 
 def get_raw_transaction_for_transaction(
@@ -55,6 +56,15 @@ def delete_raw_transactions(
     :return: None
     """
     raw_transaction_repository.delete_cascade(transaction_id=transaction_id)
+
+
+def add_raw_transaction(
+    data: CreateRawTransactionSchema,
+    raw_transaction_repository: RawTransactionRepository,
+) -> RawTransaction:
+    raw_transaction = RawTransaction(**data.model_dump())
+    raw_transaction_repository.add(raw_transaction)
+    return raw_transaction
 
 
 def store_raw_transactions(
