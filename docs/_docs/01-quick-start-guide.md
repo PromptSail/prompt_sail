@@ -126,7 +126,7 @@ Mongo-Express acts as a web-based MongoDB admin interface. It should be accessib
 In the Prompt Sail UI, go to your [Organization's dashboard](/docs/organization-dashboard) . Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
 
 
-## Make your first API call
+## Make your first Gen AI API call
 
 ### OpenAI Chat model example
 
@@ -158,9 +158,11 @@ openai_org_id = os.getenv("OPENAI_ORG_ID")
 ```
 
 
-To make an API call to OpenAI via Prompt Sail, you will need a **proxy_url**. This can be obtained in the Prompt Sail UI - under the AI Providers tab in your project's dashboard. Before continuing, make sure that the OpenAI is in your project's AI providers list. If not, you will need to add it first. **Once you have the auto-generated proxy-url, replace the api_base address with it in your code.**
+To make an API call to OpenAI via Prompt Sail, you will need a `proxy_url`. This can be obtained in the Prompt Sail UI - under the AI Providers tab in your [Project's Dashboard](/docs/project-dashboard). Before continuing, make sure that the OpenAI is in your project's AI providers list. If not, you will need to add it first.
 
-More about **proxy_url** [you can learn here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
+ **Once you have the auto-generated `proxy-url`, replace the `api_base` address with it in your code.**
+
+More about `proxy_url` [you can learn here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
 
 ```python
 
@@ -191,9 +193,9 @@ pprint(response.choices[0].message)
 ```
 
 
-It is also possible to tag API calls by passing tags in the **proxy_url**. To simplify this process, use the proxy url generator found in the AI Providers tab of your project dashboard. This tool is available for every AI provider you've added.
+It is also possible to tag Gen AI API calls by passing tags in the `proxy_url`. To simplify this process, use the proxy url generator found in the AI Providers tab of your [Project Dashboard]((/docs/project-dashboard)). This tool is available for every AI provider you've added.
 
-More about the structure of **proxy_url** (aka **api_base**) for passing tags [here](/docs/storing-transactions/)
+More about the structure of `proxy_url` (aka `api_base`) for passing tags [here](/docs/storing-transactions/)
 
 
 ```python
@@ -226,4 +228,4 @@ pprint(response.choices[0].message)
 
 ## More examples
 
-You can find more examples as jupyter notebooks in the repository folder [prompt_sail/examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples). All tested integrations are documented in [LLM Integration](/docs/llm-integrations/) section.
+You can find more examples as jupyter notebooks in the repository folder [prompt_sail/examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples). All examples of tested integrations are also documented in [Gen AI API integrations](/docs/gen-ai-api-integrations-with-list-of-examples/) section.
