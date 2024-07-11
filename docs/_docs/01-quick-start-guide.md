@@ -157,7 +157,8 @@ openai_key = os.getenv("OPENAI_API_KEY")
 openai_org_id = os.getenv("OPENAI_ORG_ID")
 ```
 
-To make an API call to OpenAI via Prompt Sail, you will need a **proxy_url**. This can be obtained in the Prompt Sail UI - under the AI Providers tab in your project's dashboard. Before continuing, make sure that the OpenAI is in your project's AI providers list. If not, you will need to add it first. **Once you have the auto-generated proxy-url, replace the **api_base** address with it in your code.**
+
+To make an API call to OpenAI via Prompt Sail, you will need a **proxy_url**. This can be obtained in the Prompt Sail UI - under the AI Providers tab in your project's dashboard. Before continuing, make sure that the OpenAI is in your project's AI providers list. If not, you will need to add it first. **Once you have the auto-generated proxy-url, replace the api_base address with it in your code.**
 
 More about **proxy_url** [you can learn here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
 
