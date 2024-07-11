@@ -24,12 +24,14 @@ docs:
         url: /docs/demo/
   - title: Advanced Settings
     children:
-      - title: "Input/output capturing"
+      - title: "Transaction capturing"
         url: /docs/storing-transactions/
       - title: "REST API"
         url: /docs/backend-rest-api
       - title: "Supported Models"
         url: /docs/supported-gen-ai-models
+      - title: "Gen AI API integrations"
+        url: /docs/gen-ai-api-integrations-with-list-of-examples/ 
   - title: Deployment Cookbook
     children:
       - title: "Deployment recepies"
