@@ -28,9 +28,9 @@ This section contains information about the AI providers in use. Once you have a
 1. **AI Providers (Select Provider)**: This functionality allows users to choose from a list of available AI providers to integrate into their project. The dropdown list typically contains a variety of AI providers offering different services or functionalities.
 2. **Deployment name**: The deployment name is a unique identifier for the deployment of your AI model or service within the project. It is used to create a proxy URL for a project.
 3. **Api base URL**: The API base URL is the root URL for the API endpoints provided by your AI service or model. It serves as the starting point for accessing various functionalities and resources offered by the AI provider.
-4. **Proxy URL**: The proxy URL serves as an intermediary between the project and the AI provider's API. It is generated automatically based on the deployment name and project slug. After filled in neccsesary information copy this link to used it
+4. **Proxy URL**: The proxy URL serves as an intermediary between the project and the AI provider's API. It is generated automatically based on the deployment name and project slug. After filling in the necessary information copy this link to use it.
 
-After entering the necessary information, click Add AI Provider to add it to the project. **You need to add at least one Ai Provider**
+After entering the necessary information, click Add AI Provider to add it to the project. **You need to add at least one AI Provider**
 
 ## Complete Project Creation
 

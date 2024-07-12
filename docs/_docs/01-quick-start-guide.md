@@ -1,7 +1,7 @@
 ---
 title: "Quick Start Guide"
 permalink: /docs/quick-start-guide/
-excerpt: "How build docker images and run Prompt Sail on your local machine and make your first API call."
+excerpt: "How to build docker images and run Prompt Sail on your local machine and make your first API call."
 last_modified_at: 2023-12-28T15:18:35+01:00
 redirect_from:
   - /theme-setup/
@@ -14,9 +14,9 @@ toc_sticky: true
 
 ## Run Prompt Sail on your local machine
 
-Prompt Sail is build as a set of docker containers. One for backend (promptsail-backend) and one for frontend (promptsail-ui).
+Prompt Sail is built as a set of docker containers. One for the backend (promptsail-backend) and one for the frontend (promptsail-ui).
 
-- **promptsail-backend** is a proxy that sits between your LLM framework of choice (LangChain, OpenAI python lib etc) and LLM provider API. You change `api_base` to point to Prompt Sail `proxy_url` and then it will captures and logs all your prompts and responses. 
+- **promptsail-backend** is a proxy that sits between your LLM framework of choice (LangChain, OpenAI python lib etc) and LLM provider API. You change `api_base` to point to Prompt Sail `proxy_url` and then it will capture and log all your prompts and responses. 
 - **promptsail-ui** is a user interface that allows you to view, search and analyze all transactions (prompts and responses).
 
 
@@ -29,7 +29,7 @@ There are two options to run the Prompt Sail docker containers:
 ### Build the Docker images from the source code
 
 
-Building from source will give you the latest version of the code with the newest features. However, please note that there might be uncaught bugs that could affect the stability of the application.
+Building from a source will give you the latest version of the code with the newest features. However, please note that there might be uncaught bugs that could affect the stability of the application.
 {: .notice--warning}
 
 
@@ -73,7 +73,7 @@ If you've previously pulled Prompt Sail images from ghcr, ensure to pull the pro
 docker-compose -f docker-compose.yml up
 ``` 
 
-If you want to run the dev version of the images, you can pull the `dev-release` tag insted of `latest`. More on image tagging strategy and deployments you will find at [Deployment Cookbook - Local Deployment](/docs/deploy-promptsail-local#pull-and-run-the-docker-images-from-ghcr) section.
+If you want to run the dev version of the images, you can pull the `dev-release` tag insted of `latest`. More on image tagging strategy and deployments can be found at [Deployment](/docs/deploy-promptsail-local#pull-and-run-the-docker-images-from-ghcr)](/docs/deploy-promptsail-local#pull-and-run-the-docker-images-from-ghcr) Cookbook - Local Deployment](/docs/deploy-promptsail-local#pull-and-run-the-docker-images-from-ghcr) section.
 
 
 All the environment variables are set to default and non-production deployment in the [docker-compose.yml](https://github.com/PromptSail/prompt_sail/blob/main/docker-compose.yml) it is recommended to change them to your own values. 
@@ -111,7 +111,7 @@ The MongoDB database should be running at [http://localhost:27017/](http://local
 
 Mongo-Express acts as a web-based MongoDB admin interface. It should be accessible at [http://localhost:8081/](http://localhost:8081/). 
 - Default login credentials: `admin`:`pass`
-- It is not necessary to use Mongo-Express to run Prompt Sail, but it can be helpful for debugging and monitoring the database.
+- It is not necessary to use Mongo-Express to run Prompt Sail, but it can help debug and monitor the database.
 
 
 **All the settings** can be changed in the appropriate `dokcer-compose` files: 
@@ -123,10 +123,10 @@ Mongo-Express acts as a web-based MongoDB admin interface. It should be accessib
 
 ## Create your first project and add at least one AI provider
 
-In the UI, go to your [Organization's dasboard](/docs/organization-dashboard/). Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
+In the Prompt Sail UI, go to your [Organization's dashboard](/docs/organization-dashboard) . Using the [Add new project](/docs/how-to-setup-llm-proxy-project/) form, create your first project and add at least one AI provider. 
 
 
-## Make your first API call
+## Make your first Gen AI API call
 
 ### OpenAI Chat model example
 
@@ -157,12 +157,16 @@ openai_key = os.getenv("OPENAI_API_KEY")
 openai_org_id = os.getenv("OPENAI_ORG_ID")
 ```
 
-Make an API call to OpenAI via Prompt Sail without tagging. 
-What is and where to get **api_base** [see here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
+
+To make an API call to OpenAI via Prompt Sail, you will need a `proxy_url`. This can be obtained in the Prompt Sail UI - under the AI Providers tab in your [Project's Dashboard](/docs/project-dashboard). Before continuing, make sure that the OpenAI is in your project's AI providers list. If not, you will need to add it first.
+
+ **Once you have the auto-generated `proxy-url`, replace the `api_base` address with it in your code.**
+
+More about `proxy_url` [you can learn here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
 
 ```python
 
-api_base = "http://localhost:8000/project1/openai/"
+api_base = "http://localhost:8000/projectxyz/openai/"
 
 ps_client = OpenAI(
     base_url=api_base,
@@ -189,8 +193,10 @@ pprint(response.choices[0].message)
 ```
 
 
-Make an API call to OpenAI via Prompt Sail adding some tags for the transaction. 
-How structure of **api_base** for passing tags looks like, [see here](https://promptsail.github.io/prompt_sail/docs/storing-transactions/)
+It is also possible to tag Gen AI API calls by passing tags in the `proxy_url`. To simplify this process, use the proxy url generator found in the AI Providers tab of your [Project Dashboard]((/docs/project-dashboard)). This tool is available for every AI provider you've added.
+
+More about the structure of `proxy_url` (aka `api_base`) for passing tags [here](/docs/storing-transactions/)
+
 
 ```python
 
@@ -222,6 +228,4 @@ pprint(response.choices[0].message)
 
 ## More examples
 
-You can find more examples as jupyter notebooks in the repository folder [prompt_sail/examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples). 
-
-All tested integraion are documented in [LLM Integration](/docs/llm-integrations/) section.
+You can find more examples as jupyter notebooks in the repository folder [prompt_sail/examples](https://github.com/PromptSail/prompt_sail/tree/docs/examples). All examples of tested integrations are also documented in [Gen AI API integrations](/docs/gen-ai-api-integrations-with-list-of-examples/) section.
