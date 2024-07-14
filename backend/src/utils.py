@@ -1619,13 +1619,13 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
             else 0
         )
         output_tokens = output_tokens if status == 200 else 0
-
+        input_cost, output_cost = random.uniform(0.00005, 0.05), random.uniform(
+            0.00005, 0.05
+        )
         transactions.append(
             Transaction(
                 id=transaction_id,
                 project_id="project-test",
-                request={},
-                response={},
                 tags=["tag1", "tag2", "tag3"],
                 provider=random.choice(providers),
                 model=random.choice(models),
@@ -1642,6 +1642,9 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
                 request_time=start_date,
                 response_time=stop_date,
                 generation_speed=generation_speed,
+                input_cost=input_cost,
+                output_cost=output_cost,
+                total_cost=input_cost + output_cost,
             )
         )
 

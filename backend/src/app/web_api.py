@@ -1123,15 +1123,17 @@ async def mock_transactions(
     :return: A dictionary containing the status and message (code and latency).
     """
     time_start = datetime.now(tz=timezone.utc)
-    repo = ctx["transaction_repository"]
+    transactions_repo = ctx["transaction_repository"]
+    raw_transactions_repo = ctx["raw_transaction_repository"]
 
     # Delete all transactions for project-test in order to avoid duplicates transactions keys
-    repo.delete_cascade(project_id="project-test")
+    transactions_repo.delete_cascade(project_id="project-test")
 
     # generate random transactions, with different models and providers
     mocked_transactions = utils.generate_mock_transactions(count, date_from, date_to)
     for transaction in mocked_transactions:
-        repo.add(transaction)
+
+        transactions_repo.add(transaction)
     time_stop = datetime.now(tz=timezone.utc)
 
     return {
