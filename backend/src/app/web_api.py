@@ -2,6 +2,7 @@ import re
 from collections import defaultdict
 from typing import Annotated, Any
 
+import pandas as pd
 import utils
 from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
@@ -17,9 +18,7 @@ from projects.schemas import (
     CreateProjectSchema,
     GetAIProviderPriceSchema,
     GetAIProviderSchema,
-    GetCostPerTagSchema,
     GetPortfolioDetailsSchema,
-    GetProjectPortfolioCostPerTagSchema,
     GetProjectPortfolioSchema,
     GetProjectSchema,
     GetProjectsUsageInTimeSchema,
@@ -44,9 +43,11 @@ from raw_transactions.use_cases import (
 from seedwork.repositories import DocumentNotFoundException
 from settings.use_cases import get_organization_name
 from slugify import slugify
-from transactions.models import generate_uuid
+from transactions.models import Transaction, generate_uuid
 from transactions.schemas import (
     CreateTransactionWithRawDataSchema,
+    GetTagStatisticsInTime,
+    GetTagStatisticsSchema,
     GetTransactionLatencyStatisticsWithoutDateSchema,
     GetTransactionPageResponseSchema,
     GetTransactionSchema,
@@ -57,6 +58,7 @@ from transactions.schemas import (
     GetTransactionWithProjectSlugSchema,
     GetTransactionWithRawDataSchema,
     StatisticTransactionSchema,
+    TagStatisticTransactionSchema,
 )
 from transactions.use_cases import (
     add_transaction,
@@ -64,7 +66,6 @@ from transactions.use_cases import (
     count_transactions_for_list,
     delete_multiple_transactions,
     get_all_filtered_and_paginated_transactions,
-    get_all_transactions,
     get_list_of_filtered_transactions,
     get_transaction,
     get_transactions_for_project,
@@ -724,39 +725,43 @@ async def get_portfolio_usage_in_time(
             )
             if count == 0:
                 results[idx] = []
-            else:
-                transactions = ctx.call(
-                    get_list_of_filtered_transactions,
-                    project_id=idx,
-                    date_from=date_from,
-                    date_to=date_to,
-                    status_codes=[200],
-                )
-                transactions = [
-                    StatisticTransactionSchema(
-                        project_id=idx,
-                        provider=transaction.provider,
-                        model=transaction.model,
-                        total_input_tokens=transaction.input_tokens or 0,
-                        total_output_tokens=transaction.output_tokens or 0,
-                        total_input_cost=transaction.input_cost or 0,
-                        total_output_cost=transaction.output_cost or 0,
-                        total_cost=transaction.total_cost or 0,
-                        status_code=transaction.status_code,
-                        date=transaction.response_time,
-                        latency=(
-                            transaction.response_time - transaction.request_time
-                        ).total_seconds(),
-                        generation_speed=transaction.generation_speed,
-                        total_transactions=1,
-                    )
-                    for transaction in transactions
-                ]
 
+            transactions = ctx.call(
+                get_list_of_filtered_transactions,
+                project_id=idx,
+                date_from=date_from,
+                date_to=date_to,
+                status_codes=[200],
+            )
+            transactions = [
+                StatisticTransactionSchema(
+                    project_id=idx,
+                    provider=transaction.provider,
+                    model=transaction.model,
+                    total_input_tokens=transaction.input_tokens or 0,
+                    total_output_tokens=transaction.output_tokens or 0,
+                    total_input_cost=transaction.input_cost or 0,
+                    total_output_cost=transaction.output_cost or 0,
+                    total_cost=transaction.total_cost or 0,
+                    status_code=transaction.status_code,
+                    date=transaction.response_time,
+                    latency=(
+                        transaction.response_time - transaction.request_time
+                    ).total_seconds(),
+                    generation_speed=transaction.generation_speed,
+                    total_transactions=1,
+                )
+                for transaction in transactions
+            ]
+
+            if len(transactions) > 0:
                 stats = utils.token_counter_for_transactions(
                     transactions, period, date_from, date_to, False
                 )
                 results[idx] = stats
+
+        if sum([len(stat) for stat in results.items()]) == 0:
+            return []
 
         aggregated_data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
@@ -822,68 +827,127 @@ async def get_portfolio_usage_in_time(
     dependencies=[Security(decode_and_validate_token)],
 )
 async def get_portfolio_costs_by_tag(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
-) -> list[GetProjectPortfolioCostPerTagSchema]:
-    transactions = ctx.call(get_all_transactions)
-    cost_by_tag, tags = {}, {"untagged-transactions": 0}
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    date_from: datetime | str | None = None,
+    date_to: datetime | str | None = None,
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
+) -> list[GetTagStatisticsInTime]:
+    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+    count = ctx.call(
+        count_transactions,
+        date_from=date_from,
+        date_to=date_to,
+        status_codes=[200],
+    )
+    if count == 0:
+        return []
+
+    transactions = ctx.call(
+        get_list_of_filtered_transactions,
+        date_from=date_from,
+        date_to=date_to,
+        status_codes=[200],
+    )
+
+    transactions_multiplied = []
     for transaction in transactions:
-        date = transaction.response_time.date()
-        if date not in cost_by_tag.keys():
-            cost_by_tag[date] = []
-        if len(transaction.tags) > 0:
-            for tag in transaction.tags:
-                try:
-                    tags[tag] += (
-                        transaction.total_cost
-                        if transaction.total_cost is not None
-                        else 0
-                    )
-                except KeyError:
-                    tags[tag] = (
-                        transaction.total_cost
-                        if transaction.total_cost is not None
-                        else 0
-                    )
-
-                try:
-                    idx = cost_by_tag[date].index(
-                        [stat for stat in cost_by_tag[date] if stat["tag"] == tag][0]
-                    )
-                    cost_by_tag[date][idx]["cost"] += (
-                        transaction.total_cost
-                        if transaction.total_cost is not None
-                        else 0
-                    )
-                except IndexError:
-                    cost_by_tag[date].append({"tag": tag, "cost": tags[tag]})
-        else:
-            tags["untagged-transactions"] += (
-                transaction.total_cost if transaction.total_cost is not None else 0
+        if len(transaction.tags) == 0:
+            transactions_multiplied.append(
+                Transaction(
+                    id=transaction.id,
+                    project_id=transaction.project_id,
+                    tags=["untagged-transactions"],
+                    provider=transaction.provider,
+                    model=transaction.model,
+                    type=transaction.type,
+                    os=transaction.os,
+                    input_tokens=transaction.input_tokens,
+                    output_tokens=transaction.output_tokens,
+                    library=transaction.library,
+                    status_code=transaction.status_code,
+                    messages=transaction.messages,
+                    last_message=transaction.last_message,
+                    prompt=transaction.prompt,
+                    error_message=transaction.error_message,
+                    generation_speed=transaction.generation_speed,
+                    input_cost=transaction.input_cost,
+                    output_cost=transaction.output_cost,
+                    total_cost=transaction.total_cost,
+                    request_time=transaction.request_time,
+                    response_time=transaction.response_time,
+                    hate=transaction.hate,
+                    self_harm=transaction.self_harm,
+                    violence=transaction.violence,
+                    sexual=transaction.sexual,
+                )
             )
-            try:
-                idx = cost_by_tag[date].index(
-                    [
-                        stat
-                        for stat in cost_by_tag[date]
-                        if stat["tag"] == "untagged-transactions"
-                    ][0]
-                )
-                cost_by_tag[date][idx]["cost"] += (
-                    transaction.total_cost if transaction.total_cost is not None else 0
-                )
-            except IndexError:
-                cost_by_tag[date].append(
-                    {
-                        "tag": "untagged-transactions",
-                        "cost": tags["untagged-transactions"],
-                    }
+        else:
+            for tag in transaction.tags:
+                transactions_multiplied.append(
+                    Transaction(
+                        id=transaction.id,
+                        project_id=transaction.project_id,
+                        tags=[tag],
+                        provider=transaction.provider,
+                        model=transaction.model,
+                        type=transaction.type,
+                        os=transaction.os,
+                        input_tokens=transaction.input_tokens,
+                        output_tokens=transaction.output_tokens,
+                        library=transaction.library,
+                        status_code=transaction.status_code,
+                        messages=transaction.messages,
+                        last_message=transaction.last_message,
+                        prompt=transaction.prompt,
+                        error_message=transaction.error_message,
+                        generation_speed=transaction.generation_speed,
+                        input_cost=transaction.input_cost,
+                        output_cost=transaction.output_cost,
+                        total_cost=transaction.total_cost,
+                        request_time=transaction.request_time,
+                        response_time=transaction.response_time,
+                        hate=transaction.hate,
+                        self_harm=transaction.self_harm,
+                        violence=transaction.violence,
+                        sexual=transaction.sexual,
+                    )
                 )
 
-    results = []
-    for key, values in cost_by_tag.items():
-        values = [GetCostPerTagSchema(**value) for value in values]
-        results.append(GetProjectPortfolioCostPerTagSchema(date=key, records=values))
-    return results
+    transactions = [
+        TagStatisticTransactionSchema(
+            tag=transaction.tags[0],
+            total_input_tokens=transaction.input_tokens or 0,
+            total_output_tokens=transaction.output_tokens or 0,
+            total_input_cost=transaction.input_cost or 0,
+            total_output_cost=transaction.output_cost or 0,
+            total_cost=transaction.total_cost or 0,
+            date=transaction.response_time,
+            total_transactions=1,
+        )
+        for transaction in transactions_multiplied
+    ]
+
+    if len(transactions) > 0:
+        stats = utils.token_counter_for_transactions_by_tag(
+            transactions, period, date_from, date_to, False
+        )
+        df = pd.DataFrame([stat.model_dump() for stat in stats])
+        grouped = (
+            df.groupby("date")
+            .apply(lambda x: x.to_dict(orient="records"))
+            .reset_index(name="records")
+        )
+        output = grouped.to_dict(orient="records")
+
+        response = []
+        for row in output:
+            records = []
+            for record in row["records"]:
+                records.append(GetTagStatisticsSchema(**record))
+            response.append(GetTagStatisticsInTime(date=row["date"], records=records))
+        return response
+
+    return []
 
 
 @app.get(

@@ -16,10 +16,12 @@ from _datetime import datetime, timedelta
 from PIL import Image
 from transactions.models import Transaction
 from transactions.schemas import (
+    GetTagStatisticTransactionSchema,
     GetTransactionLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionUsageStatisticsSchema,
     StatisticTransactionSchema,
+    TagStatisticTransactionSchema,
 )
 
 
@@ -1322,6 +1324,106 @@ def speed_counter_for_transactions(
             if data["generation_speed"] > 0 and data["transactions_code_200"] > 0
             else 0,
             total_transactions=data["total_transactions"],
+        )
+        for data in data_dicts
+    ]
+
+    return result_list
+
+
+def token_counter_for_transactions_by_tag(
+    transactions: list[TagStatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    cumulative_total_cost: bool = True,
+) -> list[GetTagStatisticTransactionSchema]:
+    """
+    Calculate token usage statistics based on a given period.
+
+    This function takes a list of transactions and calculates token usage statistics
+    aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
+
+    :param transactions: A list of StatisticTransactionSchema objects representing transactions.
+    :param period: A string indicating the aggregation period.
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
+    :param cumulative_total_cost: The switch that decides if total cost is cumulative or not.
+    :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
+    """
+    data_dicts = [dto.model_dump() for dto in transactions]
+    df = pd.DataFrame(data_dicts)
+    tags = list(set([transaction.tag for transaction in transactions]))
+    if date_from:
+        for tag in tags:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
+                "tag": tag,
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
+                "total_transactions": 0,
+            }
+    if date_to:
+        for tag in tags:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
+                "tag": tag,
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
+                "total_transactions": 0,
+            }
+
+    df.set_index("date", inplace=True)
+    period = pandas_period_from_string(period)
+    result = (
+        df.groupby("tag")
+        .resample(period)
+        .agg(
+            {
+                "tag": "first",
+                "total_input_tokens": "sum",
+                "total_output_tokens": "sum",
+                "total_input_cost": "sum",
+                "total_output_cost": "sum",
+                "total_cost": "sum",
+                "total_transactions": "sum",
+            }
+        )
+    )
+
+    del result["tag"]
+
+    result = result.reset_index()
+
+    result["output_cumulative_total"] = result.groupby("tag")[
+        "total_output_tokens"
+    ].cumsum()
+    result["input_cumulative_total"] = result.groupby("tag")[
+        "total_input_tokens"
+    ].cumsum()
+    result["total_cumulative_cost"] = result.groupby("tag")["total_cost"].cumsum()
+
+    data_dicts = result.to_dict(orient="records")
+
+    result_list = [
+        GetTagStatisticTransactionSchema(
+            tag=data["tag"],
+            date=data["date"],
+            total_input_tokens=data["total_input_tokens"],
+            total_output_tokens=data["total_output_tokens"],
+            input_cumulative_total=data["input_cumulative_total"],
+            output_cumulative_total=data["output_cumulative_total"],
+            total_transactions=data["total_transactions"],
+            total_cost=data["total_cumulative_cost"]
+            if cumulative_total_cost
+            else data["total_cost"],
         )
         for data in data_dicts
     ]

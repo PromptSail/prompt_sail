@@ -54,6 +54,43 @@ class StatisticTransactionSchema(BaseModel):
     generation_speed: int | float | None
 
 
+class TagStatisticTransactionSchema(BaseModel):
+    tag: str
+    total_input_tokens: int
+    total_output_tokens: int
+    total_input_cost: int | float | None
+    total_output_cost: int | float | None
+    total_cost: int | float | None
+    date: datetime
+    total_transactions: int
+
+
+class GetTagStatisticTransactionSchema(BaseModel):
+    tag: str
+    total_input_tokens: int
+    total_output_tokens: int
+    input_cumulative_total: int | float | None
+    output_cumulative_total: int | float | None
+    total_cost: int | float | None
+    date: datetime
+    total_transactions: int
+
+
+class GetTagStatisticsSchema(BaseModel):
+    tag: str
+    total_input_tokens: int
+    total_output_tokens: int
+    input_cumulative_total: int | float | None
+    output_cumulative_total: int | float | None
+    total_cost: int | float | None
+    total_transactions: int
+
+
+class GetTagStatisticsInTime(BaseModel):
+    date: datetime
+    records: list[GetTagStatisticsSchema]
+
+
 class GetTransactionUsageStatisticsSchema(BaseModel):
     provider: str
     model: str

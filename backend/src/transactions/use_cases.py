@@ -296,10 +296,10 @@ def store_transaction(
 
 
 def get_list_of_filtered_transactions(
-    project_id: str,
     date_from: datetime,
     date_to: datetime,
     transaction_repository: TransactionRepository,
+    project_id: str | None = None,
     null_generation_speed: bool = True,
     status_codes: list[str] | None = None,
     providers: list[str] | None = None,
