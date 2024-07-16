@@ -1124,7 +1124,6 @@ async def mock_transactions(
     """
     time_start = datetime.now(tz=timezone.utc)
     transactions_repo = ctx["transaction_repository"]
-    raw_transactions_repo = ctx["raw_transaction_repository"]
 
     # Delete all transactions for project-test in order to avoid duplicates transactions keys
     transactions_repo.delete_cascade(project_id="project-test")
@@ -1132,11 +1131,29 @@ async def mock_transactions(
     # generate random transactions, with different models and providers
     mocked_transactions = utils.generate_mock_transactions(count, date_from, date_to)
     for transaction in mocked_transactions:
-
         transactions_repo.add(transaction)
     time_stop = datetime.now(tz=timezone.utc)
 
     return {
         "status_code": 200,
         "message": f"{count} transactions added in {(time_stop-time_start).total_seconds()} seconds.",
+    }
+
+
+@app.post("/api/only_for_purpose/remove_mocked_transactions", response_class=JSONResponse)
+async def mock_transactions(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+) -> dict[str, Any]:
+    """
+    API endpoint to remove mocked transactions. Warning! This endpoint is only for testing purposes and will delete all transactions for project-test.
+
+    :param ctx: The transaction context dependency.
+    :return: A dictionary containing the status and message.
+    """
+    transactions_repo = ctx["transaction_repository"]
+    transactions_repo.delete_cascade(project_id="project-test")
+
+    return {
+        "status_code": 200,
+        "message": f"Mocked transactions removed",
     }
