@@ -21,6 +21,10 @@ class Config(BaseSettings):
     AZURE_CLIENT_ID: str | None = os.getenv("AZURE_CLIENT_ID", None)
     SSO_AUTH: bool = os.getenv("SSO_AUTH", "False").lower() in ("true", "1", "t")
     JWT_SECRET: str = os.getenv("JWT_SECRET", "PromptSail")
+    SMTP_SERVER: str = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    SMTP_PORT: int = os.getenv("SMTP_PORT", 587)
+    SMTP_USERNAME: str | None = os.getenv("SMTP_USERNAME", None)
+    SMTP_PASSWORD: str | None = os.getenv("SMTP_PASSWORD", None)
 
 
 config = Config()

@@ -22,9 +22,11 @@ from auth.use_cases import (
     get_all_users,
     get_local_user,
 )
+from config import config
 from fastapi import Depends, HTTPException, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
+from mailing import EmailSchema, send_email
 from projects.models import AIProvider, Project
 from projects.schemas import (
     CreateProjectSchema,
@@ -152,8 +154,28 @@ def register(
 
     ctx.call(add_user_credential, user_credential=credential)
 
-    # Here need to add sending confirmation email
+    email = EmailSchema(
+        email=register_form.email,
+        subject="PromptSail account activation",
+        message=f"""
+            Dear {register_form.given_name} {register_form.family_name},
+    
+            Welcome to PromptSail!
+            To get started and activate your account, copy and paste the following URL into your browser:
+            {config.BASE_URL}/api/auth/activate/{created_user.id}
+            If you did not sign up for this account, please ignore this email or contact our support team.
+            
+            Thank you for joining us!
+            
+            Best regards,
+            PromptSail Team.
+            
+            
+            Note: This is an automated message. Please do not reply to this email.
+        """,
+    )
 
+    send_email(email)
     return GetUserSchema(**created_user.model_dump())
 
 
@@ -182,7 +204,7 @@ def login(
     return generate_local_jwt(user)
 
 
-@app.put(
+@app.get(
     "/api/auth/activate/{user_id:str}", response_class=JSONResponse, status_code=200
 )
 def activate_account(
