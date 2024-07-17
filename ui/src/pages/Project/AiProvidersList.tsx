@@ -313,7 +313,7 @@ const ProviderDescription: React.FC<{
                     <Text>Proxy URL:</Text>
                 </Col>
                 <Col flex="auto">
-                    <Text copyable>{makeUrl(slug, el.deployment_name)}</Text>
+                    <Text copyable>{makeUrl(slug, el.slug)}</Text>
                 </Col>
             </Row>
             <Row gutter={12}>
@@ -398,7 +398,7 @@ const ProviderDescription: React.FC<{
                                 <Flex gap={16}>
                                     <Input
                                         className="max-w-[50%] w-full"
-                                        value={makeUrl(slug, el.deployment_name) + AllTags}
+                                        value={makeUrl(slug, el.slug) + AllTags}
                                         disabled
                                     />
                                     <Button
@@ -406,7 +406,7 @@ const ProviderDescription: React.FC<{
                                         icon={<CopyOutlined />}
                                         onClick={() => {
                                             navigator.clipboard.writeText(
-                                                makeUrl(slug, el.deployment_name) + AllTags
+                                                makeUrl(slug, el.slug) + AllTags
                                             );
                                         }}
                                     />

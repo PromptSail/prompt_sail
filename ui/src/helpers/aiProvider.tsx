@@ -1,7 +1,7 @@
 import slugify from 'slugify';
 
 export const toSlug = (text: string) => {
-    const newText = text.replace(/^\d+|[@*()+:'"~]/g, '');
+    const newText = text.replace(/^\d+|[@*()+:'"~]/g, '').replace(/_/g, '-');
     return slugify(newText, {
         replacement: '-',
         lower: true
