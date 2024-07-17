@@ -58,7 +58,7 @@ def check_if_email_exists(user_email: str, user_repository: UserRepository) -> b
     :return: Boolean value.
     """
     count = user_repository.count({"email": user_email})
-    return count == 1
+    return count > 0
 
 
 def activate_user(user_id: str, user_repository: UserRepository) -> User:

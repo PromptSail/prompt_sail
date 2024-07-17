@@ -29,21 +29,22 @@ class UserRepository(MongoRepository):
         Add a project document to the repository.
 
         :param doc: The Project object to be added.
-        :raise SlugAlreadyExistsException: If the slug already exists in the repository.
+        :raise UserAlreadyExistsException: If the slug already exists in the repository.
         :return: The result of the add operation.
         """
-        if self.count({"_id": doc.id}) > 0:
-            raise UserAlreadyExistsException(f"Slug already exists: {doc.slug}")
+        if self.count({"email": doc.email}) > 0:
+            raise UserAlreadyExistsException(
+                f"User with this email already exists: {doc.email}"
+            )
         result = super().add(doc)
         return result
 
     def update(self, doc) -> User:
         """
-        Update a project document in the repository.
+        Update a user document in the repository.
 
-        :param doc: The Project object to be updated.
-        :raise SlugAlreadyExistsException: If the updated slug already exists in the repository.
-        :raise ProjectNotFoundException: If the project with the specified identifier is not found.
+        :param doc: The User object to be updated.
+        :raise UserNotFoundException: If the user with the specified identifier is not found.
         :return: The result of the update operation.
         """
         if self.count({"_id": doc.id}) == 0:
@@ -53,10 +54,10 @@ class UserRepository(MongoRepository):
 
     def get(self, doc_id: str) -> User | None:
         """
-        Retrieve a project by its unique identifier.
+        Retrieve a user by its unique identifier.
 
-        :param doc_id: The unique identifier of the project to be retrieved.
-        :return: The Project object corresponding to the specified identifier.
+        :param doc_id: The unique identifier of the user to be retrieved.
+        :return: The User object corresponding to the specified identifier.
         """
         if self.count({"_id": doc_id}) == 0:
             raise UserNotFoundException(f"User with id: {doc_id} not found.")
@@ -65,10 +66,10 @@ class UserRepository(MongoRepository):
 
     def get_by_external_id(self, external_id: str) -> User | None:
         """
-        Retrieve a project by its unique external identifier.
+        Retrieve a user by its unique external identifier.
 
-        :param external_id: The unique external identifier of the project to be retrieved.
-        :return: The Project object corresponding to the specified identifier.
+        :param external_id: The unique external identifier of the user to be retrieved.
+        :return: The User object corresponding to the specified identifier.
         """
         if self.count({"external_id": external_id}) == 0:
             return None

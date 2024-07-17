@@ -1,5 +1,6 @@
 import json
 import urllib.request
+from datetime import datetime, timedelta
 from typing import Annotated
 
 import jwt
@@ -58,6 +59,24 @@ class UserBuilder:
         return User(**self.__dict__)
 
 
+def generate_local_jwt(user: User):
+    payload = {
+        "iss": "PromptSail",
+        "sub": user.id,
+        "email": user.email,
+        "email_verified": user.is_active,
+        "name": f"{user.given_name} {user.family_name}",
+        "hd": user.organization,
+        "picture": user.picture,
+        "given_name": user.given_name,
+        "family_name": user.family_name,
+        "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + timedelta(hours=1),
+    }
+    token = jwt.encode(payload, config.JWT_SECRET, algorithm="HS256")
+    return token
+
+
 def get_jwks_url(issuer_url):
     well_known_url = issuer_url + "/.well-known/openid-configuration"
     with urllib.request.urlopen(well_known_url) as response:
@@ -98,6 +117,22 @@ if config.SSO_AUTH:
                     picture="",
                     issuer="test",
                     is_active=True,
+                )
+
+            if "PromptSail" == unvalidated["iss"] and unvalidated["email_verified"]:
+                if datetime.utcnow() > datetime.utcfromtimestamp(unvalidated["exp"]):
+                    raise HTTPException(
+                        status_code=401, detail="Token has expired (exp claim)."
+                    )
+                return User(
+                    external_id=unvalidated["sub"],
+                    email=unvalidated["email"],
+                    organization=unvalidated["hd"],
+                    given_name=unvalidated["given_name"],
+                    family_name=unvalidated["given_name"],
+                    picture=unvalidated["picture"],
+                    issuer=unvalidated["iss"],
+                    is_active=unvalidated["email_verified"],
                 )
 
             jwks_url = get_jwks_url(unvalidated["iss"])

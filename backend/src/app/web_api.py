@@ -1,14 +1,20 @@
 import re
 from collections import defaultdict
+from hashlib import sha3_256
 from typing import Annotated, Any
 
 import pandas as pd
 import utils
 from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
-from auth.authorization import decode_and_validate_token
+from auth.authorization import decode_and_validate_token, generate_local_jwt
 from auth.models import User
-from auth.schemas import CreateUserSchema, GetPartialUserSchema, GetUserSchema
+from auth.schemas import (
+    CreateUserSchema,
+    GetPartialUserSchema,
+    GetUserSchema,
+    LoginSchema,
+)
 from auth.use_cases import (
     activate_user,
     add_user,
@@ -76,6 +82,12 @@ from transactions.use_cases import (
     get_transaction,
     get_transactions_for_project,
 )
+from user_credentials.models import UserCredential
+from user_credentials.use_cases import (
+    add_user_credential,
+    check_if_username_exists,
+    get_user_credential,
+)
 
 from .app import app
 
@@ -92,6 +104,7 @@ def whoami(
         family_name=user.family_name,
         picture=user.picture,
         issuer=user.issuer,
+        is_active=user.is_active,
     )
 
 
@@ -99,7 +112,7 @@ def whoami(
 def register(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     register_form: CreateUserSchema,
-):
+) -> GetUserSchema:
     if register_form.password != register_form.repeated_password:
         raise HTTPException(status_code=409, detail="Passwords don't match.")
 
@@ -107,6 +120,12 @@ def register(
     if email_exist:
         raise HTTPException(
             status_code=409, detail="User with this email already exists."
+        )
+
+    username_exist = ctx.call(check_if_username_exists, username=register_form.username)
+    if username_exist:
+        raise HTTPException(
+            status_code=409, detail="User with this username already exists."
         )
 
     user = User(
@@ -122,14 +141,45 @@ def register(
 
     created_user = ctx.call(add_user, user=user)
 
-    # user_credentials = {
-    #     "id": created_user.id,
-    #     "username": register_form.username,
-    #     "password": register_form.password
-    # }
-    #
+    password = sha3_256()
+    password.update(register_form.password.encode("utf-8"))
+
+    credential = UserCredential(
+        user_id=created_user.id,
+        username=register_form.username,
+        password=password.hexdigest(),
+    )
+
+    ctx.call(add_user_credential, user_credential=credential)
+
+    # Here need to add sending confirmation email
 
     return GetUserSchema(**created_user.model_dump())
+
+
+@app.post("/api/auth/login", response_class=JSONResponse, status_code=200)
+def login(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    login_form: LoginSchema,
+):
+    username_exist = ctx.call(check_if_username_exists, username=login_form.username)
+    if not username_exist:
+        raise HTTPException(status_code=404, detail="User doesn't exists.")
+
+    user_credential = ctx.call(get_user_credential, username=login_form.username)
+
+    password = sha3_256()
+    password.update(login_form.password.encode("utf-8"))
+
+    if password.hexdigest() != user_credential.password:
+        raise HTTPException(status_code=401, detail="Incorrect password.")
+
+    user = ctx.call(get_local_user, user_id=user_credential.user_id)
+
+    if not user.is_active:
+        raise HTTPException(status_code=401, detail="Account is not active.")
+
+    return generate_local_jwt(user)
 
 
 @app.put(

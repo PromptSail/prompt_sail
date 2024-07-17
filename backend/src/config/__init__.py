@@ -20,6 +20,7 @@ class Config(BaseSettings):
     GOOGLE_CLIENT_ID: str | None = os.getenv("GOOGLE_CLIENT_ID", None)
     AZURE_CLIENT_ID: str | None = os.getenv("AZURE_CLIENT_ID", None)
     SSO_AUTH: bool = os.getenv("SSO_AUTH", "False").lower() in ("true", "1", "t")
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "PromptSail")
 
 
 config = Config()

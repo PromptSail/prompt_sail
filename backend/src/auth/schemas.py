@@ -9,6 +9,7 @@ class GetUserSchema(BaseModel):
     family_name: str
     picture: str | None
     issuer: str
+    is_active: bool
 
 
 class GetPartialUserSchema(BaseModel):
@@ -25,3 +26,8 @@ class CreateUserSchema(BaseModel):
     username: str
     password: str
     repeated_password: str
+
+
+class LoginSchema(BaseModel):
+    username: str
+    password: str

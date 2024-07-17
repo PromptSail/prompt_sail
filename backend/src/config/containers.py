@@ -18,6 +18,7 @@ from projects.repositories import ProjectRepository
 from raw_transactions.repositories import RawTransactionRepository
 from settings.repositories import SettingsRepository
 from transactions.repositories import TransactionRepository
+from user_credentials.repositories import UserCredentialRepository
 from utils import read_provider_pricelist
 
 # logger = logging.getLogger("ps")
@@ -277,4 +278,9 @@ class TransactionContainer(containers.DeclarativeContainer):
     )
     user_repository = providers.Singleton(
         UserRepository, db_client=db_client, collection_name="users"
+    )
+    user_credential_repository = providers.Singleton(
+        UserCredentialRepository,
+        db_client=db_client,
+        collection_name="user_credentials",
     )
