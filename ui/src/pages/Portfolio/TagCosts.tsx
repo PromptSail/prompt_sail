@@ -49,7 +49,7 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                 date: string;
                                 records: {
                                     tag: string;
-                                    cost: number;
+                                    total_cost: number;
                                 }[];
                             }) => {
                                 const record: (typeof chartData.records)[0] = {
@@ -61,7 +61,7 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                     if (!chartData.legend.includes(legendName)) {
                                         chartData.legend.push(legendName);
                                     }
-                                    record[`cost_${legendName}`] = rec.cost;
+                                    record[`cost_${legendName}`] = rec.total_cost;
                                 });
 
                                 chartData.records.push(record);
@@ -134,10 +134,6 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                     isAnimationActive={false}
                                     formatter={(v) => '$ ' + dataRounding(v, 4)}
                                     itemSorter={customSorter}
-                                />
-                                <Brush
-                                    dataKey="date"
-                                    tickFormatter={(v) => dateFormatter(v, Period.Daily)}
                                 />
                                 <Legend
                                     align="left"
