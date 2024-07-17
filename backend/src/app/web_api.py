@@ -1140,7 +1140,9 @@ async def mock_transactions(
     }
 
 
-@app.post("/api/only_for_purpose/remove_mocked_transactions", response_class=JSONResponse)
+@app.post(
+    "/api/only_for_purpose/remove_mocked_transactions", response_class=JSONResponse
+)
 async def mock_transactions(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> dict[str, Any]:

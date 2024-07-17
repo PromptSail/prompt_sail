@@ -351,12 +351,15 @@ class TransactionParamExtractor:
         patterns = {
             "Azure Embeddings": r".*openai\.azure\.com.*embeddings.*",
             "Azure Completions": r".*openai\.azure\.com.*completions.*",
+            "Azure Images Generations": r".*openai\.azure\.com.*images\/generations.*",
+            "Azure Images Variations": r".*openai\.azure\.com.*images\/variations.*",
+            "Azure Images Edits": r".*openai\.azure\.com.*images\/edits.*",
             "OpenAI Chat Completions": r".*api\.openai\.com.*chat.*completions.*",
             "OpenAI Completions": r".*api\.openai\.com(?!.*chat).*\/completions.*",
             "OpenAI Embeddings": r".*api\.openai\.com.*embeddings.*",
             "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
-            "OpenAI Image Generations": r".*api\.openai\.com.*images.*generations.*",
-            "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
+            "OpenAI Images Generations": r".*api\.openai\.com.*images.*generations.*",
+            "OpenAI Images Edits": r".*api\.openai\.com.*images.*edits.*",
             "Groq": r".*api\.groq\.com.*\/openai\/v1\/chat\/completions",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
@@ -366,6 +369,8 @@ class TransactionParamExtractor:
 
         for pattern_name, pattern_regex in patterns.items():
             if re.match(pattern_regex, url):
+                print(pattern_regex)
+                print(url)
                 return pattern_name
         return "Unsupported"
 
@@ -473,6 +478,198 @@ class TransactionParamExtractor:
                 "content"
             ]
         extracted["messages"] = messages
+        return extracted
+
+    def _extract_from_azure_images_generations(self) -> dict:
+        model = []
+        if "quality" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["quality"])
+        if "size" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["size"])
+        model.append(self.request_content_updated["model"])
+        model = "/".join(model)
+
+        extracted = {
+            "type": "images generations",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content_updated["prompt"],
+            "model": model,
+        }
+        messages = [{"role": "user", "content": self.request_content_updated["prompt"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content_updated["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content_updated["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
+        return extracted
+
+    def _extract_from_azure_images_variations(self) -> dict:
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
+        )
+
+        model = []
+        if "quality" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["quality"])
+        if "size" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["size"])
+        model.append(self.request_content_updated["model"])
+        model = "/".join(model)
+
+        extracted = {
+            "type": "images variations",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content["image"],
+            "model": model,
+        }
+
+        messages = [{"role": "user", "content": self.request_content_updated["image"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content_updated["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content_updated["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
+        return extracted
+
+    def _extract_from_azure_images_edit(self) -> dict:
+        model = []
+        if "quality" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["quality"])
+        if "size" in self.request_content_updated.keys():
+            model.append(self.request_content_updated["size"])
+        model.append(self.request_content_updated["model"])
+        model = "/".join(model)
+
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
+        )
+        self.request_content_updated["mask"] = resize_b64_image(
+            self.request_content_updated["mask"], (128, 128)
+        )
+        extracted = {
+            "type": "images edits",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content_updated["prompt"],
+            "model": model,
+        }
+        messages = [
+            {
+                "role": "user",
+                "content": self.request_content_updated["prompt"],
+                "image": self.request_content_updated["image"],
+                "mask": self.request_content_updated["mask"],
+            }
+        ]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content_updated["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content_updated["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content_updated["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
         return extracted
 
     def _extract_from_openai_chat_completions(self) -> dict:
@@ -972,6 +1169,12 @@ class TransactionParamExtractor:
             extracted = self._extract_from_azure_embeddings()
         if self.pattern == "Azure Completions":
             extracted = self._extract_from_azure_completions()
+        if self.pattern == "Azure Images Generations":
+            extracted = self._extract_from_azure_images_generations()
+        if self.pattern == "Azure Images Variations":
+            extracted = self._extract_from_azure_images_variations()
+        if self.pattern == "Azure Images Edits":
+            extracted = self._extract_from_azure_images_edit()
         if self.pattern == "OpenAI Chat Completions":
             extracted = self._extract_from_openai_chat_completions()
         if self.pattern == "OpenAI Completions":
@@ -984,9 +1187,9 @@ class TransactionParamExtractor:
             extracted = self._extract_from_vertexai()
         if self.pattern == "OpenAI Images Variations":
             extracted = self._extract_from_openai_images_variations()
-        if self.pattern == "OpenAI Image Generations":
+        if self.pattern == "OpenAI Images Generations":
             extracted = self._extract_from_openai_images_generations()
-        if self.pattern == "OpenAI Image Edits":
+        if self.pattern == "OpenAI Images Edits":
             extracted = self._extract_from_openai_images_edit()
         if self.pattern == "Ollama":
             extracted = self._extract_from_ollama()
@@ -996,6 +1199,9 @@ class TransactionParamExtractor:
             extracted = self._extract_from_huggingface()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
+
+        # "Azure Images Variations": r".*openai\.azure\.com.*images\/variations.*",
+        # "Azure Images Edits": r".*openai\.azure\.com.*images\/edits.*",
 
         transaction_params.add_type(extracted["type"])
         transaction_params.add_provider(extracted["provider"])
@@ -1520,9 +1726,12 @@ class ApiURLBuilder:
                 path = "/" + "/".join(new_path)
 
         url = api_base + f"/{path}".replace("//", "/")
+        print("URL", url)
+
         if api_base.endswith("/"):
             url = api_base + f"{path}".replace("//", "/")
 
+        print("URL", url)
         return url
 
 
