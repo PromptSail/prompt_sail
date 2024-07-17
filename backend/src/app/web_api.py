@@ -8,8 +8,14 @@ from _datetime import datetime, timezone
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from auth.authorization import decode_and_validate_token
 from auth.models import User
-from auth.schemas import GetPartialUserSchema, GetUserSchema
-from auth.use_cases import get_all_users
+from auth.schemas import CreateUserSchema, GetPartialUserSchema, GetUserSchema
+from auth.use_cases import (
+    activate_user,
+    add_user,
+    check_if_email_exists,
+    get_all_users,
+    get_local_user,
+)
 from fastapi import Depends, HTTPException, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
@@ -87,6 +93,57 @@ def whoami(
         picture=user.picture,
         issuer=user.issuer,
     )
+
+
+@app.post("/api/auth/register", response_class=JSONResponse, status_code=201)
+def register(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    register_form: CreateUserSchema,
+):
+    if register_form.password != register_form.repeated_password:
+        raise HTTPException(status_code=409, detail="Passwords don't match.")
+
+    email_exist = ctx.call(check_if_email_exists, user_email=register_form.email)
+    if email_exist:
+        raise HTTPException(
+            status_code=409, detail="User with this email already exists."
+        )
+
+    user = User(
+        external_id=None,
+        email=register_form.email,
+        organization="Personal",
+        given_name=register_form.given_name,
+        family_name=register_form.family_name,
+        picture=None,
+        issuer="PromptSail",
+        is_active=False,
+    )
+
+    created_user = ctx.call(add_user, user=user)
+
+    # user_credentials = {
+    #     "id": created_user.id,
+    #     "username": register_form.username,
+    #     "password": register_form.password
+    # }
+    #
+
+    return GetUserSchema(**created_user.model_dump())
+
+
+@app.put(
+    "/api/auth/activate/{user_id:str}", response_class=JSONResponse, status_code=200
+)
+def activate_account(
+    user_id: str, ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+) -> GetUserSchema:
+    user = ctx.call(get_local_user, user_id=user_id)
+    if user.is_active:
+        raise HTTPException(status_code=409, detail="Account is already active.")
+
+    activated = ctx.call(activate_user, user_id=user_id)
+    return GetUserSchema(**activated.model_dump())
 
 
 @app.get("/api/projects", dependencies=[Security(decode_and_validate_token)])
@@ -1140,7 +1197,9 @@ async def mock_transactions(
     }
 
 
-@app.post("/api/only_for_purpose/remove_mocked_transactions", response_class=JSONResponse)
+@app.post(
+    "/api/only_for_purpose/remove_mocked_transactions", response_class=JSONResponse
+)
 async def mock_transactions(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> dict[str, Any]:

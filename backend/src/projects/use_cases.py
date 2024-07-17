@@ -90,4 +90,9 @@ def delete_project(
 
 
 def count_projects(project_repository: ProjectRepository) -> int:
+    """
+    Count the number of all projects.
+
+    :return: The count of projects.
+    """
     return project_repository.count()

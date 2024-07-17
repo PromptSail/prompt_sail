@@ -20,6 +20,7 @@ class UserBuilder:
     family_name: str
     picture: str | None = None
     issuer: str
+    is_active: bool
 
     def add_external_id(self, external_id):
         self.external_id = external_id
@@ -47,6 +48,10 @@ class UserBuilder:
 
     def add_issuer(self, issuer):
         self.issuer = issuer
+        return self
+
+    def add_if_is_active(self, is_active):
+        self.is_active = is_active
         return self
 
     def build(self):
@@ -92,6 +97,7 @@ if config.SSO_AUTH:
                     family_name="test",
                     picture="",
                     issuer="test",
+                    is_active=True,
                 )
 
             jwks_url = get_jwks_url(unvalidated["iss"])
@@ -126,6 +132,7 @@ if config.SSO_AUTH:
                         token_user.add_email(decoded_token.get("preferred_username"))
                         .add_given_name(given_name)
                         .add_family_name(family_name)
+                        .add_if_is_active(True)
                     )
 
                 if "google" in decoded_token.get("iss"):
@@ -135,6 +142,7 @@ if config.SSO_AUTH:
                         .add_given_name(decoded_token.get("given_name"))
                         .add_family_name(decoded_token.get("family_name"))
                         .add_picture(decoded_token.get("picture"))
+                        .add_if_is_active(True)
                     )
                 new_user = ctx.call(add_user, user=token_user.build())
 
@@ -162,4 +170,5 @@ else:
                 family_name="Unknown",
                 picture="",
                 issuer="test",
+                is_active=True,
             )
