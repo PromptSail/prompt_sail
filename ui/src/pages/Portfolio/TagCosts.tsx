@@ -1,7 +1,6 @@
 import {
     Area,
     AreaChart,
-    Brush,
     CartesianGrid,
     Legend,
     ResponsiveContainer,
