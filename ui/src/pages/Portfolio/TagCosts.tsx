@@ -13,7 +13,6 @@ import { customSorter, dataRounding, dateFormatter } from '../Project/Statistics
 import noData from '../../assets/box.svg';
 import * as styles from '../../styles.json';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
-import { Period } from '../../hooks/useGetRangeDatesAndGranularity';
 import { StatisticsParams } from '../../api/types';
 import { useGetTagsUsage } from '../../api/queries';
 const { Title } = Typography;
@@ -22,7 +21,6 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
     dateParams
 }) => {
     const tags = useGetTagsUsage(dateParams);
-    console.log(tags);
     return (
         <>
             <Title level={2} className="h5 m-0">
@@ -99,7 +97,7 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                         ];
                                     })()}
                                     scale={'time'}
-                                    tickFormatter={(v) => dateFormatter(v, Period.Daily)}
+                                    tickFormatter={(v) => dateFormatter(v, dateParams.period)}
                                     tick={{
                                         fill: styles.Colors.light['Text/colorTextTertiary'],
                                         fontWeight: 600
@@ -132,6 +130,9 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                 <Tooltip
                                     isAnimationActive={false}
                                     formatter={(v) => '$ ' + dataRounding(v, 4)}
+                                    labelFormatter={(label) => {
+                                        return new Date(label).toLocaleString();
+                                    }}
                                     itemSorter={customSorter}
                                 />
                                 <Legend

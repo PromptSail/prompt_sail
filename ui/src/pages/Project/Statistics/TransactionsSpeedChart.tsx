@@ -100,12 +100,9 @@ const TransactionsSpeedChart: React.FC<Params> = ({ statisticsParams }) => {
                                     stroke={styles.Colors.light['Border/colorBorderSecondary']}
                                 />
                                 <Tooltip
-                                    labelFormatter={(val) => {
-                                        return new Date(val).toLocaleString('en-US', {
-                                            month: '2-digit',
-                                            day: '2-digit',
-                                            year: '2-digit'
-                                        });
+                                    isAnimationActive={false}
+                                    labelFormatter={(label) => {
+                                        return new Date(label).toLocaleString();
                                     }}
                                     formatter={(v) => dataRounding(v as number, 2)}
                                 />

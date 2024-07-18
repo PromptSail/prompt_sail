@@ -15,7 +15,6 @@ import * as styles from '../../styles.json';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
 import { useGetProjectsUsage } from '../../api/queries';
 import { StatisticsParams } from '../../api/types';
-import { Period } from '../../hooks/useGetRangeDatesAndGranularity';
 const { Title } = Typography;
 
 const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> = ({
@@ -56,7 +55,7 @@ const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'>
                                 };
 
                                 el.records.map((rec) => {
-                                    const legendName = `${rec.project_name}-${rec.project_id}`;
+                                    const legendName = `${rec.project_name}`;
                                     if (!chartData.legend.includes(legendName)) {
                                         chartData.legend.push(legendName);
                                     }
@@ -99,7 +98,7 @@ const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'>
                                         ];
                                     })()}
                                     scale={'time'}
-                                    tickFormatter={(v) => dateFormatter(v, Period.Daily)}
+                                    tickFormatter={(v) => dateFormatter(v, dateParams.period)}
                                     tick={{
                                         fill: styles.Colors.light['Text/colorTextTertiary'],
                                         fontWeight: 600
@@ -133,6 +132,9 @@ const ProjectsCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'>
                                     isAnimationActive={false}
                                     formatter={(v) => '$ ' + dataRounding(v, 4)}
                                     itemSorter={customSorter}
+                                    labelFormatter={(label) => {
+                                        return new Date(label).toLocaleString();
+                                    }}
                                 />
                                 <Legend
                                     align="left"
