@@ -357,7 +357,7 @@ const ProviderDescription: React.FC<{
                                     }}
                                 />
                             </div>
-                            {el.provider_name.toLowerCase().includes('azure') && (
+                            {el.provider_name.toLowerCase().includes('hugging') && (
                                 <div>
                                     <Paragraph className="!m-0 text-Text/colorText">
                                         AI Model Name and Version Tag:
@@ -375,7 +375,9 @@ const ProviderDescription: React.FC<{
                                             if (priceList.isSuccess) {
                                                 return priceList.data
                                                     .filter((el) =>
-                                                        el.provider.toLowerCase().includes('azure')
+                                                        el.provider
+                                                            .toLowerCase()
+                                                            .includes('hugging')
                                                     )
                                                     .map((el) => ({
                                                         label: el.model_name,
