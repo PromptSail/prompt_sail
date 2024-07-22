@@ -2,6 +2,7 @@ import { AxiosResponse } from 'axios';
 import client from './client';
 import {
     addProjectRequest,
+    addUserRequest,
     getAllProjects,
     getAllTransactionResponse,
     getModels,
@@ -12,6 +13,7 @@ import {
     getStatisticsTransactionsSpeed,
     getTransactionResponse,
     getUsers,
+    loginUserRequest,
     updateProjectRequest
 } from './interfaces';
 
@@ -75,6 +77,14 @@ const api = {
     },
     getPortfolio_tagsUsage: (params: string): Promise<AxiosResponse<any>> => {
         return client.get(`/api/portfolio/costs_by_tag${params}`);
+    },
+    addUser: (
+        data: addUserRequest
+    ): Promise<AxiosResponse<{ details: string } | (addUserRequest & { is_active: boolean })>> => {
+        return client.post('/api/auth/register', data);
+    },
+    loginUser: (data: loginUserRequest): Promise<AxiosResponse<{ details: string } | string>> => {
+        return client.post('/api/auth/login', data);
     }
 };
 
