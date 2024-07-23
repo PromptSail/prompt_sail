@@ -11,6 +11,7 @@ import Container from '../../components/Container/Container';
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { useLogin } from '../../context/LoginContext';
 import { useNavigate } from 'react-router-dom';
+import LoginForm from './LoginForm';
 
 // symbol from ../../assets/logo/symbol-teal-outline.svg
 const symbol = (
@@ -92,7 +93,7 @@ const Signin: React.FC = () => {
                         <Flex
                             ref={setWidth}
                             className="signin m-auto min-w-[400px] flex-1 mx-[80px] me-[44px]"
-                            gap={48}
+                            gap={24}
                             vertical
                         >
                             <Space direction="horizontal">
@@ -125,13 +126,14 @@ const Signin: React.FC = () => {
                                 )}
                                 {authorization && (
                                     <>
+                                        <LoginForm onOk={setToken} />
+                                        {(google_auth || azure_auth) && (
+                                            <Divider className="!font-normal !m-0">or</Divider>
+                                        )}
                                         {google_auth && (
                                             <GoogleOAuthProvider clientId={SSO_GOOGLE_ID}>
                                                 <GoogleBtn onOk={setToken} width={googleBtnWidth} />
                                             </GoogleOAuthProvider>
-                                        )}
-                                        {google_auth && azure_auth && (
-                                            <Divider className="!font-normal !m-0">or</Divider>
                                         )}
                                         {azure_auth && <AzureBtn onOk={setToken} />}
                                     </>

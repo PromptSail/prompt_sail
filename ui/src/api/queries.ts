@@ -304,7 +304,7 @@ export const useAddUser = (): UseMutationResult<
 };
 export const useLoginUser = (): UseMutationResult<
     AxiosResponse,
-    AxiosError,
+    AxiosError<{ detail: string }>,
     { data: loginUserRequest }
 > => {
     return useMutation(
@@ -313,7 +313,7 @@ export const useLoginUser = (): UseMutationResult<
         },
         {
             onError: (err) => {
-                console.error(`${err.code}: ${err.message}`);
+                console.error(`${err.code}: ${err.response?.data.detail}`);
             }
         }
     );
