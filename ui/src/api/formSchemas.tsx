@@ -25,3 +25,23 @@ export const providerSchema = yup.object().shape({
         .required('This field is required'),
     description: yup.string()
 });
+
+export const loginSchema = yup.object().shape({
+    username: yup.string().required('This field is required'),
+    password: yup.string().required('This field is required')
+});
+
+export const registerSchema = yup.object().shape({
+    email: yup.string().email('Enter a valid email').required('This field is required'),
+    given_name: yup.string().required('This field is required'),
+    family_name: yup.string().required('This field is required'),
+    username: yup.string().required('This field is required'),
+    password: yup
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .required('This field is required'),
+    repeated_password: yup
+        .string()
+        .oneOf([yup.ref('password'), undefined], 'Passwords must match')
+        .required('This field is required')
+});

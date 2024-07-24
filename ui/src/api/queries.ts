@@ -288,7 +288,7 @@ export const useGetTagsUsage = (
 };
 export const useAddUser = (): UseMutationResult<
     AxiosResponse,
-    AxiosError,
+    AxiosError<{ detail: string }>,
     { data: addUserRequest }
 > => {
     return useMutation(

@@ -1,19 +1,23 @@
-import { Alert, Button, Form, Input, Typography } from 'antd';
+import { Alert, Button, Flex, Form, Input, Typography } from 'antd';
 import { useFormik } from 'formik';
 import { useLoginUser } from '../../api/queries';
 import { useState } from 'react';
+import { loginSchema } from '../../api/formSchemas';
 const { Paragraph } = Typography;
 
-const LoginForm: React.FC<{ onOk: (value: string) => void }> = ({ onOk }) => {
+const LoginForm: React.FC<{ onOk: (value: string) => void; onSignup: () => void }> = ({
+    onOk,
+    onSignup
+}) => {
     const login = useLoginUser();
     const [errorMessage, setErrorMessage] = useState('');
     const formik = useFormik({
-        initialValues: { login: '', password: '' },
+        initialValues: { username: '', password: '' },
         onSubmit: (values) => {
             login.mutateAsync(
                 {
                     data: {
-                        username: values.login,
+                        username: values.username,
                         password: values.password
                     }
                 },
@@ -26,22 +30,32 @@ const LoginForm: React.FC<{ onOk: (value: string) => void }> = ({ onOk }) => {
                     }
                 }
             );
-        }
+        },
+        validationSchema: loginSchema,
+        validateOnChange: false
     });
     return (
         <Form onSubmitCapture={formik.handleSubmit}>
-            <Form.Item className="mb-[10px]">
+            <Form.Item
+                className="mb-[10px]"
+                help={formik.errors.username}
+                validateStatus={formik.errors.username ? 'error' : ''}
+            >
                 <Paragraph className="!m-0 text-Text/colorText">Login:</Paragraph>
                 <Input
-                    name="login"
+                    name="username"
                     size="large"
                     placeholder=""
                     autoComplete="username"
-                    value={formik.values.login}
+                    value={formik.values.username}
                     onChange={formik.handleChange}
                 />
             </Form.Item>
-            <Form.Item className="mb-[10px]">
+            <Form.Item
+                className="mb-[10px]"
+                help={formik.errors.password}
+                validateStatus={formik.errors.password ? 'error' : ''}
+            >
                 <Paragraph className="!m-0 text-Text/colorText">Password:</Paragraph>
                 <Input
                     name="password"
@@ -54,9 +68,14 @@ const LoginForm: React.FC<{ onOk: (value: string) => void }> = ({ onOk }) => {
                 />
             </Form.Item>
             {errorMessage && <Alert message={errorMessage} type="error" showIcon />}
-            <Button type="primary" size="large" block htmlType="submit" className="mt-4">
-                Login
-            </Button>
+            <Flex gap={12}>
+                <Button type="primary" size="large" block htmlType="submit" className="mt-4">
+                    Sign in
+                </Button>
+                <Button size="large" className="mt-4" onClick={onSignup}>
+                    Sign up
+                </Button>
+            </Flex>
         </Form>
     );
 };
