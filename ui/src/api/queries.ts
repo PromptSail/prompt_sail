@@ -15,7 +15,9 @@ import {
     getLoggedUser,
     getUsers,
     getConfig,
-    getModels
+    getModels,
+    addUserRequest,
+    loginUserRequest
 } from './interfaces';
 import { StatisticsParams, TransactionsFilters } from './types';
 
@@ -281,6 +283,38 @@ export const useGetTagsUsage = (
             retry: false,
             cacheTime: 0,
             refetchOnWindowFocus: 'always'
+        }
+    );
+};
+export const useAddUser = (): UseMutationResult<
+    AxiosResponse,
+    AxiosError<{ detail: string }>,
+    { data: addUserRequest }
+> => {
+    return useMutation(
+        async ({ data }) => {
+            return await api.addUser(data);
+        },
+        {
+            onError: (err) => {
+                console.error(`${err.code}: ${err.message}`);
+            }
+        }
+    );
+};
+export const useLoginUser = (): UseMutationResult<
+    AxiosResponse,
+    AxiosError<{ detail: string }>,
+    { data: loginUserRequest }
+> => {
+    return useMutation(
+        async ({ data }) => {
+            return await api.loginUser(data);
+        },
+        {
+            onError: (err) => {
+                console.error(`${err.code}: ${err.response?.data.detail}`);
+            }
         }
     );
 };

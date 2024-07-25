@@ -11,6 +11,8 @@ import Container from '../../components/Container/Container';
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { useLogin } from '../../context/LoginContext';
 import { useNavigate } from 'react-router-dom';
+import LoginForm from './LoginForm';
+import SignupForm from './SignupForm';
 
 // symbol from ../../assets/logo/symbol-teal-outline.svg
 const symbol = (
@@ -30,6 +32,7 @@ const Signin: React.FC = () => {
     const config = useGetConfig();
     const [googleBtnWidth, setGoogleBtnWidth] = useState(300);
     const { setLoginState } = useLogin();
+    const [displayRegisterForm, setDisplayRegisterForm] = useState(false);
     useEffect(() => {
         if (token !== null) {
             localStorage.setItem('PS_TOKEN', token);
@@ -92,7 +95,7 @@ const Signin: React.FC = () => {
                         <Flex
                             ref={setWidth}
                             className="signin m-auto min-w-[400px] flex-1 mx-[80px] me-[44px]"
-                            gap={48}
+                            gap={24}
                             vertical
                         >
                             <Space direction="horizontal">
@@ -103,40 +106,56 @@ const Signin: React.FC = () => {
                             </Space>
                             <Space direction="vertical">
                                 <Title level={1} className="!m-0">
-                                    {authorization ? 'Log in' : 'Welcome'} to {organization}
+                                    {authorization
+                                        ? displayRegisterForm
+                                            ? 'Sign up'
+                                            : 'Log in'
+                                        : 'Welcome'}{' '}
+                                    to {organization}
                                 </Title>
                                 <Paragraph>
                                     Unlock cost control, security, and optimization for your large
                                     language model interactions.
                                 </Paragraph>
                             </Space>
-                            <Space direction="vertical">
-                                {!authorization && (
-                                    <Button
-                                        type="primary"
-                                        block
-                                        onClick={() => setToken(`AUTH: ${authorization}`)}
-                                        icon={<ArrowRightOutlined />}
-                                        iconPosition="end"
-                                        size="large"
-                                    >
-                                        Get started
-                                    </Button>
-                                )}
-                                {authorization && (
-                                    <>
-                                        {google_auth && (
-                                            <GoogleOAuthProvider clientId={SSO_GOOGLE_ID}>
-                                                <GoogleBtn onOk={setToken} width={googleBtnWidth} />
-                                            </GoogleOAuthProvider>
-                                        )}
-                                        {google_auth && azure_auth && (
-                                            <Divider className="!font-normal !m-0">or</Divider>
-                                        )}
-                                        {azure_auth && <AzureBtn onOk={setToken} />}
-                                    </>
-                                )}
-                            </Space>
+                            {!displayRegisterForm ? (
+                                <Space direction="vertical">
+                                    {!authorization && (
+                                        <Button
+                                            type="primary"
+                                            block
+                                            onClick={() => setToken(`AUTH: ${authorization}`)}
+                                            icon={<ArrowRightOutlined />}
+                                            iconPosition="end"
+                                            size="large"
+                                        >
+                                            Get started
+                                        </Button>
+                                    )}
+                                    {authorization && (
+                                        <>
+                                            <LoginForm
+                                                onOk={setToken}
+                                                onSignup={() => setDisplayRegisterForm(true)}
+                                            />
+                                            {(google_auth || azure_auth) && (
+                                                <Divider className="!font-normal !m-0">or</Divider>
+                                            )}
+                                            {google_auth && (
+                                                <GoogleOAuthProvider clientId={SSO_GOOGLE_ID}>
+                                                    <GoogleBtn
+                                                        onOk={setToken}
+                                                        width={googleBtnWidth}
+                                                    />
+                                                </GoogleOAuthProvider>
+                                            )}
+                                            {azure_auth && <AzureBtn onOk={setToken} />}
+                                        </>
+                                    )}
+                                </Space>
+                            ) : (
+                                <SignupForm onOk={() => setDisplayRegisterForm(false)} />
+                            )}
                         </Flex>
                     </Flex>
                 </Container>
