@@ -1576,7 +1576,7 @@ def token_counter_for_transactions_by_tag(
     if date_to:
         for tag in tags:
             df.loc[len(df)] = {
-                "date": pd.Timestamp(date_from),
+                "date": pd.Timestamp(date_to),
                 "tag": tag,
                 "total_input_tokens": 0,
                 "total_output_tokens": 0,
