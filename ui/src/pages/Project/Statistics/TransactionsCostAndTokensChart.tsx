@@ -150,6 +150,9 @@ const TransactionsCostAndTokensChart: React.FC<Params> = ({ statisticsParams }) 
                                             : undefined
                                     }
                                     itemSorter={customSorter}
+                                    labelFormatter={(label) => {
+                                        return new Date(label).toLocaleString();
+                                    }}
                                 />
                                 <Legend
                                     align="left"
