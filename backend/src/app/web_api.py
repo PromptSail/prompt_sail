@@ -20,7 +20,7 @@ from auth.use_cases import (
     add_user,
     check_if_email_exists,
     get_all_users,
-    get_local_user,
+    get_local_user, get_user_by_email,
 )
 from config import config
 from fastapi import Depends, HTTPException, Request, Security
@@ -87,7 +87,6 @@ from transactions.use_cases import (
 from user_credentials.models import UserCredential
 from user_credentials.use_cases import (
     add_user_credential,
-    check_if_username_exists,
     get_user_credential,
 )
 
@@ -124,12 +123,6 @@ def register(
             status_code=409, detail="User with this email already exists."
         )
 
-    username_exist = ctx.call(check_if_username_exists, username=register_form.username)
-    if username_exist:
-        raise HTTPException(
-            status_code=409, detail="User with this username already exists."
-        )
-
     user = User(
         external_id=None,
         email=register_form.email,
@@ -148,7 +141,6 @@ def register(
 
     credential = UserCredential(
         user_id=created_user.id,
-        username=register_form.username,
         password=password.hexdigest(),
     )
 
@@ -184,19 +176,18 @@ def login(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     login_form: LoginSchema,
 ):
-    username_exist = ctx.call(check_if_username_exists, username=login_form.username)
-    if not username_exist:
+    email_exist = ctx.call(check_if_email_exists, user_email=login_form.email)
+    if not email_exist:
         raise HTTPException(status_code=404, detail="User doesn't exists.")
-
-    user_credential = ctx.call(get_user_credential, username=login_form.username)
 
     password = sha3_256()
     password.update(login_form.password.encode("utf-8"))
 
+    user = ctx.call(get_user_by_email, email=login_form.email)
+    user_credential = ctx.call(get_user_credential, user_id=user.id)
+
     if password.hexdigest() != user_credential.password:
         raise HTTPException(status_code=401, detail="Incorrect password.")
-
-    user = ctx.call(get_local_user, user_id=user_credential.user_id)
 
     if not user.is_active:
         raise HTTPException(status_code=401, detail="Account is not active.")

@@ -75,3 +75,15 @@ class UserRepository(MongoRepository):
             return None
         user = super().find_one({"external_id": external_id})
         return User(**user.model_dump())
+    
+    def get_by_email(self, email: str) -> User | None:
+        """
+        Retrieve a user by its unique email.
+
+        :param email: The unique user of the user to be retrieved.
+        :return: The User object corresponding to the specified email.
+        """
+        if self.count({"email": email, "issuer": "PromptSail"}) == 0:
+            return None
+        user = super().find_one({"email": email, "issuer": "PromptSail"})
+        return User(**user.model_dump())

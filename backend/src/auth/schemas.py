@@ -23,11 +23,10 @@ class CreateUserSchema(BaseModel):
     email: str
     given_name: str
     family_name: str
-    username: str
     password: str
     repeated_password: str
 
 
 class LoginSchema(BaseModel):
-    username: str
+    email: str
     password: str

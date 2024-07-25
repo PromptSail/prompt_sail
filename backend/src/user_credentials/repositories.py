@@ -36,9 +36,9 @@ class UserCredentialRepository(MongoRepository):
         :raise UserCredentialAlreadyExistsException: If the credential with that username already exists in the repository.
         :return: The result of the add operation.
         """
-        if self.count({"username": doc.username}) > 0:
+        if self.count({"user_id": doc.user_id}) > 0:
             raise UserCredentialAlreadyExistsException(
-                f"Credential with that username already exists: {doc.username}"
+                f"Credential for that user_id already exists: {doc.user_id}"
             )
         result = super().add(doc)
         return result
@@ -72,16 +72,16 @@ class UserCredentialRepository(MongoRepository):
         user = super().get(doc_id)
         return UserCredential(**user.model_dump())
 
-    def get_by_username(self, username: str) -> UserCredential | None:
+    def get_by_user_id(self, user_id: str) -> UserCredential | None:
         """
         Retrieve a user credential by its unique username.
 
-        :param username: The unique username of the credential to be retrieved.
+        :param user_id: The unique username of the credential to be retrieved.
         :return: The UserCredential object corresponding to the specified username.
         """
-        if self.count({"username": username}) == 0:
+        if self.count({"user_id": user_id}) == 0:
             raise UserCredentialNotFoundException(
-                f"UserCredential with username: {username} not found."
+                f"UserCredential with user_id: {user_id} not found."
             )
-        user = super().find({"username": username})[0]
+        user = super().find({"user_id": user_id})[0]
         return UserCredential(**user.model_dump())

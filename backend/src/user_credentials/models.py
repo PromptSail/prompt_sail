@@ -5,5 +5,4 @@ from transactions.models import generate_uuid
 class UserCredential(BaseModel):
     id: str = Field(default_factory=generate_uuid)
     user_id: str
-    username: str
     password: str

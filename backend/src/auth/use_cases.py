@@ -14,6 +14,18 @@ def get_user(external_id: str, user_repository: UserRepository) -> User:
     return user
 
 
+def get_user_by_email(email: str, user_repository: UserRepository) -> User:
+    """
+    Retrieve a user by its unique external identifier.
+
+    :param email: The unique email of the user to be retrieved.
+    :param user_repository: An instance of UserRepository used for accessing user data.
+    :return: The User object corresponding to the specified identifier.
+    """
+    user = user_repository.get_by_email(email)
+    return user
+
+
 def get_local_user(user_id: str, user_repository: UserRepository) -> User:
     """
     Retrieve a user by its unique internal identifier.
