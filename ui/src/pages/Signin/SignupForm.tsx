@@ -4,7 +4,7 @@ import { useContext, useState } from 'react';
 import { useAddUser } from '../../api/queries';
 import { registerSchema } from '../../api/formSchemas';
 import { Context } from '../../context/Context';
-const { Paragraph } = Typography;
+const { Paragraph, Link } = Typography;
 const SignupForm: React.FC<{ onOk: () => void }> = ({ onOk }) => {
     const register = useAddUser();
     const { notification } = useContext(Context);
@@ -131,14 +131,10 @@ const SignupForm: React.FC<{ onOk: () => void }> = ({ onOk }) => {
                 </Form.Item>
             </Flex>
             {errorMessage && <Alert message={errorMessage} type="error" showIcon />}
-            <Flex gap={12} className="mt-4">
-                <Button type="primary" size="large" block htmlType="submit">
-                    Submit
-                </Button>
-                <Button size="large" onClick={onOk}>
-                    Sign in
-                </Button>
-            </Flex>
+            <Button type="primary" size="large" className="mt-4" block htmlType="submit">
+                Submit
+            </Button>
+            <Link onClick={onOk}>Already have an account? </Link>
         </Form>
     );
 };

@@ -1,9 +1,9 @@
-import { Alert, Button, Flex, Form, Input, Typography } from 'antd';
+import { Alert, Button, Form, Input, Typography } from 'antd';
 import { useFormik } from 'formik';
 import { useLoginUser } from '../../api/queries';
 import { useState } from 'react';
 import { loginSchema } from '../../api/formSchemas';
-const { Paragraph } = Typography;
+const { Paragraph, Link } = Typography;
 
 const LoginForm: React.FC<{ onOk: (value: string) => void; onSignup: () => void }> = ({
     onOk,
@@ -68,14 +68,10 @@ const LoginForm: React.FC<{ onOk: (value: string) => void; onSignup: () => void 
                 />
             </Form.Item>
             {errorMessage && <Alert message={errorMessage} type="error" showIcon />}
-            <Flex gap={12}>
-                <Button type="primary" size="large" block htmlType="submit" className="mt-4">
-                    Sign in
-                </Button>
-                <Button size="large" className="mt-4" onClick={onSignup}>
-                    Sign up
-                </Button>
-            </Flex>
+            <Button type="primary" size="large" block htmlType="submit" className="mt-4">
+                Sign in
+            </Button>
+            <Link onClick={onSignup}>Doesn't have an account?</Link>
         </Form>
     );
 };
