@@ -12,12 +12,12 @@ const LoginForm: React.FC<{ onOk: (value: string) => void; onSignup: () => void 
     const login = useLoginUser();
     const [errorMessage, setErrorMessage] = useState('');
     const formik = useFormik({
-        initialValues: { username: '', password: '' },
+        initialValues: { email: '', password: '' },
         onSubmit: (values) => {
             login.mutateAsync(
                 {
                     data: {
-                        username: values.username,
+                        email: values.email,
                         password: values.password
                     }
                 },
@@ -38,16 +38,16 @@ const LoginForm: React.FC<{ onOk: (value: string) => void; onSignup: () => void 
         <Form onSubmitCapture={formik.handleSubmit}>
             <Form.Item
                 className="mb-[10px]"
-                help={formik.errors.username}
-                validateStatus={formik.errors.username ? 'error' : ''}
+                help={formik.errors.email}
+                validateStatus={formik.errors.email ? 'error' : ''}
             >
                 <Paragraph className="!m-0 text-Text/colorText">Login:</Paragraph>
                 <Input
-                    name="username"
+                    name="email"
                     size="large"
                     placeholder=""
-                    autoComplete="username"
-                    value={formik.values.username}
+                    autoComplete="email"
+                    value={formik.values.email}
                     onChange={formik.handleChange}
                 />
             </Form.Item>

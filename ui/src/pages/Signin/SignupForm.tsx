@@ -14,7 +14,6 @@ const SignupForm: React.FC<{ onOk: () => void }> = ({ onOk }) => {
             email: '',
             given_name: '',
             family_name: '',
-            username: '',
             password: '',
             repeated_password: ''
         },
@@ -25,7 +24,6 @@ const SignupForm: React.FC<{ onOk: () => void }> = ({ onOk }) => {
                         email: values.email,
                         given_name: values.given_name,
                         family_name: values.family_name,
-                        username: values.username,
                         password: values.password,
                         repeated_password: values.repeated_password
                     }
@@ -98,21 +96,6 @@ const SignupForm: React.FC<{ onOk: () => void }> = ({ onOk }) => {
                     />
                 </Form.Item>
             </Flex>
-            <Form.Item
-                className="mb-[10px]"
-                help={formik.errors.username}
-                validateStatus={formik.errors.username ? 'error' : ''}
-            >
-                <Paragraph className="!m-0 text-Text/colorText">Username:</Paragraph>
-                <Input
-                    name="username"
-                    autoComplete="username"
-                    size="large"
-                    placeholder=""
-                    value={formik.values.username}
-                    onChange={formik.handleChange}
-                />
-            </Form.Item>
             <Flex gap={12}>
                 <Form.Item
                     className="mb-[10px]"

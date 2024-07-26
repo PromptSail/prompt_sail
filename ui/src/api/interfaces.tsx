@@ -159,11 +159,10 @@ export interface addUserRequest {
     email: string;
     given_name: string;
     family_name: string;
-    username: string;
     password: string;
     repeated_password: string;
 }
 export interface loginUserRequest {
-    username: string;
+    email: string;
     password: string;
 }
