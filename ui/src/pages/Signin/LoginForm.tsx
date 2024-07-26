@@ -41,7 +41,7 @@ const LoginForm: React.FC<{ onOk: (value: string) => void; onSignup: () => void 
                 help={formik.errors.email}
                 validateStatus={formik.errors.email ? 'error' : ''}
             >
-                <Paragraph className="!m-0 text-Text/colorText">Login:</Paragraph>
+                <Paragraph className="!m-0 text-Text/colorText">Email:</Paragraph>
                 <Input
                     name="email"
                     size="large"
