@@ -27,7 +27,7 @@ export const providerSchema = yup.object().shape({
 });
 
 export const loginSchema = yup.object().shape({
-    username: yup.string().required('This field is required'),
+    email: yup.string().email('Enter a valid email').required('This field is required'),
     password: yup.string().required('This field is required')
 });
 
@@ -35,7 +35,6 @@ export const registerSchema = yup.object().shape({
     email: yup.string().email('Enter a valid email').required('This field is required'),
     given_name: yup.string().required('This field is required'),
     family_name: yup.string().required('This field is required'),
-    username: yup.string().required('This field is required'),
     password: yup
         .string()
         .min(8, 'Password must be at least 8 characters')
