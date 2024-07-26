@@ -139,7 +139,7 @@ const Signin: React.FC = () => {
                                                 onSignup={() => setDisplayRegisterForm(true)}
                                             />
                                             {(google_auth || azure_auth) && (
-                                                <Divider className="!font-normal !m-0">or</Divider>
+                                                <Divider className="!my-1">or</Divider>
                                             )}
                                             {google_auth && (
                                                 <GoogleOAuthProvider clientId={SSO_GOOGLE_ID}>
