@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class GetUserSchema(BaseModel):
+    id: str
     external_id: str | None
     email: str
     organization: str | None

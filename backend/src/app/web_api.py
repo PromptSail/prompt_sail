@@ -27,6 +27,9 @@ from fastapi import Depends, HTTPException, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from mailing import EmailSchema, send_email
+from organization.models import Organization
+from organization.schemas import GetOrganizationSchema, CreateOrganizationSchema, UpdateOrganizationSchema
+from organization.use_cases import add_organization, update_organization, get_organization_by_id
 from projects.models import AIProvider, Project
 from projects.schemas import (
     CreateProjectSchema,
@@ -123,8 +126,10 @@ def register(
             status_code=409, detail="User with this email already exists."
         )
 
+    new_id = generate_uuid()
     user = User(
-        external_id=None,
+        id=new_id,
+        external_id=new_id,
         email=register_form.email,
         organization="Personal",
         given_name=register_form.given_name,
@@ -495,6 +500,40 @@ async def get_paginated_transactions(
         total_pages=-(-count // page_size),
     )
     return page_response
+
+
+@app.post("/api/organizations", response_class=JSONResponse, dependencies=[Security(decode_and_validate_token)])
+async def create_organization(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)], 
+    organization: CreateOrganizationSchema,
+    user: User = Depends(decode_and_validate_token)
+) -> GetOrganizationSchema:
+    data = dict(**organization.model_dump(exclude_none=True))
+
+    if "owner" not in data.keys():
+        data["owner"] = user.external_id
+    new_organization = ctx.call(add_organization, organization=Organization(**data))
+    return GetOrganizationSchema(**new_organization.model_dump())
+
+
+@app.put("/api/organizations/{organization_id:str}", response_class=JSONResponse, dependencies=[Security(decode_and_validate_token)])
+async def update_existing_organization(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    organization_id: str,
+    data: UpdateOrganizationSchema,
+) -> GetOrganizationSchema:
+    data = dict(**data.model_dump(exclude_none=True))
+    updated = ctx.call(update_organization, organization_id=organization_id, fields_to_update=data)
+    return GetOrganizationSchema(**updated.model_dump())
+
+
+@app.get("/api/organizations/{organization_id:str}", response_class=JSONResponse, dependencies=[Security(decode_and_validate_token)])
+async def get_organization(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)], 
+    organization_id: str
+) -> GetOrganizationSchema:
+    organization = ctx.call(get_organization_by_id, organization_id=organization_id)
+    return GetOrganizationSchema(**organization.model_dump())
 
 
 @app.get(
