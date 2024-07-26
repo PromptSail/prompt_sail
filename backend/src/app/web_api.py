@@ -101,6 +101,7 @@ def whoami(
     request: Request, user: User = Depends(decode_and_validate_token)
 ) -> GetUserSchema:
     return GetUserSchema(
+        id=user.id,
         external_id=user.external_id,
         organization=user.organization,
         email=user.email,
