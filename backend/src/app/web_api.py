@@ -547,8 +547,13 @@ async def update_existing_organization(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     organization_id: str,
     data: UpdateOrganizationSchema,
+    user: User = Depends(decode_and_validate_token)
 ) -> GetOrganizationSchema:
-    data = dict(**data.model_dump(exclude_none=True))
+    organizations_where_user_as_owner = [org.id for org in ctx.call(get_all_organizations_for_owner, owner_id=user.id)]
+    
+    if organization_id not in organizations_where_user_as_owner:
+        raise HTTPException(status_code=401, detail="You cannot edit organizations that do not belong to you.")
+    
     updated = ctx.call(
         update_organization, organization_id=organization_id, fields_to_update=data
     )
