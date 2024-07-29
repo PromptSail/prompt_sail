@@ -75,7 +75,7 @@ class UserRepository(MongoRepository):
             return None
         user = super().find_one({"external_id": external_id})
         return User(**user.model_dump())
-    
+
     def get_by_email(self, email: str) -> User | None:
         """
         Retrieve a user by its unique email.

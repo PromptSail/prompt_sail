@@ -17,15 +17,31 @@ def get_organization_by_id(
     return organization
 
 
-def get_all_organizations_for_owner(organization_repository: OrganizationRepository, owner_id: str) -> list[Organization]:
+def get_all_organizations_for_owner(
+    organization_repository: OrganizationRepository, owner_id: str
+) -> list[Organization]:
     """
     Retrieve a list of all organizations.
 
     :param organization_repository: An instance of OrganizationRepository used for accessing organization data.
-    :param owner_id: The unique identifier of the user for whom the organization is to be downloaded..
+    :param owner_id: The unique identifier of the user for whom the organization is to be downloaded.
     :return: A list of all Organization objects stored in the repository.
     """
     organizations = organization_repository.find({"owner": owner_id})
+    return organizations
+
+
+def get_all_organizations_for_user(
+    organization_repository: OrganizationRepository, user_id: str
+):
+    """
+    Retrieve a list of all organizations.
+
+    :param organization_repository: An instance of OrganizationRepository used for accessing organization data.
+    :param user_id: The unique identifier of the user for whom the organization is to be downloaded.
+    :return: A list of all Organization objects stored in the repository.
+    """
+    organizations = organization_repository.find({"members": user_id})
     return organizations
 
 
@@ -45,7 +61,9 @@ def add_organization(
 
 
 def update_organization(
-    organization_repository: OrganizationRepository, organization_id: str, fields_to_update: dict
+    organization_repository: OrganizationRepository,
+    organization_id: str,
+    fields_to_update: dict,
 ) -> Organization:
     """
     Update an organization with specified fields.

@@ -20,16 +20,29 @@ from auth.use_cases import (
     add_user,
     check_if_email_exists,
     get_all_users,
-    get_local_user, get_user_by_email,
+    get_local_user,
+    get_user_by_email,
 )
 from config import config
 from fastapi import Depends, HTTPException, Request, Security
 from fastapi.responses import JSONResponse
 from lato import TransactionContext
 from mailing import EmailSchema, send_email
-from organization.models import Organization
-from organization.schemas import GetOrganizationSchema, CreateOrganizationSchema, UpdateOrganizationSchema
-from organization.use_cases import add_organization, update_organization, get_organization_by_id
+from organization.models import Organization, OrganizationTypeEnum
+from organization.schemas import (
+    CreateOrganizationSchema,
+    GetOrganizationForUserSchema,
+    GetOrganizationSchema,
+    GetOrganizationsForUserSchema,
+    UpdateOrganizationSchema,
+)
+from organization.use_cases import (
+    add_organization,
+    get_all_organizations_for_owner,
+    get_all_organizations_for_user,
+    get_organization_by_id,
+    update_organization,
+)
 from projects.models import AIProvider, Project
 from projects.schemas import (
     CreateProjectSchema,
@@ -88,10 +101,7 @@ from transactions.use_cases import (
     get_transactions_for_project,
 )
 from user_credentials.models import UserCredential
-from user_credentials.use_cases import (
-    add_user_credential,
-    get_user_credential,
-)
+from user_credentials.use_cases import add_user_credential, get_user_credential
 
 from .app import app
 
@@ -103,7 +113,6 @@ def whoami(
     return GetUserSchema(
         id=user.id,
         external_id=user.external_id,
-        organization=user.organization,
         email=user.email,
         given_name=user.given_name,
         family_name=user.family_name,
@@ -121,6 +130,11 @@ def register(
     if register_form.password != register_form.repeated_password:
         raise HTTPException(status_code=409, detail="Passwords don't match.")
 
+    if not re.match(
+        r"^[a-zA-Z0-9_.±]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$", register_form.email
+    ):
+        raise HTTPException(status_code=400, detail="Email address is not correct.")
+
     email_exist = ctx.call(check_if_email_exists, user_email=register_form.email)
     if email_exist:
         raise HTTPException(
@@ -132,7 +146,6 @@ def register(
         id=new_id,
         external_id=new_id,
         email=register_form.email,
-        organization="Personal",
         given_name=register_form.given_name,
         family_name=register_form.family_name,
         picture=None,
@@ -172,6 +185,10 @@ def register(
             Note: This is an automated message. Please do not reply to this email.
         """,
     )
+    organization = Organization(
+        type=OrganizationTypeEnum.personal, name="Personal", owner=created_user.id
+    )
+    ctx.call(add_organization, organization=organization)
 
     send_email(email)
     return GetUserSchema(**created_user.model_dump())
@@ -503,11 +520,15 @@ async def get_paginated_transactions(
     return page_response
 
 
-@app.post("/api/organizations", response_class=JSONResponse, dependencies=[Security(decode_and_validate_token)])
+@app.post(
+    "/api/organizations",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def create_organization(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)], 
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     organization: CreateOrganizationSchema,
-    user: User = Depends(decode_and_validate_token)
+    user: User = Depends(decode_and_validate_token),
 ) -> GetOrganizationSchema:
     data = dict(**organization.model_dump(exclude_none=True))
 
@@ -517,24 +538,57 @@ async def create_organization(
     return GetOrganizationSchema(**new_organization.model_dump())
 
 
-@app.put("/api/organizations/{organization_id:str}", response_class=JSONResponse, dependencies=[Security(decode_and_validate_token)])
+@app.put(
+    "/api/organizations/{organization_id:str}",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def update_existing_organization(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     organization_id: str,
     data: UpdateOrganizationSchema,
 ) -> GetOrganizationSchema:
     data = dict(**data.model_dump(exclude_none=True))
-    updated = ctx.call(update_organization, organization_id=organization_id, fields_to_update=data)
+    updated = ctx.call(
+        update_organization, organization_id=organization_id, fields_to_update=data
+    )
     return GetOrganizationSchema(**updated.model_dump())
 
 
-@app.get("/api/organizations/{organization_id:str}", response_class=JSONResponse, dependencies=[Security(decode_and_validate_token)])
+@app.get(
+    "/api/organizations/{organization_id:str}",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
 async def get_organization(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)], 
-    organization_id: str
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    organization_id: str,
 ) -> GetOrganizationSchema:
     organization = ctx.call(get_organization_by_id, organization_id=organization_id)
     return GetOrganizationSchema(**organization.model_dump())
+
+
+@app.get(
+    "/api/organizations/user/{user_id:str}",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
+async def get_organizations_for_user(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    user_id: str,
+) -> GetOrganizationsForUserSchema:
+    organizations_as_owner = [
+        GetOrganizationForUserSchema(**org.model_dump())
+        for org in ctx.call(get_all_organizations_for_owner, owner_id=user_id)
+    ]
+    organizations_as_member = [
+        GetOrganizationForUserSchema(**org.model_dump())
+        for org in ctx.call(get_all_organizations_for_user, user_id=user_id)
+    ]
+
+    return GetOrganizationsForUserSchema(
+        user_id=user_id, owned=organizations_as_owner, as_member=organizations_as_member
+    )
 
 
 @app.get(

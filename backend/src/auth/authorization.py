@@ -11,12 +11,13 @@ from config import config
 from fastapi import Depends, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from lato import TransactionContext
+from organization.models import Organization, OrganizationTypeEnum
+from organization.use_cases import add_organization
 
 
 class UserBuilder:
     external_id: str
     email: str
-    organization: str | None = None
     given_name: str
     family_name: str
     picture: str | None = None
@@ -29,10 +30,6 @@ class UserBuilder:
 
     def add_email(self, email):
         self.email = email
-        return self
-
-    def add_organization(self, organization):
-        self.organization = organization
         return self
 
     def add_given_name(self, given_name):
@@ -66,7 +63,6 @@ def generate_local_jwt(user: User):
         "email": user.email,
         "email_verified": user.is_active,
         "name": f"{user.given_name} {user.family_name}",
-        "hd": user.organization,
         "picture": user.picture,
         "given_name": user.given_name,
         "family_name": user.family_name,
@@ -109,9 +105,9 @@ if config.SSO_AUTH:
 
             if "test" == unvalidated["iss"]:
                 return User(
+                    id="test",
                     external_id="test",
                     email="test@test.com",
-                    organization="test",
                     given_name="test",
                     family_name="test",
                     picture="",
@@ -125,9 +121,9 @@ if config.SSO_AUTH:
                         status_code=401, detail="Token has expired (exp claim)."
                     )
                 return User(
+                    id=unvalidated["sub"],
                     external_id=unvalidated["sub"],
                     email=unvalidated["email"],
-                    organization=unvalidated["hd"],
                     given_name=unvalidated["given_name"],
                     family_name=unvalidated["given_name"],
                     picture=unvalidated["picture"],
@@ -173,13 +169,18 @@ if config.SSO_AUTH:
                 if "google" in decoded_token.get("iss"):
                     token_user = (
                         token_user.add_email(decoded_token.get("email"))
-                        .add_organization(decoded_token.get("hd"))
                         .add_given_name(decoded_token.get("given_name"))
                         .add_family_name(decoded_token.get("family_name"))
                         .add_picture(decoded_token.get("picture"))
                         .add_if_is_active(True)
                     )
                 new_user = ctx.call(add_user, user=token_user.build())
+                organization = Organization(
+                    type=OrganizationTypeEnum.personal,
+                    name="Personal",
+                    owner=new_user.id,
+                )
+                ctx.call(add_organization, organization=organization)
 
             return db_user if db_user is not None else new_user
         except jwt.exceptions.DecodeError:
@@ -198,9 +199,9 @@ else:
     def decode_and_validate_token() -> User:
         if not config.SSO_AUTH:
             return User(
+                id="anonymous",
                 external_id="anonymous",
                 email="anonymous@unknown.com",
-                organization="Anonymous",
                 given_name="Anonymous",
                 family_name="Unknown",
                 picture="",

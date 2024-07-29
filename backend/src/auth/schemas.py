@@ -5,7 +5,6 @@ class GetUserSchema(BaseModel):
     id: str
     external_id: str | None
     email: str
-    organization: str | None
     given_name: str
     family_name: str
     picture: str | None
