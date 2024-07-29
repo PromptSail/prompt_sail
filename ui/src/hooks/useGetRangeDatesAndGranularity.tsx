@@ -138,7 +138,7 @@ const useGetRangeDatesAndGranularity = (
                             label: 'Yesterday',
                             value: [
                                 dayjs().add(-1, 'd').startOf('day'),
-                                dayjs().add(-1, 'd').endOf('day')
+                                dayjs().add(0, 'd').startOf('day')
                             ]
                         },
                         {

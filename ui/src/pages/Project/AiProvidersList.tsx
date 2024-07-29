@@ -335,8 +335,7 @@ const ProviderDescription: React.FC<{
                             vertical
                         >
                             <Text>
-                                This generator/configurator/builder allows you to easily add tags to
-                                proxy URL
+                                This configurator allows you to easily add tags to proxy URL
                             </Text>
                             <div>
                                 <Paragraph className="!m-0 text-Text/colorText">
@@ -363,8 +362,9 @@ const ProviderDescription: React.FC<{
                                         AI Model Name and Version Tag:
                                     </Paragraph>
                                     <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                                        Specifying the model name and version is only necessary for
-                                        Azure deployments - it will allow calculate cost properly.
+                                        Enter the name and version model used in the Huggingface
+                                        deployment. Otherwise, it won't be possible to get it in the
+                                        transactions.
                                     </Paragraph>
                                     <Select
                                         showSearch

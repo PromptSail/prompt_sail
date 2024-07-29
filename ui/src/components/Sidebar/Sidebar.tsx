@@ -41,7 +41,7 @@ const Sidebar: React.FC = () => {
                     setLoginState(checkLogin());
                     break;
                 case 'help':
-                    window.open('https://promptsail.com/', '_blank');
+                    window.open('https://promptsail.com/docs/introduction/', '_blank');
                     break;
                 default:
                     console.log(`${key} func`);

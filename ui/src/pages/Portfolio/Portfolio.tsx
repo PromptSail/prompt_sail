@@ -43,7 +43,7 @@ const Portfolio: React.FC = () => {
                                 </Paragraph>
                                 <Text className="text-Text/colorText">{data.projects.length}</Text>
                             </div>
-                            <div className="border-0 pe-[24px]">
+                            <div className="border-0 px-[24px]">
                                 <Paragraph className="!mb-1 text-Text/colorTextDescription">
                                     Total transactions
                                 </Paragraph>
