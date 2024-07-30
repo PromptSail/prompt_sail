@@ -6,6 +6,7 @@ import {
     getAllProjects,
     getAllTransactionResponse,
     getModels,
+    getOrganizationsResponse,
     getProjectResponse,
     getProviders,
     getStatisticsTransactionsCost,
@@ -85,6 +86,9 @@ const api = {
     },
     loginUser: (data: loginUserRequest): Promise<AxiosResponse<{ details: string } | string>> => {
         return client.post('/api/auth/login', data);
+    },
+    getOrganizations: (id: string): Promise<AxiosResponse<getOrganizationsResponse>> => {
+        return client.get(`/api/organizations/user/${id}`);
     }
 };
 

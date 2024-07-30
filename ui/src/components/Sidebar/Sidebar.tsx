@@ -1,12 +1,14 @@
-import { Divider, Flex, Menu, Skeleton, Tooltip, Typography } from 'antd';
+import { Divider, Dropdown, Flex, Menu, Skeleton, Space, Spin, Tooltip, Typography } from 'antd';
 import Sider from 'antd/es/layout/Sider';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { checkLogin } from '../../storage/login';
 import {
+    DownOutlined,
     HistoryOutlined,
     LeftSquareOutlined,
     LineChartOutlined,
+    LoadingOutlined,
     LogoutOutlined,
     QuestionCircleOutlined,
     RightSquareOutlined,
@@ -15,15 +17,18 @@ import {
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import Logo from '../../assets/logo/Logo-teal_white.svg';
 import Symbol from '../../assets/logo/symbol-teal.svg';
-import { useGetConfig, useWhoami } from '../../api/queries';
+import { useGetConfig, useGetOrganizations } from '../../api/queries';
 import DefaultAvatar from '../DefaultAvatar/DefaultAvatar';
 import { useLogin } from '../../context/LoginContext';
+import { useOrganization, useUser } from '../../context/UserContext';
 const { Text } = Typography;
 
 const Sidebar: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
-    const user = useWhoami();
+    const user = useUser();
+    const { organization, setOrganization } = useOrganization();
+    const organizations = useGetOrganizations(user.id);
     const config = useGetConfig();
     const navigate = useNavigate();
     const { setLoginState } = useLogin();
@@ -125,74 +130,44 @@ const Sidebar: React.FC = () => {
                     />
                     <div className="border border-solid border-white/[.08] rounded-[8px] p-[8px] mx-[16px]">
                         <Flex gap={8}>
-                            {user.isLoading ? (
-                                <Skeleton.Avatar
-                                    active
-                                    shape="circle"
-                                    size={'large'}
-                                    style={{
-                                        filter: 'brightness(.1) invert(1)'
-                                    }}
-                                />
-                            ) : (
-                                (() => {
-                                    const isPictureValid =
-                                        user.isSuccess &&
-                                        user.data?.data.picture &&
-                                        user.data?.data.picture.length > 0;
-                                    return (
-                                        <Tooltip
-                                            placement="right"
-                                            title={
-                                                collapsed ? (
-                                                    <Flex vertical>
-                                                        <Text className="text-Text/colorTextLight">
-                                                            {user.data?.data.email}
-                                                        </Text>
-                                                        <Text className="text-Text/colorTextQuaternary font-[12px] leading-5">
-                                                            {config.data?.data.organization}
-                                                        </Text>
-                                                    </Flex>
-                                                ) : (
-                                                    false
-                                                )
-                                            }
-                                        >
-                                            <div className="my-auto">
-                                                {isPictureValid ? (
-                                                    <img
-                                                        referrerPolicy="no-referrer"
-                                                        src={user.data?.data.picture}
-                                                        className={`max-w-[32px] max-h-[32px] my-auto rounded-[50%]`}
-                                                        alt="avatar"
-                                                    />
-                                                ) : (
-                                                    <DefaultAvatar />
-                                                )}
-                                            </div>
-                                        </Tooltip>
-                                    );
-                                })()
-                            )}
+                            {(() => {
+                                const isPictureValid = user.picture && user.picture.length > 0;
+                                return (
+                                    <Tooltip
+                                        placement="right"
+                                        title={
+                                            collapsed ? (
+                                                <Flex vertical>
+                                                    <Text className="text-Text/colorTextLight">
+                                                        {user.email}
+                                                    </Text>
+                                                    <Text className="text-Text/colorTextQuaternary font-[12px] leading-5">
+                                                        {config.data?.data.organization}
+                                                    </Text>
+                                                </Flex>
+                                            ) : (
+                                                false
+                                            )
+                                        }
+                                    >
+                                        <div className="my-auto">
+                                            {isPictureValid ? (
+                                                <img
+                                                    referrerPolicy="no-referrer"
+                                                    src={user.picture}
+                                                    className={`max-w-[32px] max-h-[32px] my-auto rounded-[50%]`}
+                                                    alt="avatar"
+                                                />
+                                            ) : (
+                                                <DefaultAvatar />
+                                            )}
+                                        </div>
+                                    </Tooltip>
+                                );
+                            })()}
                             {!collapsed && (
                                 <Flex vertical className="min-w-[100px]">
-                                    <Text className="text-Text/colorTextLight">
-                                        <Skeleton
-                                            active
-                                            paragraph={{
-                                                rows: 0,
-                                                className: '!m-0 '
-                                            }}
-                                            loading={user.isLoading}
-                                            title={{
-                                                width: '100%',
-                                                className:
-                                                    'm-0 mt-[6px] !bg-gradient-to-r from-Text/colorTextLight/[.30] from-25% via-Text/colorTextLight/[.50] via-37% to-Text/colorTextLight/[.30] to-63%'
-                                            }}
-                                        >
-                                            {user.data?.data.email}
-                                        </Skeleton>
-                                    </Text>
+                                    <Text className="text-Text/colorTextLight">{user.email}</Text>
 
                                     <Text className="text-Text/colorTextQuaternary font-[12px] leading-5">
                                         <Skeleton
@@ -205,7 +180,58 @@ const Sidebar: React.FC = () => {
                                                     'm-0 mt-1 !bg-gradient-to-r from-Text/colorTextLight/[.30] from-25% via-Text/colorTextLight/[.50] via-37% to-Text/colorTextLight/[.30] to-63%'
                                             }}
                                         >
-                                            {config.data?.data.organization}
+                                            {!organizations.isSuccess ? (
+                                                <Space>
+                                                    {organizations.isError &&
+                                                        organizations.error.code}
+                                                    {organizations.isLoading && (
+                                                        <Spin
+                                                            indicator={<LoadingOutlined spin />}
+                                                        />
+                                                    )}
+                                                </Space>
+                                            ) : (
+                                                (() => {
+                                                    const orgsData = organizations.data.data;
+                                                    const orgList = [
+                                                        ...orgsData.owned,
+                                                        ...orgsData.as_member
+                                                    ];
+                                                    return (
+                                                        <Dropdown
+                                                            trigger={['click']}
+                                                            className="cursor-pointer"
+                                                            menu={{
+                                                                items: [
+                                                                    ...orgList.map((el) => ({
+                                                                        key: el.id,
+                                                                        label: el.name
+                                                                    }))
+                                                                ],
+
+                                                                selectable: true,
+                                                                defaultSelectedKeys: [
+                                                                    organization.id
+                                                                ],
+                                                                onClick: (e) => {
+                                                                    const result = orgList.find(
+                                                                        (el) => el.id === e.key
+                                                                    );
+                                                                    if (result)
+                                                                        setOrganization(result);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Space className="gap-1">
+                                                                {organization.name}
+                                                                <DownOutlined
+                                                                    style={{ fontSize: 12 }}
+                                                                />
+                                                            </Space>
+                                                        </Dropdown>
+                                                    );
+                                                })()
+                                            )}
                                         </Skeleton>
                                     </Text>
                                 </Flex>

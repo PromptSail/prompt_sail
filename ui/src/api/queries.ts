@@ -17,7 +17,8 @@ import {
     getConfig,
     getModels,
     addUserRequest,
-    loginUserRequest
+    loginUserRequest,
+    getOrganizationsResponse
 } from './interfaces';
 import { StatisticsParams, TransactionsFilters } from './types';
 
@@ -315,6 +316,23 @@ export const useLoginUser = (): UseMutationResult<
             onError: (err) => {
                 console.error(`${err.code}: ${err.response?.data.detail}`);
             }
+        }
+    );
+};
+
+export const useGetOrganizations = (
+    id: string
+): UseQueryResult<AxiosResponse<getOrganizationsResponse>, AxiosError> => {
+    return useQuery(
+        'project',
+        async () => {
+            return await api.getOrganizations(id);
+        },
+        {
+            staleTime: Infinity,
+            retry: false,
+            cacheTime: 0,
+            refetchOnWindowFocus: 'always'
         }
     );
 };
