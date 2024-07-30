@@ -1490,23 +1490,14 @@ async def mock_transactions(
     }
 
 
-@app.get(
-    "/api/only_for_purpose/encrypt", dependencies=[Security(decode_and_validate_token)]
-)
-def encrypt_data(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)], data: dict
-) -> str:
+@app.get("/api/only_for_purpose/encrypt")
+def encrypt_data(request: Request, data: dict) -> str:
     encrypted = utils.encrypt(data, config.JWT_SECRET)
 
     return encrypted
 
 
-@app.get(
-    "/api/only_for_purpose/decrypt", dependencies=[Security(decode_and_validate_token)]
-)
-def decrypt_data(
-    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
-    encrypted_data: str,
-) -> str:
+@app.get("/api/only_for_purpose/decrypt")
+def decrypt_data(request: Request, encrypted_data: str) -> str:
     decrypted = utils.decrypt(encrypted_data, config.JWT_SECRET)
     return decrypted
