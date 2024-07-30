@@ -60,6 +60,7 @@ from projects.use_cases import (
     count_projects,
     delete_project,
     get_all_projects,
+    get_all_projects_for_organization,
     get_project,
     update_project,
 )
@@ -276,20 +277,64 @@ def activate_account(
         raise HTTPException(status_code=409, detail="Account is already active.")
 
     activated = ctx.call(activate_user, user_id=user_id)
+
+    user_personal_organization_id = ctx.call(
+        get_all_organizations_for_owner, owner_id=activated.id
+    )[0].id
+    data1 = Project(
+        name="Models Playground",
+        slug="models-playground",
+        description="Default description for models playground project.",
+        ai_providers=[
+            AIProvider(
+                deployment_name="openai",
+                slug="openai",
+                api_base="https://api.openai.com/v1",
+                description="",
+                provider_name="OpenAI",
+            ),
+        ],
+        tags=["research", "internal", "experiment", "east-us"],
+        org_id=user_personal_organization_id,
+        owner=activated.id,
+    )
+    data2 = Project(
+        name="Client campaign",
+        slug="client-campaign",
+        description="Default description for client campaign project.",
+        ai_providers=[
+            AIProvider(
+                deployment_name="openai",
+                slug="openai",
+                api_base="https://api.openai.com/v1",
+                description="",
+                provider_name="OpenAI",
+            ),
+        ],
+        tags=["client-zebra", "team-tigers", "central-eu", "production-system"],
+        org_id=user_personal_organization_id,
+        owner=activated.id,
+    )
+    ctx.call(add_project, data1)
+    ctx.call(add_project, data2)
     return GetUserSchema(**activated.model_dump())
 
 
 @app.get("/api/projects", dependencies=[Security(decode_and_validate_token)])
 async def get_projects(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    organization_id: str,
 ) -> list[GetProjectSchema]:
     """
     API endpoint to retrieve information about all projects.
 
+    :param organization_id: The identifier of the organization.
     :param ctx: The transaction context dependency.
     :return: A list of GetProjectSchema objects.
     """
-    projects = ctx.call(get_all_projects)
+    projects = ctx.call(
+        get_all_projects_for_organization, organization_id=organization_id
+    )
 
     dtos = []
     for project in projects:
@@ -1498,14 +1543,14 @@ async def mock_transactions(
     }
 
 
-@app.get("/api/only_for_purpose/encrypt")
+@app.post("/api/only_for_purpose/encrypt")
 def encrypt_data(request: Request, data: dict) -> str:
     encrypted = utils.encrypt(data, config.JWT_SECRET)
 
     return encrypted
 
 
-@app.get("/api/only_for_purpose/decrypt")
+@app.post("/api/only_for_purpose/decrypt")
 def decrypt_data(request: Request, encrypted_data: str) -> str:
     decrypted = utils.decrypt(encrypted_data, config.JWT_SECRET)
     return decrypted

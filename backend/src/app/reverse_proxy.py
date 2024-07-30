@@ -1,12 +1,14 @@
 from typing import Annotated
 
 import httpx
+import utils
 from _datetime import datetime, timezone
 from app.dependencies import get_logger, get_provider_pricelist, get_transaction_context
+from config import config
 from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
 from lato import Application, TransactionContext
-from projects.use_cases import get_project_by_slug
+from projects.use_cases import get_project_by_organization_and_slug
 from raw_transactions.use_cases import store_raw_transactions
 from starlette.background import BackgroundTask
 from transactions.use_cases import store_transaction
@@ -76,11 +78,11 @@ async def close_stream(
 
 
 @app.api_route(
-    "/{project_slug}/{provider_slug}/{path:path}",
+    "/{encrypted_data}/{provider_slug}/{path:path}",
     methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
 )
 async def reverse_proxy(
-    project_slug: str,
+    encrypted_data: str,
     provider_slug: str,
     path: str,
     request: Request,
@@ -92,7 +94,7 @@ async def reverse_proxy(
     """
     API route for reverse proxying requests to the upstream server.
 
-    :param project_slug: The slug of the project.
+    :param encrypted_data: Data to encode.
     :param provider_slug: The slug of the AI provider.
     :param path: The path for the reverse proxy.
     :param request: The incoming request.
@@ -109,7 +111,12 @@ async def reverse_proxy(
     # project = ctx.call(get_project_by_slug, slug=request.state.slug)
 
     tags = tags.split(",") if tags is not None else []
-    project = ctx.call(get_project_by_slug, slug=project_slug)
+    decoded_data = utils.decrypt(encrypted_data, config.JWT_SECRET)
+    project = ctx.call(
+        get_project_by_organization_and_slug,
+        project_slug=decoded_data["project_slug"],
+        organization_id=decoded_data["organization_id"],
+    )
     url = ApiURLBuilder.build(project, provider_slug, path, target_path)
 
     pricelist = get_provider_pricelist(request)

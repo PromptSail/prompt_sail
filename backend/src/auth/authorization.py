@@ -13,6 +13,8 @@ from fastapi.security import APIKeyHeader
 from lato import TransactionContext
 from organization.models import Organization, OrganizationTypeEnum
 from organization.use_cases import add_organization
+from projects.models import AIProvider, Project
+from projects.use_cases import add_project
 
 
 class UserBuilder:
@@ -180,7 +182,48 @@ if config.SSO_AUTH:
                     name="Personal",
                     owner=new_user.id,
                 )
-                ctx.call(add_organization, organization=organization)
+                new_organization = ctx.call(add_organization, organization=organization)
+                data1 = Project(
+                    name="Models Playground",
+                    slug="models-playground",
+                    description="Default description for models playground project.",
+                    ai_providers=[
+                        AIProvider(
+                            deployment_name="openai",
+                            slug="openai",
+                            api_base="https://api.openai.com/v1",
+                            description="",
+                            provider_name="OpenAI",
+                        ),
+                    ],
+                    tags=["research", "internal", "experiment", "east-us"],
+                    org_id=new_organization.id,
+                    owner=new_user.id,
+                )
+                data2 = Project(
+                    name="Client campaign",
+                    slug="client-campaign",
+                    description="Default description for client campaign project.",
+                    ai_providers=[
+                        AIProvider(
+                            deployment_name="openai",
+                            slug="openai",
+                            api_base="https://api.openai.com/v1",
+                            description="",
+                            provider_name="OpenAI",
+                        ),
+                    ],
+                    tags=[
+                        "client-zebra",
+                        "team-tigers",
+                        "central-eu",
+                        "production-system",
+                    ],
+                    org_id=new_organization.id,
+                    owner=new_user.id,
+                )
+                ctx.call(add_project, data1)
+                ctx.call(add_project, data2)
 
             return db_user if db_user is not None else new_user
         except jwt.exceptions.DecodeError:

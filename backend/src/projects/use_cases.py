@@ -17,18 +17,22 @@ def get_project(
     return project
 
 
-def get_project_by_slug(
-    slug: str,
+def get_project_by_organization_and_slug(
+    organization_id: str,
+    project_slug: str,
     project_repository: ProjectRepository,
 ) -> Project:
     """
     Retrieve a project by its slug.
 
-    :param slug: The unique slug of the project to be retrieved.
+    :param organization_id:
+    :param project_slug: The unique slug of the project to be retrieved.
     :param project_repository: An instance of ProjectRepository used for accessing project data.
     :return: The Project object corresponding to the specified slug.
     """
-    project = project_repository.get_by_slug(slug)
+    project = project_repository.get_by_organization_and_slug(
+        project_slug, organization_id
+    )
     return project
 
 
@@ -40,6 +44,20 @@ def get_all_projects(project_repository: ProjectRepository) -> list[Project]:
     :return: A list of all Project objects stored in the repository.
     """
     projects = project_repository.get_all()
+    return projects
+
+
+def get_all_projects_for_organization(
+    organization_id: str, project_repository: ProjectRepository
+) -> list[Project]:
+    """
+    Retrieve a list of all projects in organization.
+
+    :param organization_id: The identifier of the organization.
+    :param project_repository: An instance of ProjectRepository used for accessing project data.
+    :return: A list of all Project objects stored in the repository.
+    """
+    projects = project_repository.find({"org_id": organization_id})
     return projects
 
 

@@ -32,7 +32,7 @@ class ProjectRepository(MongoRepository):
         :raise SlugAlreadyExistsException: If the slug already exists in the repository.
         :return: The result of the add operation.
         """
-        if self.count({"slug": doc.slug}) > 0:
+        if self.count({"slug": doc.slug, "org_id": doc.org_id}) > 0:
             raise SlugAlreadyExistsException(f"Slug already exists: {doc.slug}")
         result = super().add(doc)
         return result
@@ -64,11 +64,12 @@ class ProjectRepository(MongoRepository):
         project = super().get(doc_id)
         return Project(**project.model_dump())
 
-    def get_by_slug(self, slug: str) -> Project:
+    def get_by_organization_and_slug(self, slug: str, org_id: str) -> Project:
         """
         Retrieve a project by its slug.
 
         :param slug: The unique slug of the project to be retrieved.
+        :param: org_id: The unique organization id.
         :return: The Project object corresponding to the specified slug.
         """
-        return self.find_one({"slug": slug})
+        return self.find_one({"slug": slug, "org_id": org_id})
