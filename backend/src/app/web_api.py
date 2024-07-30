@@ -1335,8 +1335,16 @@ async def get_config(
 async def get_users(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     auth_user: User = Depends(decode_and_validate_token),
+    organization_id: Optional[str] = None,
 ) -> list[GetPartialUserSchema]:
-    users = ctx.call(get_all_users)
+    if organization_id is not None:
+        organization = ctx.call(get_organization_by_id, organization_id=organization_id)
+        user_ids = organization.members
+        user_ids.append(organization.owner)
+        users = [ctx.call(get_local_user, user_id=idx) for idx in user_ids]
+    else:
+        users = ctx.call(get_all_users)
+
     idx = next(
         (i for i, usr in enumerate(users) if usr.external_id == auth_user.external_id),
         None,
