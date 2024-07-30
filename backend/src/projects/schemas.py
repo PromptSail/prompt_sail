@@ -31,8 +31,8 @@ class CreateProjectSchema(BaseModel):
     description: str
     ai_providers: list[ProjectAIProviderSchema]
     tags: list[str] = []
-    org_id: str | None = None
-    owner: str = ""
+    org_id: str
+    owner: str
 
 
 class UpdateProjectSchema(BaseModel):
@@ -52,7 +52,7 @@ class GetProjectSchema(BaseModel):
     description: str
     ai_providers: list[ProjectAIProviderSchema]
     tags: list[str] = []
-    org_id: str | None = None
+    org_id: str
     created_at: datetime
     owner: str
     total_cost: int | float = 0
