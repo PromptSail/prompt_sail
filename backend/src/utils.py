@@ -1,5 +1,7 @@
 import base64
+import hashlib
 import json
+import pickle
 import random
 import re
 from collections import OrderedDict
@@ -13,6 +15,8 @@ import numpy as np
 import pandas as pd
 import tiktoken
 from _datetime import datetime, timedelta
+from Crypto import Random
+from Crypto.Cipher import AES
 from PIL import Image
 from transactions.models import Transaction
 from transactions.schemas import (
@@ -2104,6 +2108,36 @@ def preprocess_buffer(request, response, buffer) -> dict:
             prompt_tokens=0, completion_tokens=0, total_tokens=0
         )
     return response_content
+
+
+pad = lambda s: s + (16 - len(s) % 16) * chr(16 - len(s) % 16).encode()
+unpad = lambda s: s[: -ord(s[len(s) - 1 :])]
+
+
+def get_key(password):
+    return hashlib.sha256(password.encode()).digest()
+
+
+def encrypt(data, password):
+    serialized_data = pickle.dumps(data)
+    padded_data = pad(serialized_data)
+    iv = Random.new().read(AES.block_size)
+    key = get_key(password)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    encrypted_data = cipher.encrypt(padded_data)
+    encoded = base64.urlsafe_b64encode(iv + encrypted_data).decode("utf-8")
+    return encoded
+
+
+def decrypt(encrypted_string, password):
+    encrypted_data = base64.urlsafe_b64decode(encrypted_string)
+    iv = encrypted_data[: AES.block_size]
+    key = get_key(password)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    decrypted_padded_data = cipher.decrypt(encrypted_data[AES.block_size :])
+    serialized_data = unpad(decrypted_padded_data)
+    data = pickle.loads(serialized_data)
+    return data
 
 
 class PeriodEnum(str, Enum):

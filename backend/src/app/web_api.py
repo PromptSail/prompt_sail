@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 from hashlib import sha3_256
-from typing import Annotated, Any
+from typing import Annotated, Any, Optional
 
 import pandas as pd
 import utils
@@ -63,6 +63,7 @@ from projects.use_cases import (
     get_project,
     update_project,
 )
+from pydantic import EmailStr
 from raw_transactions.models import TransactionTypeEnum
 from raw_transactions.schemas import CreateRawTransactionSchema
 from raw_transactions.use_cases import (
@@ -126,6 +127,7 @@ def whoami(
 def register(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     register_form: CreateUserSchema,
+    referral: Optional[str] = None,
 ) -> GetUserSchema:
     if register_form.password != register_form.repeated_password:
         raise HTTPException(status_code=409, detail="Passwords don't match.")
@@ -165,6 +167,18 @@ def register(
 
     ctx.call(add_user_credential, user_credential=credential)
 
+    if referral is not None:
+        organization_id = utils.decrypt(referral, config.JWT_SECRET)["organization_id"]
+        organization = ctx.call(get_organization_by_id, organization_id=organization_id)
+        members = organization.members
+        members.append(created_user.id)
+        ctx.call(
+            update_organization,
+            organization_id=organization_id,
+            fields_to_update={"members": members},
+        )
+
+    encrypted_uid = utils.encrypt({"user_id": created_user.id}, config.JWT_SECRET)
     email = EmailSchema(
         email=register_form.email,
         subject="PromptSail account activation",
@@ -173,7 +187,7 @@ def register(
     
             Welcome to PromptSail!
             To get started and activate your account, copy and paste the following URL into your browser:
-            {config.BASE_URL}/api/auth/activate/{created_user.id}
+            {config.BASE_URL}/api/auth/activate/{encrypted_uid}
             If you did not sign up for this account, please ignore this email or contact our support team.
             
             Thank you for joining us!
@@ -218,12 +232,45 @@ def login(
     return generate_local_jwt(user)
 
 
+@app.get("/api/encrypt", dependencies=[Security(decode_and_validate_token)])
+def encrypt_data_for_proxy(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    organization_id: str,
+    project_slug: str,
+    user: User = Depends(decode_and_validate_token),
+) -> str:
+    organizations_where_user_as_owner = [
+        org.id for org in ctx.call(get_all_organizations_for_owner, owner_id=user.id)
+    ]
+    organizations_where_user_as_member = [
+        org.id for org in ctx.call(get_all_organizations_for_user, user_id=user.id)
+    ]
+    organizations = (
+        organizations_where_user_as_member + organizations_where_user_as_owner
+    )
+
+    if organization_id not in organizations:
+        raise HTTPException(
+            status_code=401,
+            detail="You can't create proxy urls for projects in organizations you don't belong to.",
+        )
+
+    data = {"organization_id": organization_id, "project_slug": project_slug}
+    encrypted = utils.encrypt(data, config.JWT_SECRET)
+
+    return encrypted
+
+
 @app.get(
-    "/api/auth/activate/{user_id:str}", response_class=JSONResponse, status_code=200
+    "/api/auth/activate/{encoded_data:str}",
+    response_class=JSONResponse,
+    status_code=200,
 )
 def activate_account(
-    user_id: str, ctx: Annotated[TransactionContext, Depends(get_transaction_context)]
+    encoded_data: str,
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> GetUserSchema:
+    user_id = utils.decrypt(encoded_data, config.JWT_SECRET)["user_id"]
     user = ctx.call(get_local_user, user_id=user_id)
     if user.is_active:
         raise HTTPException(status_code=409, detail="Account is already active.")
@@ -341,6 +388,7 @@ async def update_existing_project(
     project_id: str,
     data: UpdateProjectSchema,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    user: User = Depends(decode_and_validate_token),
 ) -> GetProjectSchema:
     """
     API endpoint to update an existing project.
@@ -350,6 +398,15 @@ async def update_existing_project(
     :param ctx: The transaction context dependency.
     :return: A GetProjectSchema object representing the updated project.
     """
+    organization_id = ctx.call(get_project, project_id=project_id).organization_id
+    organization = ctx.call(get_organization_by_id, organization_id=organization_id)
+
+    if organization.owner != user.id and user.id not in organization.members:
+        raise HTTPException(
+            status_code=401,
+            detail="You cannot edit projects in an organization to which you do not belong.",
+        )
+
     data = dict(**data.model_dump(exclude_none=True))
     if "slug" in data:
         data["slug"] = slugify(data["slug"])
@@ -547,13 +604,18 @@ async def update_existing_organization(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     organization_id: str,
     data: UpdateOrganizationSchema,
-    user: User = Depends(decode_and_validate_token)
+    user: User = Depends(decode_and_validate_token),
 ) -> GetOrganizationSchema:
-    organizations_where_user_as_owner = [org.id for org in ctx.call(get_all_organizations_for_owner, owner_id=user.id)]
-    
+    organizations_where_user_as_owner = [
+        org.id for org in ctx.call(get_all_organizations_for_owner, owner_id=user.id)
+    ]
+
     if organization_id not in organizations_where_user_as_owner:
-        raise HTTPException(status_code=401, detail="You cannot edit organizations that do not belong to you.")
-    
+        raise HTTPException(
+            status_code=401,
+            detail="You cannot edit organizations that do not belong to you.",
+        )
+
     updated = ctx.call(
         update_organization, organization_id=organization_id, fields_to_update=data
     )
@@ -571,6 +633,54 @@ async def get_organization(
 ) -> GetOrganizationSchema:
     organization = ctx.call(get_organization_by_id, organization_id=organization_id)
     return GetOrganizationSchema(**organization.model_dump())
+
+
+@app.post(
+    "/api/organizations/{organization_id:str}/invite",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
+async def invite_to_organization(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    organization_id: str,
+    email_address: EmailStr,
+    user: User = Depends(decode_and_validate_token),
+) -> JSONResponse:
+    organizations_where_user_as_owner = [
+        org.id for org in ctx.call(get_all_organizations_for_owner, owner_id=user.id)
+    ]
+    if organization_id not in organizations_where_user_as_owner:
+        raise HTTPException(
+            status_code=401,
+            detail="You can't invite organizations that don't belong to you.",
+        )
+
+    organization = ctx.call(get_organization_by_id, organization_id=organization_id)
+    referral = utils.encrypt({"organization_id": organization_id}, config.JWT_SECRET)
+
+    email = EmailSchema(
+        email=email_address,
+        subject=f"PromptSail invitation to {organization.name} organization",
+        message=f"""
+                Welcome to PromptSail!
+                You have been invited to join the {organization.name} organization. 
+                To get started and create your account, copy and paste the following URL into your browser:
+                {config.BASE_URL}/api/auth/register?referal={referral}
+
+                Thank you for joining us!
+
+                Best regards,
+                PromptSail Team.
+
+
+                Note: This is an automated message. Please do not reply to this email.
+            """,
+    )
+    send_email(email)
+    return JSONResponse(
+        status_code=200,
+        content=f"The invitation email with referral code: {referral} has been sent to {email_address}.",
+    )
 
 
 @app.get(
@@ -1378,3 +1488,25 @@ async def mock_transactions(
         "status_code": 200,
         "message": f"Mocked transactions removed",
     }
+
+
+@app.get(
+    "/api/only_for_purpose/encrypt", dependencies=[Security(decode_and_validate_token)]
+)
+def encrypt_data(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)], data: dict
+) -> str:
+    encrypted = utils.encrypt(data, config.JWT_SECRET)
+
+    return encrypted
+
+
+@app.get(
+    "/api/only_for_purpose/decrypt", dependencies=[Security(decode_and_validate_token)]
+)
+def decrypt_data(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    encrypted_data: str,
+) -> str:
+    decrypted = utils.decrypt(encrypted_data, config.JWT_SECRET)
+    return decrypted

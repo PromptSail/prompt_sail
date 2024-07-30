@@ -18,6 +18,6 @@ class Project(BaseModel):
     description: str = Field(max_length=280)
     ai_providers: list[AIProvider]
     tags: list[str] = []
-    org_id: str | None
+    org_id: str
     created_at: datetime = datetime.now(tz=timezone.utc)
     owner: str
