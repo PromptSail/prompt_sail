@@ -125,13 +125,14 @@ export interface getStatisticsTransactionsSpeed {
     }[];
 }
 export interface getLoggedUser {
+    id: string;
     external_id: string;
     email: string;
-    organization: string;
     given_name: string;
     family_name: string;
     picture: string;
     issuer: string;
+    is_active: boolean;
 }
 export interface getConfig {
     organization: string;
@@ -165,4 +166,18 @@ export interface addUserRequest {
 export interface loginUserRequest {
     email: string;
     password: string;
+}
+
+export interface getOrganizationsResponse {
+    user_id: string;
+    owned: {
+        id: string;
+        name: string;
+        type: string;
+    }[];
+    as_member: {
+        id: string;
+        name: string;
+        type: string;
+    }[];
 }

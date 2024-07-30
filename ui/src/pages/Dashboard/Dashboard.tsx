@@ -1,8 +1,8 @@
-import { Flex, Typography, Button, Row, Col, Pagination, Spin } from 'antd';
+import { Flex, Typography, Button, Row, Col, Pagination, Spin, Breadcrumb } from 'antd';
 import { useCallback, useContext, useState } from 'react';
 import { getAllProjects } from '../../api/interfaces';
-import { useGetAllProjects } from '../../api/queries';
-import { PlusSquareOutlined } from '@ant-design/icons';
+import { useGetAllProjects, useGetOrganizations } from '../../api/queries';
+import { LoadingOutlined, PlusSquareOutlined } from '@ant-design/icons';
 import FilterDashboard from './FilterDashboard';
 import ProjectTile from '../../components/ProjectTile/ProjectTile';
 import noFoundImg from '../../assets/paper_boat.svg';
@@ -10,10 +10,14 @@ import noResultsImg from '../../assets/loupe.svg';
 import { useNavigate } from 'react-router-dom';
 import HeaderContainer from '../../components/HeaderContainer/HeaderContainer';
 import { Context } from '../../context/Context';
+import { useOrganization, useUser } from '../../context/UserContext';
 
 const { Title, Text } = Typography;
 
 const Dashboard = () => {
+    const { id } = useUser();
+    const { organization, setOrganization } = useOrganization();
+    const organizations = useGetOrganizations(id);
     const projects = useGetAllProjects();
     const auth = useContext(Context).config?.authorization;
     const [filter, setFilter] = useState('');
@@ -89,6 +93,12 @@ const Dashboard = () => {
         filter,
         filterOwner
     ]);
+    // useEffect(() => {
+    //     if (organizations.isSuccess) {
+    //         const data = organizations.data.data;
+    //         setCurrentOrganization('asd');
+    //     }
+    // }, [organizations.status]);
     if (projects.isLoading) {
         return (
             <div className="w-full h-full relative">
@@ -104,9 +114,67 @@ const Dashboard = () => {
             <Flex gap={24} vertical ref={loadData}>
                 <HeaderContainer>
                     <div className="my-auto z-10">
-                        <Title level={1} className="h4 m-auto">
-                            Projects ({filteredProjects.length})
-                        </Title>
+                        <Breadcrumb
+                            className="ms-1 h4 dashboard-breadcrumb"
+                            items={[
+                                {
+                                    ...(() => {
+                                        const output = {
+                                            className: 'font-semibold cursor-pointer'
+                                        };
+                                        if (organizations.isError)
+                                            return { title: organizations.error.code, ...output };
+                                        if (organizations.isLoading)
+                                            return {
+                                                title: (
+                                                    <Spin indicator={<LoadingOutlined spin />} />
+                                                ),
+                                                ...output
+                                            };
+                                        if (organizations.isSuccess) {
+                                            const orgsData = organizations.data.data;
+                                            const orgList = [
+                                                ...orgsData.owned,
+                                                ...orgsData.as_member
+                                            ];
+                                            return {
+                                                menu: {
+                                                    items: [
+                                                        ...orgList.map((el) => ({
+                                                            key: el.id,
+                                                            label: el.name
+                                                        }))
+                                                    ],
+
+                                                    selectable: true,
+                                                    defaultSelectedKeys: [organization.id],
+                                                    onClick: (e) => {
+                                                        const result = orgList.find(
+                                                            (el) => el.id === e.key
+                                                        );
+                                                        if (result) setOrganization(result);
+                                                    }
+                                                },
+                                                className: 'font-semibold cursor-pointer',
+                                                dropdownProps: {
+                                                    trigger: ['click']
+                                                },
+                                                title: organization.name
+                                            };
+                                        }
+                                    })()
+                                },
+                                {
+                                    // title: (
+                                    //     <Title level={1} className="h4 m-auto">
+                                    //         Projects {filteredProjects.length}
+                                    //     </Title>
+                                    // )
+                                    title: `Projects ${filteredProjects.length}`,
+                                    className: 'font-semibold'
+                                }
+                            ]}
+                        />
                     </div>
                     <Button
                         className="my-auto z-10"
