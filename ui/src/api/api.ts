@@ -25,8 +25,8 @@ const api = {
     config: (): Promise<AxiosResponse> => {
         return client.get('/api/config');
     },
-    getProjects: (): Promise<AxiosResponse<getAllProjects[]>> => {
-        return client.get('/api/projects');
+    getProjects: (params: string): Promise<AxiosResponse<getAllProjects[]>> => {
+        return client.get(`/api/projects${params}`);
     },
     getProject: (id: string): Promise<AxiosResponse<getProjectResponse>> => {
         return client.get(`/api/projects/${id}`);

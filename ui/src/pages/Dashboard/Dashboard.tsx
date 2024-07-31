@@ -18,7 +18,7 @@ const Dashboard = () => {
     const { id } = useUser();
     const { organization, setOrganization } = useOrganization();
     const organizations = useGetOrganizations(id);
-    const projects = useGetAllProjects();
+    const projects = useGetAllProjects({ organization_id: organization.id || 'id' });
     const auth = useContext(Context).config?.authorization;
     const [filter, setFilter] = useState('');
     const [filterOwner, setFilterOwner] = useState<string | null>(null);
@@ -93,12 +93,6 @@ const Dashboard = () => {
         filter,
         filterOwner
     ]);
-    // useEffect(() => {
-    //     if (organizations.isSuccess) {
-    //         const data = organizations.data.data;
-    //         setCurrentOrganization('asd');
-    //     }
-    // }, [organizations.status]);
     if (projects.isLoading) {
         return (
             <div className="w-full h-full relative">
@@ -165,12 +159,7 @@ const Dashboard = () => {
                                     })()
                                 },
                                 {
-                                    // title: (
-                                    //     <Title level={1} className="h4 m-auto">
-                                    //         Projects {filteredProjects.length}
-                                    //     </Title>
-                                    // )
-                                    title: `Projects ${filteredProjects.length}`,
+                                    title: `Projects (${filteredProjects.length})`,
                                     className: 'font-semibold'
                                 }
                             ]}

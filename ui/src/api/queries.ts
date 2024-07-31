@@ -34,13 +34,16 @@ const linkParamsParser = <T extends { [key: string]: string }>(params: T): strin
     return paramsStr;
 };
 
-export const useGetAllProjects = (): UseQueryResult<getAllProjects[], AxiosError> => {
+export const useGetAllProjects = (params: {
+    organization_id: string;
+}): UseQueryResult<getAllProjects[], AxiosError> => {
     return useQuery(
-        'projects',
+        ['projects', params],
         async () => {
-            return (await api.getProjects()).data;
+            return (await api.getProjects(linkParamsParser(params))).data;
         },
         {
+            enabled: !!params,
             staleTime: Infinity,
             retry: false,
             cacheTime: 0,
@@ -324,7 +327,7 @@ export const useGetOrganizations = (
     id: string
 ): UseQueryResult<AxiosResponse<getOrganizationsResponse>, AxiosError> => {
     return useQuery(
-        'project',
+        'organizations',
         async () => {
             return await api.getOrganizations(id);
         },

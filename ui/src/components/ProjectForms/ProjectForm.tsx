@@ -8,6 +8,7 @@ import ProjectDetails from './ProjectDetails';
 import ProviderDetails from './ProviderDetails/ProviderDetails';
 import { CheckSquareOutlined, RightSquareOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { getStorageOrganization } from '../../storage/organization';
 
 interface Props {
     submitFunc: (values: typeof FormikValuesTemplate) => Promise<void>;
@@ -25,13 +26,17 @@ const ProjectForm: React.FC<Props> = ({ submitFunc }) => {
     const formikDetails = useFormik({
         initialValues: { ...project, skip: false },
         onSubmit: async (values) => {
-            setProject((old) => ({
+            const valuesAndOrg = {
                 ...values,
+                org_id: getStorageOrganization()?.id || ''
+            };
+            setProject((old) => ({
+                ...valuesAndOrg,
                 slug: toSlug(values.slug),
                 ai_providers: old.ai_providers
             }));
-            if (values.skip) {
-                submitFunc(values);
+            if (valuesAndOrg.skip) {
+                submitFunc(valuesAndOrg);
             } else setStepsCurrent(1);
         },
         validationSchema: projectSchema,
