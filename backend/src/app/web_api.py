@@ -103,7 +103,12 @@ from transactions.use_cases import (
     get_transactions_for_project,
 )
 from user_credentials.models import UserCredential
-from user_credentials.use_cases import add_user_credential, get_user_credential
+from user_credentials.schemas import PasswordChangeSchema
+from user_credentials.use_cases import (
+    add_user_credential,
+    get_user_credential,
+    update_user_credential_password,
+)
 
 from .app import app
 
@@ -260,6 +265,90 @@ def encrypt_data_for_proxy(
     encrypted = utils.encrypt(data, config.JWT_SECRET)
 
     return encrypted
+
+
+@app.post(
+    "/api/auth/password/change/{encrypted_data:str}",
+    response_class=JSONResponse,
+    status_code=200,
+)
+def password_change(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    encrypted_data: str,
+    data: PasswordChangeSchema,
+) -> JSONResponse:
+    decrypted = utils.decrypt(encrypted_data, config.JWT_SECRET)
+    if data.password != data.repeated_password:
+        raise HTTPException(status_code=400, detail="Passwords don't match.")
+
+    try:
+        if decrypted["expired_at"] < datetime.now(tz=timezone.utc):
+            raise HTTPException(status_code=400, detail="Link expired.")
+
+        credentials = ctx.call(get_user_credential, user_id=decrypted["credential_id"])
+
+        password = sha3_256()
+        password.update(data.password.encode("utf-8"))
+
+        ctx.call(
+            update_user_credential_password,
+            credential_id=credentials,
+            password=password,
+        )
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Wrong encrypted data.")
+
+    return JSONResponse(status_code=200, content="Password updated")
+
+
+@app.post("/api/auth/password/reset", response_class=JSONResponse, status_code=200)
+def password_reset(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    email: EmailStr,
+) -> JSONResponse:
+    email_exist = ctx.call(check_if_email_exists, user_email=email)
+    if not email_exist:
+        raise HTTPException(status_code=404, detail="User doesn't exists.")
+
+    user = ctx.call(get_user_by_email, email=email)
+    user_credential = ctx.call(get_user_credential, user_id=user.id)
+
+    encrypted = utils.encrypt(
+        {
+            "credential_id": user_credential.id,
+            "expired_at": datetime.now(tz=timezone.utc),
+        },
+        config.JWT_SECRET,
+    )
+
+    email = EmailSchema(
+        email=email,
+        subject=f"PromptSail password reset",
+        message=f"""
+                    We received a request to reset the password for your account associated with this email address. 
+                    If you made this request, please follow the instructions below to reset your password.
+                    
+                    Click on the link below to reset your password:
+                    {config.BASE_URL}/api/auth/password/change/{encrypted}
+
+                    For security reasons, this link will expire in 24 hours. If you did not request a password reset, 
+                    please ignore this email. Your password will remain unchanged.
+
+                    If you have any issues or need further assistance, please contact our support team.
+
+                    Best regards,
+                    PromptSail Team.
+
+
+                    Note: This is an automated message. Please do not reply to this email.
+                """,
+    )
+    send_email(email)
+
+    return JSONResponse(
+        status_code=200,
+        content=f"Password change request sent to: {email} ({encrypted})",
+    )
 
 
 @app.get(

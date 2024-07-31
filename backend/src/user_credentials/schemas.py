@@ -9,3 +9,8 @@ class CreateUserCredentialSchema(BaseModel):
 
 class GetUserCredentialSchema(UserCredential):
     ...
+
+
+class PasswordChangeSchema(BaseModel):
+    password: str
+    repeated_password: str

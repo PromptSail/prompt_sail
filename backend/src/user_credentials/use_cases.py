@@ -8,7 +8,7 @@ def get_user_credential(
     """
     Retrieve a user credential by its unique external identifier.
 
-    :param user_id: The unique username of the user credential to be retrieved.
+    :param user_id: The unique user_id of the user credential to be retrieved.
     :param credential_repository: An instance of UserCredentialRepository used for accessing user data.
     :return: The UserCredential object corresponding to the specified username.
     """
@@ -27,4 +27,20 @@ def add_user_credential(
     :return: The newly added UserCredential object.
     """
     credential = credential_repository.add(user_credential)
+    return credential
+
+
+def update_user_credential_password(
+    credential_id: str, password: str, credential_repository: UserCredentialRepository
+) -> UserCredential:
+    """
+
+    :param credential_id: The unique credential_id of object to be retrieved.
+    :param password: The new password hash.
+    :param credential_repository: An instance of UserCredentialRepository used for storing user credential data.
+    :return: The updated UserCredential object.
+    """
+    credential = credential_repository.get(credential_id)
+    credential.__dict__.update(password=password)
+    credential_repository.update(credential)
     return credential
