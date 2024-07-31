@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { TransactionsFilters } from '../../../api/types';
 import { Key, SetStateAction, useEffect, useState } from 'react';
@@ -5,16 +6,14 @@ import { UseQueryResult } from 'react-query';
 import { AxiosError } from 'axios';
 import { Button, Divider, Flex, Input, Menu, Skeleton, Tree } from 'antd';
 import { DefaultOptionType } from 'antd/es/select';
-
 const FilterStringSelectMenu: React.FC<
     FilterDropdownProps & {
         filters: TransactionsFilters;
         setFilters: (attr: SetStateAction<TransactionsFilters>) => void;
         query: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hook: () => UseQueryResult<{ [key: string]: any }[], AxiosError>;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            label: keyof { [key: string]: any };
+            hook: (values?: any) => UseQueryResult<{ [key: string]: any }[], AxiosError>;
+            label: string;
+            params?: { [key: string]: any } | string;
         };
         target: keyof TransactionsFilters;
         multiselect: boolean;
@@ -29,7 +28,7 @@ const FilterStringSelectMenu: React.FC<
     target,
     multiselect
 }) => {
-    const strings = query.hook();
+    const strings = query.hook(query.params);
     const [search, setSearch] = useState('');
     useEffect(() => {
         if (strings.isSuccess)

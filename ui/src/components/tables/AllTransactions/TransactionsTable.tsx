@@ -10,6 +10,7 @@ import * as styles from '../../../styles.json';
 import { SorterResult } from 'antd/es/table/interface';
 import noData from '../../../assets/box.svg';
 import { useHandleTransactionImage } from '../../../helpers/handleTransactionImage';
+import { useOrganization } from '../../../context/UserContext';
 const { Title } = Typography;
 
 interface Props {
@@ -156,11 +157,12 @@ const TransactionsTable: React.FC<Props> = ({
             setLoading(false);
         }
     }, [transactions.status]);
+    const { organization } = useOrganization();
     return (
         <div className="relative">
             <Table
                 dataSource={tableData.items}
-                columns={columns(filters, setFilters, projectFilters)}
+                columns={columns(filters, setFilters, projectFilters, organization.id)}
                 loading={isLoading}
                 locale={{
                     emptyText: <div className="w-full h-[200px]"></div>

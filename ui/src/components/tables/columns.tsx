@@ -7,6 +7,8 @@ import { ColumnFilterItem } from 'antd/es/table/interface';
 import { SetStateAction } from 'react';
 import FilterStringSelectMenu from './filters/FilterStringSelectMenu';
 import FilterTags from './filters/FilterTags';
+import { UseQueryResult } from 'react-query';
+import { AxiosError } from 'axios';
 
 export interface DataType {
     key: React.Key;
@@ -34,7 +36,8 @@ export type CustomColumns = ColumnProps<DataType> & {
 const columns = (
     filters: TransactionsFilters,
     setFilters: (attr: SetStateAction<TransactionsFilters>) => void,
-    projectFilter: boolean
+    projectFilter: boolean,
+    organizationId: string
 ): CustomColumns[] => {
     return [
         {
@@ -142,7 +145,15 @@ const columns = (
                           {...props}
                           filters={filters as ColumnFilterItem[] & TransactionsFilters}
                           setFilters={setFilters}
-                          query={{ hook: useGetAllProjects, label: 'name' }}
+                          query={{
+                              hook: useGetAllProjects as () => UseQueryResult<
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                  { [key: string]: any }[],
+                                  AxiosError
+                              >,
+                              label: 'name',
+                              params: { organization_id: organizationId }
+                          }}
                           target="project_id"
                           multiselect={false}
                       />
