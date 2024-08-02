@@ -482,32 +482,32 @@ class TransactionParamExtractor:
 
     def _extract_from_azure_images_generations(self) -> dict:
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         extracted = {
             "type": "images generations",
             "provider": "Azure OpenAI",
-            "prompt": self.request_content_updated["prompt"],
+            "prompt": self.request_content["prompt"],
             "model": model,
         }
-        messages = [{"role": "user", "content": self.request_content_updated["prompt"]}]
+        messages = [{"role": "user", "content": self.request_content["prompt"]}]
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
                 {
                     "role": "error",
-                    "content": self.response_content_updated["error"]["message"],
+                    "content": self.response_content["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
@@ -544,17 +544,17 @@ class TransactionParamExtractor:
         )
 
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         extracted = {
             "type": "images variations",
             "provider": "Azure OpenAI",
-            "prompt": self.request_content["image"],
+            "prompt": self.request_content_updated["image"],
             "model": model,
         }
 
@@ -564,13 +564,13 @@ class TransactionParamExtractor:
             messages.append(
                 {
                     "role": "error",
-                    "content": self.response_content_updated["error"]["message"],
+                    "content": self.response_content["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
@@ -603,11 +603,11 @@ class TransactionParamExtractor:
 
     def _extract_from_azure_images_edit(self) -> dict:
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         self.request_content_updated["image"] = resize_b64_image(
@@ -635,18 +635,18 @@ class TransactionParamExtractor:
             messages.append(
                 {
                     "role": "error",
-                    "content": self.response_content_updated["error"]["message"],
+                    "content": self.response_content["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
             try:
-                for data in self.response_content_updated["data"]:
+                for data in self.response_content["data"]:
                     messages.append(
                         {
                             "role": "system",
@@ -761,17 +761,17 @@ class TransactionParamExtractor:
         )
 
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         extracted = {
             "type": "images variations",
             "provider": "OpenAI",
-            "prompt": self.request_content["image"],
+            "prompt": self.request_content_updated["image"],
             "model": model,
         }
 
@@ -781,13 +781,13 @@ class TransactionParamExtractor:
             messages.append(
                 {
                     "role": "error",
-                    "content": self.response_content_updated["error"]["message"],
+                    "content": self.response_content["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
@@ -820,11 +820,11 @@ class TransactionParamExtractor:
 
     def _extract_from_openai_images_generations(self) -> dict:
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         extracted = {
@@ -842,10 +842,10 @@ class TransactionParamExtractor:
                     "content": self.response_content_updated["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
@@ -878,11 +878,11 @@ class TransactionParamExtractor:
 
     def _extract_from_openai_images_edit(self) -> dict:
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         self.request_content_updated["image"] = resize_b64_image(
@@ -910,13 +910,13 @@ class TransactionParamExtractor:
             messages.append(
                 {
                     "role": "error",
-                    "content": self.response_content_updated["error"]["message"],
+                    "content": self.response_content["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
@@ -1199,9 +1199,6 @@ class TransactionParamExtractor:
             extracted = self._extract_from_huggingface()
         if self.pattern == "Unsupported":
             raise UnsupportedProviderError(self.url)
-
-        # "Azure Images Variations": r".*openai\.azure\.com.*images\/variations.*",
-        # "Azure Images Edits": r".*openai\.azure\.com.*images\/edits.*",
 
         transaction_params.add_type(extracted["type"])
         transaction_params.add_provider(extracted["provider"])
