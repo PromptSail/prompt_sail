@@ -5,7 +5,7 @@ excerpt: "List of examples for all tested Gen AI API integrations"
 last_modified_at: 2024-08-09T18:00:05+01:00
 redirect_from:
   - /theme-setup/
-toc: true
+toc: false
 toc_sticky: true
 ---
 Here you can explore examples of how to connect to Gen AI models from different AI providers via Prompt Sail and for different libraries.
