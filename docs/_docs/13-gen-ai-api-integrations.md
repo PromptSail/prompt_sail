@@ -2,7 +2,7 @@
 title: "Gen AI API integrations"
 permalink: /docs/gen-ai-api-integrations-for-list-of-examples/
 excerpt: "List of examples for all tested Gen AI API integrations"
-last_modified_at: 2024-07-11T18:00:05+01:00
+last_modified_at: 2024-08-09T18:00:05+01:00
 redirect_from:
   - /theme-setup/
 toc: true
