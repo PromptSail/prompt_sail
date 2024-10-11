@@ -29,10 +29,11 @@ In one project you can have multiple *AI Providers* (aka *AI Deployments*), each
 ### The `proxy_url` structure is as follows:
 
 ```
-http://localhost:8000/project_slug/deployment_name/
+http://domain/project_slug/deployment_name/
 ```
 
 where: 
+* `domain` depends on how Prompt Sail was deployed, e.g. for local deployment it will be: localhost:8000
 * `project_slug` is a slugified project name, configured in the UI while creating a project
 * `deployment_name` is a slugified AI deployment name, configured in the project settings with the target AI provider *API  Base URL* eg. for OpenAI: https://api.openai.com/v1/. (Note that you can configure multiple *AI Deployments* for a single project.)
 
