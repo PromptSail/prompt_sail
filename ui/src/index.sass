@@ -1,3 +1,7 @@
+@use 'sass:map'
+@use './func'
+@use './components/Sign/styles'
+
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap')
 @import url('https://fonts.googleapis.com/css2?family=Unica+One&display=swap')
 
@@ -6,20 +10,17 @@ body
   overflow: hidden
   font-family: 'Roboto Flex'
     
-@import './func.sass'
-
 @tailwind base
 @tailwind components
 @tailwind utilities
 
-@import './components/Sign/styles'
-
 $headers:("fontSize1": 38, "fontSize2": 30, "fontSize3": 24, "fontSize4": 20, "fontSize5": 16, "lineHeight1": 1.21053, "lineHeight2": 1.26667, "lineHeight3": 1.33333, "lineHeight4": 1.40, "lineHeight5": 1.5)
 
 @for $i from 1 through 5
-  .h#{$i}
-    font-size: #{map-get($headers, "fontSize#{$i}")} + px !important
-    line-height: #{map-get($headers, "lineHeight#{$i}")} !important
+  h#{$i}
+    font-size: map.get($headers, "fontSize#{$i}") + px !important
+    line-height: map.get($headers, "lineHeight#{$i}") !important
+    font-weight: map.get($headers, "fontWeight#{$i}") !important
 
 .ant-table-body
   overflow-y: hidden !important

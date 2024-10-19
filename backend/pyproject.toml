@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "PromptSail"
-version = "0.1.0"
-description = "Prompt Sail - prompt management and monitoring tool"
+name = "PromptSail-backend"
+version = "0.5.4"
+description = "Prompt Sail - LLM governance, monitoring and analysis system"
 authors = ["Przemysław Górecki <przemyslaw.gorecki@gmail.com>, Krzysztof Sopyła <krzysztof.sopyla@gmail.com>"]
 
 [tool.poetry.dependencies]
