@@ -7,6 +7,7 @@ from typing import Optional
 from uuid import UUID
 
 import pymongo
+from pymongo.database import Database as MongoDatabase
 from app.logging import logger, logging_context
 from auth.repositories import UserRepository
 from dependency_injector import containers, providers
@@ -258,7 +259,7 @@ class TransactionContainer(containers.DeclarativeContainer):
 
     correlation_id = providers.Dependency(instance_of=UUID)
     logger = providers.Dependency(instance_of=Logger)
-    db_client = providers.Dependency(instance_of=pymongo.database.Database)
+    db_client = providers.Dependency(instance_of=MongoDatabase)
     app = providers.Dependency(instance_of=Application)
 
     project_repository = providers.Singleton(
