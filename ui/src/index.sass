@@ -14,13 +14,12 @@ body
 @tailwind components
 @tailwind utilities
 
-$headers:("fontSize1": 38, "fontSize2": 30, "fontSize3": 24, "fontSize4": 20, "fontSize5": 16, "lineHeight1": 1.21053, "lineHeight2": 1.26667, "lineHeight3": 1.33333, "lineHeight4": 1.40, "lineHeight5": 1.5)
+$headers: ("fontSize1": 38, "fontSize2": 30, "fontSize3": 24, "fontSize4": 20, "fontSize5": 16, "lineHeight1": 1.21053, "lineHeight2": 1.26667, "lineHeight3": 1.33333, "lineHeight4": 1.40, "lineHeight5": 1.5)
 
 @for $i from 1 through 5
-  h#{$i}
-    font-size: map.get($headers, "fontSize#{$i}") + px !important
-    line-height: map.get($headers, "lineHeight#{$i}") !important
-    font-weight: map.get($headers, "fontWeight#{$i}") !important
+  .h#{$i}
+    font-size: #{map.get($headers, "fontSize#{$i}")}px !important
+    line-height: #{map.get($headers, "lineHeight#{$i}")} !important
 
 .ant-table-body
   overflow-y: hidden !important
