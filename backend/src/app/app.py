@@ -80,5 +80,9 @@ async def fastapi_lifespan(app: FastAPI):
     ...
 
 
-app = FastAPI(lifespan=fastapi_lifespan)
+app = FastAPI(lifespan=fastapi_lifespan, 
+              title="PromptSail API",
+              description="API for PromptSail - prompt management and monitoring tool",
+              version="0.5.3",
+              )
 app.container = container
