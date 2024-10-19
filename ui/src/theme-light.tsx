@@ -64,7 +64,9 @@ const theme: ThemeConfig = {
             headerPadding: `${styles.global['Space/Padding/padding']}px ${styles.global['Space/Padding/paddingLG']}px`
         },
         Layout: {
-            bodyBg: '#fafbfa' || styles.Colors.light['Fill/colorFillQuaternary'],
+            bodyBg: styles.Colors.light['Fill/colorFillQuaternary'] !== undefined 
+                ? styles.Colors.light['Fill/colorFillQuaternary'] 
+                : '#fafbfa',
             headerBg: styles.Colors.light['Background/colorBgContainer'],
             headerPadding: `${styles.global['Size/sizeMD']}px 24px`,
             siderBg: styles.Colors.light['Text/colorTextBase']
