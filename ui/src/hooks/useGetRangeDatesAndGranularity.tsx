@@ -50,15 +50,15 @@ const useGetRangeDatesAndGranularity = (
                             options.push(Period.Weekly);
                         break;
                     case 3: // day
-                        if (end.diff(start, 'd', true) >= 1 && end.diff(start, 'M', true) <= 2)
+                        if (end.diff(start, 'd', true) >= 1 && end.diff(start, 'M', true) <= 3) // Changed from 2 to 3 months
                             options.push(Period.Daily);
                         break;
                     case 4: // hour
-                        if (end.diff(start, 'h', true) >= 1 && end.diff(start, 'h', true) <= 60)
+                        if (end.diff(start, 'h', true) >= 1 && end.diff(start, 'h', true) <= 120)
                             options.push(Period.Hourly);
                         break;
                     case 5: // minutes
-                        if (end.diff(start, 'h', true) <= 5) options.push(Period.Minutely);
+                        if (end.diff(start, 'h', true) <= 12) options.push(Period.Minutely);
                         break;
                     default:
                         break;
@@ -115,43 +115,31 @@ const useGetRangeDatesAndGranularity = (
                     allowEmpty={false}
                     presets={[
                         {
-                            label: 'Last 30 minutes',
-                            value: [dayjs().add(-0.5, 'h'), dayjs()]
-                        },
-                        {
-                            label: 'Last hour',
-                            value: [dayjs().add(-1, 'h'), dayjs()]
-                        },
-                        {
-                            label: 'Last 6 hours',
-                            value: [dayjs().add(-6, 'h'), dayjs()]
-                        },
-                        {
                             label: 'Last 12 hours',
-                            value: [dayjs().add(-12, 'h'), dayjs()]
+                            value: [dayjs().subtract(12, 'hour'), dayjs()]
                         },
                         {
-                            label: 'Today',
-                            value: [dayjs().startOf('day'), dayjs()]
+                            label: 'Last 24 hours',
+                            value: [dayjs().subtract(24, 'hour'), dayjs()]
                         },
                         {
                             label: 'Yesterday',
                             value: [
-                                dayjs().add(-1, 'd').startOf('day'),
-                                dayjs().add(0, 'd').startOf('day')
+                                dayjs().subtract(1, 'day').startOf('day'),
+                                dayjs().subtract(1, 'day').endOf('day')
                             ]
                         },
                         {
                             label: 'Last 7 Days',
-                            value: [dayjs().add(-7, 'd').startOf('day'), dayjs()]
-                        },
-                        {
-                            label: 'Last 14 Days',
-                            value: [dayjs().add(-14, 'd').startOf('day'), dayjs()]
+                            value: [dayjs().subtract(7, 'day').startOf('day'), dayjs()]
                         },
                         {
                             label: 'Last 30 Days',
-                            value: [dayjs().add(-30, 'd').startOf('day'), dayjs()]
+                            value: [dayjs().subtract(30, 'day').startOf('day'), dayjs()]
+                        },
+                        {
+                            label: 'Last 3 Months',
+                            value: [dayjs().subtract(3, 'month').startOf('day'), dayjs()]
                         }
                     ]}
                 />
