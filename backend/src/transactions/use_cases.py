@@ -332,11 +332,11 @@ def get_list_of_filtered_transactions(
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions
-
-
 def add_transaction(
     data: CreateTransactionSchema, transaction_repository: TransactionRepository
 ) -> Transaction:
     transaction = Transaction(**data.model_dump())
     transaction_repository.add(transaction)
     return transaction
+
+

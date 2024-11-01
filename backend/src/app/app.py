@@ -64,7 +64,7 @@ async def fastapi_lifespan(app: FastAPI):
             ctx.call(add_project, data2)
 
         if settings_repository.count() == 0:
-            organization_name = os.getenv("ORGANIZATION_NAME", None)
+            organization_name = os.getenv("ORGANIZATION_NAME", "PromptSail")
 
             if organization_name is not None:
                 data = OrganizationSettings(

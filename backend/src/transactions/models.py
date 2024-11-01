@@ -33,7 +33,9 @@ class Transaction(BaseModel):
     response_time: datetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc)
     )
-    hate: Any = None
-    self_harm: Any = None
-    violence: Any = None
-    sexual: Any = None
+
+    # old fields
+    # hate: Any = None
+    # self_harm: Any = None
+    # violence: Any = None
+    # sexual: Any = None

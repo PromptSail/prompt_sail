@@ -247,7 +247,10 @@ class TopLevelContainer(containers.DeclarativeContainer):
         logger=logger,
         container=__self__,
     )
-    provider_pricelist = providers.Singleton(read_provider_pricelist)
+    provider_pricelist = providers.Singleton(
+        lambda config: read_provider_pricelist(config.PRICE_LIST_PATH),
+        config=config
+    )
 
 
 class TransactionContainer(containers.DeclarativeContainer):

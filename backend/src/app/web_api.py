@@ -1173,7 +1173,7 @@ async def get_users(
     dependencies=[Security(decode_and_validate_token)],
 )
 def create_transaction(
-    request: Request,
+    request_object: Request,
     data: CreateTransactionWithRawDataSchema,
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
 ) -> GetTransactionSchema:
@@ -1184,7 +1184,7 @@ def create_transaction(
     of the transaction if not provided, using the price list for the specified model and provider.
 
     Parameters:
-    - **request**: The incoming request object.
+    - **request_object**: The incoming fastapirequest object.
     - **data**: The data for creating the transaction as a CreateTransactionWithRawDataSchema object.
     - **ctx**: The transaction context dependency.
 
@@ -1194,7 +1194,7 @@ def create_transaction(
     if ((data.status_code == 200) and data.model and data.provider) and not (
         data.input_cost or data.output_cost or data.total_cost
     ):
-        pricelist = get_provider_pricelist(request)
+        pricelist = get_provider_pricelist(request_object)
         pricelist = [
             item
             for item in pricelist
@@ -1234,13 +1234,13 @@ def create_transaction(
     request_data = CreateRawTransactionSchema(
         transaction_id=created_transaction.id,
         type=TransactionTypeEnum.request,
-        data=data.request,
+        data=data.request_json,
     )
 
     response_data = CreateRawTransactionSchema(
         transaction_id=created_transaction.id,
         type=TransactionTypeEnum.response,
-        data=data.response,
+        data=data.response_json,
     )
 
     raw_transaction_request = ctx.call(add_raw_transaction, data=request_data)
