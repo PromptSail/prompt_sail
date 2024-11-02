@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from datetime import datetime, timezone
 from projects.models import Project, AIProvider
+from test_utils import read_transactions_from_csv
 
 
 @pytest.fixture
@@ -72,3 +73,23 @@ def test_project(application):
 def test_project_id(test_project):
     """Helper fixture to get just the project ID"""
     return test_project.id
+
+
+@pytest.fixture
+def test_transactions_count(application):
+    """Fixture to load and store test transactions"""
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        transactions = read_transactions_from_csv("test_transactions.csv")
+        for transaction in transactions:
+            repo.add(transaction)
+        yield transactions
+        repo.remove_all()
+
+
+@pytest.fixture(autouse=True)
+def clean_database(application):
+    """Automatically clean database before each test"""
+    for collection in application["db_client"].list_collection_names():
+        application["db_client"][collection].drop()
+    yield
