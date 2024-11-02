@@ -37,7 +37,13 @@ def test_local_domains():
     assert detect_subdomain(host, base_url) == "project1"
 
 
-
+def truncate_float(number, decimals):
+    if isinstance(number, float):
+        str_number = str(number)
+        integer_part, decimal_part = str_number.split(".")
+        truncated_decimal_part = decimal_part[:decimals]
+        return float(f"{integer_part}.{truncated_decimal_part}")
+    return number
 
 
 def read_transactions_from_csv(fixture_file_name: str) -> list[Transaction]:

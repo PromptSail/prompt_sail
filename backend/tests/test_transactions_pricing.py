@@ -1,4 +1,4 @@
-from utils import read_transactions_from_csv
+from test_utils import read_transactions_from_csv
 
 header = {
     "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImN0eSI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiYXpwIjoiNDA3NDA4NzE4MTkyLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNDA3NDA4NzE4MTkyLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTEyMTAyODc3OTUzNDg0MzUyNDI3IiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiYm54OW9WT1o4U3FJOTcyczBHYjd4dyIsIm5hbWUiOiJUZXN0IFVzZXIiLCJwaWN0dXJlIjoiIiwiZ2l2ZW5fbmFtZSI6IlRlc3QiLCJmYW1pbHlfbmFtZSI6IlVzZXIiLCJpYXQiOjE3MTM3MzQ0NjEsImV4cCI6OTk5OTk5OTk5OX0.eZYMQzcSRzkAq4Me8C6SNU3wduS7EIu_o5XGAbsDmU05GtyipQEb5iNJ1QiLg-11RbZFL3dvi8xKd3mpuw8b-5l6u8hwSpZg6wNPLY0zPX-EOwxeHLtev_2X5pUf1_IWAnso9K_knsK8CcmJoVsCyNNjlw3hrkChacJHGNzg0TTT1rh3oe6KCpbLvYlV6tUPfm5k3AMFZIT7Jntr38CZvs6gac6L_DhItJc3TNNUUHie2zgA29_r9YFlaEr_nGoSmBhIi-i0i0h34TL4JAb4qJkVM2YI2eTTv2HjEGtkx4mE5JvNQ0VxzHSJcCNOHh1gCiFD5c6rhvvxVeEqMkGGbCZKHX_vCgnIp0iE_OWyICjVTFPitQJ00fXLhyHyPb7q5J605tuK2iTHp2NCRJEXIAl9e0F_qASBBAfyL0C4FCBtvbnEMwtpoV1VWinkKgkI7JVH0AsyTugjXyAjxxsJxBTJT9qwZLxVBoaxgqNTOFfxvwstyq1VfCl3iBbpt71D"
@@ -10,7 +10,7 @@ def test_openai_costs(client, application):
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv("../test_transactions_pricing.csv")
+        transactions = read_transactions_from_csv("test_transactions_pricing.csv")
         for transaction in transactions:
             repo.add(transaction)
 
@@ -84,7 +84,7 @@ def test_azure_costs(client, application):
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv("../test_transactions_pricing.csv")
+        transactions = read_transactions_from_csv("test_transactions_pricing.csv")
         for transaction in transactions:
             repo.add(transaction)
 
@@ -186,7 +186,7 @@ def test_anthropic_costs(client, application):
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv("../test_transactions_pricing.csv")
+        transactions = read_transactions_from_csv("test_transactions_pricing.csv")
         for transaction in transactions:
             repo.add(transaction)
 
