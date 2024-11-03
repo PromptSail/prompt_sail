@@ -37,8 +37,8 @@ async def iterate_stream(response, buffer):
 async def close_stream(
     app: Application,
     project_id,
-    request,
-    response,
+    ai_provider_request,
+    ai_provider_response,
     buffer,
     tags,
     ai_model_version,
@@ -54,21 +54,21 @@ async def close_stream(
     Parameters:
     - **app**: The Application instance
     - **project_id**: The unique identifier of the project
-    - **request**: The original request object
-    - **response**: The response object from the AI provider
+    - **ai_provider_request**: The original request object
+    - **ai_provider_response**: The response object from the AI provider
     - **buffer**: Buffer containing the accumulated response data
     - **tags**: List of tags associated with the transaction
     - **ai_model_version**: Specific model version tag for cost calculation
     - **pricelist**: List of provider prices for cost calculation
     - **request_time**: Timestamp when the request was initiated
     """
-    await response.aclose()
+    await ai_provider_response.aclose()
     with app.transaction_context() as ctx:
         data = ctx.call(
             store_transaction,
             project_id=project_id,
-            request=request,
-            response=response,
+            request=ai_provider_request,
+            response=ai_provider_response,
             buffer=buffer,
             tags=tags,
             ai_model_version=ai_model_version,
@@ -77,9 +77,9 @@ async def close_stream(
         )
         ctx.call(
             store_raw_transactions,
-            request=request,
+            request=ai_provider_request,
             request_content=data["request_content"],
-            response=response,
+            response=ai_provider_response,
             response_content=data["response_content"],
             transaction_id=data["transaction_id"],
         )
@@ -135,6 +135,7 @@ async def reverse_proxy(
     project = ctx.call(get_project_by_slug, slug=project_slug)
     url = ApiURLBuilder.build(project, provider_slug, path, target_path)
 
+    # todo: remove this, this logic should be in the use case
     pricelist = get_provider_pricelist(request)
 
     logger.debug(f"got projects for {project}")
@@ -148,7 +149,7 @@ async def reverse_proxy(
     timeout = httpx.Timeout(100.0, connect=50.0)
 
     request_time = datetime.now(tz=timezone.utc)
-    rp_req = client.build_request(
+    ai_provider_request = client.build_request(
         method=request.method,
         url=url,
         headers={
@@ -159,19 +160,19 @@ async def reverse_proxy(
         timeout=timeout,
     )
     logger.debug(f"Requesting on: {url}")
-    rp_resp = await client.send(rp_req, stream=True, follow_redirects=True)
+    ai_provider_response = await client.send(ai_provider_request, stream=True, follow_redirects=True)
 
     buffer = []
     return StreamingResponse(
-        iterate_stream(rp_resp, buffer),
-        status_code=rp_resp.status_code,
-        headers=rp_resp.headers,
+        iterate_stream(ai_provider_response, buffer),
+        status_code=ai_provider_response.status_code,
+        headers=ai_provider_response.headers,
         background=BackgroundTask(
             close_stream,
             ctx["app"],
             project.id,
-            rp_req,
-            rp_resp,
+            ai_provider_request,
+            ai_provider_response,
             buffer,
             tags,
             ai_model_version,
