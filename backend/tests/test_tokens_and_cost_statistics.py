@@ -5,7 +5,7 @@ header = {
 }
 
 
-def test_transaction_tokens_and_cost_min_5min(client, application):
+def test_5min_duration_with_5min_granularity_returns_single_interval_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 5-minute time frame with 5-minute granularity.
 
@@ -59,7 +59,7 @@ def test_transaction_tokens_and_cost_min_5min(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_min_30min(client, application):
+def test_30min_duration_with_5min_granularity_returns_six_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 30-minute time frame with 5-minute granularity.
 
@@ -133,7 +133,7 @@ def test_transaction_tokens_and_cost_min_30min(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_min_1h(client, application):
+def test_1hour_duration_with_5min_granularity_returns_twelve_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 1-hour time frame with 5-minute granularity (period=5minutes).
 
@@ -219,7 +219,7 @@ def test_transaction_tokens_and_cost_min_1h(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_min_empty(client, application):
+def test_1month_duration_with_5min_granularity_returns_empty_list(client, application):
     """
     Tests token usage and cost statistics for a 1 month time frame with 5-minute granularity (period=5minutes).
 
@@ -249,7 +249,7 @@ def test_transaction_tokens_and_cost_min_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_tokens_and_cost_hour_30min(client, application):
+def test_30min_duration_with_hourly_granularity_returns_single_interval_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 30-minute time frame with hourly granularity (period=hour).
 
@@ -309,7 +309,7 @@ def test_transaction_tokens_and_cost_hour_30min(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_hour_1h(client, application):
+def test_1hour_duration_with_hourly_granularity_returns_two_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 1-hour time frame with hourly granularity (period=hour).
 
@@ -372,7 +372,7 @@ def test_transaction_tokens_and_cost_hour_1h(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_hour_24h(client, application):
+def test_24hour_duration_with_hourly_granularity_returns_24_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 24-hour time frame with hourly granularity (period=hour).
 
@@ -482,7 +482,7 @@ def test_transaction_tokens_and_cost_hour_24h(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_hour_empty(client, application):
+def test_1month_duration_with_hourly_granularity_returns_empty_list(client, application):
     """
     Tests token usage and cost statistics for a 1 month time frame with no transactions with hourly granularity (period=hour).
 
@@ -512,7 +512,7 @@ def test_transaction_tokens_and_cost_hour_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_tokens_and_cost_day_6h(client, application):
+def test_6hour_duration_with_daily_granularity_returns_single_interval_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 6-hour time frame with daily granularity (period=day).
 
@@ -572,7 +572,7 @@ def test_transaction_tokens_and_cost_day_6h(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_day_24h(client, application):
+def test_24hour_duration_with_daily_granularity_returns_single_interval_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 24-hour time frame with daily granularity (period=day).
 
@@ -632,7 +632,7 @@ def test_transaction_tokens_and_cost_day_24h(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_day_1d(client, application):
+def test_1day_duration_with_daily_granularity_returns_two_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 1-day time frame with daily granularity (period=day).
 
@@ -695,7 +695,7 @@ def test_transaction_tokens_and_cost_day_1d(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_day_7d(client, application):
+def test_7day_duration_with_daily_granularity_returns_seven_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 7-day time frame with daily granularity (period=day).
 
@@ -771,7 +771,7 @@ def test_transaction_tokens_and_cost_day_7d(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_day_1mo(client, application):
+def test_1month_duration_with_daily_granularity_returns_30_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 1-month time frame with daily granularity (period=day).
 
@@ -893,7 +893,7 @@ def test_transaction_tokens_and_cost_day_1mo(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_day_empty(client, application):
+def test_1day_duration_with_daily_granularity_returns_empty_list(client, application):
     """
     Tests token usage and cost statistics for a 1 day time frame with no transactions with daily granularity (period=day).
 
@@ -923,7 +923,7 @@ def test_transaction_tokens_and_cost_day_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_tokens_and_cost_week_3d(client, application):
+def test_3day_duration_with_weekly_granularity_returns_single_interval_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 3-day time frame with weekly granularity (period=week).
 
@@ -983,7 +983,7 @@ def test_transaction_tokens_and_cost_week_3d(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_week_7d(client, application):
+def test_7day_duration_with_weekly_granularity_returns_two_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 7-day time frame with weekly granularity (period=week).
 
@@ -1046,7 +1046,7 @@ def test_transaction_tokens_and_cost_week_7d(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_week_2mo(client, application):
+def test_2month_duration_with_weekly_granularity_returns_nine_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 2-month time frame with weekly granularity (period=week).
 
@@ -1126,7 +1126,7 @@ def test_transaction_tokens_and_cost_week_2mo(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_week_empty(client, application):
+def test_2week_duration_with_weekly_granularity_returns_empty_list(client, application):
     """
     Tests token usage and cost statistics for a 2-week time frame with no transactions with weekly granularity (period=week).
 
@@ -1156,7 +1156,7 @@ def test_transaction_tokens_and_cost_week_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_tokens_and_cost_month_7d(client, application):
+def test_7day_duration_with_monthly_granularity_returns_single_interval_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 7-day time frame with monthly granularity (period=month).
 
@@ -1216,7 +1216,7 @@ def test_transaction_tokens_and_cost_month_7d(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_month_1mo(client, application):
+def test_1month_duration_with_monthly_granularity_returns_single_interval_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 1-month time frame with monthly granularity (period=month).
 
@@ -1276,7 +1276,7 @@ def test_transaction_tokens_and_cost_month_1mo(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_month_6mo(client, application):
+def test_6month_duration_with_monthly_granularity_returns_six_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 6-month time frame with monthly granularity (period=month).
 
@@ -1350,9 +1350,9 @@ def test_transaction_tokens_and_cost_month_6mo(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_month_empty(client, application):
+def test_1month_duration_with_monthly_granularity_returns_empty_list(client, application):
     """
-    Tests token usage and cost statistics for a 1-month time frame with no transactions with monthly granularity (period=month).
+    Tests token usage and cost statistics for a 1 month time frame with no transactions with monthly granularity (period=month).
 
     Given: A time period with no recorded transactions (2024-05-01 to 2024-06-01)
     When: Requesting token and cost statistics with monthly granularity
@@ -1380,7 +1380,7 @@ def test_transaction_tokens_and_cost_month_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_tokens_and_cost_year_2mo(client, application):
+def test_2month_duration_with_yearly_granularity_returns_single_interval_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 2-month time frame with yearly granularity (period=year).
 
@@ -1440,7 +1440,7 @@ def test_transaction_tokens_and_cost_year_2mo(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_year_5months(client, application):
+def test_5month_duration_with_yearly_granularity_returns_two_intervals_with_tokens_and_costs(client, application):
     """
     Tests token usage and cost statistics for a 5-month time frame with yearly granularity (period=year).
 
@@ -1506,7 +1506,7 @@ def test_transaction_tokens_and_cost_year_5months(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_year_empty(client, application):
+def test_6month_duration_with_yearly_granularity_returns_empty_list(client, application):
     """
     Tests token usage and cost statistics for a 6-month time frame with no transactions with yearly granularity (period=year).
 
