@@ -39,7 +39,7 @@ test_transaction = {
             "accept": "application/json",
             "user-agent": "OpenAI/Python 1.35.7",
             "accept-encoding": "gzip, deflate",
-            "authorization": "Bearer sk-proj-xxxx",
+            "authorization": "Bearer sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
             "max-forwards": "10",
             "x-stainless-lang": "python",
             "x-stainless-package-version": "1.35.7",
