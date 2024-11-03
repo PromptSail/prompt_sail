@@ -452,8 +452,8 @@ async def get_transaction_usage_statistics_over_time(
 
     Parameters:
     - **project_id**: The unique identifier of the project
-    - **date_from**: Optional start date for the statistics period
-    - **date_to**: Optional end date for the statistics period
+    - **date_from**: Optional start date for the statistics period, format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS
+    - **date_to**: Optional end date for the statistics period, format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS
     - **period**: Time period for aggregation (year, month, week, day, hour, or 5minutes)
 
     Returns:
