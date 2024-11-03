@@ -1,4 +1,4 @@
-from utils import detect_subdomain
+from utils import detect_subdomain, read_provider_pricelist
 
 from datetime import datetime, timedelta
 import pandas as pd
@@ -82,74 +82,76 @@ def read_transactions_from_csv(fixture_file_name: str) -> list[Transaction]:
         response_time = datetime.fromisoformat(obj["response_time"].replace("Z", "+00:00"))
         latency = response_time - request_time
 
+        # Set default values
+        base_transaction = {
+            "id": transaction_id,
+            "project_id": "project-test",
+            "request": {},
+            "response": {},
+            "tags": ["tag"],
+            "provider": obj["provider"],
+            "model": obj["model"],
+            "type": "chat",
+            "os": None,
+            "library": "PostmanRuntime/7.36.3",
+            "status_code": obj["status_code"],
+            "messages": None,
+            "prompt": "",
+            "last_message": "",
+            "request_time": request_time,
+            "response_time": response_time,
+        }
+
+        # Add status-specific values
         if obj["status_code"] == 200:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test", 
-                    request={},
-                    response={},
-                    tags=["tag"],
-                    provider=obj["provider"],
-                    model=obj["model"],
-                    type="chat",
-                    os=None,
-                    input_tokens=obj["input_tokens"],
-                    output_tokens=obj["output_tokens"],
-                    library="PostmanRuntime/7.36.3",
-                    status_code=obj["status_code"],
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message=None,
-                    request_time=request_time,
-                    response_time=response_time,
-                    generation_speed=obj["output_tokens"] / latency.total_seconds() if latency.total_seconds() > 0 else 0,
-                    input_cost=0,
-                    output_cost=0,
-                    total_cost=0,
-                )
-            )
+            base_transaction.update({
+                "input_tokens": obj["input_tokens"],
+                "output_tokens": obj["output_tokens"],
+                "error_message": None,
+                "generation_speed": obj["output_tokens"] / latency.total_seconds() if latency.total_seconds() > 0 else 0,
+                "input_cost": 0,
+                "output_cost": 0,
+                "total_cost": 0,
+            })
         else:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag"],
-                    provider=obj["provider"],
-                    model=obj["model"],
-                    type="chat",
-                    os=None,
-                    input_tokens=0,
-                    output_tokens=0,
-                    library="PostmanRuntime/7.36.3", 
-                    status_code=obj["status_code"],
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message="Error",
-                    request_time=request_time,
-                    response_time=response_time,
-                    generation_speed=0,
-                    input_cost=0,
-                    output_cost=0,
-                    total_cost=0,
-                )
-            )
-    return transactions 
+            base_transaction.update({
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "error_message": "Error",
+                "generation_speed": 0,
+                "input_cost": 0,
+                "output_cost": 0,
+                "total_cost": 0,
+            })
+
+        transactions.append(Transaction(**base_transaction))
+
+    return transactions
 
 
-
-# deprecated: moved to tests/utils.py
-def read_transactions_from_csv_old(
-    path: str = "../test_transactions.csv",
-) -> list[Transaction]:
+def read_transactions_with_prices_from_csv(fixture_file_name: str, providers_pricelist_path: str) -> list[Transaction]:
+    """Read test transactions with prices from a CSV file. 
+    
+    The CSV files are located in the fixtures/transactions directory. 
+    
+    The CSV file should have the following columns:
+    provider;model;total_tokens;input_tokens;output_tokens;status_code;request_time;response_time
+    
+    Example:
+    """
+    # Get path to fixtures directory relative to this file
+    fixtures_dir = Path(__file__).parent / "fixtures"
+    path = fixtures_dir / "transactions" / fixture_file_name
+    
+    # check if file exists
+    if not path.exists():
+        raise FileNotFoundError(f"File {path} does not exist. Check if the file exists in the fixtures/transactions directory.")
+    
+    
     df = pd.read_csv(path, sep=";")
     data = df.to_dict(orient="records")
     transactions = []
-    pricelist = read_provider_pricelist()
+    pricelist = read_provider_pricelist(providers_pricelist_path)
     for idx, obj in enumerate(data):
         transaction_id = f"test-transaction-{idx}"
         request_time = datetime.fromisoformat(
