@@ -1220,10 +1220,11 @@ def create_transaction(
 
     if not data.generation_speed:
         if data.output_tokens is not None and (data.output_tokens > 0):
-            data.generation_speed = (
-                data.output_tokens
-                / (datetime.now(tz=timezone.utc) - data.request_time).total_seconds()
+            time_elapsed = data.response_time - data.request_time
+            data.generation_speed = (data.output_tokens + 0.0) / (
+                time_elapsed.total_seconds() + 0.000001
             )
+
         elif data.output_tokens == 0:
             data.generation_speed = None
         else:

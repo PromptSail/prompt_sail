@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from transactions.schemas import CreateTransactionWithRawDataSchema
 from projects.schemas import GetProjectSchema
 import pytest
@@ -671,8 +671,223 @@ def test_transaction_cost_calculation_unknown_model(client, application, test_pr
     assert transaction["output_tokens"] == 50
     assert transaction["type"] == "chat"
 
+def test_transaction_cost_calculation_image_generation_model_2images(client, application, test_project):
+    """Test if transaction costs are calculated accurately for DALL-E 3 1024x1792 image generation"""
+    # arrange
+    data = test_transaction.copy()
+    data.update({
+        "model": "standard/1024x1792/dall-e-3",  # DALL-E 3 with specific size
+        "type": "image_generation",
+        "input_tokens": 0,    # Image generation doesn't use tokens
+        "output_tokens": 0,   # Image generation doesn't use tokens
+        "request_json": {
+            "n": 2,  # Number of images requested
+            "size": "1024x1792",  # Image size
+            "quality": "standard",  # Image quality
+            "model": "dall-e-3"
+        },
+        # Clear any existing cost values to test calculation
+        "input_cost": None,
+        "output_cost": None,
+        "total_cost": None
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # DALL-E 3 1024x1792 pricing: $0.080 per image (standard quality)
+    cost_per_image = 0.080
+    expected_total_cost = cost_per_image * data["request_json"]["n"]  # $0.160 for 2 images
+    
+    # Check if calculated costs match expected values
+    assert transaction["input_cost"] == 0  # Image generation has no input cost
+    assert transaction["output_cost"] == 0  # Image generation has no output cost
+    assert transaction["total_cost"] == pytest.approx(expected_total_cost, rel=1e-4)
+    
+    # Additional image generation specific assertions
+    assert transaction["type"] == "image_generation"
+    assert transaction["model"] == "standard/1024x1792/dall-e-3"
+    assert transaction["input_tokens"] == 0
+    assert transaction["output_tokens"] == 0
+
+# --------------------------------
+# Transation generation speed tests
+# --------------------------------
+
+def test_transaction_generation_speed_chat_model(client, application, test_project):
+    """Test generation speed calculation for chat model with output tokens"""
+    # arrange
+    data = test_transaction.copy()
+    
+    request_time = datetime.fromisoformat("2024-11-03T12:00:00")
+    response_time = request_time + timedelta(seconds=2.5)
+    
+    data.update({
+        "model": "gpt-3.5-turbo-0125",
+        "type": "chat",
+        "input_tokens": 100,
+        "output_tokens": 50,
+        "generation_speed": None,  # Clear generation speed to test calculation
+        "request_time": request_time.isoformat(),
+        "response_time": response_time.isoformat()  
+    })
+    
 
 
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # Generation speed should be output_tokens / time_elapsed
+    assert transaction["generation_speed"] is not None
+    assert transaction["generation_speed"] > 0
+    
+    expected_speed = (data["output_tokens"] / (datetime.fromisoformat(data["response_time"]) - datetime.fromisoformat(data["request_time"])).total_seconds())
+    
+
+    assert expected_speed == pytest.approx(transaction["generation_speed"], rel=0.01)
+
+def test_transaction_generation_speed_image_model(client, application, test_project):
+    """Test generation speed calculation for image generation model (zero output tokens)"""
+    # arrange
+    data = test_transaction.copy()
+    data.update({
+        "model": "standard/1024x1024/dall-e-3",
+        "type": "image_generation",
+        "input_tokens": 0,
+        "output_tokens": 0,  # Image generation has no output tokens
+        "generation_speed": None,
+        "request_time": (datetime.now(tz=timezone.utc) - timedelta(seconds=3.2)).isoformat(),
+        "response_time": datetime.now(tz=timezone.utc).isoformat()
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # Generation speed should be None for zero output tokens
+    assert transaction["generation_speed"] is None
+
+def test_transaction_generation_speed_embedding_model(client, application, test_project):
+    """Test generation speed calculation for embedding model (None output tokens)"""
+    # arrange
+    data = test_transaction.copy()
+    
+    # set date to 2024-11-03T12:00:00   
+    request_time = datetime.fromisoformat("2024-11-03T12:00:00")
+    response_time = request_time + timedelta(seconds=2.5)
+    
+    data.update({
+        "model": "text-embedding-3-large",
+        "type": "embedding",
+        "input_tokens": 100,
+        "output_tokens": None,  # Embedding models don't have output tokens
+        "generation_speed": None,
+        "request_time": request_time.isoformat(),
+        "response_time": response_time.isoformat()
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # Generation speed should be 0 for None output tokens
+    assert transaction["generation_speed"] == 0
+
+def test_transaction_generation_speed_existing_value(client, application, test_project):
+    """Test that existing generation speed is not overwritten"""
+    # arrange
+    data = test_transaction.copy()
+    
+    request_time = datetime.fromisoformat("2024-11-03T12:00:00")
+    response_time = request_time + timedelta(seconds=2)
+    data.update({
+        "model": "gpt-3.5-turbo-0125",
+        "type": "chat",
+        "input_tokens": 100,
+        "output_tokens": 50,
+        "generation_speed": 15.5,  # Pre-set generation speed
+        "request_time": request_time.isoformat(),
+        "response_time": response_time.isoformat()
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # Generation speed should remain unchanged
+    assert transaction["generation_speed"] == 15.5
+
+def test_transaction_generation_speed_very_fast_response(client, application, test_project):
+    """Test generation speed calculation with very small time difference"""
+    # arrange
+    data = test_transaction.copy()
+    request_time = datetime.now(tz=timezone.utc) - timedelta(milliseconds=10)
+    response_time = request_time + timedelta(seconds=2)
+    data.update({
+        "model": "gpt-3.5-turbo-0125",
+        "type": "chat",
+        "input_tokens": 100,
+        "output_tokens": 50,
+        "generation_speed": None,
+        # Set request_time very close to current time
+        "request_time": request_time.isoformat(),
+        "response_time": response_time.isoformat()
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # Generation speed should be calculated even with very small time difference
+    assert transaction["generation_speed"] is not None
+    assert transaction["generation_speed"] > 0
+
+def test_transaction_generation_speed_future_request_time(client, application, test_project):
+    """Test generation speed calculation with future request time (edge case)"""
+    # arrange
+    data = test_transaction.copy()
+    request_time = datetime.now(tz=timezone.utc) + timedelta(seconds=20)
+    response_time = datetime.now(tz=timezone.utc)
+    data.update({
+        "model": "gpt-3.5-turbo-0125",
+        "type": "chat",
+        "input_tokens": 100,
+        "output_tokens": 50,
+        "generation_speed": None,
+        # Set request_time in the future (edge case)
+        "request_time": request_time.isoformat(),
+        "response_time": response_time.isoformat()
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # Generation speed should still be calculated
+    assert transaction["generation_speed"] is None
 
 
 
