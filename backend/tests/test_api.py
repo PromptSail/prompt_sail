@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from transactions.schemas import CreateTransactionWithRawDataSchema
 from projects.schemas import GetProjectSchema
+import pytest
 
 # test_obj = {
 #     "name": "Autotest",
@@ -166,6 +167,11 @@ test_transaction = {
     "response_time": datetime.now(tz=timezone.utc).isoformat(),
 }
 
+
+
+# --------------------------------
+# Projects CRUD tests
+# --------------------------------  
 
 def test_create_project_with_valid_data_returns_201(client, application):
     """Test creating a new project with valid data returns 201 and correct project data"""
@@ -426,6 +432,12 @@ def test_get_all_projects_returns_200_with_project_list(client, application, tes
     
     assert response_data[0] == expected_project
 
+
+
+# ------------------------------
+# Create transactions tests
+# ------------------------------
+
 def test_create_transaction_success(client, application, test_project):
     """Test successful transaction creation with cost calculation"""
     # arrange
@@ -461,25 +473,7 @@ def test_create_transaction_success(client, application, test_project):
     assert transaction["input_cost"] > 0
     assert transaction["output_cost"] > 0
     assert transaction["total_cost"] == transaction["input_cost"] + transaction["output_cost"]
-
-def test_create_transaction_with_existing_costs(client, application, test_project):
-    """Test transaction creation with pre-calculated costs"""
-    # arrange
-    data = test_transaction.copy()
-    data["input_cost"] = 0.001
-    data["output_cost"] = 0.002
-    data["total_cost"] = 0.003
-
-    # act
-    response = client.post("/api/transactions", headers=header, json=data)
-
-    # assert
-    assert response.status_code == 201
-    transaction = response.json()
-    assert transaction["input_cost"] == data["input_cost"]
-    assert transaction["output_cost"] == data["output_cost"]
-    assert transaction["total_cost"] == data["total_cost"]
-
+  
 def test_create_transaction_failed_response(client, application, test_project):
     """Test transaction creation with failed API response"""
     # arrange
@@ -499,8 +493,8 @@ def test_create_transaction_failed_response(client, application, test_project):
     assert transaction["input_cost"] is None
     assert transaction["output_cost"] is None
     assert transaction["total_cost"] is None
-
-def test_create_transaction_image_generation(client, application, test_project):
+ 
+def test_create_transaction_for_image_generation_model(client, application, test_project):
     """Test transaction creation for image generation"""
     # arrange
     data = test_transaction.copy()
@@ -547,7 +541,137 @@ def test_create_transaction_unknown_model(client, application, test_project):
     assert transaction["model"] == "unknown-model"
     assert transaction["input_cost"] is None
     assert transaction["output_cost"] is None
+    assert transaction["total_cost"] is None   
+    
+# --------------------------------
+# Transaction cost calculation
+# --------------------------------
+
+def test_transation_cost_calculation_for_embedding_model(client, application, test_project):
+    """Test if transaction costs are calculated accurately for embedding model"""
+    # arrange
+    data = test_transaction.copy()
+    data.update({
+        "model": "text-embedding-3-large",
+        "type": "embedding",
+        "input_tokens": 256,  # Known input tokens
+        "output_tokens": 0,   # Embedding models don't have output tokens
+        # Clear any existing cost values to test calculation
+        "input_cost": None,
+        "output_cost": None,
+        "total_cost": None
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # text-embedding-3-large pricing: $0.00013/1K tokens (input only)
+    expected_input_cost = 0 # No input cost for embeddings
+    expected_output_cost = 0  # No output cost for embeddings
+    expected_total_cost = (data["input_tokens"] / 1000) * 0.00013  # $0.00003328  # Total cost equals input cost
+    
+    # Check if calculated costs match expected values (using approximate comparison due to floating point)
+    assert transaction["input_cost"] == pytest.approx(expected_input_cost, rel=1e-4)
+    assert transaction["output_cost"] == pytest.approx(expected_output_cost, rel=1e-4)
+    assert transaction["total_cost"] == pytest.approx(expected_total_cost, rel=1e-4)
+    
+    # Additional embedding-specific assertions
+    assert transaction["type"] == "embedding"
+    assert transaction["output_tokens"] == 0
+
+    
+def test_transaction_cost_calculation_chat_model(client, application, test_project):
+    """Test if transaction costs are calculated accurately based on token counts"""
+    # arrange
+    data = test_transaction.copy()
+    data.update({
+        "model": "gpt-3.5-turbo-0125",  # Specific model with known pricing
+        "input_tokens": 100,  # Known input tokens
+        "output_tokens": 50,   # Known output tokens
+        # Clear any existing cost values to test calculation
+        "input_cost": None,
+        "output_cost": None,
+        "total_cost": None
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # GPT-3.5-turbo-0125 pricing: $0.0005/1K input tokens, $0.0015/1K output tokens
+    expected_input_cost = (data["input_tokens"] / 1000) * 0.0005   # $0.00005
+    expected_output_cost = (data["output_tokens"] / 1000) * 0.0015    # $0.000075
+    expected_total_cost = expected_input_cost + expected_output_cost  # $0.000125
+    
+    # Check if calculated costs match expected values (using approximate comparison due to floating point)
+    assert transaction["input_cost"] == pytest.approx(expected_input_cost, rel=1e-4)
+    assert transaction["output_cost"] == pytest.approx(expected_output_cost, rel=1e-4)
+    assert transaction["total_cost"] == pytest.approx(expected_total_cost, rel=1e-4)
+    
+    # Verify the relationship between costs
+    assert transaction["total_cost"] == transaction["input_cost"] + transaction["output_cost"]
+
+  
+
+def test_transaction_cost_calculation_with_existing_costs(client, application, test_project):
+    """Test transaction creation with pre-calculated costs"""
+    # arrange
+    data = test_transaction.copy()
+    data["input_cost"] = 0.001
+    data["output_cost"] = 0.002
+    data["total_cost"] = 0.003
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    assert transaction["input_cost"] == data["input_cost"]
+    assert transaction["output_cost"] == data["output_cost"]
+    assert transaction["total_cost"] == data["total_cost"]
+
+def test_transaction_cost_calculation_unknown_model(client, application, test_project):
+    """Test if transaction costs are handled properly for unknown/unsupported models"""
+    # arrange
+    data = test_transaction.copy()
+    data.update({
+        "model": "gpt-5-future-model",  # Non-existent model
+        "type": "chat",
+        "input_tokens": 100,
+        "output_tokens": 50,
+        # Clear any existing cost values to test calculation
+        "input_cost": None,
+        "output_cost": None,
+        "total_cost": None
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # For unknown models, all costs should be None
+    assert transaction["input_cost"] is None
+    assert transaction["output_cost"] is None
     assert transaction["total_cost"] is None
+    
+    # Other transaction data should still be recorded correctly
+    assert transaction["model"] == "gpt-5-future-model"
+    assert transaction["input_tokens"] == 100
+    assert transaction["output_tokens"] == 50
+    assert transaction["type"] == "chat"
+
+
 
 
 

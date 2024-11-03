@@ -262,7 +262,7 @@ def store_transaction(
         generation_speed = 0
 
     try:
-        content = json.loads(request.content)
+        content = json.loads(ai_provider_request.content)
     except UnicodeDecodeError:
         content = param_extractor.request_content
 
