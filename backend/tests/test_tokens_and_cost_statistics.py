@@ -1,4 +1,4 @@
-from test_utils import read_transactions_from_csv
+from test_utils import read_transactions_from_csv, read_transactions_with_prices_from_csv
 
 header = {
     "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImN0eSI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiYXpwIjoiNDA3NDA4NzE4MTkyLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNDA3NDA4NzE4MTkyLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTEyMTAyODc3OTUzNDg0MzUyNDI3IiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiYm54OW9WT1o4U3FJOTcyczBHYjd4dyIsIm5hbWUiOiJUZXN0IFVzZXIiLCJwaWN0dXJlIjoiIiwiZ2l2ZW5fbmFtZSI6IlRlc3QiLCJmYW1pbHlfbmFtZSI6IlVzZXIiLCJpYXQiOjE3MTM3MzQ0NjEsImV4cCI6OTk5OTk5OTk5OX0.eZYMQzcSRzkAq4Me8C6SNU3wduS7EIu_o5XGAbsDmU05GtyipQEb5iNJ1QiLg-11RbZFL3dvi8xKd3mpuw8b-5l6u8hwSpZg6wNPLY0zPX-EOwxeHLtev_2X5pUf1_IWAnso9K_knsK8CcmJoVsCyNNjlw3hrkChacJHGNzg0TTT1rh3oe6KCpbLvYlV6tUPfm5k3AMFZIT7Jntr38CZvs6gac6L_DhItJc3TNNUUHie2zgA29_r9YFlaEr_nGoSmBhIi-i0i0h34TL4JAb4qJkVM2YI2eTTv2HjEGtkx4mE5JvNQ0VxzHSJcCNOHh1gCiFD5c6rhvvxVeEqMkGGbCZKHX_vCgnIp0iE_OWyICjVTFPitQJ00fXLhyHyPb7q5J605tuK2iTHp2NCRJEXIAl9e0F_qASBBAfyL0C4FCBtvbnEMwtpoV1VWinkKgkI7JVH0AsyTugjXyAjxxsJxBTJT9qwZLxVBoaxgqNTOFfxvwstyq1VfCl3iBbpt71D"
@@ -6,12 +6,23 @@ header = {
 
 
 def test_transaction_tokens_and_cost_min_5min(client, application):
+    """
+    Tests token usage and cost statistics for a 5-minute time frame with 5-minute granularity.
+
+    Given: A set of transactions within 2023-11-01 12:00-12:05
+    When: Requesting token and cost statistics with 5-minute granularity
+    Then: Returns one interval with correct token counts and costs for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        
+        config = application['config']
+        
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            config.PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -49,12 +60,20 @@ def test_transaction_tokens_and_cost_min_5min(client, application):
 
 
 def test_transaction_tokens_and_cost_min_30min(client, application):
+    """
+    Tests token usage and cost statistics for a 30-minute time frame with 5-minute granularity.
+
+    Given: Transactions spanning 30 minutes (2023-11-01 12:00-12:30)
+    When: Requesting token and cost statistics with 5-minute granularity
+    Then: Returns 6 intervals with correct token counts and costs per model per interval
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -115,12 +134,20 @@ def test_transaction_tokens_and_cost_min_30min(client, application):
 
 
 def test_transaction_tokens_and_cost_min_1h(client, application):
+    """
+    Tests token usage and cost statistics for a 1-hour time frame with 5-minute granularity (period=5minutes).
+
+    Given: Transactions spanning one hour (2023-11-01 12:00-13:00)
+    When: Requesting token and cost statistics with 5-minute granularity
+    Then: Returns 12 intervals with correct token counts and costs per model per interval
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -193,12 +220,20 @@ def test_transaction_tokens_and_cost_min_1h(client, application):
 
 
 def test_transaction_tokens_and_cost_min_empty(client, application):
+    """
+    Tests token usage and cost statistics for a 1 month time frame with 5-minute granularity (period=5minutes).
+
+    Given: A time period with no recorded transactions (October 2023)
+    When: Requesting token and cost statistics with 5-minute granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -215,12 +250,20 @@ def test_transaction_tokens_and_cost_min_empty(client, application):
 
 
 def test_transaction_tokens_and_cost_hour_30min(client, application):
+    """
+    Tests token usage and cost statistics for a 30-minute time frame with hourly granularity (period=hour).
+
+    Given: Transactions spanning 30 minutes (2023-11-01 12:00-12:30)
+    When: Requesting token and cost statistics with hourly granularity
+    Then: Returns one interval with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -267,12 +310,20 @@ def test_transaction_tokens_and_cost_hour_30min(client, application):
 
 
 def test_transaction_tokens_and_cost_hour_1h(client, application):
+    """
+    Tests token usage and cost statistics for a 1-hour time frame with hourly granularity (period=hour).
+
+    Given: Transactions spanning one hour (2023-11-01 12:00-13:00)
+    When: Requesting token and cost statistics with hourly granularity
+    Then: Returns two intervals with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -322,12 +373,20 @@ def test_transaction_tokens_and_cost_hour_1h(client, application):
 
 
 def test_transaction_tokens_and_cost_hour_24h(client, application):
+    """
+    Tests token usage and cost statistics for a 24-hour time frame with hourly granularity (period=hour).
+
+    Given: Transactions spanning 24 hours (2023-11-01 12:00 to 2023-11-02 12:00)
+    When: Requesting token and cost statistics with hourly granularity
+    Then: Returns 24 intervals with aggregated token counts and costs per model per hour
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -424,12 +483,20 @@ def test_transaction_tokens_and_cost_hour_24h(client, application):
 
 
 def test_transaction_tokens_and_cost_hour_empty(client, application):
+    """
+    Tests token usage and cost statistics for a 1 month time frame with no transactions with hourly granularity (period=hour).
+
+    Given: A time period with no recorded transactions (2023-10-01 to 2023-10-31)
+    When: Requesting token and cost statistics with hourly granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -446,12 +513,20 @@ def test_transaction_tokens_and_cost_hour_empty(client, application):
 
 
 def test_transaction_tokens_and_cost_day_6h(client, application):
+    """
+    Tests token usage and cost statistics for a 6-hour time frame with daily granularity (period=day).
+
+    Given: Transactions spanning 6 hours (2023-11-01 12:00-18:00)
+    When: Requesting token and cost statistics with daily granularity
+    Then: Returns one interval with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -498,12 +573,20 @@ def test_transaction_tokens_and_cost_day_6h(client, application):
 
 
 def test_transaction_tokens_and_cost_day_24h(client, application):
+    """
+    Tests token usage and cost statistics for a 24-hour time frame with daily granularity (period=day).
+
+    Given: Transactions spanning 24 hours (2023-11-01 00:00-23:59), dates without time
+    When: Requesting token and cost statistics with daily granularity
+    Then: Returns one interval with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -550,12 +633,20 @@ def test_transaction_tokens_and_cost_day_24h(client, application):
 
 
 def test_transaction_tokens_and_cost_day_1d(client, application):
+    """
+    Tests token usage and cost statistics for a 1-day time frame with daily granularity (period=day).
+
+    Given: Transactions spanning one day (2023-11-01 13:00 to 2023-11-02 13:00)
+    When: Requesting token and cost statistics with daily granularity
+    Then: Returns two intervals with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -605,12 +696,20 @@ def test_transaction_tokens_and_cost_day_1d(client, application):
 
 
 def test_transaction_tokens_and_cost_day_7d(client, application):
+    """
+    Tests token usage and cost statistics for a 7-day time frame with daily granularity (period=day).
+
+    Given: Transactions spanning 7 days (2023-11-01 to 2023-11-07)
+    When: Requesting token and cost statistics with daily granularity
+    Then: Returns 7 intervals with aggregated token counts and costs per model per day
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -673,12 +772,20 @@ def test_transaction_tokens_and_cost_day_7d(client, application):
 
 
 def test_transaction_tokens_and_cost_day_1mo(client, application):
+    """
+    Tests token usage and cost statistics for a 1-month time frame with daily granularity (period=day).
+
+    Given: Transactions spanning one month (2023-11-01 to 2023-11-30)
+    When: Requesting token and cost statistics with daily granularity
+    Then: Returns 30 intervals with aggregated token counts and costs per model per day
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -787,12 +894,20 @@ def test_transaction_tokens_and_cost_day_1mo(client, application):
 
 
 def test_transaction_tokens_and_cost_day_empty(client, application):
+    """
+    Tests token usage and cost statistics for a 1 day time frame with no transactions with daily granularity (period=day).
+
+    Given: A time period with no recorded transactions (2023-11-03 to 2023-11-04)
+    When: Requesting token and cost statistics with daily granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -809,12 +924,20 @@ def test_transaction_tokens_and_cost_day_empty(client, application):
 
 
 def test_transaction_tokens_and_cost_week_3d(client, application):
+    """
+    Tests token usage and cost statistics for a 3-day time frame with weekly granularity (period=week).
+
+    Given: Transactions spanning 3 days (2023-11-01 to 2023-11-03)
+    When: Requesting token and cost statistics with weekly granularity
+    Then: Returns one interval with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -861,12 +984,20 @@ def test_transaction_tokens_and_cost_week_3d(client, application):
 
 
 def test_transaction_tokens_and_cost_week_7d(client, application):
+    """
+    Tests token usage and cost statistics for a 7-day time frame with weekly granularity (period=week).
+
+    Given: Transactions spanning 7 days (2023-11-01 to 2023-11-07)
+    When: Requesting token and cost statistics with weekly granularity
+    Then: Returns two intervals with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -916,12 +1047,20 @@ def test_transaction_tokens_and_cost_week_7d(client, application):
 
 
 def test_transaction_tokens_and_cost_week_2mo(client, application):
+    """
+    Tests token usage and cost statistics for a 2-month time frame with weekly granularity (period=week).
+
+    Given: Transactions spanning 2 months (2023-11-01 to 2023-12-31)
+    When: Requesting token and cost statistics with weekly granularity
+    Then: Returns 9 intervals with aggregated token counts and costs per model per week
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -988,12 +1127,20 @@ def test_transaction_tokens_and_cost_week_2mo(client, application):
 
 
 def test_transaction_tokens_and_cost_week_empty(client, application):
+    """
+    Tests token usage and cost statistics for a 2-week time frame with no transactions with weekly granularity (period=week).
+
+    Given: A time period with no recorded transactions (2024-03-29 to 2024-04-12)
+    When: Requesting token and cost statistics with weekly granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -1010,12 +1157,20 @@ def test_transaction_tokens_and_cost_week_empty(client, application):
 
 
 def test_transaction_tokens_and_cost_month_7d(client, application):
+    """
+    Tests token usage and cost statistics for a 7-day time frame with monthly granularity (period=month).
+
+    Given: Transactions spanning 7 days (2023-11-01 to 2023-11-07)
+    When: Requesting token and cost statistics with monthly granularity
+    Then: Returns one interval with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -1062,12 +1217,20 @@ def test_transaction_tokens_and_cost_month_7d(client, application):
 
 
 def test_transaction_tokens_and_cost_month_1mo(client, application):
+    """
+    Tests token usage and cost statistics for a 1-month time frame with monthly granularity (period=month).
+
+    Given: Transactions spanning one month (2023-11-01 to 2023-11-30)
+    When: Requesting token and cost statistics with monthly granularity
+    Then: Returns one interval with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -1114,12 +1277,20 @@ def test_transaction_tokens_and_cost_month_1mo(client, application):
 
 
 def test_transaction_tokens_and_cost_month_6mo(client, application):
+    """
+    Tests token usage and cost statistics for a 6-month time frame with monthly granularity (period=month).
+
+    Given: Transactions spanning 6 months (2023-10-01 to 2024-03-31)
+    When: Requesting token and cost statistics with monthly granularity
+    Then: Returns 6 intervals with aggregated token counts and costs per model per month
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -1180,12 +1351,20 @@ def test_transaction_tokens_and_cost_month_6mo(client, application):
 
 
 def test_transaction_tokens_and_cost_month_empty(client, application):
+    """
+    Tests token usage and cost statistics for a 1-month time frame with no transactions with monthly granularity (period=month).
+
+    Given: A time period with no recorded transactions (2024-05-01 to 2024-06-01)
+    When: Requesting token and cost statistics with monthly granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -1202,12 +1381,20 @@ def test_transaction_tokens_and_cost_month_empty(client, application):
 
 
 def test_transaction_tokens_and_cost_year_2mo(client, application):
+    """
+    Tests token usage and cost statistics for a 2-month time frame with yearly granularity (period=year).
+
+    Given: Transactions spanning 2 months (2023-11-01 to 2023-12-31)
+    When: Requesting token and cost statistics with yearly granularity
+    Then: Returns one interval with aggregated token counts and costs per model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -1253,13 +1440,21 @@ def test_transaction_tokens_and_cost_year_2mo(client, application):
     assert costs == costs_validation
 
 
-def test_transaction_tokens_and_cost_year_2y(client, application):
+def test_transaction_tokens_and_cost_year_5months(client, application):
+    """
+    Tests token usage and cost statistics for a 5-month time frame with yearly granularity (period=year).
+
+    Given: Transactions spanning from 2023 to 2024 (2023-11-01 to 2024-03-31)
+    When: Requesting token and cost statistics with yearly granularity
+    Then: Returns two intervals with aggregated token counts and costs per model per year
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
@@ -1312,12 +1507,20 @@ def test_transaction_tokens_and_cost_year_2y(client, application):
 
 
 def test_transaction_tokens_and_cost_year_empty(client, application):
+    """
+    Tests token usage and cost statistics for a 6-month time frame with no transactions with yearly granularity (period=year).
+
+    Given: A time period with no recorded transactions (2024-05-31 to 2024-12-31)
+    When: Requesting token and cost statistics with yearly granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
         repo.delete_cascade(project_id="project-test")
-        transactions = read_transactions_from_csv(
-            "test_transactions_tokens_cost_speed.csv"
+        transactions = read_transactions_with_prices_from_csv(
+            "test_transactions_tokens_cost_speed.csv",
+            application['config'].PRICE_LIST_PATH
         )
         for transaction in transactions:
             repo.add(transaction)
