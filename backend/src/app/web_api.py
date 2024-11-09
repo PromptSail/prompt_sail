@@ -609,7 +609,7 @@ async def get_transaction_status_statistics_over_time(
     response_class=JSONResponse,
     dependencies=[Security(decode_and_validate_token)],
 )
-async def get_transaction_latency_statistics_over_time(
+async def get_transactions_speed_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
     date_from: datetime | str | None = None,
