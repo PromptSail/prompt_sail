@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from test_utils import read_transactions_from_csv, truncate_float
 
 class TestBaseTransactionSpeed:
@@ -32,8 +33,27 @@ class TestBaseTransactionSpeed:
 
     def make_request(self, period, date_from, date_to, project_id="project-test"):
         """Helper method to make API request for speed statistics."""
+        
+        if date_from is None:
+            date_from = ""
+        if date_to is None:
+            date_to = ""    
+        
+        api_url = f"/api/statistics/transactions_speed?"
+        #create api url add parameters if they are not empty
+        
+        if project_id != "":
+            api_url += f"project_id={project_id}"
+        
+        if period != "":
+            api_url += f"&period={period}"
+        if date_from != "":
+            api_url += f"&date_from={date_from}"
+        if date_to != "":
+            api_url += f"&date_to={date_to}"
+        
         return self.client.get(
-            f"/api/statistics/transactions_speed?project_id={project_id}&period={period}&date_from={date_from}&date_to={date_to}",
+            api_url,
             headers=self.header,
         )
 
@@ -85,8 +105,28 @@ class TestTransactionSpeedErrors(TestBaseTransactionSpeed):
         
         assert response.status_code == 404
         assert response.json() == {"error": "Project not found"}
+        
+    def test_speed_statistics_without_project_id(self):
+        """
+        Tests transaction speed statistics without project_id.
 
-    def test_speed_statistics_for_not_wrong_period(self):
+        Given: A set of transactions
+        When: Requesting speed statistics without project_id
+        Then: Returns 422 error with "project_id is required" message
+        """
+        response = self.make_request(
+            "5minutes",
+            "2023-11-01T12:00:00",
+            "2023-11-01T12:04:59",
+            ""
+        )
+        
+        resp_data = response.json()
+        
+        assert response.status_code == 422
+        assert resp_data['detail'][0]['msg'] == 'Field required'
+
+    def test_speed_statistics_wrong_period(self):
         """
         Tests transaction speed statistics for an invalid period parameter.
 
@@ -119,6 +159,105 @@ class TestTransactionSpeedErrors(TestBaseTransactionSpeed):
         
         assert response.status_code == 400
         assert response.json()['detail'] == "date_from is after date_to"
+        
+    def test_speed_statistics_date_from_required(self):
+        """
+        Tests transaction speed statistics without date_from.
+
+        Given: A set of valid transactions
+        When: Requesting speed statistics without date_from
+        Then: Returns 422 error with "date_from is required" message
+        """
+        response = self.make_request(
+            "5minutes",
+            None,
+            "2023-11-01T12:00:00"
+        )
+        
+        resp_data = response.json()
+        
+        assert response.status_code == 422
+        assert resp_data['detail'][0]['msg'] == "Field required"
+        
+    def test_speed_statistics_date_to_required(self):
+        """
+        Tests transaction speed statistics without date_to.
+
+        Given: A set of valid transactions
+        When: Requesting speed statistics without date_to
+        Then: Returns 422 error with "date_to is required" message
+        """
+        response = self.make_request(
+            "5minutes",
+            "2023-11-01T12:00:00",
+            None
+        )
+        
+        resp_data = response.json()
+        
+        assert response.status_code == 422
+        assert resp_data['detail'][0]['msg'] == "Field required"
+        
+    def test_speed_statistics_dates_as_datetime(self):
+        """
+        Tests transaction speed statistics with dates as datetime objects.
+
+        Given: A set of valid transactions
+        When: Requesting speed statistics with dates as datetime objects
+        Then: Dates are converted to string in response
+        """
+        response_datetime = self.make_request(
+            "5minutes",
+            datetime(2023, 11, 1, 12, 0, 0),
+            datetime(2023, 11, 2, 12, 0, 0)
+        )
+        
+        response_string = self.make_request(
+            "5minutes",
+            "2023-11-01T12:00:00",
+            "2023-11-02T12:00:00"
+        )
+        
+        resp_data_datetime = response_datetime.json()
+        resp_data_string = response_string.json()
+        
+        assert response_datetime.status_code == 200
+        assert response_string.status_code == 200
+        assert resp_data_datetime == resp_data_string
+
+        
+    def test_speed_statistics_date_without_time_is_same_as_with_time(self):
+        """
+        Tests transaction speed statistics with date_from without time is same as with time.
+
+        Given: A set of valid transactions
+        When: Requesting speed statistics with date_from without time and with time
+        Then: Time shoud be added automatically as 00:00:00 and returns same data
+        """
+        response_without_time = self.make_request(
+            "5minutes",
+            "2023-11-01",
+            "2023-11-02"
+        )
+        
+        response_with_time = self.make_request(
+            "5minutes",
+            "2023-11-01T00:00:00",
+            "2023-11-02T00:00:00"
+        )
+               
+        assert response_without_time.status_code == 200
+        assert response_with_time.status_code == 200
+        
+        
+        data_without_time = response_without_time.json()
+        data_with_time = response_with_time.json()
+        
+        assert len(data_without_time) == 289
+        assert len(data_without_time) == len(data_with_time)
+                
+        assert data_without_time == data_with_time
+
 
 
 class TestMinutesGranularity(TestBaseTransactionSpeed):
@@ -440,9 +579,13 @@ class TestDailyGranularity(TestBaseTransactionSpeed):
         """
         response = self.make_request(
             "day",
-            "2023-11-01",
-            "2023-11-01"
+            "2023-11-01T00:00:00",
+            "2023-11-01T23:59:59"
         )
+        
+        response_date = datetime.fromisoformat(response[0]['date'])
+        expected_date = datetime.fromisoformat("2023-11-01T00:00:00")
+        assert response_date == expected_date
         
         validation = [tuple([72.04359746, 43.355338, 69.08307764, 30.46153202])]
         self.assert_response(response, 1, validation)
@@ -667,11 +810,48 @@ class TestYearlyGranularity(TestBaseTransactionSpeed):
         response = self.make_request(
             "year",
             "2023-11-01",
-            "2023-12-31"
+            "2023-12-31T23:59:59"
         )
         
-        validation = [tuple([53.91861763, 44.82339021, 54.10959145, 43.15849138])]
-        self.assert_response(response, 1, validation)
+        resp_data = response.json()
+        
+        expected_date = datetime.fromisoformat("2023-12-31T00:00:00")
+        response_date = datetime.fromisoformat(resp_data[0]['date'])
+        
+        assert len(resp_data) == 1
+        assert response_date == expected_date
+        assert len(resp_data[0]['records']) == 4
+        
+        records = resp_data[0]['records']
+        
+        #provider Anthropic claude-2.0
+        assert records[0]['provider'] == 'Anthropic'
+        assert records[0]['model'] == 'claude-2.0'
+        assert records[0]['mean_latency'] == pytest.approx(10.32475, rel=1e-3)
+        assert records[0]['tokens_per_second'] == pytest.approx(53.91861763, rel=1e-3)
+        assert records[0]['total_transactions'] == 12
+        
+        #provider Azure OpenAI gpt-35-turbo-0613
+        assert records[1]['provider'] == 'Azure OpenAI'
+        assert records[1]['model'] == 'gpt-35-turbo-0613'
+        assert records[1]['mean_latency'] == pytest.approx(14.68428, rel=1e-3)
+        assert records[1]['tokens_per_second'] == pytest.approx(44.82339021, rel=1e-3)
+        assert records[1]['total_transactions'] == 21
+        
+        #provider OpenAI babbage-002
+        assert records[2]['provider'] == 'OpenAI'
+        assert records[2]['model'] == 'babbage-002'
+        assert records[2]['mean_latency'] == pytest.approx(10.8833333, rel=1e-3)
+        assert records[2]['tokens_per_second'] == pytest.approx(54.10959145, rel=1e-3)
+        assert records[2]['total_transactions'] == 15
+        
+        #provider OpenAI gpt-4-0613
+        assert records[3]['provider'] == 'OpenAI'
+        assert records[3]['model'] == 'gpt-4-0613'
+        assert records[3]['mean_latency'] == pytest.approx(47.21509, rel=1e-3)
+        assert records[3]['tokens_per_second'] == pytest.approx(43.15849138, rel=1e-3)
+        assert records[3]['total_transactions'] == 11
+                
 
     def test_5month_duration_with_yearly_granularity_returns_two_intervals(self):
         """

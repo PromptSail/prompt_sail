@@ -612,8 +612,8 @@ async def get_transaction_status_statistics_over_time(
 async def get_transactions_speed_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
-    date_from: datetime | str | None = None,
-    date_to: datetime | str | None = None,
+    date_from: datetime | str ,
+    date_to: datetime | str ,
     period: utils.PeriodEnum = utils.PeriodEnum.day,
 ) -> list[GetTransactionsLatencyStatisticsSchema]:
     """
@@ -633,10 +633,13 @@ async def get_transactions_speed_statistics_over_time(
     """
     
     #check if date_from is before date_to return error
+    date_from = datetime.fromisoformat(date_from) 
+    date_to = datetime.fromisoformat(date_to) 
+    
     if date_from and date_to and date_from > date_to:
         raise HTTPException(status_code=400, detail="date_from is after date_to")
     
-    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+    #date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
 
     count = ctx.call(
         count_transactions,
