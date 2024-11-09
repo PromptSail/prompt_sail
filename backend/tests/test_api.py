@@ -210,8 +210,8 @@ def test_create_project_with_valid_data_returns_201(client, application):
     
     assert response.json() == expected_response
 
-def test_create_project_with_existing_slug_returns_400(client, application, test_project):
-    """Test creating a project with an existing slug returns 400"""
+def test_create_project_with_existing_slug_returns_400_and_error(client, application, test_project):
+    """Test creating a project with an existing slug returns 400 and error message"""
     # arrange - test_project fixture has already created a project with slug "autotest1"
     # Create a new project data without datetime fields
     new_project_data = {
@@ -231,7 +231,7 @@ def test_create_project_with_existing_slug_returns_400(client, application, test
     assert response.status_code == 400
     assert response.json() == {"message": f'Slug already exists: {test_project.slug}'}
 
-def test_when_no_projects_returns_200_and_empy_list(client, application):
+def test_get_projects_with_empty_database_returns_200_and_empty_list(client, application):
     """Test when no projects exist, returns 200 and empty list"""
     # arrange
     ...
@@ -243,7 +243,7 @@ def test_when_no_projects_returns_200_and_empy_list(client, application):
     assert result.status_code == 200
     assert result.json() == []
 
-def test_get_project_by_id_returns_200(client, application, test_project):
+def test_get_project_with_valid_id_returns_200_and_project_data(client, application, test_project):
     """Test retrieving a project by ID returns 200 and correct project data"""
     # act
     response = client.get(f"/api/projects/{test_project.id}", headers=header)
@@ -276,7 +276,7 @@ def test_get_project_by_id_returns_200(client, application, test_project):
     
     assert response_data == expected_response
 
-def test_update_project_name_returns_200(client, application, test_project):
+def test_update_project_with_new_name_returns_200_and_updated_data(client, application, test_project):
     """Test updating project name returns 200 and updated project data"""
     # arrange
     updated_name = "AI Marketing Campaign 2024"
@@ -317,7 +317,7 @@ def test_update_project_name_returns_200(client, application, test_project):
     
     assert response_data == expected_response
 
-def test_update_multiple_project_fields_returns_200(client, application, test_project):
+def test_update_project_with_multiple_fields_returns_200_and_updated_data(client, application, test_project):
     """Test updating multiple project fields returns 200 and correctly updated project data"""
     # arrange
     update_data = {
@@ -377,16 +377,15 @@ def test_update_multiple_project_fields_returns_200(client, application, test_pr
     
     assert response_data == expected_response
 
-
-def test_delete_project(client, application, test_project):
-    """Test deleting a project"""
+def test_delete_project_with_valid_id_returns_204(client, application, test_project):
+    """Test deleting a project with valid ID returns 204"""
     # act
     response = client.delete(f"/api/projects/{test_project.id}", headers=header)
 
     # assert
     assert response.status_code == 204
 
-def test_delete_not_existing_project_returns_204(client, application):
+def test_delete_project_with_nonexistent_id_returns_204(client, application):
     """Test deleting a non-existing project returns 204"""
     # arrange
     ...
@@ -397,8 +396,7 @@ def test_delete_not_existing_project_returns_204(client, application):
     # assert
     assert response.status_code == 204
 
-
-def test_get_all_projects_returns_200_with_project_list(client, application, test_project):
+def test_get_projects_with_existing_project_returns_200_and_project_list(client, application, test_project):
     """Test retrieving all projects returns 200 and list containing the test project"""
     # act
     response = client.get("/api/projects", headers=header)
@@ -438,7 +436,7 @@ def test_get_all_projects_returns_200_with_project_list(client, application, tes
 # Create transactions tests
 # ------------------------------
 
-def test_create_transaction_success(client, application, test_project):
+def test_create_transaction_with_valid_data_returns_201_and_calculated_costs(client, application, test_project):
     """Test successful transaction creation with cost calculation"""
     # arrange
     data = CreateTransactionWithRawDataSchema(
@@ -474,7 +472,7 @@ def test_create_transaction_success(client, application, test_project):
     assert transaction["output_cost"] > 0
     assert transaction["total_cost"] == transaction["input_cost"] + transaction["output_cost"]
   
-def test_create_transaction_failed_response(client, application, test_project):
+def test_create_transaction_with_failed_response_returns_201_and_error_details(client, application, test_project):
     """Test transaction creation with failed API response"""
     # arrange
     data = test_transaction.copy()
@@ -494,7 +492,7 @@ def test_create_transaction_failed_response(client, application, test_project):
     assert transaction["output_cost"] is None
     assert transaction["total_cost"] is None
  
-def test_create_transaction_for_image_generation_model(client, application, test_project):
+def test_create_transaction_with_image_generation_model_returns_201_and_proper_costs(client, application, test_project):
     """Test transaction creation for image generation"""
     # arrange
     data = test_transaction.copy()
@@ -509,11 +507,11 @@ def test_create_transaction_for_image_generation_model(client, application, test
     assert response.status_code == 201
     transaction = response.json()
     assert transaction["type"] == "image_generation"
-    assert transaction["total_cost"] is not None
+    assert transaction["total_cost"] == pytest.approx(0.040, rel=1e-4)
     assert transaction["input_cost"] == 0  # Image generation has no input cost
 
-def test_create_transaction_invalid_data(client, application):
-    """Test transaction creation with invalid data"""
+def test_create_transaction_with_missing_required_fields_returns_422(client, application):
+    """Test transaction creation with missing required fields"""
     # arrange
     invalid_data = {
         "project_id": "project-test",
@@ -526,7 +524,7 @@ def test_create_transaction_invalid_data(client, application):
     # assert
     assert response.status_code == 422  # Validation error
 
-def test_create_transaction_unknown_model(client, application, test_project):
+def test_create_transaction_with_unknown_model_returns_201_and_null_costs(client, application, test_project):
     """Test transaction creation with unknown model"""
     # arrange
     data = test_transaction.copy()
@@ -547,7 +545,7 @@ def test_create_transaction_unknown_model(client, application, test_project):
 # Transaction cost calculation
 # --------------------------------
 
-def test_transation_cost_calculation_for_embedding_model(client, application, test_project):
+def test_transaction_costs_with_embedding_model_returns_201_and_correct_costs(client, application, test_project):
     """Test if transaction costs are calculated accurately for embedding model"""
     # arrange
     data = test_transaction.copy()
@@ -582,9 +580,81 @@ def test_transation_cost_calculation_for_embedding_model(client, application, te
     # Additional embedding-specific assertions
     assert transaction["type"] == "embedding"
     assert transaction["output_tokens"] == 0
+    
+def test_transaction_costs_with_embedding_model_with_none_output_tokens_returns_201_and_correct_costs(client, application, test_project):
+    """Test if transaction costs are calculated accurately for embedding model with None output tokens"""
+    # arrange
+    data = test_transaction.copy()
+    data.update({
+        "model": "text-embedding-3-large",
+        "type": "embedding",
+        "input_tokens": 256,  # Known input tokens
+        "output_tokens": None,   # Embedding models don't have output tokens
+        # Clear any existing cost values to test calculation
+        "input_cost": None,
+        "output_cost": None,
+        "total_cost": None
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # Additional embedding-specific assertions
+    assert transaction["type"] == "embedding"
+    assert transaction["output_tokens"] is None
+    
+    # text-embedding-3-large pricing: $0.00013/1K tokens (input only)
+    expected_input_cost = 0 # No input cost for embeddings
+    expected_output_cost = 0  # No output cost for embeddings
+    expected_total_cost = (data["input_tokens"] / 1000) * 0.00013  # $0.00003328  # Total cost equals input cost
+    
+    # Check if calculated costs match expected values (using approximate comparison due to floating point)
+    assert transaction["input_cost"] is None
+    assert transaction["output_cost"] is None
+    assert transaction["total_cost"] == pytest.approx(expected_total_cost, rel=1e-4)
+    
+def test_transaction_costs_with_embedding_model_with_set_output_tokens_returns_201_and_correct_costs(client, application, test_project):
+    """Test if transaction costs are calculated accurately for embedding model with set output tokens"""
+    # arrange
+    data = test_transaction.copy()
+    data.update({
+        "model": "text-embedding-3-large",
+        "type": "embedding",
+        "input_tokens": 256,  # Known input tokens
+        "output_tokens": 100,   # Embedding models should have output tokens, this should not be taken into account for cost calculation
+        # Clear any existing cost values to test calculation
+        "input_cost": None,
+        "output_cost": None,
+        "total_cost": None
+    })
+
+    # act
+    response = client.post("/api/transactions", headers=header, json=data)
+
+    # assert
+    assert response.status_code == 201
+    transaction = response.json()
+    
+    # Additional embedding-specific assertions
+    assert transaction["type"] == "embedding"
+    assert transaction["output_tokens"] is None
+    
+    # text-embedding-3-large pricing: $0.00013/1K tokens (input only)
+    expected_input_cost = 0 # No input cost for embeddings
+    expected_output_cost = 0  # No output cost for embeddings
+    expected_total_cost = (data["input_tokens"] / 1000) * 0.00013  # $0.00003328  # Total cost equals input cost
+    
+    # Check if calculated costs match expected values (using approximate comparison due to floating point)
+    assert transaction["input_cost"] is None
+    assert transaction["output_cost"] is None
+    assert transaction["total_cost"] == pytest.approx(expected_total_cost, rel=1e-4)
 
     
-def test_transaction_cost_calculation_chat_model(client, application, test_project):
+def test_transaction_costs_with_chat_model_returns_201_and_correct_costs(client, application, test_project):
     """Test if transaction costs are calculated accurately based on token counts"""
     # arrange
     data = test_transaction.copy()
@@ -620,7 +690,7 @@ def test_transaction_cost_calculation_chat_model(client, application, test_proje
 
   
 
-def test_transaction_cost_calculation_with_existing_costs(client, application, test_project):
+def test_transaction_costs_with_precalculated_values_returns_201_and_same_costs(client, application, test_project):
     """Test transaction creation with pre-calculated costs"""
     # arrange
     data = test_transaction.copy()
@@ -638,7 +708,7 @@ def test_transaction_cost_calculation_with_existing_costs(client, application, t
     assert transaction["output_cost"] == data["output_cost"]
     assert transaction["total_cost"] == data["total_cost"]
 
-def test_transaction_cost_calculation_unknown_model(client, application, test_project):
+def test_transaction_costs_with_unknown_model_returns_201_and_null_costs(client, application, test_project):
     """Test if transaction costs are handled properly for unknown/unsupported models"""
     # arrange
     data = test_transaction.copy()
@@ -671,7 +741,7 @@ def test_transaction_cost_calculation_unknown_model(client, application, test_pr
     assert transaction["output_tokens"] == 50
     assert transaction["type"] == "chat"
 
-def test_transaction_cost_calculation_image_generation_model_2images(client, application, test_project):
+def test_transaction_costs_with_two_image_generation_returns_201_and_correct_costs(client, application, test_project):
     """Test if transaction costs are calculated accurately for DALL-E 3 1024x1792 image generation"""
     # arrange
     data = test_transaction.copy()
@@ -703,22 +773,26 @@ def test_transaction_cost_calculation_image_generation_model_2images(client, app
     cost_per_image = 0.080
     expected_total_cost = cost_per_image * data["request_json"]["n"]  # $0.160 for 2 images
     
-    # Check if calculated costs match expected values
-    assert transaction["input_cost"] == 0  # Image generation has no input cost
-    assert transaction["output_cost"] == 0  # Image generation has no output cost
-    assert transaction["total_cost"] == pytest.approx(expected_total_cost, rel=1e-4)
+    
     
     # Additional image generation specific assertions
     assert transaction["type"] == "image_generation"
     assert transaction["model"] == "standard/1024x1792/dall-e-3"
     assert transaction["input_tokens"] == 0
     assert transaction["output_tokens"] == 0
+    
+    # Check if calculated costs match expected values
+    assert transaction["input_cost"] == 0  # Image generation has no input cost
+    assert transaction["output_cost"] == 0  # Image generation has no output cost
+    assert transaction["total_cost"] == pytest.approx(expected_total_cost, rel=1e-4)
+    
+
 
 # --------------------------------
 # Transation generation speed tests
 # --------------------------------
 
-def test_transaction_generation_speed_chat_model(client, application, test_project):
+def test_transaction_generation_speed_with_chat_model_returns_201_and_calculated_speed(client, application, test_project):
     """Test generation speed calculation for chat model with output tokens"""
     # arrange
     data = test_transaction.copy()
@@ -754,7 +828,7 @@ def test_transaction_generation_speed_chat_model(client, application, test_proje
 
     assert expected_speed == pytest.approx(transaction["generation_speed"], rel=0.01)
 
-def test_transaction_generation_speed_image_model(client, application, test_project):
+def test_transaction_generation_speed_with_image_model_returns_201_and_null_speed(client, application, test_project):
     """Test generation speed calculation for image generation model (zero output tokens)"""
     # arrange
     data = test_transaction.copy()
@@ -778,7 +852,7 @@ def test_transaction_generation_speed_image_model(client, application, test_proj
     # Generation speed should be None for zero output tokens
     assert transaction["generation_speed"] is None
 
-def test_transaction_generation_speed_embedding_model(client, application, test_project):
+def test_transaction_generation_speed_with_embedding_model_returns_201_and_zero_speed(client, application, test_project):
     """Test generation speed calculation for embedding model (None output tokens)"""
     # arrange
     data = test_transaction.copy()
@@ -806,8 +880,10 @@ def test_transaction_generation_speed_embedding_model(client, application, test_
     
     # Generation speed should be 0 for None output tokens
     assert transaction["generation_speed"] == 0
+    
 
-def test_transaction_generation_speed_existing_value(client, application, test_project):
+
+def test_transaction_generation_speed_with_existing_value_returns_201_and_unchanged_speed(client, application, test_project):
     """Test that existing generation speed is not overwritten"""
     # arrange
     data = test_transaction.copy()
@@ -834,17 +910,17 @@ def test_transaction_generation_speed_existing_value(client, application, test_p
     # Generation speed should remain unchanged
     assert transaction["generation_speed"] == 15.5
 
-def test_transaction_generation_speed_very_fast_response(client, application, test_project):
+def test_transaction_generation_speed_with_fast_response_returns_201_and_calculated_speed(client, application, test_project):
     """Test generation speed calculation with very small time difference"""
     # arrange
     data = test_transaction.copy()
-    request_time = datetime.now(tz=timezone.utc) - timedelta(milliseconds=10)
-    response_time = request_time + timedelta(seconds=2)
+    request_time = datetime.now(tz=timezone.utc) 
+    response_time = request_time + timedelta(milliseconds=10)
     data.update({
         "model": "gpt-3.5-turbo-0125",
         "type": "chat",
         "input_tokens": 100,
-        "output_tokens": 50,
+        "output_tokens": 500,
         "generation_speed": None,
         # Set request_time very close to current time
         "request_time": request_time.isoformat(),
@@ -859,10 +935,16 @@ def test_transaction_generation_speed_very_fast_response(client, application, te
     transaction = response.json()
     
     # Generation speed should be calculated even with very small time difference
-    assert transaction["generation_speed"] is not None
     assert transaction["generation_speed"] > 0
+    
+    expected_speed = (data["output_tokens"] / (datetime.fromisoformat(data["response_time"]) - datetime.fromisoformat(data["request_time"])).total_seconds())
+    
 
-def test_transaction_generation_speed_future_request_time(client, application, test_project):
+    assert expected_speed == pytest.approx(transaction["generation_speed"], rel=0.01)
+
+    
+
+def test_transaction_generation_speed_with_future_request_time_returns_201_and_null_speed(client, application, test_project):
     """Test generation speed calculation with future request time (edge case)"""
     # arrange
     data = test_transaction.copy()
