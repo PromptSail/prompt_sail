@@ -631,6 +631,11 @@ async def get_transactions_speed_statistics_over_time(
     - A list of GetTransactionLatencyStatisticsSchema objects containing latency and speed statistics
       grouped by the specified period
     """
+    
+    #check if date_from is before date_to return error
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(status_code=400, detail="date_from is after date_to")
+    
     date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
 
     count = ctx.call(

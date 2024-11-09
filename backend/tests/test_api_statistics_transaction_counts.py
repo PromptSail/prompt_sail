@@ -46,13 +46,77 @@ class TestBaseTransactionCounts:
         ]
         assert actual_counts == expected_counts
 
-    def _get_statistics(self, period, date_from, date_to):
+    def make_request(self, period, date_from, date_to):
         """Helper method to make API request for statistics."""
         return self.client.get(
             f"/api/statistics/transactions_count?project_id=project-test&period={period}&date_from={date_from}&date_to={date_to}",
             headers=self.header,
         )
 
+
+
+class TestTransactionCountsErrors(TestBaseTransactionCounts):
+    def test_cost_statistics_for_not_existing_project(self):
+        """
+        Tests token usage and cost statistics for not existing project.
+
+        Given: A set of transactions within 2023-11-01 12:00-12:05
+        When: Requesting token and cost statistics with 5-minute granularity
+        Then: Returns one interval with correct token counts and costs for each model
+        """
+        response = self.make_request(
+            "5minutes", 
+            "2023-11-01T12:00:00", 
+            "2023-11-01T12:04:59",
+            "project-that-not-exists-xxx"
+        )
+        
+        response_data = response.json()
+        
+        assert response.status_code == 404
+        assert response_data == {"error": "Project not found"}
+        
+
+    def test_cost_statistics_for_not_wrong_period(self):
+        """
+        Tests token usage and cost statistics for a not supported period.
+
+        Given: Transactions spanning 30 minutes (2023-11-01 12:00-12:30)
+        When: Requesting token and cost statistics with not supported period
+        Then: Returns error
+        """
+        response = self.make_request(
+            "not-existing-period",
+            "2023-11-01T12:00:00",
+            "2023-11-01T12:29:59"
+        )
+
+        response_data = response.json()
+        
+        # assert
+        response_data = response.json()
+        assert response.status_code == 422
+        assert response_data['detail'][0]['input'] == 'not-existing-period'
+
+
+    def test_cost_statistics_for_date_from_after_date_to(self):
+        """
+        Tests transaction cost statistics for a time frame when date_from is after date_to.
+
+        Given: Transactions spanning -10 minutes (2023-11-01 12:10-12:00) date_from is after date_to
+        When: Requesting transaction cost statistics
+        Then: Returns error
+        """
+        response = self.make_request(
+            "5minutes",
+            "2023-11-01T12:10:00",
+            "2023-11-01T12:00:00"
+        )
+            
+        # assert
+        response_data = response.json()
+        assert response.status_code == 400
+        assert response_data['detail'] == "date_from is after date_to"
 
 class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
     """Tests for 5-minute granularity transaction counts."""
@@ -65,7 +129,7 @@ class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
         When: Requesting transaction counts with 5-minute granularity
         Then: Returns one interval with correct HTTP status code counts (200,300,400,500)
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "5minutes",
             "2023-11-01T12:00:00.000",
             "2023-11-01T12:04:59.000"
@@ -82,7 +146,7 @@ class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
         When: Requesting transaction counts with 5-minute granularity
         Then: Returns 6 intervals with correct status counts per interval
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "5minutes",
             "2023-11-01T12:00:00.000",
             "2023-11-01T12:29:59.999"
@@ -106,7 +170,7 @@ class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
         When: Requesting transaction counts with 5-minute granularity
         Then: Returns 12 intervals with correct status counts per interval
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "5minutes",
             "2023-11-01T12:00:00.000",
             "2023-11-01T12:59:59.999"
@@ -136,7 +200,7 @@ class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
         When: Requesting transaction counts for October 2023
         Then: Returns an empty list
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "5minutes",
             "2023-10-01T00:00.000",
             "2023-10-31T00:00.000"
@@ -156,7 +220,7 @@ class TestHourlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting transaction counts with hourly granularity
         Then: Returns one interval with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "hour",
             "2023-11-01T12:00:00",
             "2023-11-01T12:30:00"
@@ -173,7 +237,7 @@ class TestHourlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting hourly transaction counts
         Then: Returns two intervals with correct aggregated counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "hour",
             "2023-11-01T12:00:00.000",
             "2023-11-01T13:00:00.000"
@@ -190,7 +254,7 @@ class TestHourlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting hourly transaction counts
         Then: Returns 24 intervals with correct status counts per hour
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "hour",
             "2023-11-01T12:00:00.000",
             "2023-11-02T11:59:59.999"
@@ -232,7 +296,7 @@ class TestHourlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting hourly transaction counts
         Then: Returns empty list
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "hour",
             "2023-10-01T00:00.000",
             "2023-10-31T00:00.000"
@@ -252,7 +316,7 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting daily transaction counts
         Then: Returns one interval with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "day",
             "2023-11-01T12:00:00.000",
             "2023-11-01T18:00:00.000"
@@ -269,7 +333,7 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting daily transaction counts
         Then: Returns one interval with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "day",
             "2023-11-01T00:00.000",
             "2023-11-01T00:00.000"
@@ -286,7 +350,7 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting daily transaction counts
         Then: Returns two intervals with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "day",
             "2023-11-01T13:00:00.000",
             "2023-11-02T13:00:00.000"
@@ -303,7 +367,7 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting daily transaction counts
         Then: Returns 7 intervals with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "day",
             "2023-11-01T12:00:00.000",
             "2023-11-07T11:59:59.999"
@@ -328,7 +392,7 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting daily transaction counts
         Then: Returns 30 intervals with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "day",
             "2023-11-01T12:00:00.000",
             "2023-11-30T12:00:00.000"
@@ -380,7 +444,7 @@ class TestWeeklyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting weekly transaction counts
         Then: Returns 9 intervals with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "week",
             "2023-11-01T12:00:00.000",
             "2023-12-31T00:00:00.000"
@@ -407,7 +471,7 @@ class TestWeeklyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting weekly transaction counts
         Then: Returns 1 interval with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "week",
             "2023-11-01T12:00:00.000",
             "2023-11-03T12:00:00.000"
@@ -424,7 +488,7 @@ class TestWeeklyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting weekly transaction counts
         Then: Returns 2 intervals with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "week",
             "2023-11-01T12:00:00.000",
             "2023-11-07T12:00:00.000"
@@ -441,7 +505,7 @@ class TestWeeklyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting weekly transaction counts
         Then: Returns empty list
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "week",
             "2024-03-29T00:00:00.000",
             "2024-04-30T00:00:00.000"
@@ -461,7 +525,7 @@ class TestMonthlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting monthly transaction counts
         Then: Returns 1 interval with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "month",
             "2023-11-01T12:00:00.000",
             "2023-11-07T12:00:00"
@@ -479,7 +543,7 @@ class TestMonthlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting monthly transaction counts
         Then: Returns 1 interval with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "month",
             "2023-11-01T12:00:00.000",
             "2023-11-30T12:00:00.000"
@@ -496,7 +560,7 @@ class TestMonthlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting monthly transaction counts
         Then: Returns 6 intervals with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "month",
             "2023-10-01T12:00:00.000",
             "2024-03-31T12:00:00.000"
@@ -520,7 +584,7 @@ class TestMonthlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting monthly transaction counts
         Then: Returns empty list
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "month",
             "2024-05-01T12:00:00.000",
             "2024-05-31T12:00:00.000"
@@ -540,7 +604,7 @@ class TestYearlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting yearly transaction counts
         Then: Returns one interval with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "year",
             "2023-11-01T12:00:00.000",
             "2023-12-31T12:00:00.000"
@@ -557,7 +621,7 @@ class TestYearlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting yearly transaction counts
         Then: Returns two intervals with aggregated status counts
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "year",
             "2023-11-01T12:00:00.000",
             "2024-03-31T12:00:00.000"
@@ -574,7 +638,7 @@ class TestYearlyTransactionCounts(TestBaseTransactionCounts):
         When: Requesting yearly transaction counts
         Then: Returns empty list
         """
-        response = self._get_statistics(
+        response = self.make_request(
             "year", 
             "2024-03-31T12:00:00.000",
             "2024-12-31T12:00:00.000"

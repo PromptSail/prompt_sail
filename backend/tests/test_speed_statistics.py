@@ -4,6 +4,102 @@ header = {
     "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImN0eSI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiYXpwIjoiNDA3NDA4NzE4MTkyLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNDA3NDA4NzE4MTkyLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTEyMTAyODc3OTUzNDg0MzUyNDI3IiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiYm54OW9WT1o4U3FJOTcyczBHYjd4dyIsIm5hbWUiOiJUZXN0IFVzZXIiLCJwaWN0dXJlIjoiIiwiZ2l2ZW5fbmFtZSI6IlRlc3QiLCJmYW1pbHlfbmFtZSI6IlVzZXIiLCJpYXQiOjE3MTM3MzQ0NjEsImV4cCI6OTk5OTk5OTk5OX0.eZYMQzcSRzkAq4Me8C6SNU3wduS7EIu_o5XGAbsDmU05GtyipQEb5iNJ1QiLg-11RbZFL3dvi8xKd3mpuw8b-5l6u8hwSpZg6wNPLY0zPX-EOwxeHLtev_2X5pUf1_IWAnso9K_knsK8CcmJoVsCyNNjlw3hrkChacJHGNzg0TTT1rh3oe6KCpbLvYlV6tUPfm5k3AMFZIT7Jntr38CZvs6gac6L_DhItJc3TNNUUHie2zgA29_r9YFlaEr_nGoSmBhIi-i0i0h34TL4JAb4qJkVM2YI2eTTv2HjEGtkx4mE5JvNQ0VxzHSJcCNOHh1gCiFD5c6rhvvxVeEqMkGGbCZKHX_vCgnIp0iE_OWyICjVTFPitQJ00fXLhyHyPb7q5J605tuK2iTHp2NCRJEXIAl9e0F_qASBBAfyL0C4FCBtvbnEMwtpoV1VWinkKgkI7JVH0AsyTugjXyAjxxsJxBTJT9qwZLxVBoaxgqNTOFfxvwstyq1VfCl3iBbpt71D"
 }
 
+# check speed statistics basic functionality, error handling, parameters checks etc.
+
+def test_speed_statistics_for_not_existing_project(client, application):
+    """
+    Tests transaction speed statistics for a 5-minute time frame with 5-minute granularity for not existing project.
+
+    Given: Transactions spanning 5 minutes (2023-11-01 12:00-12:05)
+    When: Requesting transaction speed statistics with 5-minute granularity
+    Then: Returns error
+    """
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        repo.delete_cascade(project_id="project-test")
+        transactions = read_transactions_from_csv(
+            "test_transactions_tokens_cost_speed.csv"
+        )
+        for transaction in transactions:
+            repo.add(transaction)
+
+    # act
+    response = client.get(
+        "/api/statistics/transactions_speed?project_id=project-that-not-exists-xxx&period=5minutes&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:04:59",
+        headers=header,
+    )
+    
+
+    # assert
+    response_data = response.json()
+    
+    assert response.status_code == 404
+    assert response_data == {"error": "Project not found"}
+
+
+def test_speed_statistics_for_not_wrong_period(client, application):
+    """
+    Tests transaction speed statistics for a not supported period.
+
+    Given: Transactions spanning 5 minutes (2023-11-01 12:00-12:05)
+    When: Requesting transaction speed statistics with non-existing period
+    Then: Returns error
+    """
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        repo.delete_cascade(project_id="project-test")
+        transactions = read_transactions_from_csv(
+            "test_transactions_tokens_cost_speed.csv"
+        )
+        for transaction in transactions:
+            repo.add(transaction)
+
+    # act
+    response = client.get(
+        "/api/statistics/transactions_speed?project_id=project-test&period=not-existing-period&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:04:59",
+        headers=header,
+    )
+    
+
+    # assert
+    response_data = response.json()
+    assert response.status_code == 422
+    assert response_data['detail'][0]['input'] == 'not-existing-period'
+
+
+
+def test_speed_statistics_for_date_from_after_date_to(client, application):
+    """
+    Tests transaction speed statistics for a time frame when date_from is after date_to.
+
+    Given: Transactions spanning -10 minutes (2023-11-01 12:10-12:00) date_from is after date_to
+    When: Requesting transaction speed statistics
+    Then: Returns error
+    """
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        repo.delete_cascade(project_id="project-test")
+        transactions = read_transactions_from_csv(
+            "test_transactions_tokens_cost_speed.csv"
+        )
+        for transaction in transactions:
+            repo.add(transaction)
+
+    # act
+    response = client.get(
+        "/api/statistics/transactions_speed?project_id=project-test&period=5minutes&date_from=2023-11-01T12:10:00&date_to=2023-11-01T12:00:00",
+        headers=header,
+    )
+        
+    # assert
+    response_data = response.json()
+    assert response.status_code == 400
+    assert response_data['detail'] == "date_from is after date_to"
+
+# check speed statistics for different periods and time frames
 
 def test_5min_duration_with_5min_granularity_returns_single_interval(client, application):
     """
@@ -48,6 +144,42 @@ def test_5min_duration_with_5min_granularity_returns_single_interval(client, app
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert temp == validation
+    
+    
+
+
+def test_0min_duration_with_5min_granularity_same_date(client, application):
+    """
+    Tests transaction speed statistics for a 0-minute time frame with 5-minute granularity with the same date.
+
+    Given: Transactions spanning 0 minutes (2023-11-01 12:00-12:00)
+    When: Requesting transaction speed statistics with 5-minute granularity
+    Then: Returns empty list
+    """
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        repo.delete_cascade(project_id="project-test")
+        transactions = read_transactions_from_csv(
+            "test_transactions_tokens_cost_speed.csv"
+        )
+        for transaction in transactions:
+            repo.add(transaction)
+
+    # act
+    response = client.get(
+        "/api/statistics/transactions_speed?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:00:00",
+        headers=header,
+    )
+    
+    response_data = response.json()
+    
+    # assert
+    assert response.status_code == 200
+    assert len(response_data) == 0
+
+
+
 
 
 def test_30min_duration_with_5min_granularity_returns_six_intervals(client, application):
