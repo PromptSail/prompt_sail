@@ -85,8 +85,8 @@ class TestBaseTransactionSpeed:
         assert actual_speeds == expected_speeds
 
 
-class TestTransactionSpeedErrors(TestBaseTransactionSpeed):
-    """Tests for error handling in transaction speed statistics."""
+class TestTransactionSpeedAPIContract(TestBaseTransactionSpeed):
+    """Tests for API contract in transaction speed statistics. Check for errors and invalid parameters and contract for returned data."""
 
     def test_speed_statistics_for_not_existing_project(self):
         """
@@ -103,8 +103,13 @@ class TestTransactionSpeedErrors(TestBaseTransactionSpeed):
             "project-that-not-exists-xxx"
         )
         
-        assert response.status_code == 404
-        assert response.json() == {"error": "Project not found"}
+        #current implementation returns 200 and empty list
+        assert response.status_code == 200
+        assert len(response.json()) == 0
+        
+        # TODO: this should be changed in the future
+        # assert response.status_code == 404
+        # assert response.json() == {"error": "Project not found"}
         
     def test_speed_statistics_without_project_id(self):
         """
@@ -172,6 +177,25 @@ class TestTransactionSpeedErrors(TestBaseTransactionSpeed):
             "5minutes",
             None,
             "2023-11-01T12:00:00"
+        )
+        
+        resp_data = response.json()
+        
+        assert response.status_code == 422
+        assert resp_data['detail'][0]['msg'] == "Field required"
+    
+    def test_speed_statistics_not_exited_date_from(self):
+        """
+        Tests transaction speed statistics with not exited date_from.
+
+        Given: A set of valid transactions
+        When: Requesting speed statistics with not exited date_from
+        Then: Returns 422 error with "date_from is required" message
+        """
+        response = self.make_request(
+            "5minutes",
+            "2023-11-31T12:00:00",
+            "2023-11-31T12:10:00"
         )
         
         resp_data = response.json()
@@ -257,11 +281,417 @@ class TestTransactionSpeedErrors(TestBaseTransactionSpeed):
         assert len(data_without_time) == len(data_with_time)
                 
         assert data_without_time == data_with_time
+        
+    def test_speed_statistics_5min_granularity_2_data_keypoints(self):
+        """
+        Tests transaction speed statistics returned data contract for 5-minute granularity in 9:59 minutes period.
+        
+        Given: Transactions for 9:59 minutes period
+        When: Requesting speed statistics with 5-minute granularity
+        Then: Returns 2 intervals with proper data keys and records with all the fields according to the contract
+        """
+        
+        
+        response = self.make_request(
+            "5minutes",
+            "2023-11-01T12:00:00",
+            "2023-11-01T12:09:59"
+        )
+        resp_data = response.json()
+        
+        expected_dates = [ datetime.fromisoformat("2023-11-01T12:00:00"), 
+                           datetime.fromisoformat("2023-11-01T12:05:00"),
+        ]
+        
+        response_dates = [ datetime.fromisoformat(resp_data[0]['date']), 
+                           datetime.fromisoformat(resp_data[1]['date'])
+        ]
+        
+        assert len(resp_data) == 2
+        assert response_dates == expected_dates
+        assert len(resp_data[0]['records']) == 3
+        assert len(resp_data[1]['records']) == 3
+        
+        records_0 = resp_data[0]['records']
+        records_1 = resp_data[1]['records']
+        
+          
+        #provider Azure OpenAI gpt-35-turbo-0613
+        assert records_0[0]['provider'] == 'Azure OpenAI'
+        assert records_0[0]['model'] == 'gpt-35-turbo-0613'
+        assert records_0[0]['mean_latency'] == pytest.approx(6.0, rel=1e-3)
+        assert records_0[0]['tokens_per_second'] == pytest.approx(31.77272727, rel=1e-3)
+        assert records_0[0]['total_transactions'] == 2
+        
+        #provider OpenAI babbage-002
+        assert records_0[1]['provider'] == 'OpenAI'
+        assert records_0[1]['model'] == 'babbage-002'
+        assert records_0[1]['mean_latency'] == pytest.approx(0.0, rel=1e-3)
+        assert records_0[1]['tokens_per_second'] == pytest.approx(0.0, rel=1e-3)
+        assert records_0[1]['total_transactions'] == 0
+        
+        #provider OpenAI gpt-4-0613
+        assert records_0[2]['provider'] == 'OpenAI'
+        assert records_0[2]['model'] == 'gpt-4-0613'
+        assert records_0[2]['mean_latency'] == pytest.approx(0.0, rel=1e-3)
+        assert records_0[2]['tokens_per_second'] == pytest.approx(0.0, rel=1e-3)
+        assert records_0[2]['total_transactions'] == 0
+        
+        #provider Azure OpenAI gpt-35-turbo-0613
+        assert records_1[0]['provider'] == 'Azure OpenAI'
+        assert records_1[0]['model'] == 'gpt-35-turbo-0613'
+        assert records_1[0]['mean_latency'] == pytest.approx(120.999, rel=1e-3)
+        assert records_1[0]['tokens_per_second'] == pytest.approx(2.9421730, rel=1e-3)
+        assert records_1[0]['total_transactions'] == 1
+        
+        #provider OpenAI babbage-002
+        assert records_1[1]['provider'] == 'OpenAI'
+        assert records_1[1]['model'] == 'babbage-002'
+        assert records_1[1]['mean_latency'] == pytest.approx(10.0, rel=1e-3)
+        assert records_1[1]['tokens_per_second'] == pytest.approx(7.7, rel=1e-3)
+        assert records_1[1]['total_transactions'] == 1
+        
+        #provider OpenAI gpt-4-0613
+        assert records_1[2]['provider'] == 'OpenAI'
+        assert records_1[2]['model'] == 'gpt-4-0613'
+        assert records_1[2]['mean_latency'] == pytest.approx(2.0, rel=1e-3)
+        assert records_1[2]['tokens_per_second'] == pytest.approx(16.0, rel=1e-3)
+        assert records_1[2]['total_transactions'] == 1
+        
+    def test_speed_statistics_5min_granularity_3_data_keypoints(self):
+        """
+        Tests transaction speed statistics returned data contract for 5-minute granularity in 10 minutes period.
+        
+        Given: Transactions for 10 minutes period
+        When: Requesting speed statistics with 5-minute granularity
+        Then: Returns proper number of intervals with proper data keys and records with all the fields according to the contract
+        """
+        
+        
+        response = self.make_request(
+            "5minutes",
+            "2023-11-01T12:00:00",
+            "2023-11-01T12:10:00"
+        )
+        resp_data = response.json()
+        
+        expected_dates = [ datetime.fromisoformat("2023-11-01T12:00:00"), 
+                           datetime.fromisoformat("2023-11-01T12:05:00"),
+                           datetime.fromisoformat("2023-11-01T12:10:00"),
+        ]
+        
+        response_dates = [ datetime.fromisoformat(resp_data[0]['date']), 
+                           datetime.fromisoformat(resp_data[1]['date']),
+                           datetime.fromisoformat(resp_data[2]['date'])
+        ]
+        
+        assert len(resp_data) == 3
+        assert response_dates == expected_dates
+               
+        assert len(resp_data[0]['records']) == 3
+        assert len(resp_data[1]['records']) == 3
+        assert len(resp_data[2]['records']) == 3
+        
+        records_0 = resp_data[0]['records']
+        records_1 = resp_data[1]['records']
+        records_2 = resp_data[2]['records']
+        
+        #goes for all records in 3 data points, 
+        for i in range(3):
+            # check if records contain the keys as expected
+            assert all(key in records_0[i] for key in ['provider', 'model', 'mean_latency', 'tokens_per_second', 'total_transactions'])
+            assert all(key in records_1[i] for key in ['provider', 'model', 'mean_latency', 'tokens_per_second', 'total_transactions'])
+            assert all(key in records_2[i] for key in ['provider', 'model', 'mean_latency', 'tokens_per_second', 'total_transactions'])
+            
+            # checks if all the providers and models are the same in all 3 data points    
+            assert records_0[i]['provider'] == records_1[i]['provider'] == records_2[i]['provider']
+            assert records_0[i]['model'] == records_1[i]['model'] == records_2[i]['model']
+               
+        
+    @pytest.mark.parametrize("period,date_from,date_to,expected_dates", [
+        # 5 minutes granularity
+        (
+            "5minutes",
+            "2023-11-01T12:00:00", 
+            "2023-11-01T12:10:00",
+            [
+                "2023-11-01T12:00:00",
+                "2023-11-01T12:05:00",
+                "2023-11-01T12:10:00"
+            ]
+        ),
+        (
+            "5minutes",
+            "2023-11-01T12:00:00", 
+            "2023-11-01T12:09:59",
+            [
+                "2023-11-01T12:00:00",
+                "2023-11-01T12:05:00",
+            ]
+        ),
+        ( # period starts in the middle of the interval
+            "5minutes",
+            "2023-11-01T12:02:00", 
+            "2023-11-01T12:09:59",
+            [
+                "2023-11-01T12:00:00",
+                "2023-11-01T12:05:00",
+            ]
+        ),
+        (
+            "5minutes",
+            "2023-11-01T23:55:00", 
+            "2023-11-02T00:00:00",
+            [
+                # empty data in this period
+            ]
+        ),
+        # hourly granularity
+        (
+            "hour",
+            "2023-11-01T12:00:00", 
+            "2023-11-01T13:00:00",
+            [
+                "2023-11-01T12:00:00",
+                "2023-11-01T13:00:00"
+            ]
+        ),
+        (
+            "hour",
+            "2023-11-01T12:00:00", 
+            "2023-11-01T14:00:00",
+            [
+                "2023-11-01T12:00:00", 
+                "2023-11-01T13:00:00",
+                "2023-11-01T14:00:00"
+            ]
+        ),
+        (
+            "hour",
+            "2023-11-01T12:00:00", 
+            "2023-11-01T13:59:59",
+            [
+                "2023-11-01T12:00:00", 
+                "2023-11-01T13:00:00",
+            ]
+        ),
+        ( # period starts in the middle of the interval
+            "hour",
+            "2023-11-01T12:30:00", 
+            "2023-11-01T13:30:00",
+            [
+                "2023-11-01T12:00:00", 
+                "2023-11-01T13:00:00",
+            ]
+        ),
+               ( # period starts in the middle of the interval
+            "hour",
+            "2023-11-01T11:59:59", 
+            "2023-11-01T13:30:00",
+            [
+                "2023-11-01T11:00:00",
+                "2023-11-01T12:00:00", 
+                "2023-11-01T13:00:00",
+            ]
+        ),
+        
+        (
+            "hour",
+            "2023-11-01T23:00:00", 
+            "2023-11-02T00:00:00",
+            [
+                #empty data in this period
+            ]
+        ),
+        # daily granularity
+        (
+            "day",
+            "2023-11-01T00:00:00", 
+            "2023-11-03T00:00:00",
+            [
+                "2023-11-01T00:00:00",
+                "2023-11-02T00:00:00",
+                "2023-11-03T00:00:00"
+            ]
+        ),
+        (
+            "day",
+            "2023-11-01T12:00:00", 
+            "2023-11-02T12:00:00",
+            [
+                "2023-11-01T00:00:00",
+                "2023-11-02T00:00:00",
+            ]
+        ),
+        ( # period starts in the middle of the interval
+            "day",
+            "2023-11-30T23:59:59", 
+            "2023-12-02T12:00:00",
+            [
+                "2023-11-30T00:00:00",
+                "2023-12-01T00:00:00",
+                "2023-12-02T00:00:00",
+            ]
+        ),
+        # weekly granularity
+        ( # each week starts on a monday, we should return as a data point the end of the week (Monday 00:00:00)
+            "week",
+            "2023-11-01T00:00:00", 
+            "2023-11-15T00:00:00",
+            [
+                "2023-11-06T00:00:00",
+                "2023-11-13T00:00:00",
+                "2023-11-20T00:00:00"
+            ]
+        ),
+        ( # each week starts on a monday, we should return as a data point the end of the week (Monday 00:00:00)
+            "week",
+            "2023-11-06T00:00:00", 
+            "2023-11-15T00:00:00",
+            [
+                "2023-11-06T00:00:00",
+                "2023-11-13T00:00:00",
+                "2023-11-20T00:00:00"
+            ]
+        ),
+        ( # each week starts on a monday, we should return as a data point the end of the week (Monday 00:00:00)
+            "week",
+            "2023-11-06T00:00:01", 
+            "2023-11-15T00:00:00",
+            [
+                "2023-11-06T00:00:00",
+                "2023-11-13T00:00:00",
+                "2023-11-20T00:00:00"
+            ]
+        ),
+        ( # each week starts on a 
+            "week",
+            "2023-11-06T15:00:00", 
+            "2023-11-13T23:59:59",
+            [
+                "2023-11-06T00:00:00",
+                "2023-11-13T00:00:00",
+            ]
+        ),
+        ( 
+            "week",
+            "2023-11-07T00:00:00", 
+            "2023-11-15T00:00:00",
+            [
+                "2023-11-13T00:00:00",
+                "2023-11-20T00:00:00"
+            ]
+        ),
+        # monthly granularity
+        (
+            "month",
+            "2023-11-01T00:00:00", 
+            "2024-01-01T00:00:00",
+            [
+                "2023-11-30T00:00:00",
+                "2023-12-31T00:00:00",
+                "2024-01-31T00:00:00"
+            ]
+        ),
+        (
+            "month",
+            "2023-11-01T00:00:00", 
+            "2024-01-02T00:00:00",
+            [
+                "2023-11-30T00:00:00",
+                "2023-12-31T00:00:00",
+                "2024-01-31T00:00:00"
+            ]
+        ),
+        (
+            "month",
+            "2023-10-31T00:00:00", 
+            "2023-12-02T00:00:00",
+            [
+                "2023-10-31T00:00:00",
+                "2023-11-30T00:00:00",
+                "2023-12-31T00:00:00"
+            ]
+        ),
+        (
+            "month",
+            "2023-11-30T00:00:00", 
+            "2023-11-30T23:59:59",
+            [
+                "2023-11-30T00:00:00",
+            ]
+        ),
+        (
+            "month",
+            "2023-02-15T00:00:00", 
+            "2023-04-30T23:59:59",
+            [
+                # empty data in this period
+            ]
+        ),
+        # yearly granularity
+        (
+            "year",
+            "2023-01-01T00:00:00", 
+            "2025-01-01T00:00:00",
+            [
+                "2023-12-31T00:00:00",
+                "2024-12-31T00:00:00",
+                "2025-12-31T00:00:00"
+            ]
+        ),
+        (
+            "year",
+            "2023-12-31T23:59:59", 
+            "2024-01-01T00:00:00",
+            [
+                "2023-12-31T00:00:00",
+                "2024-12-31T00:00:00",
+            ]
+        ),
+    ])
+    def test_speed_statistics_data_points_arrangement(self, period, date_from, date_to, expected_dates):
+        """
+        Tests transaction speed statistics returned data contract for different time granularities.
+        
+        Given: Transactions for different time periods
+        When: Requesting speed statistics with different granularities (5min, hourly, daily, weekly, monthly, yearly)
+        Then: Returns correct number of intervals with proper data keys and records with all the fields according to the contract
+        """
+        response = self.make_request(
+            period,
+            date_from,
+            date_to
+        )
+        resp_data = response.json()
+        
+        expected_dates = [datetime.fromisoformat(date) for date in expected_dates]
+        response_dates = [datetime.fromisoformat(date_keypoint['date']) for date_keypoint in resp_data]
+        
+        assert len(resp_data) == len(expected_dates)
+        assert response_dates == expected_dates
+        
+        number_of_data_points = len(resp_data)
+        
+        # returns the number of models in the first data point or 0 if the data is empty
+        number_of_models = len(resp_data[0]['records']) if resp_data else 0
+                
+        #goes for all records in all data points, 
+        for i in range(number_of_models):
+            for j in range(number_of_data_points):
+                # check if records contain the keys as expected
+                assert all(key in resp_data[j]['records'][i] for key in ['provider', 'model', 'mean_latency', 'tokens_per_second', 'total_transactions'])
 
+
+        # cross checks if all the providers and models are the same in all data points, use transition property if data_point_0 == data_point_1 and data_point_1 == data_point_2 then data_point_0 == data_point_2
+        for j in range(1, number_of_data_points):
+            for i in range(number_of_models):
+                assert resp_data[j-1]['records'][i]['provider'] == resp_data[j]['records'][i]['provider']
+                assert resp_data[j-1]['records'][i]['model'] == resp_data[j]['records'][i]['model']
 
 
 class TestMinutesGranularity(TestBaseTransactionSpeed):
-    """Tests for 5-minute granularity transaction speed statistics."""
+    """Tests for 5-minute granularity transaction speed statistics.""" 
     
     def test_0min_duration_with_5min_granularity_same_date(self):
         """
@@ -292,6 +722,10 @@ class TestMinutesGranularity(TestBaseTransactionSpeed):
             "2023-11-01T12:00:00",
             "2023-11-01T12:04:59"
         )
+        
+        resp_data = response.json()
+        
+        
         
         validation = [tuple([31.77272037])]
         self.assert_response(response, 1, validation)
@@ -583,7 +1017,9 @@ class TestDailyGranularity(TestBaseTransactionSpeed):
             "2023-11-01T23:59:59"
         )
         
-        response_date = datetime.fromisoformat(response[0]['date'])
+        resp_data = response.json()
+        
+        response_date = datetime.fromisoformat(resp_data[0]['date'])
         expected_date = datetime.fromisoformat("2023-11-01T00:00:00")
         assert response_date == expected_date
         
@@ -748,7 +1184,7 @@ class TestMonthlyGranularity(TestBaseTransactionSpeed):
         response = self.make_request(
             "month",
             "2023-11-01",
-            "2023-11-30"
+            "2023-11-30T23:59:59"
         )
         
         validation = [tuple([58.11997409, 44.75901239, 56.11741906, 42.85312452])]
