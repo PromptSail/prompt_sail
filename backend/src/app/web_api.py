@@ -609,11 +609,11 @@ async def get_transaction_status_statistics_over_time(
     response_class=JSONResponse,
     dependencies=[Security(decode_and_validate_token)],
 )
-async def get_transaction_latency_statistics_over_time(
+async def get_transactions_speed_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
-    date_from: datetime | str | None = None,
-    date_to: datetime | str | None = None,
+    date_from: datetime | str ,
+    date_to: datetime | str ,
     period: utils.PeriodEnum = utils.PeriodEnum.day,
 ) -> list[GetTransactionsLatencyStatisticsSchema]:
     """
@@ -631,7 +631,15 @@ async def get_transaction_latency_statistics_over_time(
     - A list of GetTransactionLatencyStatisticsSchema objects containing latency and speed statistics
       grouped by the specified period
     """
-    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+    
+    #check if date_from is before date_to return error
+    date_from = datetime.fromisoformat(date_from) 
+    date_to = datetime.fromisoformat(date_to) 
+    
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(status_code=400, detail="date_from is after date_to")
+    
+    #date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
 
     count = ctx.call(
         count_transactions,
@@ -1220,10 +1228,11 @@ def create_transaction(
 
     if not data.generation_speed:
         if data.output_tokens is not None and (data.output_tokens > 0):
-            data.generation_speed = (
-                data.output_tokens
-                / (datetime.now(tz=timezone.utc) - data.request_time).total_seconds()
+            time_elapsed = data.response_time - data.request_time
+            data.generation_speed = (data.output_tokens + 0.0) / (
+                time_elapsed.total_seconds() + 0.000001
             )
+
         elif data.output_tokens == 0:
             data.generation_speed = None
         else:

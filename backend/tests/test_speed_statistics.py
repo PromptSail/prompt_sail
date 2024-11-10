@@ -4,8 +4,111 @@ header = {
     "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImN0eSI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0IiwiYXpwIjoiNDA3NDA4NzE4MTkyLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNDA3NDA4NzE4MTkyLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTEyMTAyODc3OTUzNDg0MzUyNDI3IiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiYm54OW9WT1o4U3FJOTcyczBHYjd4dyIsIm5hbWUiOiJUZXN0IFVzZXIiLCJwaWN0dXJlIjoiIiwiZ2l2ZW5fbmFtZSI6IlRlc3QiLCJmYW1pbHlfbmFtZSI6IlVzZXIiLCJpYXQiOjE3MTM3MzQ0NjEsImV4cCI6OTk5OTk5OTk5OX0.eZYMQzcSRzkAq4Me8C6SNU3wduS7EIu_o5XGAbsDmU05GtyipQEb5iNJ1QiLg-11RbZFL3dvi8xKd3mpuw8b-5l6u8hwSpZg6wNPLY0zPX-EOwxeHLtev_2X5pUf1_IWAnso9K_knsK8CcmJoVsCyNNjlw3hrkChacJHGNzg0TTT1rh3oe6KCpbLvYlV6tUPfm5k3AMFZIT7Jntr38CZvs6gac6L_DhItJc3TNNUUHie2zgA29_r9YFlaEr_nGoSmBhIi-i0i0h34TL4JAb4qJkVM2YI2eTTv2HjEGtkx4mE5JvNQ0VxzHSJcCNOHh1gCiFD5c6rhvvxVeEqMkGGbCZKHX_vCgnIp0iE_OWyICjVTFPitQJ00fXLhyHyPb7q5J605tuK2iTHp2NCRJEXIAl9e0F_qASBBAfyL0C4FCBtvbnEMwtpoV1VWinkKgkI7JVH0AsyTugjXyAjxxsJxBTJT9qwZLxVBoaxgqNTOFfxvwstyq1VfCl3iBbpt71D"
 }
 
+# check speed statistics basic functionality, error handling, parameters checks etc.
 
-def test_transaction_speed_min_5min(client, application):
+def test_speed_statistics_for_not_existing_project(client, application):
+    """
+    Tests transaction speed statistics for a 5-minute time frame with 5-minute granularity for not existing project.
+
+    Given: Transactions spanning 5 minutes (2023-11-01 12:00-12:05)
+    When: Requesting transaction speed statistics with 5-minute granularity
+    Then: Returns error
+    """
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        repo.delete_cascade(project_id="project-test")
+        transactions = read_transactions_from_csv(
+            "test_transactions_tokens_cost_speed.csv"
+        )
+        for transaction in transactions:
+            repo.add(transaction)
+
+    # act
+    response = client.get(
+        "/api/statistics/transactions_speed?project_id=project-that-not-exists-xxx&period=5minutes&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:04:59",
+        headers=header,
+    )
+    
+
+    # assert
+    response_data = response.json()
+    
+    assert response.status_code == 404
+    assert response_data == {"error": "Project not found"}
+
+
+def test_speed_statistics_for_not_wrong_period(client, application):
+    """
+    Tests transaction speed statistics for a not supported period.
+
+    Given: Transactions spanning 5 minutes (2023-11-01 12:00-12:05)
+    When: Requesting transaction speed statistics with non-existing period
+    Then: Returns error
+    """
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        repo.delete_cascade(project_id="project-test")
+        transactions = read_transactions_from_csv(
+            "test_transactions_tokens_cost_speed.csv"
+        )
+        for transaction in transactions:
+            repo.add(transaction)
+
+    # act
+    response = client.get(
+        "/api/statistics/transactions_speed?project_id=project-test&period=not-existing-period&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:04:59",
+        headers=header,
+    )
+    
+
+    # assert
+    response_data = response.json()
+    assert response.status_code == 422
+    assert response_data['detail'][0]['input'] == 'not-existing-period'
+
+
+
+def test_speed_statistics_for_date_from_after_date_to(client, application):
+    """
+    Tests transaction speed statistics for a time frame when date_from is after date_to.
+
+    Given: Transactions spanning -10 minutes (2023-11-01 12:10-12:00) date_from is after date_to
+    When: Requesting transaction speed statistics
+    Then: Returns error
+    """
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        repo.delete_cascade(project_id="project-test")
+        transactions = read_transactions_from_csv(
+            "test_transactions_tokens_cost_speed.csv"
+        )
+        for transaction in transactions:
+            repo.add(transaction)
+
+    # act
+    response = client.get(
+        "/api/statistics/transactions_speed?project_id=project-test&period=5minutes&date_from=2023-11-01T12:10:00&date_to=2023-11-01T12:00:00",
+        headers=header,
+    )
+        
+    # assert
+    response_data = response.json()
+    assert response.status_code == 400
+    assert response_data['detail'] == "date_from is after date_to"
+
+# check speed statistics for different periods and time frames
+
+def test_5min_duration_with_5min_granularity_returns_single_interval(client, application):
+    """
+    Tests transaction speed statistics for a 5-minute time frame with 5-minute granularity.
+
+    Given: Transactions spanning 5 minutes (2023-11-01 12:00-12:05)
+    When: Requesting transaction speed statistics with 5-minute granularity
+    Then: Returns one interval with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -41,9 +144,52 @@ def test_transaction_speed_min_5min(client, application):
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert temp == validation
+    
+    
 
 
-def test_transaction_speed_min_30min(client, application):
+def test_0min_duration_with_5min_granularity_same_date(client, application):
+    """
+    Tests transaction speed statistics for a 0-minute time frame with 5-minute granularity with the same date.
+
+    Given: Transactions spanning 0 minutes (2023-11-01 12:00-12:00)
+    When: Requesting transaction speed statistics with 5-minute granularity
+    Then: Returns empty list
+    """
+    # arrange
+    with application.transaction_context() as ctx:
+        repo = ctx["transaction_repository"]
+        repo.delete_cascade(project_id="project-test")
+        transactions = read_transactions_from_csv(
+            "test_transactions_tokens_cost_speed.csv"
+        )
+        for transaction in transactions:
+            repo.add(transaction)
+
+    # act
+    response = client.get(
+        "/api/statistics/transactions_speed?project_id=project-test&period=5minutes&date_from=2023-11-01T12:00:00&date_to=2023-11-01T12:00:00",
+        headers=header,
+    )
+    
+    response_data = response.json()
+    
+    # assert
+    assert response.status_code == 200
+    assert len(response_data) == 0
+
+
+
+
+
+def test_30min_duration_with_5min_granularity_returns_six_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 30-minute time frame with 5-minute granularity.
+
+    Given: Transactions spanning 30 minutes (2023-11-01 12:00-12:30)
+    When: Requesting transaction speed statistics with 5-minute granularity
+    Then: Returns six intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -88,7 +234,14 @@ def test_transaction_speed_min_30min(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_min_1h(client, application):
+def test_1hour_duration_with_5min_granularity_returns_twelve_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 1-hour time frame with 5-minute granularity.
+
+    Given: Transactions spanning one hour (2023-11-01 12:00-13:00)
+    When: Requesting transaction speed statistics with 5-minute granularity
+    Then: Returns twelve intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -139,7 +292,14 @@ def test_transaction_speed_min_1h(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_min_empty(client, application):
+def test_1month_duration_with_5min_granularity_returns_empty_list(client, application):
+    """
+    Tests transaction speed statistics for a period with no data with 5-minute granularity.
+
+    Given: A time period with no recorded transactions (2023-10-01 to 2023-10-31)
+    When: Requesting transaction speed statistics with 5-minute granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -161,7 +321,14 @@ def test_transaction_speed_min_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_speed_hour_30min(client, application):
+def test_30min_duration_with_hourly_granularity_returns_single_interval(client, application):
+    """
+    Tests transaction speed statistics for a 30-minute time frame with hourly granularity.
+
+    Given: Transactions spanning 30 minutes (2023-11-01 12:00-12:30)
+    When: Requesting transaction speed statistics with hourly granularity
+    Then: Returns one interval with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -199,7 +366,14 @@ def test_transaction_speed_hour_30min(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_hour_1h(client, application):
+def test_1hour_duration_with_hourly_granularity_returns_two_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 1-hour time frame with hourly granularity.
+
+    Given: Transactions spanning one hour (2023-11-01 12:00-13:00)
+    When: Requesting transaction speed statistics with hourly granularity
+    Then: Returns two intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -240,7 +414,14 @@ def test_transaction_speed_hour_1h(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_hour_24h(client, application):
+def test_24hour_duration_with_hourly_granularity_returns_24_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 24-hour time frame with hourly granularity.
+
+    Given: Transactions spanning 24 hours (2023-11-01 12:00 to 2023-11-02 12:00)
+    When: Requesting transaction speed statistics with hourly granularity
+    Then: Returns 24 intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -303,7 +484,14 @@ def test_transaction_speed_hour_24h(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_hour_empty(client, application):
+def test_1month_duration_with_hourly_granularity_returns_empty_list(client, application):
+    """
+    Tests transaction speed statistics for a period with no data with hourly granularity.
+
+    Given: A time period with no recorded transactions (2023-10-01 to 2023-10-31)
+    When: Requesting transaction speed statistics with hourly granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -325,7 +513,14 @@ def test_transaction_speed_hour_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_speed_day_6h(client, application):
+def test_6hour_duration_with_daily_granularity_returns_single_interval(client, application):
+    """
+    Tests transaction speed statistics for a 6-hour time frame with daily granularity.
+
+    Given: Transactions spanning 6 hours (2023-11-01 12:00-18:00)
+    When: Requesting transaction speed statistics with daily granularity
+    Then: Returns one interval with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -363,7 +558,14 @@ def test_transaction_speed_day_6h(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_day_24h(client, application):
+def test_24hour_duration_with_daily_granularity_returns_single_interval(client, application):
+    """
+    Tests transaction speed statistics for a 24-hour time frame with daily granularity.
+
+    Given: Transactions spanning 24 hours (2023-11-01 00:00-23:59)
+    When: Requesting transaction speed statistics with daily granularity
+    Then: Returns one interval with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -401,7 +603,14 @@ def test_transaction_speed_day_24h(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_day_1d(client, application):
+def test_1day_duration_with_daily_granularity_returns_two_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 1-day time frame with daily granularity.
+
+    Given: Transactions spanning one day (2023-11-01 13:00 to 2023-11-02 13:00)
+    When: Requesting transaction speed statistics with daily granularity
+    Then: Returns two intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -442,7 +651,14 @@ def test_transaction_speed_day_1d(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_day_7d(client, application):
+def test_7day_duration_with_daily_granularity_returns_seven_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 7-day time frame with daily granularity.
+
+    Given: Transactions spanning 7 days (2023-11-01 12:00 to 2023-11-07 12:00)
+    When: Requesting transaction speed statistics with daily granularity
+    Then: Returns seven intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -488,7 +704,14 @@ def test_transaction_speed_day_7d(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_day_1mo(client, application):
+def test_1month_duration_with_daily_granularity_returns_30_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 1-month time frame with daily granularity.
+
+    Given: Transactions spanning one month (2023-11-01 12:00 to 2023-11-30 12:00)
+    When: Requesting transaction speed statistics with daily granularity
+    Then: Returns 30 intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -557,7 +780,14 @@ def test_transaction_speed_day_1mo(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_day_empty(client, application):
+def test_1day_duration_with_daily_granularity_returns_empty_list(client, application):
+    """
+    Tests transaction speed statistics for a period with no data with daily granularity.
+
+    Given: A time period with no recorded transactions (2023-11-03 12:00 to 2023-11-04 12:00)
+    When: Requesting transaction speed statistics with daily granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -579,7 +809,14 @@ def test_transaction_speed_day_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_speed_week_3d(client, application):
+def test_3day_duration_with_weekly_granularity_returns_single_interval(client, application):
+    """
+    Tests transaction speed statistics for a 3-day time frame with weekly granularity.
+
+    Given: Transactions spanning 3 days (2023-11-01 12:00 to 2023-11-03 12:00)
+    When: Requesting transaction speed statistics with weekly granularity
+    Then: Returns one interval with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -617,7 +854,14 @@ def test_transaction_speed_week_3d(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_week_7d(client, application):
+def test_7day_duration_with_weekly_granularity_returns_two_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 7-day time frame with weekly granularity.
+
+    Given: Transactions spanning 7 days (2023-11-01 12:00 to 2023-11-07 12:00)
+    When: Requesting transaction speed statistics with weekly granularity
+    Then: Returns two intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -658,7 +902,14 @@ def test_transaction_speed_week_7d(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_week_2mo(client, application):
+def test_2month_duration_with_weekly_granularity_returns_nine_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 2-month time frame with weekly granularity.
+
+    Given: Transactions spanning 2 months (2023-11-01 12:00 to 2023-12-31 00:00)
+    When: Requesting transaction speed statistics with weekly granularity
+    Then: Returns nine intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -706,7 +957,14 @@ def test_transaction_speed_week_2mo(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_week_empty(client, application):
+def test_2week_duration_with_weekly_granularity_returns_empty_list(client, application):
+    """
+    Tests transaction speed statistics for a period with no data with weekly granularity.
+
+    Given: A time period with no recorded transactions (2024-03-29 00:00 to 2024-04-12 00:00)
+    When: Requesting transaction speed statistics with weekly granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -728,7 +986,14 @@ def test_transaction_speed_week_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_speed_month_7d(client, application):
+def test_7day_duration_with_monthly_granularity_returns_single_interval(client, application):
+    """
+    Tests transaction speed statistics for a 7-day time frame with monthly granularity.
+
+    Given: Transactions spanning 7 days (2023-11-01 12:00 to 2023-11-07 12:00)
+    When: Requesting transaction speed statistics with monthly granularity
+    Then: Returns one interval with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -766,7 +1031,14 @@ def test_transaction_speed_month_7d(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_month_1mo(client, application):
+def test_1month_duration_with_monthly_granularity_returns_single_interval(client, application):
+    """
+    Tests transaction speed statistics for a 1-month time frame with monthly granularity.
+
+    Given: Transactions spanning one month (2023-11-01 to 2023-11-30)
+    When: Requesting transaction speed statistics with monthly granularity
+    Then: Returns one interval with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -804,7 +1076,14 @@ def test_transaction_speed_month_1mo(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_month_6mo(client, application):
+def test_6month_duration_with_monthly_granularity_returns_six_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 6-month time frame with monthly granularity.
+
+    Given: Transactions spanning 6 months (2023-10-01 to 2024-03-31)
+    When: Requesting transaction speed statistics with monthly granularity
+    Then: Returns six intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -849,7 +1128,14 @@ def test_transaction_speed_month_6mo(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_month_empty(client, application):
+def test_1month_duration_with_monthly_granularity_returns_empty_list(client, application):
+    """
+    Tests transaction speed statistics for a period with no data with monthly granularity.
+
+    Given: A time period with no recorded transactions (2024-05-01 to 2024-06-01)
+    When: Requesting transaction speed statistics with monthly granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -871,7 +1157,14 @@ def test_transaction_speed_month_empty(client, application):
     assert len(response.json()) == 0
 
 
-def test_transaction_speed_year_2mo(client, application):
+def test_2month_duration_with_yearly_granularity_returns_single_interval(client, application):
+    """
+    Tests transaction speed statistics for a 2-month time frame with yearly granularity.
+
+    Given: Transactions spanning 2 months (2023-11-01 to 2023-12-31)
+    When: Requesting transaction speed statistics with yearly granularity
+    Then: Returns one interval with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -909,7 +1202,14 @@ def test_transaction_speed_year_2mo(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_year_2y(client, application):
+def test_2year_duration_with_yearly_granularity_returns_two_intervals(client, application):
+    """
+    Tests transaction speed statistics for a 2-year time frame with yearly granularity.
+
+    Given: Transactions spanning from 2023 to 2024 (2023-11-01 to 2024-03-31)
+    When: Requesting transaction speed statistics with yearly granularity
+    Then: Returns two intervals with tokens per second for each model
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]
@@ -950,7 +1250,14 @@ def test_transaction_speed_year_2y(client, application):
     assert temp == validation
 
 
-def test_transaction_speed_year_empty(client, application):
+def test_6month_duration_with_yearly_granularity_returns_empty_list(client, application):
+    """
+    Tests transaction speed statistics for a period with no data with yearly granularity.
+
+    Given: A time period with no recorded transactions (2024-05-31 to 2024-12-31)
+    When: Requesting transaction speed statistics with yearly granularity
+    Then: Returns an empty list
+    """
     # arrange
     with application.transaction_context() as ctx:
         repo = ctx["transaction_repository"]

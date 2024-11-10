@@ -34,9 +34,9 @@ class TestBaseTransactionCosts:
             repo.delete_cascade(project_id="project-test")
 
 
-    def make_request(self, period, date_from, date_to):
+    def make_request(self, period, date_from, date_to, project_id="project-test"):
         response = self.client.get(
-            f"/api/statistics/transactions_cost?project_id=project-test&period={period}&date_from={date_from}&date_to={date_to}",
+            f"/api/statistics/transactions_cost?project_id={project_id}&period={period}&date_from={date_from}&date_to={date_to}",
             headers=header,
         )
         return response
@@ -85,6 +85,73 @@ class TestBaseTransactionCosts:
         for actual, expected in zip(actual_costs, expected_costs):
             assert actual == pytest.approx(expected, rel=1e-4), \
                 f"Costs are not equal: {actual} != {expected}"
+
+
+
+class TestTransactionCostErrors(TestBaseTransactionCosts):
+    def test_cost_statistics_for_not_existing_project(self):
+        """
+        Tests token usage and cost statistics for not existing project.
+
+        Given: A set of transactions within 2023-11-01 12:00-12:05
+        When: Requesting token and cost statistics with 5-minute granularity
+        Then: Returns one interval with correct token counts and costs for each model
+        """
+        response = self.make_request(
+            "5minutes", 
+            "2023-11-01T12:00:00", 
+            "2023-11-01T12:04:59",
+            "project-that-not-exists-xxx"
+        )
+        
+        response_data = response.json()
+        
+        assert response.status_code == 404
+        assert response_data == {"error": "Project not found"}
+        
+
+    def test_cost_statistics_for_not_wrong_period(self):
+        """
+        Tests token usage and cost statistics for a not supported period.
+
+        Given: Transactions spanning 30 minutes (2023-11-01 12:00-12:30)
+        When: Requesting token and cost statistics with not supported period
+        Then: Returns error
+        """
+        response = self.make_request(
+            "not-existing-period",
+            "2023-11-01T12:00:00",
+            "2023-11-01T12:29:59"
+        )
+
+        response_data = response.json()
+        
+        # assert
+        response_data = response.json()
+        assert response.status_code == 422
+        assert response_data['detail'][0]['input'] == 'not-existing-period'
+
+
+    def test_cost_statistics_for_date_from_after_date_to(self):
+        """
+        Tests transaction cost statistics for a time frame when date_from is after date_to.
+
+        Given: Transactions spanning -10 minutes (2023-11-01 12:10-12:00) date_from is after date_to
+        When: Requesting transaction cost statistics
+        Then: Returns error
+        """
+        response = self.make_request(
+            "5minutes",
+            "2023-11-01T12:10:00",
+            "2023-11-01T12:00:00"
+        )
+            
+        # assert
+        response_data = response.json()
+        assert response.status_code == 400
+        assert response_data['detail'] == "date_from is after date_to"
+        
+
 
 class TestMinutesGranularity(TestBaseTransactionCosts):
     def test_5min_duration_with_5min_granularity_returns_single_interval_with_tokens_and_costs(self):
