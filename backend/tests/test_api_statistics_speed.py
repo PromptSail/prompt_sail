@@ -52,6 +52,7 @@ class TestBaseTransactionSpeed:
         if date_to != "":
             api_url += f"&date_to={date_to}"
         
+
         return self.client.get(
             api_url,
             headers=self.header,
@@ -163,7 +164,7 @@ class TestTransactionSpeedAPIContract(TestBaseTransactionSpeed):
         )
         
         assert response.status_code == 400
-        assert response.json()['detail'] == "date_from is after date_to"
+        assert response.json()['detail'] == "date_from cannot be after date_to"
         
     def test_speed_statistics_date_from_required(self):
         """
@@ -184,13 +185,13 @@ class TestTransactionSpeedAPIContract(TestBaseTransactionSpeed):
         assert response.status_code == 422
         assert resp_data['detail'][0]['msg'] == "Field required"
     
-    def test_speed_statistics_not_exited_date_from(self):
+    def test_speed_statistics_not_valid_dates_from(self):
         """
-        Tests transaction speed statistics with not exited date_from.
+        Tests transaction speed statistics with not valid date_from.
 
         Given: A set of valid transactions
-        When: Requesting speed statistics with not exited date_from
-        Then: Returns 422 error with "date_from is required" message
+        When: Requesting speed statistics with not valid date_from
+        Then: Returns 422 error with validation details
         """
         response = self.make_request(
             "5minutes",
@@ -200,8 +201,8 @@ class TestTransactionSpeedAPIContract(TestBaseTransactionSpeed):
         
         resp_data = response.json()
         
-        assert response.status_code == 422
-        assert resp_data['detail'][0]['msg'] == "Field required"
+        assert response.status_code == 400
+        assert resp_data['detail'] == "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS: day is out of range for month"
         
     def test_speed_statistics_date_to_required(self):
         """
@@ -222,32 +223,22 @@ class TestTransactionSpeedAPIContract(TestBaseTransactionSpeed):
         assert response.status_code == 422
         assert resp_data['detail'][0]['msg'] == "Field required"
         
-    def test_speed_statistics_dates_as_datetime(self):
+    def test_speed_statistics_dates_not_iso_format(self):
         """
-        Tests transaction speed statistics with dates as datetime objects.
+        Tests transaction speed statistics with dates not in ISO format.
 
         Given: A set of valid transactions
-        When: Requesting speed statistics with dates as datetime objects
-        Then: Dates are converted to string in response
+        When: Requesting speed statistics with dates not in ISO format
+        Then: Returns 400 error with invalid date format message
         """
         response_datetime = self.make_request(
             "5minutes",
-            datetime(2023, 11, 1, 12, 0, 0),
-            datetime(2023, 11, 2, 12, 0, 0)
+            datetime(2023, 11, 1, 12, 0, 0), # not ISO format 2023-11-02 12:00:00 (without "T" between date and time)
+            datetime(2023, 11, 2, 12, 0, 0)  # not ISO format 2023-11-02 12:00:00 (without "T" between date and time)
         )
         
-        response_string = self.make_request(
-            "5minutes",
-            "2023-11-01T12:00:00",
-            "2023-11-02T12:00:00"
-        )
-        
-        resp_data_datetime = response_datetime.json()
-        resp_data_string = response_string.json()
-        
-        assert response_datetime.status_code == 200
-        assert response_string.status_code == 200
-        assert resp_data_datetime == resp_data_string
+        assert response_datetime.status_code == 400
+        assert response_datetime.json()['detail'] == "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS: Invalid date format"
 
         
     def test_speed_statistics_date_without_time_is_same_as_with_time(self):
@@ -523,6 +514,14 @@ class TestTransactionSpeedAPIContract(TestBaseTransactionSpeed):
                 "2023-11-02T00:00:00",
             ]
         ),
+        (
+            "day",
+            "2023-11-01", 
+            "2023-11-01",
+            [
+                "2023-11-01T00:00:00",
+            ]
+        ),
         ( # period starts in the middle of the interval
             "day",
             "2023-11-30T23:59:59", 
@@ -729,6 +728,63 @@ class TestMinutesGranularity(TestBaseTransactionSpeed):
         
         validation = [tuple([31.77272037])]
         self.assert_response(response, 1, validation)
+
+    def test_5min_duration_with_5min_granularity_plus_one_hour_time_zone_returns_same_result(self):
+        """
+        Tests transaction speed statistics for a 5-minute time frame check if we get the same result if the dates are in different time zones. UTC is the default time zone.
+
+        Given: Transactions spanning 5 minutes (2023-11-01 12:00-12:05)
+        When: Requesting speed statistics with 5-minute granularity in UTC and CET
+        Then: Returns the same interval with tokens per second for each model in both time zones
+        """
+        response_utc_0 = self.make_request(
+            "5minutes",
+            "2023-11-01T12:00:00+00:00",
+            "2023-11-01T12:04:59+00:00"
+        )
+        
+        response_utc_1 = self.make_request(
+            "5minutes",
+            "2023-11-01T13:00:00+01:00",
+            "2023-11-01T13:04:59+01:00"
+        )
+        
+        resp_data_utc_0 = response_utc_0.json()
+        resp_data_utc_1 = response_utc_1.json()
+        
+        assert resp_data_utc_0 == resp_data_utc_1
+        
+        validation = [tuple([31.77272037])]
+        self.assert_response(response_utc_0, 1, validation)   
+    
+    def test_5min_duration_with_5min_granularity_plus_one_minushour_time_zone_returns_same_result(self):
+        """
+        Tests transaction speed statistics for a 5-minute time frame check if we get the same result if the dates are in different time zones. UTC is the default time zone.
+
+        Given: Transactions spanning 5 minutes (2023-11-01 12:00-12:05)
+        When: Requesting speed statistics with 5-minute granularity in UTC and CET
+        Then: Returns the same interval with tokens per second for each model in both time zones
+        """
+        response_utc_0 = self.make_request(
+            "5minutes",
+            "2023-11-01T11:00:00-01:00",
+            "2023-11-01T11:04:59-01:00"
+        )
+        
+        response_utc_1 = self.make_request(
+            "5minutes",
+            "2023-11-01T13:00:00+01:00",
+            "2023-11-01T13:04:59+01:00"
+        )
+        
+        resp_data_utc_0 = response_utc_0.json()
+        resp_data_utc_1 = response_utc_1.json()
+        
+        assert resp_data_utc_0 == resp_data_utc_1
+        
+        validation = [tuple([31.77272037])]
+        self.assert_response(response_utc_0, 1, validation)           
+
 
     def test_30min_duration_with_5min_granularity_returns_six_intervals(self):
         """

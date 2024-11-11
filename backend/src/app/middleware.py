@@ -27,37 +27,39 @@ from .dependencies import get_logger
 #     return response
 
 
-if config.DEBUG:
+# if config.DEBUG:
 
-    @app.middleware("exception_handler")
-    async def __call__(request: Request, call_next):
-        """
-        Middleware for managing exception handling.
+@app.middleware("exception_handler")
+async def __call__(request: Request, call_next):
+    """
+    Middleware for managing exception handling.
 
-        :param request: The incoming request.
-        :param call_next: The callable representing the next middleware or endpoint in the chain.
-        :return: The response from the middleware or endpoint.
-        """
-        logger = get_logger(request)
-        try:
-            return await call_next(request)
-        except HTTPException as http_exception:
-            return JSONResponse(
-                status_code=http_exception.status_code,
-                content={
-                    "error": "Client Error",
-                    "messages": str(http_exception.detail),
-                },
-            )
-        except Exception as e:
-            logger.exception(f"Error message: {e.__class__.__name__}. Args: {e.args}")
-            return JSONResponse(
-                status_code=500,
-                content={
-                    "error": "Internal Server Error",
-                    "message": "An unexpected error occurred.",
-                },
-            )
+    :param request: The incoming request.
+    :param call_next: The callable representing the next middleware or endpoint in the chain.
+    :return: The response from the middleware or endpoint.
+    """
+    logger = get_logger(request)
+    try:
+        return await call_next(request)
+    except HTTPException as http_exception:
+        logger.exception(f"HttpExcepion occures {http_exception.status_code} - {http_exception.detail}")
+        raise http_exception
+        # return JSONResponse(
+        #     status_code=http_exception.status_code,
+        #     content={
+        #         "error": "Client Error",
+        #         "messages": str(http_exception.detail),
+        #     },
+        # )
+    except Exception as e:
+        logger.exception(f"Error message: {e.__class__.__name__}. Args: {e.args}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal Server Error",
+                "message": "An unexpected error occurred.",
+            },
+        )
 
 
 @app.middleware("transaction_context")
@@ -78,38 +80,38 @@ async def __call__(request: Request, call_next):
     return response
 
 
-@app.middleware("proxy_tunnel")
-async def __call__(request: Request, call_next):
-    """
-    Middleware for handling proxy tunnel requests.
+# @app.middleware("proxy_tunnel")
+# async def __call__(request: Request, call_next):
+#     """
+#     Middleware for handling proxy tunnel requests.
 
-    :param request: The incoming request.
-    :param call_next: The callable representing the next middleware or endpoint in the chain.
-    :return: The response from the middleware or endpoint.
-    """
-    if request.method == "CONNECT":
-        # Parse the host and port from the request's path
-        host, port = request.scope.get("path").split(":")
-        port = int(port)
+#     :param request: The incoming request.
+#     :param call_next: The callable representing the next middleware or endpoint in the chain.
+#     :return: The response from the middleware or endpoint.
+#     """
+#     if request.method == "CONNECT":
+#         # Parse the host and port from the request's path
+#         host, port = request.scope.get("path").split(":")
+#         port = int(port)
 
-        print("proxy_tunnel", host, port)
+#         print("proxy_tunnel", host, port)
 
-        raise NotImplementedError(
-            "Using PromptSail as a true proxy is not supported yet"
-        )
+#         raise NotImplementedError(
+#             "Using PromptSail as a true proxy is not supported yet"
+#         )
 
-        # Create a socket connection to the target server
-        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # await request.send({"type": "http.response.start", "status": 200})
+#         # Create a socket connection to the target server
+#         # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#         # await request.send({"type": "http.response.start", "status": 200})
 
-        # try:
-        #     await request.app.proxy_tunnel(client_socket, host, port)
-        # except Exception as e:
-        #     print(f"Error during proxy tunnel: {e}")
-        # finally:
-        #     client_socket.close()
-        #
-        # return Response(content=b"", status_code=200)
+#         # try:
+#         #     await request.app.proxy_tunnel(client_socket, host, port)
+#         # except Exception as e:
+#         #     print(f"Error during proxy tunnel: {e}")
+#         # finally:
+#         #     client_socket.close()
+#         #
+#         # return Response(content=b"", status_code=200)
 
-    response = await call_next(request)
-    return response
+#     response = await call_next(request)
+#     return response

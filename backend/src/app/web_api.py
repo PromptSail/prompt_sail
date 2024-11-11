@@ -2,9 +2,13 @@ import re
 from collections import defaultdict
 from typing import Annotated, Any
 
+import numpy as np
+import pandas as pd
+
+
 import pandas as pd
 import utils
-from _datetime import datetime, timezone
+from _datetime import datetime, timezone, timedelta
 from app.dependencies import get_provider_pricelist, get_transaction_context
 from auth.authorization import decode_and_validate_token
 from auth.models import User
@@ -48,6 +52,7 @@ from transactions.schemas import (
     CreateTransactionWithRawDataSchema,
     GetTagStatisticsInTime,
     GetTagStatisticsSchema,
+    GetTransactionLatencyStatisticsSchema,
     GetTransactionLatencyStatisticsWithoutDateSchema,
     GetTransactionPageResponseSchema,
     GetTransactionSchema,
@@ -439,34 +444,43 @@ async def get_paginated_transactions(
 async def get_transaction_usage_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
-    date_from: datetime | str | None = None,
-    date_to: datetime | str | None = None,
+    date_from: str ,
+    date_to: str ,
     period: utils.PeriodEnum = utils.PeriodEnum.day,
 ) -> list[GetTransactionsUsageStatisticsSchema]:
     """
-    Retrieve transaction cost and usage statistics over time.
-
-    This endpoint provides detailed statistics about transaction costs and token usage,
-    aggregated by the specified time period. It includes information about input/output tokens,
-    cumulative totals, and associated costs.
+    Calculate cost and usage metrics for transactions within a given time range.
+    Only includes successful transactions (status code 200) that occurred between the start and end dates.
+    The time range is inclusive - transactions exactly on the start or end date/time will be included.
 
     Parameters:
+    - **ctx**: The transaction context dependency
     - **project_id**: The unique identifier of the project
-    - **date_from**: Optional start date for the statistics period, format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS
-    - **date_to**: Optional end date for the statistics period, format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS
+    - **date_from**: Start date (ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+    - **date_to**: End date (ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
     - **period**: Time period for aggregation (year, month, week, day, hour, or 5minutes)
 
     Returns:
-    - A list of GetTransactionsUsageStatisticsSchema objects containing usage statistics
+    - A list of GetTransactionsUsageStatisticsSchema objects containing cost and usage statistics
       grouped by the specified period
+      
+    Raises:
+    - HTTPException: 400 error if dates are invalid or in wrong format
     """
-    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+    
+    
+    
+    try:
+        # Validate date format and convert to datetime
+        date_from_dt, date_to_dt = utils.validate_date_range(date_from, date_to)
+    except HTTPException as e:
+        raise e
 
     count = ctx.call(
         count_transactions,
         project_id=project_id,
-        date_from=date_from,
-        date_to=date_to,
+        date_from=date_from_dt,
+        date_to=date_to_dt,
         status_codes=[200],
     )
     if count == 0:
@@ -475,8 +489,8 @@ async def get_transaction_usage_statistics_over_time(
     transactions = ctx.call(
         get_list_of_filtered_transactions,
         project_id=project_id,
-        date_from=date_from,
-        date_to=date_to,
+        date_from=date_from_dt,
+        date_to=date_to_dt,
         status_codes=[200],
     )
     transactions = [
@@ -500,7 +514,7 @@ async def get_transaction_usage_statistics_over_time(
         for transaction in transactions
     ]
     stats = utils.token_counter_for_transactions(
-        transactions, period, date_from, date_to
+        transactions, period, date_from_dt, date_to_dt
     )
     dates = []
     for stat in stats:
@@ -560,13 +574,17 @@ async def get_transaction_status_statistics_over_time(
     :return: A list of GetTransactionStatusStatisticsSchema (date, status_code, total_transactions) representing the
         status statistics.\n
     """
-    date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+    try:
+        # Validate date format and convert to datetime
+        date_from_dt, date_to_dt = utils.validate_date_range(date_from, date_to)
+    except HTTPException as e:
+        raise e
 
     count = ctx.call(
         count_transactions,
         project_id=project_id,
-        date_from=date_from,
-        date_to=date_to,
+        date_from=date_from_dt,
+        date_to=date_to_dt,
     )
     if count == 0:
         return []
@@ -574,8 +592,8 @@ async def get_transaction_status_statistics_over_time(
     transactions = ctx.call(
         get_list_of_filtered_transactions,
         project_id=project_id,
-        date_from=date_from,
-        date_to=date_to,
+        date_from=date_from_dt,
+        date_to=date_to_dt,
     )
     transactions = [
         StatisticTransactionSchema(
@@ -598,49 +616,50 @@ async def get_transaction_status_statistics_over_time(
         for transaction in transactions
     ]
     stats = utils.status_counter_for_transactions(
-        transactions, period, date_from, date_to
+        transactions, period, date_from_dt, date_to_dt
     )
 
     return stats
 
 
 @app.get(
-    "/api/statistics/transactions_speed",
+    "/api/statistics/transactions_speed_old",
     response_class=JSONResponse,
     dependencies=[Security(decode_and_validate_token)],
 )
 async def get_transactions_speed_statistics_over_time(
     ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
     project_id: str,
-    date_from: datetime | str ,
-    date_to: datetime | str ,
+    date_from: str,
+    date_to: str,
     period: utils.PeriodEnum = utils.PeriodEnum.day,
 ) -> list[GetTransactionsLatencyStatisticsSchema]:
     """
-    Compute mean transactions generation speed and latency statistics over a specified time period.
-
-    Endpoint fetches transaction data for the project (project ID) and specified date range (date from, date to). Next, it aggregates the generation speed by the provided granularity (monthly, weekly, daily, hourly or by minutes).\n
+    Calculate average generation speed and latency metrics for transactions within a given time range.
+    Only includes successful transactions (status code 200) that occurred between the start and end dates.
+    The time range is inclusive - transactions exactly on the start or end date/time will be included.
 
     Parameters:
+    - **ctx**: The transaction context dependency
     - **project_id**: The unique identifier of the project
-    - **date_from**: Optional start date (format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
-    - **date_to**: Optional end date (format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+    - **date_from**: Start date (ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+    - **date_to**: End date (ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
     - **period**: Time period for aggregation (year, month, week, day, hour, or 5minutes)
 
     Returns:
     - A list of GetTransactionLatencyStatisticsSchema objects containing latency and speed statistics
       grouped by the specified period
+      
+    Raises:
+    - HTTPException: 400 error if dates are invalid or in wrong format
     """
-    
-    #check if date_from is before date_to return error
-    date_from = datetime.fromisoformat(date_from) 
-    date_to = datetime.fromisoformat(date_to) 
-    
-    if date_from and date_to and date_from > date_to:
-        raise HTTPException(status_code=400, detail="date_from is after date_to")
-    
-    #date_from, date_to = utils.check_dates_for_statistics(date_from, date_to)
+    try:
+        # Validate date format and convert to datetime
+        date_from, date_to = utils.validate_date_range(date_from, date_to)
+    except HTTPException as e:
+        raise e
 
+    # Continue with existing logic
     count = ctx.call(
         count_transactions,
         project_id=project_id,
@@ -649,10 +668,11 @@ async def get_transactions_speed_statistics_over_time(
         status_codes=[200],
         null_generation_speed=False,
     )
+    
     if count == 0:
         return []
 
-    transactions = ctx.call(
+    transactions: list[Transaction] = ctx.call(
         get_list_of_filtered_transactions,
         project_id=project_id,
         date_from=date_from,
@@ -660,7 +680,8 @@ async def get_transactions_speed_statistics_over_time(
         status_codes=[200],
         null_generation_speed=False,
     )
-    transactions = [
+    
+    transactions: list[StatisticTransactionSchema] = [
         StatisticTransactionSchema(
             project_id=project_id,
             provider=transaction.provider,
@@ -705,6 +726,72 @@ async def get_transactions_speed_statistics_over_time(
     new_stats.sort(key=lambda statistic: statistic.date)
 
     return new_stats
+
+
+@app.get(
+    "/api/statistics/transactions_speed",
+    response_class=JSONResponse,
+    dependencies=[Security(decode_and_validate_token)],
+)
+async def get_transactions_speed_statistics_over_time_refactored(
+    ctx: Annotated[TransactionContext, Depends(get_transaction_context)],
+    project_id: str,
+    date_from: str,
+    date_to: str,
+    period: utils.PeriodEnum = utils.PeriodEnum.day,
+) -> list[GetTransactionsLatencyStatisticsSchema]:
+    """
+    Calculate average generation speed and latency metrics for transactions within a given time range.
+    Only includes successful transactions (status code 200) that occurred between the start and end dates.
+    The time range is inclusive - transactions exactly on the start or end date/time will be included.
+
+    Parameters:
+    - **ctx**: The transaction context dependency
+    - **project_id**: The unique identifier of the project
+    - **date_from**: Start date (ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+    - **date_to**: End date (ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+    - **period**: Time period for aggregation (year, month, week, day, hour, or 5minutes)
+
+    Returns:
+    - A list of GetTransactionLatencyStatisticsSchema objects containing latency and speed statistics
+      grouped by the specified period
+      
+    Raises:
+    - HTTPException: 400 error if dates are invalid or in wrong format
+    """
+    try:
+        # Validate date format and convert to datetime
+        date_from_dt, date_to_dt = utils.validate_date_range(date_from, date_to)
+    except HTTPException as e:
+        raise e
+
+    # Continue with existing logic
+    count = ctx.call(
+        count_transactions,
+        project_id=project_id,
+        date_from=date_from_dt,
+        date_to=date_to_dt,
+        status_codes=[200],
+        null_generation_speed=False,
+    )
+    
+    if count == 0:
+        return []
+
+    transactions: list[Transaction] = ctx.call(
+        get_list_of_filtered_transactions,
+        project_id=project_id,
+        date_from=date_from_dt,
+        date_to=date_to_dt,
+        status_codes=[200],
+        null_generation_speed=False,
+    )
+    # Transform and calculate statistics
+    df = utils.prepare_transaction_dataframe(transactions, date_from_dt, date_to_dt)
+    stats_df = utils.calculate_speed_statistics(df, utils.pandas_period_from_string(period))
+    
+    # Format response
+    return utils.format_statistics_response(stats_df)
 
 
 @app.get(
