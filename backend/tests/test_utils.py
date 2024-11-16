@@ -88,7 +88,7 @@ def read_transactions_from_csv(fixture_file_name: str) -> list[Transaction]:
             "project_id": "project-test",
             "request": {},
             "response": {},
-            "tags": ["tag"],
+            "tags": [ f"tag-{idx%2}"],
             "provider": obj["provider"],
             "model": obj["model"],
             "type": "chat",
@@ -130,14 +130,12 @@ def read_transactions_from_csv(fixture_file_name: str) -> list[Transaction]:
 
 
 def read_transactions_with_prices_from_csv(fixture_file_name: str, providers_pricelist_path: str) -> list[Transaction]:
-    """Read test transactions with prices from a CSV file. 
+    """Read the important fields of test transactions with prices from a CSV file and create a list of Transaction objects. 
+    The rest of the fields like tags, os, library are set by the function.
     
-    The CSV files are located in the fixtures/transactions directory. 
-    
-    The CSV file should have the following columns:
+    The CSV file should be located in the fixtures/transactions directory and have the following columns:
     provider;model;total_tokens;input_tokens;output_tokens;status_code;request_time;response_time
-    
-    Example:
+
     """
     # Get path to fixtures directory relative to this file
     fixtures_dir = Path(__file__).parent / "fixtures"
@@ -189,7 +187,7 @@ def read_transactions_with_prices_from_csv(fixture_file_name: str, providers_pri
                     project_id="project-test",
                     request={},
                     response={},
-                    tags=["tag"],
+                    tags=[ f"tag-{idx%2}"],
                     provider=obj["provider"],
                     model=obj["model"],
                     type="chat",
@@ -219,7 +217,7 @@ def read_transactions_with_prices_from_csv(fixture_file_name: str, providers_pri
                     project_id="project-test",
                     request={},
                     response={},
-                    tags=["tag"],
+                    tags=[ f"tag-{idx%2}"],
                     provider=obj["provider"],
                     model=obj["model"],
                     type="chat",

@@ -200,6 +200,7 @@ def store_transaction(
     :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
     :return: None
     """
+    
     response_content = utils.preprocess_buffer(ai_provider_request, ai_provider_response, buffer)
 
     param_extractor = utils.TransactionParamExtractor(

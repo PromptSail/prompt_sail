@@ -519,7 +519,7 @@ class TestTransactionSpeedAPIContract(TestBaseTransactionSpeed):
             "2023-11-01", 
             "2023-11-01",
             [
-                "2023-11-01T00:00:00",
+                #"2023-11-01T00:00:00",
             ]
         ),
         ( # period starts in the middle of the interval

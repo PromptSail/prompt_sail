@@ -46,23 +46,44 @@ class TestBaseTransactionCounts:
         ]
         assert actual_counts == expected_counts
 
-    def make_request(self, period, date_from, date_to):
-        """Helper method to make API request for statistics."""
+        
+    def make_request(self, period, date_from, date_to, project_id="project-test"):
+        """Helper method to make API request for count statistics."""
+        
+        if date_from is None:
+            date_from = ""
+        if date_to is None:
+            date_to = ""    
+        
+        api_url = f"/api/statistics/transactions_count?"
+        #create api url add parameters if they are not empty
+        
+        if project_id != "":
+            api_url += f"project_id={project_id}"
+        
+        if period != "":
+            api_url += f"&period={period}"
+        if date_from != "":
+            api_url += f"&date_from={date_from}"
+        if date_to != "":
+            api_url += f"&date_to={date_to}"
+        
+
         return self.client.get(
-            f"/api/statistics/transactions_count?project_id=project-test&period={period}&date_from={date_from}&date_to={date_to}",
+            api_url,
             headers=self.header,
         )
 
 
 
 class TestTransactionCountsErrors(TestBaseTransactionCounts):
-    def test_cost_statistics_for_not_existing_project(self):
+    def test_count_statistics_for_not_existing_project(self):
         """
-        Tests token usage and cost statistics for not existing project.
+        Tests transaction count statistics for not existing project.
 
         Given: A set of transactions within 2023-11-01 12:00-12:05
-        When: Requesting token and cost statistics with 5-minute granularity
-        Then: Returns one interval with correct token counts and costs for each model
+        When: Requesting transaction count statistics with 5-minute granularity
+        Then: Returns one interval with correct transaction counts
         """
         response = self.make_request(
             "5minutes", 
@@ -80,12 +101,12 @@ class TestTransactionCountsErrors(TestBaseTransactionCounts):
         # assert response.json() == {"error": "Project not found"}
         
 
-    def test_cost_statistics_for_not_wrong_period(self):
+    def test_count_statistics_for_not_wrong_period(self):
         """
-        Tests token usage and cost statistics for a not supported period.
+        Tests transaction count statistics for a not supported period.
 
         Given: Transactions spanning 30 minutes (2023-11-01 12:00-12:30)
-        When: Requesting token and cost statistics with not supported period
+        When: Requesting transaction count statistics with not supported period
         Then: Returns error
         """
         response = self.make_request(
@@ -102,9 +123,9 @@ class TestTransactionCountsErrors(TestBaseTransactionCounts):
         assert response_data['detail'][0]['input'] == 'not-existing-period'
 
 
-    def test_cost_statistics_for_date_from_after_date_to(self):
+    def test_count_statistics_for_date_from_after_date_to(self):
         """
-        Tests transaction cost statistics for a time frame when date_from is after date_to.
+        Tests transaction count statistics for a time frame when date_from is after date_to.
 
         Given: Transactions spanning -10 minutes (2023-11-01 12:10-12:00) date_from is after date_to
         When: Requesting transaction cost statistics
@@ -119,7 +140,45 @@ class TestTransactionCountsErrors(TestBaseTransactionCounts):
         # assert
         response_data = response.json()
         assert response.status_code == 400
-        assert response_data['detail'] == "date_from is after date_to"
+        assert response_data['detail'] == "date_from cannot be after date_to"
+    
+    def test_count_statistics_for_date_with_milliseconds(self):
+        """
+        Tests transaction count statistics for a time frame with milliseconds are not supported.
+
+        Given: Transactions spanning 1 month (2023-11-01 12:00:00.000 - 2023-11-30T12:00:00.000) with milliseconds
+        When: Requesting transaction count statistics
+        Then: Returns 400 error
+        """
+        response = self.make_request(
+            "day",
+            "2023-11-01T12:00:00.000",
+            "2023-11-30T12:00:00.000"
+        )
+            
+        # assert
+        response_data = response.json()
+        assert response.status_code == 400
+        assert response_data['detail'] == "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS: Invalid date format"
+        
+    def test_count_statistics_for_date_without_minutes(self):
+        """
+        Tests transaction count statistics for a time frame without minutes are not supported.
+
+        Given: Transactions spanning 1 month (2023-11-01 12:00:00 - 2023-11-30T12:00:00) without minutes
+        When: Requesting transaction count statistics
+        Then: Returns 400 error
+        """
+        response = self.make_request(
+            "day",
+            "2023-11-01T12:00",
+            "2023-11-30T12:00"
+        )
+            
+        # assert
+        response_data = response.json()
+        assert response.status_code == 400
+        assert response_data['detail'] == "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS: Invalid date format"
 
 class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
     """Tests for 5-minute granularity transaction counts."""
@@ -134,8 +193,8 @@ class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "5minutes",
-            "2023-11-01T12:00:00.000",
-            "2023-11-01T12:04:59.000"
+            "2023-11-01T12:00:00",
+            "2023-11-01T12:04:59"
         )
         
         self._assert_response_status_and_length(response, 200, 1)
@@ -151,8 +210,8 @@ class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "5minutes",
-            "2023-11-01T12:00:00.000",
-            "2023-11-01T12:29:59.999"
+            "2023-11-01T12:00:00",
+            "2023-11-01T12:29:59"
         )
         
         self._assert_response_status_and_length(response, 200, 6)
@@ -175,8 +234,8 @@ class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "5minutes",
-            "2023-11-01T12:00:00.000",
-            "2023-11-01T12:59:59.999"
+            "2023-11-01T12:00:00",
+            "2023-11-01T12:59:59"
         )
         
         self._assert_response_status_and_length(response, 200, 12)
@@ -205,8 +264,8 @@ class Test5MinuteTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "5minutes",
-            "2023-10-01T00:00.000",
-            "2023-10-31T00:00.000"
+            "2023-10-01T00:00:00",
+            "2023-10-31T00:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 0)
@@ -242,8 +301,8 @@ class TestHourlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "hour",
-            "2023-11-01T12:00:00.000",
-            "2023-11-01T13:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-11-01T13:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 2)
@@ -259,8 +318,8 @@ class TestHourlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "hour",
-            "2023-11-01T12:00:00.000",
-            "2023-11-02T11:59:59.999"
+            "2023-11-01T12:00:00",
+            "2023-11-02T11:59:59"
         )
         
         self._assert_response_status_and_length(response, 200, 24)
@@ -301,8 +360,8 @@ class TestHourlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "hour",
-            "2023-10-01T00:00.000",
-            "2023-10-31T00:00.000"
+            "2023-10-01T00:00:00",
+            "2023-10-31T00:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 0)
@@ -321,8 +380,8 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "day",
-            "2023-11-01T12:00:00.000",
-            "2023-11-01T18:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-11-01T18:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 1)
@@ -338,12 +397,30 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "day",
-            "2023-11-01T00:00.000",
-            "2023-11-01T00:00.000"
+            "2023-11-01T00:00:00",
+            "2023-11-01T23:59:59"
         )
         
         self._assert_response_status_and_length(response, 200, 1)
         self._assert_status_counts(response, [(29, 4, 9, 2)])
+
+    def test_1day_duration_with_daily_granularity_same_date_returns_empty_list(self):
+        """
+        Tests counting the transactions in a 1-day duration (from 2023-11-01 to 2023-11-01) with daily granularity (period=day).
+
+        Given: Transactions spanning 1 day
+        When: Requesting daily transaction counts
+        Then: Returns one interval with aggregated status counts
+        """
+        response = self.make_request(
+            "day",
+            "2023-11-01T00:00:00",
+            "2023-11-01T00:00:00"
+        )
+        
+        self._assert_response_status_and_length(response, 200, 0)
+        
+        
 
     def test_24hour_duration_with_daily_granularity_returns_two_intervals(self):
         """
@@ -355,8 +432,8 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "day",
-            "2023-11-01T13:00:00.000",
-            "2023-11-02T13:00:00.000"
+            "2023-11-01T13:00:00",
+            "2023-11-02T13:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 2)
@@ -372,8 +449,8 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "day",
-            "2023-11-01T12:00:00.000",
-            "2023-11-07T11:59:59.999"
+            "2023-11-01T12:00:00",
+            "2023-11-07T11:59:59"
         )
         
         self._assert_response_status_and_length(response, 200, 7)
@@ -397,8 +474,8 @@ class TestDailyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "day",
-            "2023-11-01T12:00:00.000",
-            "2023-11-30T12:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-11-30T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 30)
@@ -449,8 +526,8 @@ class TestWeeklyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "week",
-            "2023-11-01T12:00:00.000",
-            "2023-12-31T00:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-12-31T00:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 9)
@@ -476,8 +553,8 @@ class TestWeeklyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "week",
-            "2023-11-01T12:00:00.000",
-            "2023-11-03T12:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-11-03T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 1)
@@ -493,8 +570,8 @@ class TestWeeklyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "week",
-            "2023-11-01T12:00:00.000",
-            "2023-11-07T12:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-11-07T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 2)
@@ -510,8 +587,8 @@ class TestWeeklyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "week",
-            "2024-03-29T00:00:00.000",
-            "2024-04-30T00:00:00.000"
+            "2024-03-29T00:00:00",
+            "2024-04-30T00:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 0)
@@ -530,7 +607,7 @@ class TestMonthlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "month",
-            "2023-11-01T12:00:00.000",
+            "2023-11-01T12:00:00",
             "2023-11-07T12:00:00"
         )
     
@@ -548,8 +625,8 @@ class TestMonthlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "month",
-            "2023-11-01T12:00:00.000",
-            "2023-11-30T12:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-11-30T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 1)
@@ -565,8 +642,8 @@ class TestMonthlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "month",
-            "2023-10-01T12:00:00.000",
-            "2024-03-31T12:00:00.000"
+            "2023-10-01T12:00:00",
+            "2024-03-31T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 6)
@@ -589,8 +666,8 @@ class TestMonthlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "month",
-            "2024-05-01T12:00:00.000",
-            "2024-05-31T12:00:00.000"
+            "2024-05-01T12:00:00",
+            "2024-05-31T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 0)
@@ -609,8 +686,8 @@ class TestYearlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "year",
-            "2023-11-01T12:00:00.000",
-            "2023-12-31T12:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-12-31T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 1)
@@ -626,8 +703,8 @@ class TestYearlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "year",
-            "2023-11-01T12:00:00.000",
-            "2024-03-31T12:00:00.000"
+            "2023-11-01T12:00:00",
+            "2024-03-31T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 2)
@@ -643,8 +720,8 @@ class TestYearlyTransactionCounts(TestBaseTransactionCounts):
         """
         response = self.make_request(
             "year", 
-            "2024-03-31T12:00:00.000",
-            "2024-12-31T12:00:00.000"
+            "2024-03-31T12:00:00",
+            "2024-12-31T12:00:00"
         )
         
         self._assert_response_status_and_length(response, 200, 0)

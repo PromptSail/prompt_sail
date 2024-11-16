@@ -177,6 +177,25 @@ class TestTransactionCostErrors(TestBaseTransactionCosts):
         assert response.status_code == 400
         assert response_data['detail'] == "date_from cannot be after date_to"
         
+    def test_cost_statistics_for_date_with_milliseconds(self):
+        """
+        Tests transaction cost statistics for a time frame with milliseconds are not supported.
+
+        Given: Transactions spanning 1 month (2023-11-01 12:00:00.000 - 2023-11-30T12:00:00.000) with milliseconds
+        When: Requesting transaction cost statistics
+        Then: Returns 400 error
+        """
+        response = self.make_request(
+            "day",
+            "2023-11-01T12:00:00.000",
+            "2023-11-30T12:00:00.000"
+        )
+            
+        # assert
+        response_data = response.json()
+        assert response.status_code == 400
+        assert response_data['detail'] == "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS: Invalid date format"
+
 
 
 class TestMinutesGranularity(TestBaseTransactionCosts):
@@ -456,7 +475,7 @@ class TestDailyGranularity(TestBaseTransactionCosts):
         response = self.make_request(
             "day",
             "2023-11-01",
-            "2023-11-01"
+            "2023-11-01T23:59:59"
         )
 
         tokens_validation = [tuple([1781, 8079, 2778, 578])]
@@ -532,8 +551,8 @@ class TestDailyGranularity(TestBaseTransactionCosts):
         """
         response = self.make_request(
             "day",
-            "2023-11-01T12:00:00.000",
-            "2023-11-30T12:00:00.000"
+            "2023-11-01T12:00:00",
+            "2023-11-30T12:00:00"
         )
 
         tokens_validation = [
@@ -751,13 +770,49 @@ class TestMonthlyGranularity(TestBaseTransactionCosts):
         response = self.make_request(
             "month",
             "2023-11-01",
-            "2023-11-30"
+            "2023-11-30T23:59:59"
         )
 
         tokens_validation = [tuple([2902, 8643, 13616, 32357])]
         costs_validation = [tuple([0.063408, 0.0165265, 0.0054464, 1.9143])]
 
         self.assert_response(response, 1, tokens_validation, costs_validation)
+        
+    def test_1month_duration_with_monthly_granularity_day_to_without_endof_day_time(self):
+        """
+        Tests token usage and cost statistics for a 1-month time frame with monthly granularity (period=month), making two requests where one is without end of day time. 
+
+        Given: Transactions spanning one month (2023-11-01 to 2023-11-30) one request is without end of day time, another is with (23:59:59)
+        When: Requesting two times to token and cost statistics with monthly granularity
+        Then: Returns one interval but different values for requested time frames
+        """
+        
+        response_0 = self.make_request(
+            "month",
+            "2023-11-01",
+            "2023-11-30"
+        )
+        
+        response_1 = self.make_request(
+            "month",
+            "2023-11-01",
+            "2023-11-30T23:59:59"
+        )
+        
+        resp_data_0 = response_0.json()
+        resp_data_1 = response_1.json()
+        
+
+        expected_tokens_0 = [tuple([2902, 8643, 6631, 32357])]
+        expected_costs_0 = [tuple([0.063408, 0.0165265, 0.0026524, 1.9143])]
+        
+        expected_tokens_1 = [tuple([2902, 8643, 13616, 32357])]
+        expected_costs_1 = [tuple([0.063408, 0.0165265, 0.0054464, 1.9143])]
+
+        # pytest assert not equal response_0 and response_1
+        assert resp_data_0 != resp_data_1
+        self.assert_response(response_0, 1, expected_tokens_0, expected_costs_0)
+        self.assert_response(response_1, 1, expected_tokens_1, expected_costs_1)
 
     def test_6month_duration_with_monthly_granularity_returns_six_intervals_with_tokens_and_costs(self):
         """
@@ -822,13 +877,50 @@ class TestYearlyGranularity(TestBaseTransactionCosts):
         response = self.make_request(
             "year",
             "2023-11-01",
-            "2023-12-31"
+            "2023-12-31T23:59:59"
         )
 
         tokens_validation = [tuple([4682, 9245, 13730, 33279])]
         costs_validation = [tuple([0.104496, 0.017596, 0.005492, 1.96632])]
 
         self.assert_response(response, 1, tokens_validation, costs_validation)
+        
+    def test_2month_duration_with_yearly_granularity_day_to_without_endof_day_time(self):
+        """
+        Tests token usage and cost statistics for a 2-month time frame with yearly granularity (period=year), making two requests where one is without end of day time. 
+
+        Given: Transactions spanning one month (2023-11-01 to 2023-11-30) one request is without end of day time, another is with (23:59:59)
+        When: Requesting two times to token and cost statistics with monthly granularity
+        Then: Returns one interval but different values for requested time frames
+        """
+        
+        response_0 = self.make_request(
+             "year",
+            "2023-11-01",
+            "2023-12-31"
+        )
+        
+        response_1 = self.make_request(
+             "year",
+            "2023-11-01",
+            "2023-12-31T23:59:59"
+        )
+        
+        resp_data_0 = response_0.json()
+        resp_data_1 = response_1.json()
+        
+
+        expected_tokens_0 = [tuple([4682, 9159, 13730, 33279])]
+        expected_costs_0 = [tuple([0.104496, 0.0174505, 0.005492, 1.96632])]
+        
+        expected_tokens_1 = [tuple([4682, 9245, 13730, 33279])]
+        expected_costs_1 = [tuple([0.104496, 0.017596, 0.005492, 1.96632])]
+
+        # pytest assert not equal response_0 and response_1
+        assert resp_data_0 != resp_data_1
+        self.assert_response(response_0, 1, expected_tokens_0, expected_costs_0)
+        self.assert_response(response_1, 1, expected_tokens_1, expected_costs_1)
+
 
     def test_5month_duration_with_yearly_granularity_returns_two_intervals_with_tokens_and_costs(self):
         """
