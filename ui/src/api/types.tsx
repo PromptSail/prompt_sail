@@ -1,4 +1,4 @@
-import { Period } from '../pages/Project/Statistics/Statistics';
+import { Period } from '../hooks/useGetRangeDatesAndGranularity';
 import { getTransactionResponse } from './interfaces';
 
 export type TransactionsFilters = {

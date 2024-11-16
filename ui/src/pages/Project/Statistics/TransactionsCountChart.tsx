@@ -79,7 +79,13 @@ const TransactionsCountChart: React.FC<Params> = ({ statisticsParams }) => {
                                     }}
                                     stroke={`${styles.Colors.light['Border/colorBorder']}`}
                                 />
-                                <Tooltip itemSorter={customSorter} isAnimationActive={false} />
+                                <Tooltip
+                                    itemSorter={customSorter}
+                                    isAnimationActive={false}
+                                    labelFormatter={(label) => {
+                                        return new Date(label).toLocaleString();
+                                    }}
+                                />
                                 <Legend
                                     align="left"
                                     wrapperStyle={{ marginLeft: '60px' }}

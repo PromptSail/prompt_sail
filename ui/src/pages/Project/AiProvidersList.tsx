@@ -280,7 +280,7 @@ const ProviderDescription: React.FC<{
     useEffect(() => {
         const model = (Tags.length ? `&` : '?') + AIModelVersionTag;
         const alltags = Tags + (AIModelVersionTag.length ? model : '');
-        setAllTags('/' + alltags + (alltags.length ? '&' : '?') + 'target_path=');
+        setAllTags(alltags + (alltags.length ? '&' : '?') + 'target_path=');
     }, [Tags, AIModelVersionTag]);
     return (
         <Flex vertical gap={16}>
@@ -313,7 +313,7 @@ const ProviderDescription: React.FC<{
                     <Text>Proxy URL:</Text>
                 </Col>
                 <Col flex="auto">
-                    <Text copyable>{makeUrl(slug, el.deployment_name)}</Text>
+                    <Text copyable>{makeUrl(slug, el.slug)}</Text>
                 </Col>
             </Row>
             <Row gutter={12}>
@@ -335,8 +335,7 @@ const ProviderDescription: React.FC<{
                             vertical
                         >
                             <Text>
-                                This generator/configurator/builder allows you to easily add tags to
-                                proxy URL
+                                This configurator allows you to easily add tags to proxy URL
                             </Text>
                             <div>
                                 <Paragraph className="!m-0 text-Text/colorText">
@@ -357,14 +356,15 @@ const ProviderDescription: React.FC<{
                                     }}
                                 />
                             </div>
-                            {el.provider_name.toLowerCase().includes('azure') && (
+                            {el.provider_name.toLowerCase().includes('hugging') && (
                                 <div>
                                     <Paragraph className="!m-0 text-Text/colorText">
                                         AI Model Name and Version Tag:
                                     </Paragraph>
                                     <Paragraph className="!mb-[8px] text-Text/colorTextDescription">
-                                        Specifying the model name and version is only necessary for
-                                        Azure deployments - it will allow calculate cost properly.
+                                        Enter the name and version model used in the Huggingface
+                                        deployment. Otherwise, it won't be possible to get it in the
+                                        transactions.
                                     </Paragraph>
                                     <Select
                                         showSearch
@@ -375,7 +375,9 @@ const ProviderDescription: React.FC<{
                                             if (priceList.isSuccess) {
                                                 return priceList.data
                                                     .filter((el) =>
-                                                        el.provider.toLowerCase().includes('azure')
+                                                        el.provider
+                                                            .toLowerCase()
+                                                            .includes('hugging')
                                                     )
                                                     .map((el) => ({
                                                         label: el.model_name,
@@ -398,7 +400,7 @@ const ProviderDescription: React.FC<{
                                 <Flex gap={16}>
                                     <Input
                                         className="max-w-[50%] w-full"
-                                        value={makeUrl(slug, el.deployment_name) + AllTags}
+                                        value={makeUrl(slug, el.slug) + AllTags}
                                         disabled
                                     />
                                     <Button
@@ -406,7 +408,7 @@ const ProviderDescription: React.FC<{
                                         icon={<CopyOutlined />}
                                         onClick={() => {
                                             navigator.clipboard.writeText(
-                                                makeUrl(slug, el.deployment_name) + AllTags
+                                                makeUrl(slug, el.slug) + AllTags
                                             );
                                         }}
                                     />

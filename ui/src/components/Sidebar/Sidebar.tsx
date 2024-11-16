@@ -6,6 +6,7 @@ import { checkLogin } from '../../storage/login';
 import {
     HistoryOutlined,
     LeftSquareOutlined,
+    LineChartOutlined,
     LogoutOutlined,
     QuestionCircleOutlined,
     RightSquareOutlined,
@@ -40,7 +41,7 @@ const Sidebar: React.FC = () => {
                     setLoginState(checkLogin());
                     break;
                 case 'help':
-                    window.open('https://promptsail.com/', '_blank');
+                    window.open('https://promptsail.com/docs/introduction/', '_blank');
                     break;
                 default:
                     console.log(`${key} func`);
@@ -69,12 +70,12 @@ const Sidebar: React.FC = () => {
             key: 'help',
             label: 'Help',
             icon: <QuestionCircleOutlined />
+        },
+        {
+            key: '/portfolio',
+            label: 'Portfolio',
+            icon: <LineChartOutlined />
         }
-        // {
-        //     key: '/protfolio',
-        //     label: 'Portfolio',
-        //     icon: <LineChartOutlined />
-        // }
     ];
     const bottomMenuItems: ItemType<MenuItemType>[] = [
         {

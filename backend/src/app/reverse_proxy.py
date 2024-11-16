@@ -7,6 +7,7 @@ from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
 from lato import Application, TransactionContext
 from projects.use_cases import get_project_by_slug
+from raw_transactions.use_cases import store_raw_transactions
 from starlette.background import BackgroundTask
 from transactions.use_cases import store_transaction
 from utils import ApiURLBuilder
@@ -18,9 +19,15 @@ async def iterate_stream(response, buffer):
     """
     Asynchronously iterate over the raw stream of a response and accumulate chunks in a buffer.
 
-    :param response: The response object.
-    :param buffer: The buffer to accumulate chunks.
-    :return: An asynchronous generator yielding chunks from the response stream.
+    This function asynchronously iterate over the raw stream of a response and accumulate chunks in a buffer
+    for later processing.
+
+    Parameters:
+    - **response**: The response object containing the stream
+    - **buffer**: List to store the accumulated response chunks
+
+    Yields:
+    - Chunks of the response data as they are received
     """
     async for chunk in response.aiter_raw():
         buffer.append(chunk)
@@ -30,8 +37,8 @@ async def iterate_stream(response, buffer):
 async def close_stream(
     app: Application,
     project_id,
-    request,
-    response,
+    ai_provider_request,
+    ai_provider_response,
     buffer,
     tags,
     ai_model_version,
@@ -39,30 +46,42 @@ async def close_stream(
     request_time,
 ):
     """
-    Asynchronously close the response stream and store the transaction in the database.
+    Process and store transaction data after stream completion.
 
-    :param app: The Application instance.
-    :param project_id: The Project ID.
-    :param request: The incoming request.
-    :param response: The response object.
-    :param buffer: The buffer containing accumulated chunks.
-    :param tags: The tags associated with the transaction.
-    :param ai_model_version: Specific tag for AI model. Helps with cost count.
-    :param pricelist: The pricelist for the models.
-    :param request_time: The request time.
+    This function handles the post-streaming tasks, including storing transaction details
+    and raw request/response data in the database.
+
+    Parameters:
+    - **app**: The Application instance
+    - **project_id**: The unique identifier of the project
+    - **ai_provider_request**: The original request object
+    - **ai_provider_response**: The response object from the AI provider
+    - **buffer**: Buffer containing the accumulated response data
+    - **tags**: List of tags associated with the transaction
+    - **ai_model_version**: Specific model version tag for cost calculation
+    - **pricelist**: List of provider prices for cost calculation
+    - **request_time**: Timestamp when the request was initiated
     """
-    await response.aclose()
+    await ai_provider_response.aclose()
     with app.transaction_context() as ctx:
-        ctx.call(
+        data = ctx.call(
             store_transaction,
             project_id=project_id,
-            request=request,
-            response=response,
+            ai_provider_request=ai_provider_request,
+            ai_provider_response=ai_provider_response,
             buffer=buffer,
             tags=tags,
             ai_model_version=ai_model_version,
             pricelist=pricelist,
             request_time=request_time,
+        )
+        ctx.call(
+            store_raw_transactions,
+            request=ai_provider_request,
+            request_content=data["request_content"],
+            response=ai_provider_response,
+            response_content=data["response_content"],
+            transaction_id=data["transaction_id"],
         )
 
 
@@ -81,17 +100,30 @@ async def reverse_proxy(
     target_path: str | None = None,
 ):
     """
-    API route for reverse proxying requests to the upstream server.
+    Forward requests to AI providers and handle responses.
 
-    :param project_slug: The slug of the project.
-    :param provider_slug: The slug of the AI provider.
-    :param path: The path for the reverse proxy.
-    :param request: The incoming request.
-    :param ctx: The transaction context dependency.
-    :param tags: Optional. Tags associated with the transaction.
-    :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
-    :param target_path: Optional. Target path for the reverse proxy.
-    :return: A StreamingResponse object.
+    This endpoint acts as a reverse proxy, forwarding requests to various AI providers
+    while monitoring and storing transaction details. It handles streaming responses,
+    calculates costs, and maintains transaction history.
+
+    Parameters:
+    - **project_slug**: The unique slug identifier of the project
+    - **provider_slug**: The slug identifier of the AI provider
+    - **path**: The API endpoint path to forward to
+    - **request**: The incoming request object
+    - **ctx**: The transaction context dependency
+    - **tags**: Optional comma-separated list of tags for the transaction
+    - **ai_model_version**: Optional specific model version for accurate cost calculation
+    - **target_path**: Optional override for the target API path
+
+    Returns:
+    - A StreamingResponse object containing the provider's response
+
+    Notes:
+    - Automatically handles request/response streaming
+    - Stores transaction details and raw data in the background
+    - Calculates costs based on the provider's pricing
+    - Supports various HTTP methods (GET, POST, PUT, PATCH, DELETE)
     """
     logger = get_logger(request)
 
@@ -103,6 +135,7 @@ async def reverse_proxy(
     project = ctx.call(get_project_by_slug, slug=project_slug)
     url = ApiURLBuilder.build(project, provider_slug, path, target_path)
 
+    # todo: remove this, this logic should be in the use case
     pricelist = get_provider_pricelist(request)
 
     logger.debug(f"got projects for {project}")
@@ -116,7 +149,7 @@ async def reverse_proxy(
     timeout = httpx.Timeout(100.0, connect=50.0)
 
     request_time = datetime.now(tz=timezone.utc)
-    rp_req = client.build_request(
+    ai_provider_request = client.build_request(
         method=request.method,
         url=url,
         headers={
@@ -127,19 +160,19 @@ async def reverse_proxy(
         timeout=timeout,
     )
     logger.debug(f"Requesting on: {url}")
-    rp_resp = await client.send(rp_req, stream=True, follow_redirects=True)
+    ai_provider_response = await client.send(ai_provider_request, stream=True, follow_redirects=True)
 
     buffer = []
     return StreamingResponse(
-        iterate_stream(rp_resp, buffer),
-        status_code=rp_resp.status_code,
-        headers=rp_resp.headers,
+        iterate_stream(ai_provider_response, buffer),
+        status_code=ai_provider_response.status_code,
+        headers=ai_provider_response.headers,
         background=BackgroundTask(
             close_stream,
             ctx["app"],
             project.id,
-            rp_req,
-            rp_resp,
+            ai_provider_request,
+            ai_provider_response,
             buffer,
             tags,
             ai_model_version,

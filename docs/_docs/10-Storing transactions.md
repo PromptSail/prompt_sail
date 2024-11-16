@@ -14,37 +14,41 @@ toc_sticky: true
 
 Prompt Sail stores transactions by acting as a proxy for libraries and capturing the request and response data. 
 
-All the magic happens when you replace **api_base**(or similar parameter) which originaly points to your LLM provider endpoint by ours **proxy_url**. Thanks to this substitution we can bypass your request and grab response transparently. 
+In the Prompt Sail, the transaction refers to the single Gen AI model call with its full context. It includes metadata, the request arguments as well as the input and output of the AI API call. 
+{: .notice--warning}
+
+All the magic happens when you replace `api_base`(or a similar parameter) which originally points to your LLM provider endpoint by our `proxy_url`. Thanks to this substitution we can bypass your request and grab a response transparently. 
 
 
-Before you start using Prompt Sail as a proxy, you need to configure the `project` and add `ai-providers` via UI, those information  eventaully will be used to create your unique **proxy_url**.
+Before you start using Prompt Sail as a proxy, you need to configure the *Project* and add an *AI Provider* via UI, that information eventually will be used to create your unique `proxy_url`.
 
-In one project you can have multiple AI deployments, each with its own **proxy_url**.
+In one project you can have multiple *AI Providers* (aka *AI Deployments*), each with its `proxy_url`.
 
 
 
-### The **proxy_url** structure is as follows:
+### The `proxy_url` structure is as follows:
 
 ```
-http://localhost:8000/project_slug/deployment_name/
+http://domain/project_slug/deployment_name/
 ```
 
 where: 
-* **project_slug** is a slugified project name, configured in the UI while creating a project
-* **deployment_name** is a slugified AI deployment name, configured in the project settings with the target AI provider api url eg. https://api.openai.com/v1/, you can configure multiple AI deployments for a single project
+* `domain` depends on how Prompt Sail was deployed, e.g. for local deployment it will be: localhost:8000
+* `project_slug` is a slugified project name, configured in the UI while creating a project
+* `deployment_name` is a slugified AI deployment name, configured in the project settings with the target AI provider *API  Base URL* eg. for OpenAI: https://api.openai.com/v1/. (Note that you can configure multiple *AI Deployments* for a single project.)
 
-Through the **proxy_url**, it is also possible to tag transactions. 
+Through the `proxy_url`, it is also possible to tag transactions. 
 
-### The **proxy_url** structure for passing the tags is as follows:
+### The `proxy_url` structure for passing the tags is as follows:
 
 ```
 http://localhost:8000/project_slug/deployment_name/?tags=tag1,tag2,tag3&target_path=
 ```
 
 where:
-* **tags** is a comma-separated list of tags. This is optional and can be used to tag a transaction eg. with a specific user_id, 
+* `tags` is a comma-separated list of tags. This is optional and can be used to tag a transaction eg. with a specific user_id, 
 department_name, prompting_technique etc. Tags can help you filter and analyze transactions in the UI.
-* **target_path** is required in proxy url when tags are added to it and is used for capturing the target path of particular requests. If you send requests by Python libraries, target_path should be empty (like this: target_path=). In such cases, it will be filled by external Python packages (eg. Langchain, OpenAI).  
+* `target_path` is required in proxy url when tags are added to it and is used for capturing the target path of particular requests. If you send requests by Python libraries, `target_path` should be empty (like this: `target_path=`)`. In such cases, it will be filled by external Python packages (eg. Langchain, OpenAI).  
 
 
 Proxy on your behalf makes a call to the configured AI API and log the request and response data in the database.

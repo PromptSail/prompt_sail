@@ -3,6 +3,7 @@ import json
 import random
 import re
 from collections import OrderedDict
+from copy import deepcopy
 from enum import Enum
 from io import BytesIO
 from typing import Any
@@ -15,11 +16,27 @@ from _datetime import datetime, timedelta
 from PIL import Image
 from transactions.models import Transaction
 from transactions.schemas import (
+    GetTagStatisticTransactionSchema,
     GetTransactionLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionUsageStatisticsSchema,
     StatisticTransactionSchema,
+    TagStatisticTransactionSchema,
+    GetTransactionLatencyStatisticsWithoutDateSchema,
+    GetTransactionPageResponseSchema,
+    GetTransactionSchema,
+    GetTransactionsLatencyStatisticsSchema,
+    GetTransactionStatusStatisticsSchema,
+    GetTransactionsUsageStatisticsSchema,
+    GetTransactionUsageStatisticsWithoutDateSchema,
+    GetTransactionWithProjectSlugSchema,
+    GetTransactionWithRawDataSchema,
+    StatisticTransactionSchema,
+    TagStatisticTransactionSchema,
 )
+
+from fastapi import HTTPException
+from datetime import datetime, timezone
 
 
 def serialize_data(obj):
@@ -303,9 +320,11 @@ class TransactionParamExtractor:
             request.__dict__["headers"].__dict__["_list"]
         )
         self.request_content = self._decode_request_content(request)
+        self.request_content_updated = deepcopy(self.request_content)
 
         self.response = response
         self.response_content = response_content
+        self.response_content_updated = deepcopy(response_content)
         self.url = str(getattr(request, "url", ""))
         self.pattern = self._detect_pattern(self.url)
 
@@ -346,12 +365,15 @@ class TransactionParamExtractor:
         patterns = {
             "Azure Embeddings": r".*openai\.azure\.com.*embeddings.*",
             "Azure Completions": r".*openai\.azure\.com.*completions.*",
+            "Azure Images Generations": r".*openai\.azure\.com.*images\/generations.*",
+            "Azure Images Variations": r".*openai\.azure\.com.*images\/variations.*",
+            "Azure Images Edits": r".*openai\.azure\.com.*images\/edits.*",
             "OpenAI Chat Completions": r".*api\.openai\.com.*chat.*completions.*",
             "OpenAI Completions": r".*api\.openai\.com(?!.*chat).*\/completions.*",
             "OpenAI Embeddings": r".*api\.openai\.com.*embeddings.*",
             "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
-            "OpenAI Image Generations": r".*api\.openai\.com.*images.*generations.*",
-            "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
+            "OpenAI Images Generations": r".*api\.openai\.com.*images.*generations.*",
+            "OpenAI Images Edits": r".*api\.openai\.com.*images.*edits.*",
             "Groq": r".*api\.groq\.com.*\/openai\/v1\/chat\/completions",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
@@ -361,6 +383,8 @@ class TransactionParamExtractor:
 
         for pattern_name, pattern_regex in patterns.items():
             if re.match(pattern_regex, url):
+                print(pattern_regex)
+                print(url)
                 return pattern_name
         return "Unsupported"
 
@@ -416,9 +440,9 @@ class TransactionParamExtractor:
             ):
                 for idx_content, content in enumerate(message["content"]):
                     if content["type"] == "image_url":
-                        self.request_content["messages"][idx_message]["content"][
-                            idx_content
-                        ]["image_url"]["url"] = resize_b64_image(
+                        self.request_content_updated["messages"][idx_message][
+                            "content"
+                        ][idx_content]["image_url"]["url"] = resize_b64_image(
                             content["image_url"]["url"].replace(
                                 "data:image/png;base64,", ""
                             ),
@@ -431,7 +455,7 @@ class TransactionParamExtractor:
         }
         prompt = [
             message["content"]
-            for message in self.request_content["messages"]
+            for message in self.request_content_updated["messages"]
             if message["role"] == "user"
         ][::-1][0]
 
@@ -439,9 +463,9 @@ class TransactionParamExtractor:
             prompt = [cont for cont in prompt if cont["type"] == "text"][0]["text"]
 
         extracted["prompt"] = (
-            prompt if prompt else self.request_content["messages"][0]["content"]
+            prompt if prompt else self.request_content_updated["messages"][0]["content"]
         )
-        messages = self.request_content["messages"]
+        messages = self.request_content_updated["messages"]
         if self.response.__dict__["status_code"] > 200:
             messages.append(
                 {
@@ -470,6 +494,198 @@ class TransactionParamExtractor:
         extracted["messages"] = messages
         return extracted
 
+    def _extract_from_azure_images_generations(self) -> dict:
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
+        extracted = {
+            "type": "images generations",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content["prompt"],
+            "model": model,
+        }
+        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content_updated["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
+        return extracted
+
+    def _extract_from_azure_images_variations(self) -> dict:
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
+        )
+
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
+        extracted = {
+            "type": "images variations",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content_updated["image"],
+            "model": model,
+        }
+
+        messages = [{"role": "user", "content": self.request_content_updated["image"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content_updated["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
+        return extracted
+
+    def _extract_from_azure_images_edit(self) -> dict:
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
+        )
+        self.request_content_updated["mask"] = resize_b64_image(
+            self.request_content_updated["mask"], (128, 128)
+        )
+        extracted = {
+            "type": "images edits",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content_updated["prompt"],
+            "model": model,
+        }
+        messages = [
+            {
+                "role": "user",
+                "content": self.request_content_updated["prompt"],
+                "image": self.request_content_updated["image"],
+                "mask": self.request_content_updated["mask"],
+            }
+        ]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
+        return extracted
+
     def _extract_from_openai_chat_completions(self) -> dict:
         for idx_message, message in enumerate(self.request_content["messages"]):
             if (
@@ -479,9 +695,9 @@ class TransactionParamExtractor:
             ):
                 for idx_content, content in enumerate(message["content"]):
                     if content["type"] == "image_url":
-                        self.request_content["messages"][idx_message]["content"][
-                            idx_content
-                        ]["image_url"]["url"] = resize_b64_image(
+                        self.request_content_updated["messages"][idx_message][
+                            "content"
+                        ][idx_content]["image_url"]["url"] = resize_b64_image(
                             content["image_url"]["url"].replace(
                                 "data:image/png;base64,", ""
                             ),
@@ -494,7 +710,7 @@ class TransactionParamExtractor:
         }
         prompt = [
             message["content"]
-            for message in self.request_content["messages"]
+            for message in self.request_content_updated["messages"]
             if message["role"] == "user"
         ][::-1][0]
 
@@ -502,9 +718,9 @@ class TransactionParamExtractor:
             prompt = [cont for cont in prompt if cont["type"] == "text"][0]["text"]
 
         extracted["prompt"] = (
-            prompt if prompt else self.request_content["messages"][0]["content"]
+            prompt if prompt else self.request_content_updated["messages"][0]["content"]
         )
-        messages = self.request_content["messages"]
+        messages = self.request_content_updated["messages"]
         if self.response.__dict__["status_code"] > 200:
             messages.append(
                 {"role": "error", "content": self.response_content["error"]["message"]}
@@ -554,8 +770,8 @@ class TransactionParamExtractor:
         return extracted
 
     def _extract_from_openai_images_variations(self) -> dict:
-        self.request_content["image"] = resize_b64_image(
-            self.request_content["image"], (128, 128)
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
         )
 
         model = []
@@ -569,40 +785,49 @@ class TransactionParamExtractor:
         extracted = {
             "type": "images variations",
             "provider": "OpenAI",
-            "prompt": self.request_content["image"],
+            "prompt": self.request_content_updated["image"],
             "model": model,
         }
 
-        messages = [{"role": "user", "content": self.request_content["image"]}]
+        messages = [{"role": "user", "content": self.request_content_updated["image"]}]
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
-                {"role": "error", "content": self.response_content["error"]["message"]}
+                {
+                    "role": "error",
+                    "content": self.response_content["error"]["message"],
+                }
             )
-            extracted["error_message"] = self.response_content["error"]["message"]
-            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
         else:
             try:
-                for data in self.response_content["data"]:
+                for data in self.response_content_updated["data"]:
                     messages.append(
                         {
                             "role": "system",
                             "content": data["url"],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]["url"]
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
             except KeyError:
-                for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
                         data["b64_json"], (128, 128)
                     )
                     messages.append(
                         {
                             "role": "system",
-                            "content": self.response_content["data"][idx],
+                            "content": self.response_content_updated["data"][idx],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]
+                extracted["last_message"] = self.response_content_updated["data"][-1]
         extracted["messages"] = messages
 
         return extracted
@@ -619,39 +844,48 @@ class TransactionParamExtractor:
         extracted = {
             "type": "images generations",
             "provider": "OpenAI",
-            "prompt": self.request_content["prompt"],
+            "prompt": self.request_content_updated["prompt"],
             "model": model,
         }
-        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+        messages = [{"role": "user", "content": self.request_content_updated["prompt"]}]
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
-                {"role": "error", "content": self.response_content["error"]["message"]}
+                {
+                    "role": "error",
+                    "content": self.response_content_updated["error"]["message"],
+                }
             )
-            extracted["error_message"] = self.response_content["error"]["message"]
-            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
         else:
             try:
-                for data in self.response_content["data"]:
+                for data in self.response_content_updated["data"]:
                     messages.append(
                         {
                             "role": "system",
                             "content": data["url"],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]["url"]
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
             except KeyError:
-                for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
                         data["b64_json"], (128, 128)
                     )
                     messages.append(
                         {
                             "role": "system",
-                            "content": self.response_content["data"][idx],
+                            "content": self.response_content_updated["data"][idx],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]
+                extracted["last_message"] = self.response_content_updated["data"][-1]
         extracted["messages"] = messages
 
         return extracted
@@ -665,55 +899,64 @@ class TransactionParamExtractor:
         model.append(self.request_content["model"])
         model = "/".join(model)
 
-        self.request_content["image"] = resize_b64_image(
-            self.request_content["image"], (128, 128)
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
         )
-        self.request_content["mask"] = resize_b64_image(
-            self.request_content["mask"], (128, 128)
+        self.request_content_updated["mask"] = resize_b64_image(
+            self.request_content_updated["mask"], (128, 128)
         )
         extracted = {
             "type": "images edits",
             "provider": "OpenAI",
-            "prompt": self.request_content["prompt"],
+            "prompt": self.request_content_updated["prompt"],
             "model": model,
         }
         messages = [
             {
                 "role": "user",
-                "content": self.request_content["prompt"],
-                "image": self.request_content["image"],
-                "mask": self.request_content["mask"],
+                "content": self.request_content_updated["prompt"],
+                "image": self.request_content_updated["image"],
+                "mask": self.request_content_updated["mask"],
             }
         ]
         if self.response.__dict__["status_code"] > 200:
             # possible TOFIX
             messages.append(
-                {"role": "error", "content": self.response_content["error"]["message"]}
+                {
+                    "role": "error",
+                    "content": self.response_content["error"]["message"],
+                }
             )
-            extracted["error_message"] = self.response_content["error"]["message"]
-            extracted["last_message"] = self.response_content["error"]["message"]
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
         else:
             try:
-                for data in self.response_content["data"]:
+                for data in self.response_content_updated["data"]:
                     messages.append(
                         {
                             "role": "system",
                             "content": data["url"],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]["url"]
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
             except KeyError:
-                for idx, data in enumerate(self.response_content["data"]):
-                    self.response_content["data"][idx] = resize_b64_image(
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
                         data["b64_json"], (128, 128)
                     )
                     messages.append(
                         {
                             "role": "system",
-                            "content": self.response_content["data"][idx],
+                            "content": self.response_content_updated["data"][idx],
                         }
                     )
-                extracted["last_message"] = self.response_content["data"][-1]
+                extracted["last_message"] = self.response_content_updated["data"][-1]
         extracted["messages"] = messages
 
         return extracted
@@ -940,6 +1183,12 @@ class TransactionParamExtractor:
             extracted = self._extract_from_azure_embeddings()
         if self.pattern == "Azure Completions":
             extracted = self._extract_from_azure_completions()
+        if self.pattern == "Azure Images Generations":
+            extracted = self._extract_from_azure_images_generations()
+        if self.pattern == "Azure Images Variations":
+            extracted = self._extract_from_azure_images_variations()
+        if self.pattern == "Azure Images Edits":
+            extracted = self._extract_from_azure_images_edit()
         if self.pattern == "OpenAI Chat Completions":
             extracted = self._extract_from_openai_chat_completions()
         if self.pattern == "OpenAI Completions":
@@ -952,9 +1201,9 @@ class TransactionParamExtractor:
             extracted = self._extract_from_vertexai()
         if self.pattern == "OpenAI Images Variations":
             extracted = self._extract_from_openai_images_variations()
-        if self.pattern == "OpenAI Image Generations":
+        if self.pattern == "OpenAI Images Generations":
             extracted = self._extract_from_openai_images_generations()
-        if self.pattern == "OpenAI Image Edits":
+        if self.pattern == "OpenAI Images Edits":
             extracted = self._extract_from_openai_images_edit()
         if self.pattern == "Ollama":
             extracted = self._extract_from_ollama()
@@ -990,6 +1239,7 @@ def token_counter_for_transactions(
     period: str,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
+    cumulative_total_cost: bool = True,
 ) -> list[GetTransactionUsageStatisticsSchema]:
     """
     Calculate token usage statistics based on a given period.
@@ -1002,6 +1252,7 @@ def token_counter_for_transactions(
         Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
     :param date_from: The starting date for the filter.
     :param date_to: The ending date for the filter.
+    :param cumulative_total_cost: The switch that decides if total cost is cumulative or not.
     :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
     """
     data_dicts = [dto.model_dump() for dto in transactions]
@@ -1093,7 +1344,9 @@ def token_counter_for_transactions(
             input_cumulative_total=data["input_cumulative_total"],
             output_cumulative_total=data["output_cumulative_total"],
             total_transactions=data["total_transactions"],
-            total_cost=data["total_cumulative_cost"],
+            total_cost=data["total_cumulative_cost"]
+            if cumulative_total_cost
+            else data["total_cost"],
         )
         for data in data_dicts
     ]
@@ -1185,6 +1438,7 @@ def status_counter_for_transactions(
 
     return result_list
 
+# speed statistics utils functions
 
 def speed_counter_for_transactions(
     transactions: list[StatisticTransactionSchema],
@@ -1294,6 +1548,249 @@ def speed_counter_for_transactions(
 
     return result_list
 
+def prepare_transaction_dataframe(
+    transactions: list[Transaction],
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> pd.DataFrame:
+    """
+    Convert transactions to DataFrame and add boundary dates with zero values.
+    
+    Args:
+        transactions: List of transactions
+        date_from: Start date for analysis
+        date_to: End date for analysis
+        
+    Returns:
+        DataFrame with transactions and boundary dates
+    """
+    if not transactions:
+        return pd.DataFrame()
+        
+    # Convert transactions to DataFrame efficiently
+    df = pd.DataFrame([
+        {
+            "project_id": tx.project_id,
+            "provider": tx.provider,
+            "model": tx.model,
+            "total_input_tokens": tx.input_tokens or 0,
+            "total_output_tokens": tx.output_tokens or 0,
+            "total_input_cost": tx.input_cost or 0,
+            "total_output_cost": tx.output_cost or 0,
+            "total_cost": tx.total_cost or 0,
+            "date": tx.response_time,
+            "latency": (tx.response_time - tx.request_time).total_seconds(),
+            "generation_speed": tx.generation_speed or 0,
+            "total_transactions": 1,
+        }
+        for tx in transactions
+    ])
+    
+    # Add boundary dates if specified
+    if date_from or date_to:
+        boundary_records = _create_boundary_records(
+            df, date_from, date_to
+        )
+        if not boundary_records.empty:
+            df = pd.concat([df, boundary_records], ignore_index=True)
+    
+    return df
+
+def _create_boundary_records(
+    df: pd.DataFrame,
+    date_from: datetime | None,
+    date_to: datetime | None
+) -> pd.DataFrame:
+    """Create records for boundary dates with zero values."""
+    if df.empty:
+        return pd.DataFrame()
+        
+    # Get unique provider/model pairs
+    pairs = df[["provider", "model"]].drop_duplicates()
+    project_id = df["project_id"].iloc[0]
+    
+    records = []
+    for date in filter(None, [date_from, date_to]):
+        # Create zero-value records for each provider/model pair
+        zero_records = pairs.assign(
+            date=pd.Timestamp(date),
+            project_id=project_id,
+            total_input_tokens=0,
+            total_output_tokens=0,
+            total_input_cost=0,
+            total_output_cost=0,
+            total_cost=0,
+            # Set to NaN for values that should not affect mean calculations
+            latency=np.nan,
+            generation_speed=np.nan,
+        )
+        records.append(zero_records)
+    
+    return pd.concat(records) if records else pd.DataFrame()
+
+def calculate_speed_statistics(
+    df: pd.DataFrame,
+    period: str,
+) -> pd.DataFrame:
+    """
+    Calculate speed and latency statistics using pandas operations.
+    
+    Args:
+        df: DataFrame with transaction data
+        period: Time period for aggregation
+        
+    Returns:
+        DataFrame with aggregated statistics
+    """
+    if df.empty:
+        return pd.DataFrame()
+
+    # Set date as index for resampling
+    df = df.set_index('date')
+    
+    # Group by provider/model and resample by period
+    grouped = df.groupby(['provider', 'model']).resample(period).agg({
+        'latency': 'mean',  # Direct mean calculation
+        'generation_speed': 'mean',  # Direct mean calculation
+        'total_transactions': 'sum'
+    }).reset_index()
+    
+    # Clean up the results
+    grouped = grouped.fillna(0)
+    
+    return grouped
+
+def format_statistics_response(
+    df: pd.DataFrame
+) -> list[GetTransactionsLatencyStatisticsSchema]:
+    """Convert DataFrame to API response format."""
+    if df.empty:
+        return []
+    
+    # Group by date first
+    date_groups = df.groupby('date')
+    
+    # Convert to final format
+    return [
+        GetTransactionsLatencyStatisticsSchema(
+            date=date,
+            records=[
+                GetTransactionLatencyStatisticsWithoutDateSchema(
+                    provider=row.provider,
+                    model=row.model,
+                    mean_latency=row.latency,
+                    tokens_per_second=row.generation_speed,
+                    total_transactions=row.total_transactions,
+                )
+                for _, row in group.iterrows()
+            ]
+        )
+        for date, group in date_groups
+    ]
+
+
+
+
+# 
+def token_counter_for_transactions_by_tag(
+    transactions: list[TagStatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    cumulative_total_cost: bool = True,
+) -> list[GetTagStatisticTransactionSchema]:
+    """
+    Calculate token usage statistics based on a given period.
+
+    This function takes a list of transactions and calculates token usage statistics
+    aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
+
+    :param transactions: A list of StatisticTransactionSchema objects representing transactions.
+    :param period: A string indicating the aggregation period.
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
+    :param cumulative_total_cost: The switch that decides if total cost is cumulative or not.
+    :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
+    """
+    data_dicts = [dto.model_dump() for dto in transactions]
+    df = pd.DataFrame(data_dicts)
+    tags = list(set([transaction.tag for transaction in transactions]))
+    if date_from:
+        for tag in tags:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
+                "tag": tag,
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
+                "total_transactions": 0,
+            }
+    if date_to:
+        for tag in tags:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
+                "tag": tag,
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
+                "total_transactions": 0,
+            }
+
+    df.set_index("date", inplace=True)
+    period = pandas_period_from_string(period)
+    result = (
+        df.groupby("tag")
+        .resample(period)
+        .agg(
+            {
+                "tag": "first",
+                "total_input_tokens": "sum",
+                "total_output_tokens": "sum",
+                "total_input_cost": "sum",
+                "total_output_cost": "sum",
+                "total_cost": "sum",
+                "total_transactions": "sum",
+            }
+        )
+    )
+
+    del result["tag"]
+
+    result = result.reset_index()
+
+    result["output_cumulative_total"] = result.groupby("tag")[
+        "total_output_tokens"
+    ].cumsum()
+    result["input_cumulative_total"] = result.groupby("tag")[
+        "total_input_tokens"
+    ].cumsum()
+    result["total_cumulative_cost"] = result.groupby("tag")["total_cost"].cumsum()
+
+    data_dicts = result.to_dict(orient="records")
+
+    result_list = [
+        GetTagStatisticTransactionSchema(
+            tag=data["tag"],
+            date=data["date"],
+            total_input_tokens=data["total_input_tokens"],
+            total_output_tokens=data["total_output_tokens"],
+            input_cumulative_total=data["input_cumulative_total"],
+            output_cumulative_total=data["output_cumulative_total"],
+            total_transactions=data["total_transactions"],
+            total_cost=data["total_cumulative_cost"]
+            if cumulative_total_cost
+            else data["total_cost"],
+        )
+        for data in data_dicts
+    ]
+
+    return result_list
+
 
 class ProviderPrice:
     def __init__(
@@ -1384,9 +1881,12 @@ class ApiURLBuilder:
                 path = "/" + "/".join(new_path)
 
         url = api_base + f"/{path}".replace("//", "/")
+        print("URL", url)
+
         if api_base.endswith("/"):
             url = api_base + f"{path}".replace("//", "/")
 
+        print("URL", url)
         return url
 
 
@@ -1483,13 +1983,13 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
             else 0
         )
         output_tokens = output_tokens if status == 200 else 0
-
+        input_cost, output_cost = random.uniform(0.00005, 0.05), random.uniform(
+            0.00005, 0.05
+        )
         transactions.append(
             Transaction(
                 id=transaction_id,
                 project_id="project-test",
-                request={},
-                response={},
                 tags=["tag1", "tag2", "tag3"],
                 provider=random.choice(providers),
                 model=random.choice(models),
@@ -1506,132 +2006,18 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
                 request_time=start_date,
                 response_time=stop_date,
                 generation_speed=generation_speed,
+                input_cost=input_cost,
+                output_cost=output_cost,
+                total_cost=input_cost + output_cost,
             )
         )
 
     return transactions
 
 
-def check_dates_for_statistics(
-    date_from: datetime | str | None, date_to: datetime | str | None
-) -> tuple[datetime | None, datetime | None]:
-    if isinstance(date_from, str):
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        elif date_from.endswith("Z"):
-            date_from = datetime.fromisoformat(str(date_from)[:-1])
-        else:
-            date_from = datetime.fromisoformat(date_from)
-    if isinstance(date_to, str):
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T23:59:59")
-        elif date_to.endswith("Z"):
-            date_to = datetime.fromisoformat(str(date_to)[:-1])
-        else:
-            date_to = datetime.fromisoformat(date_to)
-
-    if date_from is not None and date_to is not None and date_from == date_to:
-        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-
-    return date_from, date_to
 
 
-def read_transactions_from_csv(
-    path: str = "../test_transactions.csv",
-) -> list[Transaction]:
-    df = pd.read_csv(path, sep=";")
-    data = df.to_dict(orient="records")
-    transactions = []
-    pricelist = read_provider_pricelist()
-    for idx, obj in enumerate(data):
-        transaction_id = f"test-transaction-{idx}"
-        request_time = datetime.fromisoformat(
-            obj["request_time"].replace("Z", "+00:00")
-        )
-        response_time = datetime.fromisoformat(
-            obj["response_time"].replace("Z", "+00:00")
-        )
-        latency = response_time - request_time
-        price = [
-            item
-            for item in pricelist
-            if item.provider == obj["provider"]
-            and re.match(item.match_pattern, obj["model"])
-        ]
-        if obj["status_code"] == 200:
-            if len(price) > 0:
-                price = price[0]
-                if price.input_price == 0:
-                    input_cost, output_cost = 0, 0
-                    total_cost = (
-                        (obj["input_tokens"] + obj["output_tokens"])
-                        / 1000
-                        * price.total_price
-                    )
-                else:
-                    input_cost = price.input_price * (obj["input_tokens"] / 1000)
-                    output_cost = price.output_price * (obj["output_tokens"] / 1000)
-                    total_cost = input_cost + output_cost
-            else:
-                input_cost, output_cost, total_cost = None, None, None
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag"],
-                    provider=obj["provider"],
-                    model=obj["model"],
-                    type="chat",
-                    os=None,
-                    input_tokens=obj["input_tokens"],
-                    output_tokens=obj["output_tokens"],
-                    library="PostmanRuntime/7.36.3",
-                    status_code=obj["status_code"],
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message=None,
-                    request_time=request_time,
-                    response_time=response_time,
-                    generation_speed=obj["output_tokens"] / latency.total_seconds()
-                    if latency.total_seconds() > 0
-                    else 0,
-                    input_cost=input_cost,
-                    output_cost=output_cost,
-                    total_cost=total_cost,
-                )
-            )
-        else:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag"],
-                    provider=obj["provider"],
-                    model=obj["model"],
-                    type="chat",
-                    os=None,
-                    input_tokens=0,
-                    output_tokens=0,
-                    library="PostmanRuntime/7.36.3",
-                    status_code=obj["status_code"],
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message="Error",
-                    request_time=request_time,
-                    response_time=response_time,
-                    generation_speed=0,
-                    input_cost=0,
-                    output_cost=0,
-                    total_cost=0,
-                )
-            )
-    return transactions
+
 
 
 def count_tokens_for_streaming_response(messages: list | str, model: str) -> int:
@@ -1655,13 +2041,7 @@ class MockResponse:
         return self.content
 
 
-def truncate_float(number, decimals):
-    if isinstance(number, float):
-        str_number = str(number)
-        integer_part, decimal_part = str_number.split(".")
-        truncated_decimal_part = decimal_part[:decimals]
-        return float(f"{integer_part}.{truncated_decimal_part}")
-    return number
+
 
 
 def resize_b64_image(b64_image: str | str, new_size: tuple[int, int]) -> str:
@@ -1673,6 +2053,89 @@ def resize_b64_image(b64_image: str | str, new_size: tuple[int, int]) -> str:
     resized_image_bytes = buffered.getvalue()
     resized_b64_string = base64.b64encode(resized_image_bytes).decode("utf-8")
     return resized_b64_string
+
+
+def preprocess_buffer(request, response, buffer) -> dict:
+    decoder = response._get_content_decoder()
+    buf = b"".join(buffer)
+    if "localhost" in str(request.__dict__["url"]) or "host.docker.internal" in str(
+        request.__dict__["url"]
+    ):
+        content = buf.decode("utf-8").split("\n")
+        rest, content = content[-2], content[:-2]
+        response_content = {
+            pair.split(":")[0]: pair.split(":")[1]
+            for pair in rest.split(',"context"')[0][1:].replace('"', "").split(",")
+        }
+        content = "".join(
+            list(
+                map(
+                    lambda msg: [
+                        text
+                        for text in [text for text in msg[1:-1].split('response":"')][
+                            1
+                        ].split('"')
+                    ][0],
+                    content,
+                )
+            )
+        )
+        response_content["response"] = content
+    else:
+        try:
+            response_content = decoder.decode(buf)
+            response_content = json.loads(response_content)
+        except json.JSONDecodeError:
+            content = []
+            for i in (
+                chunks := buf.decode()
+                .replace("data: ", "")
+                .split("\n\n")[::-1][3:][::-1]
+            ):
+                content.append(
+                    json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")
+                )
+            content = "".join(content)
+            example = json.loads(chunks[0])
+            messages = [
+                message
+                for message in json.loads(request.__dict__["_content"].decode("utf8"))[
+                    "messages"
+                ]
+            ]
+            input_tokens = count_tokens_for_streaming_response(
+                messages, example["model"]
+            )
+            output_tokens = count_tokens_for_streaming_response(
+                content, example["model"]
+            )
+            response_content = dict(
+                id=example["id"],
+                object="chat.completion",
+                created=example["created"],
+                model=example["model"],
+                choices=[
+                    dict(
+                        index=0,
+                        message=dict(role="assistant", content=content),
+                        logprobs=None,
+                        finish_reason="stop",
+                    )
+                ],
+                system_fingerprint=example["system_fingerprint"],
+                usage=dict(
+                    prompt_tokens=input_tokens,
+                    completion_tokens=output_tokens,
+                    total_tokens=input_tokens + output_tokens,
+                ),
+            )
+    if isinstance(response_content, list):
+        response_content = response_content[0]
+    if "usage" not in response_content:
+        response_content["usage"] = dict(
+            prompt_tokens=0, completion_tokens=0, total_tokens=0
+        )
+    return response_content
 
 
 class PeriodEnum(str, Enum):
@@ -1715,3 +2178,90 @@ known_ai_providers = [
         "api_base_placeholder": "https://llmapi.provider.com/v1",
     },
 ]
+
+def validate_date_range(date_from: datetime | str, date_to: datetime | str) -> tuple[datetime, datetime]:
+    """
+    Validate and convert date strings to datetime objects, ensuring they form a valid date range.
+    If time zone is not specified, it is assumed to be UTC.
+    If time zone is specified, it is converted to UTC.
+    
+    
+    Parameters:
+    - date_from: Start date (datetime object or string in YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS format)
+    - date_to: End date (datetime object or string in YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS format)
+    
+    Returns:
+    - Tuple of validated datetime objects (date_from, date_to)
+    
+    Raises:
+    - HTTPException: 400 error if dates are invalid or in wrong format
+    """
+    
+    # initialize dates as datetime objects, ih they are strings they will be converted later
+    date_from_obj = date_from
+    date_to_obj = date_to
+    
+    try:
+        # Check if date_from and date_to are in ISO format with optional timezone offset or Z for UTC
+        if isinstance(date_from_obj, str):
+            # replace the space before the timezone offset with a +
+            date_from_obj = date_from_obj.replace(" ", "+")
+            if not re.match(r'^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}([+-]\d{2}:?\d{2}|Z)?)?$', date_from_obj):
+                raise ValueError("Invalid date format")
+            date_from_obj = datetime.fromisoformat(date_from_obj)
+            
+        if isinstance(date_to_obj, str):
+            # replace the space before the timezone offset with a +
+            date_to_obj = date_to_obj.replace(" ", "+")
+            if not re.match(r'^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}([+-]\d{2}:?\d{2}|Z)?)?$', date_to_obj):
+                raise ValueError("Invalid date format")
+            date_to_obj = datetime.fromisoformat(date_to_obj)
+            
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS: {e}"
+        )
+
+    
+    # Validate date range
+    if date_from_obj > date_to_obj:
+        raise HTTPException(
+            status_code=400,
+            detail="date_from cannot be after date_to"
+        )
+
+    # we don't validate dates are not in the future, because we want to allow to get statistics for future dates
+    
+    # convert to UTC if date_from or date_to are in UTC
+    date_from_obj = date_from_obj.astimezone(timezone.utc) if date_from_obj.tzinfo else date_from_obj
+    date_to_obj = date_to_obj.astimezone(timezone.utc) if date_to_obj.tzinfo else date_to_obj
+    
+    # remove the timezone offset for already converted dates to utc
+    date_from_obj = date_from_obj.replace(tzinfo=None)
+    date_to_obj = date_to_obj.replace(tzinfo=None)
+    
+    return date_from_obj, date_to_obj
+
+def check_dates_for_statistics(
+    date_from: datetime | str | None, date_to: datetime | str | None
+) -> tuple[datetime | None, datetime | None]:
+    if isinstance(date_from, str):
+        if len(date_from) == 10:
+            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+        elif date_from.endswith("Z"):
+            date_from = datetime.fromisoformat(str(date_from)[:-1])
+        else:
+            date_from = datetime.fromisoformat(date_from)
+    if isinstance(date_to, str):
+        if len(date_to) == 10:
+            date_to = datetime.fromisoformat(date_to + "T23:59:59")
+        elif date_to.endswith("Z"):
+            date_to = datetime.fromisoformat(str(date_to)[:-1])
+        else:
+            date_to = datetime.fromisoformat(date_to)
+
+    if date_from is not None and date_to is not None and date_from == date_to:
+        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+
+    return date_from, date_to

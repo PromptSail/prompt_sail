@@ -7,9 +7,18 @@ from .app import app
 @app.get("/healthcheck")
 async def healthcheck(request: Request):
     """
-    API endpoint to information about the API's health status.
+    Check the API's health status.
 
-    :param request: The incoming request.
+    This endpoint provides basic health check information about the API,
+    including its current status and timestamp.
+
+    Parameters:
+    - **request**: The incoming request object
+
+    Returns:
+    - A dictionary containing:
+      - status: Current API status ("OK")
+      - datetime: Current timestamp in UTC
     """
     return {"status": "OK", "datetime": datetime.now(tz=timezone.utc)}
 
@@ -20,9 +29,17 @@ async def healthcheck(request: Request):
 )
 async def home_page(request: Request):
     """
-    API route for the all unsupported traffic.
+    Handle unsupported traffic routes.
 
-    :param request: The incoming request.
-    :return: A dictionary containing the status and current datetime.
+    This endpoint serves as a catch-all route for any requests that don't match
+    other defined endpoints. It returns a basic response indicating the API is functioning.
+
+    Parameters:
+    - **request**: The incoming request object
+
+    Returns:
+    - A dictionary containing:
+      - status: Current API status ("OK")
+      - datetime: Current timestamp in UTC
     """
     return {"status": "OK", "datetime": datetime.now(tz=timezone.utc)}

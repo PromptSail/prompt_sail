@@ -20,14 +20,18 @@ docs:
         url: /docs/quick-start-guide/
       - title: "Project Setup"
         url: /docs/how-to-setup-llm-proxy-project/
+      - title: "Demo"
+        url: /docs/demo/
   - title: Advanced Settings
     children:
-      - title: "Input/output capturing"
+      - title: "Transaction capturing"
         url: /docs/storing-transactions/
       - title: "REST API"
         url: /docs/backend-rest-api
       - title: "Supported Models"
         url: /docs/supported-gen-ai-models
+      - title: "Gen AI API integrations"
+        url: /docs/gen-ai-api-integrations-with-list-of-examples/ 
   - title: Deployment Cookbook
     children:
       - title: "Deployment recepies"
@@ -49,7 +53,7 @@ docs:
       - title: "Login Page"
         url: /docs/login-page
       - title: "Organization Dashboard"
-        url: /docs/organization-dashboard
+        url: /docs/organization-dashboard/
       - title: "Project Dashboard"
         url: /docs/project-dashboard
       - title: "Transactions View"

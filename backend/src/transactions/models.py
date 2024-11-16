@@ -12,8 +12,6 @@ def generate_uuid() -> str:
 class Transaction(BaseModel):
     id: str = Field(default_factory=generate_uuid)
     project_id: str
-    request: dict[str, Any]
-    response: dict[str, Any]
     tags: list[str]
     provider: str
     model: str | None
@@ -35,3 +33,9 @@ class Transaction(BaseModel):
     response_time: datetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc)
     )
+
+    # old fields
+    # hate: Any = None
+    # self_harm: Any = None
+    # violence: Any = None
+    # sexual: Any = None
