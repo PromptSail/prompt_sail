@@ -214,8 +214,9 @@ def create_application(container, **kwargs):
         :param ctx: The TransactionContext.
         :param exception: The exception (if any) that occurred during the transaction.
         """
-        logger.debug(f"transaction ended ")
+        logger.debug(f"transaction ended {exception}")
         logging_context.correlation_id = None
+        
 
     # @application.transaction_middleware
     # def null_middleware(ctx: TransactionContext, call_next):
@@ -284,3 +285,5 @@ class TransactionContainer(containers.DeclarativeContainer):
     user_repository = providers.Singleton(
         UserRepository, db_client=db_client, collection_name="users"
     )
+    
+    #todo: move price calculation provider here
