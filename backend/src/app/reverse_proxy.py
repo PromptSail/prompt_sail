@@ -67,8 +67,8 @@ async def close_stream(
         data = ctx.call(
             store_transaction,
             project_id=project_id,
-            request=ai_provider_request,
-            response=ai_provider_response,
+            ai_provider_request=ai_provider_request,
+            ai_provider_response=ai_provider_response,
             buffer=buffer,
             tags=tags,
             ai_model_version=ai_model_version,

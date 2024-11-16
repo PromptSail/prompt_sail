@@ -1065,10 +1065,6 @@ async def get_portfolio_costs_by_tag(
                     total_cost=transaction.total_cost,
                     request_time=transaction.request_time,
                     response_time=transaction.response_time,
-                    hate=transaction.hate,
-                    self_harm=transaction.self_harm,
-                    violence=transaction.violence,
-                    sexual=transaction.sexual,
                 )
             )
         else:
@@ -1096,10 +1092,6 @@ async def get_portfolio_costs_by_tag(
                         total_cost=transaction.total_cost,
                         request_time=transaction.request_time,
                         response_time=transaction.response_time,
-                        hate=transaction.hate,
-                        self_harm=transaction.self_harm,
-                        violence=transaction.violence,
-                        sexual=transaction.sexual,
                     )
                 )
 
