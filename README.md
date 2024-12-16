@@ -27,7 +27,8 @@
 
 ## What is Prompt Sail? 
 
-Prompt Sail is a proxy for Large Language Models (LLMs) API's such as OpenAI GPT models, Azure OpenAI, Anthropic Clude etc. that allows you to record prompts and responses, analyze costs, generation speed, compare and track trends and changes across various models and projects over time.
+Prompt Sail is a proxy for Large Language Models (LLMs) API's such as OpenAI GPT models, Azure OpenAI, Anthropic Clude etc. and allows you to manage all your Generative AI resources, providing ongoing monitoring, governance, and compliance with requirements of the EU AI Act.
+With Prompt Sail you can track and store prompts and responses, analyze costs, generation speed, compare and track trends and changes across various models and projects over time.
 
 ![Prompt Sail dashboard](/docs/assets/images/LLM_Project_dashboard_budget_v2.png)
 
