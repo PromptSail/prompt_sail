@@ -23,13 +23,6 @@ feature_row:
       url: "/docs/quick-start-guide/"
       btn_class: "btn--primary"
       btn_label: "Learn more"
-    - image_path: #/assets/images/mm-free-feature.png
-      alt: "Tracking GenAI usage"
-      title: "Tracking GenAI usage"
-      excerpt: "Track and store all your communictaion with GenAI models on the  organisation level, one proxy for all your departments and projects."
-      url: "docs/transations-view"
-      btn_class: "btn--primary"
-      btn_label: "Learn more"
       - image_path: #/assets/images/mm-responsive-feature.png
       alt: "Cost Monitoring"
       title: "Cost Monitoring"
@@ -37,7 +30,13 @@ feature_row:
       url: "docs/project-dashboard"
       btn_class: "btn--primary"
       btn_label: "Learn more"
-    
+     - image_path: #/assets/images/mm-free-feature.png
+      alt: "Tracking GenAI usage"
+      title: "Tracking GenAI usage"
+      excerpt: "Track and store all your communictaion with GenAI models on the  organisation level, one proxy for all your departments and projects."
+      url: "docs/transations-view"
+      btn_class: "btn--primary"
+      btn_label: "Learn more"
 ---
 
 {% include feature_row %}
