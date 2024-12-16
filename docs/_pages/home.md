@@ -10,7 +10,7 @@ header:
         - label: "<i class='fas fa-solid fa-code'></i> Try now"
           url: "/docs/quick-start-guide/"
 excerpt: >
-    A centralized hub for managing Generative AI resources, providing ongoing monitoring, governance, and compliance with requirements of the EU AI Act <br />
+    A hub for managing all your Generative AI resources, providing ongoing monitoring, governance, and compliance with requirements of the EU AI Act <br />
     A transparent proxy between your code and Gen AI APIs.<br />
     <small><a href="https://github.com/PromptSail/prompt_sail/releases/">Latest release</a></small>
 intro:
