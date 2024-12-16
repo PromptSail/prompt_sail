@@ -37,6 +37,7 @@ feature_row:
       url: "docs/transations-view"
       btn_class: "btn--primary"
       btn_label: "Learn more"
+    
 ---
 
 {% include feature_row %}
@@ -68,13 +69,19 @@ All prompts and responses are stored in a MongoDB, making finding and analyzing 
 Simple and intuitive UI lets you easily view and filter your transactions (prompts and responses) by project, API provider, LLM model, or tags. -->
 
 
-## Enhance Your Gen AI API Tracking Experience with PromptSail
+## Enhance Your Gen AI API Tracking Experience with Prompt Sail
 
 Are you seeking a robust solution to elevate your Gen AI API tracking capabilities?
 Discover the unparalleled advantages of PromptSail today.
 
 ### 🔒 Tracking and Governance 🔒
 With PromptSail's transparent logging feature, you can capture and log all interactions with LLM APIs, providing a comprehensive record of prompts and responses. This ensures that all your communication with Gen AI api will be trackecd and easily accessible for future reference.
+
+### ⚖️ The EU AI Act Compliance ⚖️
+ Continuous monitoring and storage of all company's communication with GenAI help ensure compliance with Art. 12 (Record-keeping),14 (Human Oversight),  19 (Automatic Logging), and 72 (Post-market Monitoring) of the EU AI Act.
+
+### 🔍 Ethical and responsible GenAI 🔍 *AVAILABLE SOON*
+Continuous validation of GenAI inputs and outputs against safety rules covering various regulations and topics, like data privacy, labor law, discrimination (race, ethnicity, age, gender), politics, etc. This helps provide responsible, ethical and compliant GenAI content in line with company standards and policies. 
 
 ### 💰 Better Cost Control 💰
 As a project manager, keeping track of costs is crucial. PromptSail offers cost insights that allow you to track 
@@ -83,9 +90,6 @@ to unexpected expenses and hello to cost efficiency!
 
 ### 🔌 Easy Integration  
 Seamlessly integrate PromptSail into your existing workflow, language and libraries with just a simple modification to the ``base_url`` parameter when creating your provider API object. No hassle, no complications – just a smooth and effortless integration process.
-
-### 🔍 Optimization and Analysis 🔍
-PromptSail provides a concise and detailed view of all interactions, empowering developers to analyze and refine their prompts and choose the best LLM for the job. Gain valuable insights into your LLM usage and optimize your prompts for better performance and results.
 
 ### ☁️ Docker Cloud deployment and scalability ☁️
 PromptSail is  available as a Docker image, making it easy to deploy and scale. With Docker, you can run it on any platform, from your local machine to the cloud, and manage multiple instances with ease. 
