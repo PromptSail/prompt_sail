@@ -10,7 +10,7 @@ header:
         - label: "<i class='fas fa-solid fa-code'></i> Try now"
           url: "/docs/quick-start-guide/"
 excerpt: >
-    Platform for monitoring, analysis, and governance the Generative AI communication <br />
+    A centralized hub for managing Generative AI resources, providing ongoing monitoring, governance, and compliance with requirements of the EU AI Act <br />
     A transparent proxy between your code and Gen AI APIs.<br />
     <small><a href="https://github.com/PromptSail/prompt_sail/releases/">Latest release</a></small>
 intro:
@@ -49,22 +49,22 @@ feature_row:
 1. **Transparent Logging** 
 It captures and logs all interactions with LLM APIs, providing a comprehensive record of prompts and responses.
 
-2. **Cost Insights** 
+1. **Cost Insights** 
 Project managers can track and analyze the costs associated with each project and experiment, enabling better budget management.
 
-3. **Optimization and Analysis**
+1. **Optimization and Analysis**
 By providing a concise and detailed view of all interactions, developers can analyze and refine their prompts.
 
-4. **Compliance and Governance**
+1. **Compliance and Governance**
 Empowers business owners to maintain control over instructions, chat messages, and other interactions with LLM APIs. This enables the implementation of standards and policies, identification of misuse, and detection of non-compliant content.
 
-5. **Easy Integration** 
+1. **Easy Integration** 
 Prompt Sail seamlessly integrates into your workflow and used libraries. Just modify the `base_url` parameter when creating your provider API object.
 
-6. **Searchable Database**
+1. **Searchable Database**
 All prompts and responses are stored in a MongoDB, making finding and analyzing specific interactions easy. You can export the data for further analysis.
 
-7. **User-Friendly Interface**
+1. **User-Friendly Interface**
 Simple and intuitive UI lets you easily view and filter your transactions (prompts and responses) by project, API provider, LLM model, or tags. -->
 
 
