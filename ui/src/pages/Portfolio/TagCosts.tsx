@@ -1,7 +1,6 @@
 import {
     Area,
     AreaChart,
-    Brush,
     CartesianGrid,
     Legend,
     ResponsiveContainer,
@@ -14,7 +13,6 @@ import { customSorter, dataRounding, dateFormatter } from '../Project/Statistics
 import noData from '../../assets/box.svg';
 import * as styles from '../../styles.json';
 import { schemeCategory10 as colors } from 'd3-scale-chromatic';
-import { Period } from '../../hooks/useGetRangeDatesAndGranularity';
 import { StatisticsParams } from '../../api/types';
 import { useGetTagsUsage } from '../../api/queries';
 const { Title } = Typography;
@@ -23,7 +21,6 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
     dateParams
 }) => {
     const tags = useGetTagsUsage(dateParams);
-    console.log(tags);
     return (
         <>
             <Title level={2} className="h5 m-0">
@@ -49,7 +46,7 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                 date: string;
                                 records: {
                                     tag: string;
-                                    cost: number;
+                                    total_cost: number;
                                 }[];
                             }) => {
                                 const record: (typeof chartData.records)[0] = {
@@ -61,7 +58,7 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                     if (!chartData.legend.includes(legendName)) {
                                         chartData.legend.push(legendName);
                                     }
-                                    record[`cost_${legendName}`] = rec.cost;
+                                    record[`cost_${legendName}`] = rec.total_cost;
                                 });
 
                                 chartData.records.push(record);
@@ -100,7 +97,7 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                         ];
                                     })()}
                                     scale={'time'}
-                                    tickFormatter={(v) => dateFormatter(v, Period.Daily)}
+                                    tickFormatter={(v) => dateFormatter(v, dateParams.period)}
                                     tick={{
                                         fill: styles.Colors.light['Text/colorTextTertiary'],
                                         fontWeight: 600
@@ -133,11 +130,10 @@ const TagCosts: React.FC<{ dateParams: Omit<StatisticsParams, 'project_id'> }> =
                                 <Tooltip
                                     isAnimationActive={false}
                                     formatter={(v) => '$ ' + dataRounding(v, 4)}
+                                    labelFormatter={(label) => {
+                                        return new Date(label).toLocaleString();
+                                    }}
                                     itemSorter={customSorter}
-                                />
-                                <Brush
-                                    dataKey="date"
-                                    tickFormatter={(v) => dateFormatter(v, Period.Daily)}
                                 />
                                 <Legend
                                     align="left"

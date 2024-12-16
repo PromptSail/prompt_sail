@@ -16,10 +16,12 @@ from _datetime import datetime, timedelta
 from PIL import Image
 from transactions.models import Transaction
 from transactions.schemas import (
+    GetTagStatisticTransactionSchema,
     GetTransactionLatencyStatisticsSchema,
     GetTransactionStatusStatisticsSchema,
     GetTransactionUsageStatisticsSchema,
     StatisticTransactionSchema,
+    TagStatisticTransactionSchema,
 )
 
 
@@ -349,12 +351,15 @@ class TransactionParamExtractor:
         patterns = {
             "Azure Embeddings": r".*openai\.azure\.com.*embeddings.*",
             "Azure Completions": r".*openai\.azure\.com.*completions.*",
+            "Azure Images Generations": r".*openai\.azure\.com.*images\/generations.*",
+            "Azure Images Variations": r".*openai\.azure\.com.*images\/variations.*",
+            "Azure Images Edits": r".*openai\.azure\.com.*images\/edits.*",
             "OpenAI Chat Completions": r".*api\.openai\.com.*chat.*completions.*",
             "OpenAI Completions": r".*api\.openai\.com(?!.*chat).*\/completions.*",
             "OpenAI Embeddings": r".*api\.openai\.com.*embeddings.*",
             "OpenAI Images Variations": r".*api\.openai\.com.*images.*variations.*",
-            "OpenAI Image Generations": r".*api\.openai\.com.*images.*generations.*",
-            "OpenAI Image Edits": r".*api\.openai\.com.*images.*edits.*",
+            "OpenAI Images Generations": r".*api\.openai\.com.*images.*generations.*",
+            "OpenAI Images Edits": r".*api\.openai\.com.*images.*edits.*",
             "Groq": r".*api\.groq\.com.*\/openai\/v1\/chat\/completions",
             "Anthropic": r".*anthropic\.com.*",
             "VertexAI": r".*-aiplatform\.googleapis\.com/v1.*",
@@ -364,6 +369,8 @@ class TransactionParamExtractor:
 
         for pattern_name, pattern_regex in patterns.items():
             if re.match(pattern_regex, url):
+                print(pattern_regex)
+                print(url)
                 return pattern_name
         return "Unsupported"
 
@@ -473,6 +480,198 @@ class TransactionParamExtractor:
         extracted["messages"] = messages
         return extracted
 
+    def _extract_from_azure_images_generations(self) -> dict:
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
+        extracted = {
+            "type": "images generations",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content["prompt"],
+            "model": model,
+        }
+        messages = [{"role": "user", "content": self.request_content["prompt"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content_updated["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
+        return extracted
+
+    def _extract_from_azure_images_variations(self) -> dict:
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
+        )
+
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
+        extracted = {
+            "type": "images variations",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content_updated["image"],
+            "model": model,
+        }
+
+        messages = [{"role": "user", "content": self.request_content_updated["image"]}]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content_updated["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
+        return extracted
+
+    def _extract_from_azure_images_edit(self) -> dict:
+        model = []
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
+        model = "/".join(model)
+
+        self.request_content_updated["image"] = resize_b64_image(
+            self.request_content_updated["image"], (128, 128)
+        )
+        self.request_content_updated["mask"] = resize_b64_image(
+            self.request_content_updated["mask"], (128, 128)
+        )
+        extracted = {
+            "type": "images edits",
+            "provider": "Azure OpenAI",
+            "prompt": self.request_content_updated["prompt"],
+            "model": model,
+        }
+        messages = [
+            {
+                "role": "user",
+                "content": self.request_content_updated["prompt"],
+                "image": self.request_content_updated["image"],
+                "mask": self.request_content_updated["mask"],
+            }
+        ]
+        if self.response.__dict__["status_code"] > 200:
+            # possible TOFIX
+            messages.append(
+                {
+                    "role": "error",
+                    "content": self.response_content["error"]["message"],
+                }
+            )
+            extracted["error_message"] = self.response_content["error"][
+                "message"
+            ]
+            extracted["last_message"] = self.response_content["error"][
+                "message"
+            ]
+        else:
+            try:
+                for data in self.response_content["data"]:
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": data["url"],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1][
+                    "url"
+                ]
+            except KeyError:
+                for idx, data in enumerate(self.response_content_updated["data"]):
+                    self.response_content_updated["data"][idx] = resize_b64_image(
+                        data["b64_json"], (128, 128)
+                    )
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": self.response_content_updated["data"][idx],
+                        }
+                    )
+                extracted["last_message"] = self.response_content_updated["data"][-1]
+        extracted["messages"] = messages
+
+        return extracted
+
     def _extract_from_openai_chat_completions(self) -> dict:
         for idx_message, message in enumerate(self.request_content["messages"]):
             if (
@@ -562,17 +761,17 @@ class TransactionParamExtractor:
         )
 
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         extracted = {
             "type": "images variations",
             "provider": "OpenAI",
-            "prompt": self.request_content["image"],
+            "prompt": self.request_content_updated["image"],
             "model": model,
         }
 
@@ -582,13 +781,13 @@ class TransactionParamExtractor:
             messages.append(
                 {
                     "role": "error",
-                    "content": self.response_content_updated["error"]["message"],
+                    "content": self.response_content["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
@@ -621,11 +820,11 @@ class TransactionParamExtractor:
 
     def _extract_from_openai_images_generations(self) -> dict:
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         extracted = {
@@ -643,10 +842,10 @@ class TransactionParamExtractor:
                     "content": self.response_content_updated["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
@@ -679,11 +878,11 @@ class TransactionParamExtractor:
 
     def _extract_from_openai_images_edit(self) -> dict:
         model = []
-        if "quality" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["quality"])
-        if "size" in self.request_content_updated.keys():
-            model.append(self.request_content_updated["size"])
-        model.append(self.request_content_updated["model"])
+        if "quality" in self.request_content.keys():
+            model.append(self.request_content["quality"])
+        if "size" in self.request_content.keys():
+            model.append(self.request_content["size"])
+        model.append(self.request_content["model"])
         model = "/".join(model)
 
         self.request_content_updated["image"] = resize_b64_image(
@@ -711,13 +910,13 @@ class TransactionParamExtractor:
             messages.append(
                 {
                     "role": "error",
-                    "content": self.response_content_updated["error"]["message"],
+                    "content": self.response_content["error"]["message"],
                 }
             )
-            extracted["error_message"] = self.response_content_updated["error"][
+            extracted["error_message"] = self.response_content["error"][
                 "message"
             ]
-            extracted["last_message"] = self.response_content_updated["error"][
+            extracted["last_message"] = self.response_content["error"][
                 "message"
             ]
         else:
@@ -970,6 +1169,12 @@ class TransactionParamExtractor:
             extracted = self._extract_from_azure_embeddings()
         if self.pattern == "Azure Completions":
             extracted = self._extract_from_azure_completions()
+        if self.pattern == "Azure Images Generations":
+            extracted = self._extract_from_azure_images_generations()
+        if self.pattern == "Azure Images Variations":
+            extracted = self._extract_from_azure_images_variations()
+        if self.pattern == "Azure Images Edits":
+            extracted = self._extract_from_azure_images_edit()
         if self.pattern == "OpenAI Chat Completions":
             extracted = self._extract_from_openai_chat_completions()
         if self.pattern == "OpenAI Completions":
@@ -982,9 +1187,9 @@ class TransactionParamExtractor:
             extracted = self._extract_from_vertexai()
         if self.pattern == "OpenAI Images Variations":
             extracted = self._extract_from_openai_images_variations()
-        if self.pattern == "OpenAI Image Generations":
+        if self.pattern == "OpenAI Images Generations":
             extracted = self._extract_from_openai_images_generations()
-        if self.pattern == "OpenAI Image Edits":
+        if self.pattern == "OpenAI Images Edits":
             extracted = self._extract_from_openai_images_edit()
         if self.pattern == "Ollama":
             extracted = self._extract_from_ollama()
@@ -1329,6 +1534,106 @@ def speed_counter_for_transactions(
     return result_list
 
 
+def token_counter_for_transactions_by_tag(
+    transactions: list[TagStatisticTransactionSchema],
+    period: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    cumulative_total_cost: bool = True,
+) -> list[GetTagStatisticTransactionSchema]:
+    """
+    Calculate token usage statistics based on a given period.
+
+    This function takes a list of transactions and calculates token usage statistics
+    aggregated over the specified period (weekly, monthly, hourly, minutely or daily).
+
+    :param transactions: A list of StatisticTransactionSchema objects representing transactions.
+    :param period: A string indicating the aggregation period.
+        Choose from 'weekly', 'monthly' 'hourly', 'minutely' or 'daily'.
+    :param date_from: The starting date for the filter.
+    :param date_to: The ending date for the filter.
+    :param cumulative_total_cost: The switch that decides if total cost is cumulative or not.
+    :return: A list of GetTransactionUsageStatisticsSchema objects containing token usage statistics.
+    """
+    data_dicts = [dto.model_dump() for dto in transactions]
+    df = pd.DataFrame(data_dicts)
+    tags = list(set([transaction.tag for transaction in transactions]))
+    if date_from:
+        for tag in tags:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_from),
+                "tag": tag,
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
+                "total_transactions": 0,
+            }
+    if date_to:
+        for tag in tags:
+            df.loc[len(df)] = {
+                "date": pd.Timestamp(date_to),
+                "tag": tag,
+                "total_input_tokens": 0,
+                "total_output_tokens": 0,
+                "total_input_cost": 0,
+                "total_output_cost": 0,
+                "total_cost": 0,
+                "total_transactions": 0,
+            }
+
+    df.set_index("date", inplace=True)
+    period = pandas_period_from_string(period)
+    result = (
+        df.groupby("tag")
+        .resample(period)
+        .agg(
+            {
+                "tag": "first",
+                "total_input_tokens": "sum",
+                "total_output_tokens": "sum",
+                "total_input_cost": "sum",
+                "total_output_cost": "sum",
+                "total_cost": "sum",
+                "total_transactions": "sum",
+            }
+        )
+    )
+
+    del result["tag"]
+
+    result = result.reset_index()
+
+    result["output_cumulative_total"] = result.groupby("tag")[
+        "total_output_tokens"
+    ].cumsum()
+    result["input_cumulative_total"] = result.groupby("tag")[
+        "total_input_tokens"
+    ].cumsum()
+    result["total_cumulative_cost"] = result.groupby("tag")["total_cost"].cumsum()
+
+    data_dicts = result.to_dict(orient="records")
+
+    result_list = [
+        GetTagStatisticTransactionSchema(
+            tag=data["tag"],
+            date=data["date"],
+            total_input_tokens=data["total_input_tokens"],
+            total_output_tokens=data["total_output_tokens"],
+            input_cumulative_total=data["input_cumulative_total"],
+            output_cumulative_total=data["output_cumulative_total"],
+            total_transactions=data["total_transactions"],
+            total_cost=data["total_cumulative_cost"]
+            if cumulative_total_cost
+            else data["total_cost"],
+        )
+        for data in data_dicts
+    ]
+
+    return result_list
+
+
 class ProviderPrice:
     def __init__(
         self,
@@ -1418,9 +1723,12 @@ class ApiURLBuilder:
                 path = "/" + "/".join(new_path)
 
         url = api_base + f"/{path}".replace("//", "/")
+        print("URL", url)
+
         if api_base.endswith("/"):
             url = api_base + f"{path}".replace("//", "/")
 
+        print("URL", url)
         return url
 
 
@@ -1517,13 +1825,13 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
             else 0
         )
         output_tokens = output_tokens if status == 200 else 0
-
+        input_cost, output_cost = random.uniform(0.00005, 0.05), random.uniform(
+            0.00005, 0.05
+        )
         transactions.append(
             Transaction(
                 id=transaction_id,
                 project_id="project-test",
-                request={},
-                response={},
                 tags=["tag1", "tag2", "tag3"],
                 provider=random.choice(providers),
                 model=random.choice(models),
@@ -1540,6 +1848,9 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
                 request_time=start_date,
                 response_time=stop_date,
                 generation_speed=generation_speed,
+                input_cost=input_cost,
+                output_cost=output_cost,
+                total_cost=input_cost + output_cost,
             )
         )
 
