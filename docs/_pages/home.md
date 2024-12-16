@@ -80,8 +80,8 @@ With PromptSail's transparent logging feature, you can capture and log all inter
 ### ⚖️ The EU AI Act Compliance ⚖️
  Continuous monitoring and storage of all company's communication with GenAI help ensure compliance with Art. 12 (Record-keeping),14 (Human Oversight),  19 (Automatic Logging), and 72 (Post-market Monitoring) of the EU AI Act.
 
-### 🔍 Ethical and responsible GenAI 🔍 *AVAILABLE SOON*
-Continuous validation of GenAI inputs and outputs against safety rules covering various regulations and topics, like data privacy, labor law, discrimination (race, ethnicity, age, gender), politics, etc. This helps provide responsible, ethical and compliant GenAI content in line with company standards and policies. 
+### 🔍 Ethical and Responsible GenAI 🔍 *AVAILABLE SOON*
+Continuous validation of GenAI inputs and outputs against safety rules covering various regulations and topics, like data privacy, labor law, discrimination (race, ethnicity, age, gender), politics, etc. This helps provide responsible, ethical and compliant GenAI content in line with your company standards and policies. 
 
 ### 💰 Better Cost Control 💰
 As a project manager, keeping track of costs is crucial. PromptSail offers cost insights that allow you to track 
