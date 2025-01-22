@@ -1,0 +1,1 @@
+docker buildx build -t registry.gitlab.com/sabside/promptsail:backend --push .
