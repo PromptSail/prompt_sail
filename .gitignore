@@ -172,3 +172,4 @@ examples/poetry.lock
 
 backend/.aider.conf.yml
 ui/.aider.conf.yml
+.aider*

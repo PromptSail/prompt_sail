@@ -4,16 +4,28 @@ import httpx
 from _datetime import datetime, timezone
 from app.dependencies import get_logger, get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from lato import Application, TransactionContext
 from projects.use_cases import get_project_by_slug
 from raw_transactions.use_cases import store_raw_transactions
 from starlette.background import BackgroundTask
 from transactions.use_cases import store_transaction
 from utils import ApiURLBuilder
+import logging
+import json
+import sys
 
 from .app import app
 
+# Create a custom handler and formatter for proxy logs
+proxy_handler = logging.StreamHandler(sys.stdout)
+proxy_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+
+# Create a separate logger for proxy logging
+proxy_logger = logging.getLogger("proxy_logger")
+proxy_logger.addHandler(proxy_handler)
+proxy_logger.setLevel(logging.INFO)
+proxy_logger.propagate = False
 
 async def iterate_stream(response, buffer):
     """
@@ -126,57 +138,111 @@ async def reverse_proxy(
     - Supports various HTTP methods (GET, POST, PUT, PATCH, DELETE)
     """
     logger = get_logger(request)
-
-    # if not request.state.is_handled_by_proxy:
-    #     return RedirectResponse("/ui")
-    # project = ctx.call(get_project_by_slug, slug=request.state.slug)
-
     tags = tags.split(",") if tags is not None else []
     project = ctx.call(get_project_by_slug, slug=project_slug)
     url = ApiURLBuilder.build(project, provider_slug, path, target_path)
-
-    # todo: remove this, this logic should be in the use case
     pricelist = get_provider_pricelist(request)
 
     logger.debug(f"got projects for {project}")
 
-    # Get the body as bytes for non-GET requests
+    # Get the body once and store it
     body = await request.body() if request.method != "GET" else None
+
+    # Create headers without transfer-encoding
+    headers = {k: v for k, v in request.headers.items() 
+              if k.lower() not in ("host", "transfer-encoding")}
+    
+    # Add Content-Length if we have a body
+    if body:
+        headers["Content-Length"] = str(len(body))
+
+    # Log the outgoing request details
+    proxy_logger.info(f"\n{'='*50}\nOutgoing Request to OpenAI\n{'='*50}")
+    proxy_logger.info(f"URL: {url}")
+    proxy_logger.info(f"Method: {request.method}")
+    proxy_logger.info("Headers being sent to OpenAI:")
+    proxy_logger.info(json.dumps(headers, indent=2))
+    
+    # If it's a POST/PUT request, log the body
+    if body:
+        try:
+            body_json = json.loads(body)
+            proxy_logger.info("Request Body to OpenAI:")
+            proxy_logger.info(json.dumps(body_json, indent=2))
+        except json.JSONDecodeError:
+            proxy_logger.info(f"Raw body: {body.decode()}")
 
     # Make the request to the upstream server
     client = httpx.AsyncClient()
-    # todo: copy timeout from request, temporary set to 100s
     timeout = httpx.Timeout(100.0, connect=50.0)
 
     request_time = datetime.now(tz=timezone.utc)
     ai_provider_request = client.build_request(
         method=request.method,
         url=url,
-        headers={
-            k: v for k, v in request.headers.items() if k.lower() not in ("host",)
-        },
+        headers=headers,
         params=request.query_params,
         content=body,
         timeout=timeout,
     )
+    
+    # Log the final request that will be sent
+    proxy_logger.info("\n=== Final Request to OpenAI ===")
+    proxy_logger.info(f"Full URL: {ai_provider_request.url}")
+    proxy_logger.info("Final Headers:")
+    proxy_logger.info(json.dumps(dict(ai_provider_request.headers), indent=2))
+    
+    # Log the actual request body being sent
+    if ai_provider_request.content:
+        try:
+            # Try to decode and parse as JSON
+            content = ai_provider_request.content.decode('utf-8')
+            content_json = json.loads(content)
+            proxy_logger.info("Request Body being sent to OpenAI:")
+            proxy_logger.info(json.dumps(content_json, indent=2))
+        except Exception as e:
+            proxy_logger.info(f"Raw request body: {ai_provider_request.content}")
+
     logger.debug(f"Requesting on: {url}")
     ai_provider_response = await client.send(ai_provider_request, stream=True, follow_redirects=True)
 
+    # Log the response headers immediately
+    proxy_logger.info("\n=== Response from OpenAI ===")
+    proxy_logger.info(f"Status: {ai_provider_response.status_code}")
+    proxy_logger.info("Response Headers:")
+    proxy_logger.info(json.dumps(dict(ai_provider_response.headers), indent=2))
+
+    # If it's a streaming response, collect all chunks and return as one response
     buffer = []
-    return StreamingResponse(
-        iterate_stream(ai_provider_response, buffer),
-        status_code=ai_provider_response.status_code,
-        headers=ai_provider_response.headers,
-        background=BackgroundTask(
-            close_stream,
-            ctx["app"],
-            project.id,
-            ai_provider_request,
-            ai_provider_response,
-            buffer,
-            tags,
-            ai_model_version,
-            pricelist,
-            request_time,
-        ),
-    )
+    if ai_provider_response.headers.get("transfer-encoding") == "chunked":
+        async for chunk in ai_provider_response.aiter_bytes():
+            buffer.append(chunk)
+        content = b''.join(buffer)
+        return Response(
+            content=content,
+            status_code=ai_provider_response.status_code,
+            headers={
+                "Content-Type": "application/json",
+                **{k: v for k, v in ai_provider_response.headers.items() 
+                   if k.lower() not in ("transfer-encoding", "content-encoding")}
+            }
+        )
+    else:
+        # For non-streaming responses, just pass through
+        return StreamingResponse(
+            iterate_stream(ai_provider_response, buffer),
+            status_code=ai_provider_response.status_code,
+            headers=ai_provider_response.headers,
+            background=BackgroundTask(
+                close_stream,
+                ctx["app"],
+                project.id,
+                ai_provider_request,
+                ai_provider_response,
+                buffer,
+                tags,
+                ai_model_version,
+                pricelist,
+                request_time,
+            ),
+        )
