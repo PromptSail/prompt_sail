@@ -169,3 +169,6 @@ backend/poetry.lock
 private_examples/*
 docker-compose-wk.yml
 examples/poetry.lock
+
+backend/.aider.conf.yml
+ui/.aider.conf.yml
