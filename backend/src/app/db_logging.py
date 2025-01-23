@@ -4,6 +4,7 @@ import json
 from typing import Any, Dict, Optional
 from pymongo import MongoClient
 from pymongo.collection import Collection
+from app.logging import logger, logging_context
 
 class Direction(str, Enum):
     INCOMING = "incoming"
@@ -11,9 +12,13 @@ class Direction(str, Enum):
 
 class MongoDBLogger:
     def __init__(self, mongo_url: str, collection_name: str = "proxy_logs"):
-        self.client = MongoClient(mongo_url)
-        self.db = self.client.promptsail
+        logger.info(f"Connecting to MongoDB at {mongo_url}")
+        self.client = MongoClient(mongo_url, serverSelectionTimeoutMS=5000)
+        self.db = self.client.prompt_sail  # Use the known database name
         self.collection: Collection = self.db[collection_name]
+        # Test connection and collection
+        self.client.server_info()
+        logger.info(f"MongoDB connected, using collection: {collection_name}")
 
     def log_request(
         self,
@@ -57,4 +62,6 @@ class MongoDBLogger:
         if status_code is not None:
             log_entry["status_code"] = status_code
 
-        self.collection.insert_one(log_entry)
+        result = self.collection.insert_one(log_entry)
+        logger.info(f"MongoDB log entry inserted with ID: {result.inserted_id}")
+        return result.inserted_id
