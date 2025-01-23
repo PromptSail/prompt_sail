@@ -249,7 +249,7 @@ class TopLevelContainer(containers.DeclarativeContainer):
         container=__self__,
     )
     
-    # todo: remove this, this logic should be in the use case
+    # Restore this for now until we properly move it to the use case
     provider_pricelist = providers.Singleton(
         lambda config: read_provider_pricelist(config.PRICE_LIST_PATH),
         config=config

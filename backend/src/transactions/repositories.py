@@ -4,6 +4,7 @@ from operator import attrgetter
 from seedwork.exceptions import NotFoundException
 from seedwork.repositories import MongoRepository
 from transactions.models import Transaction
+from app.logging import logger
 
 
 class TransactionNotFoundException(NotFoundException):
@@ -28,8 +29,13 @@ class TransactionRepository(MongoRepository):
         :param doc: The document to be added to the repository.
         :return: The result of the add operation.
         """
-        result = super().add(doc)
-        return result
+        try:
+            result = super().add(doc)
+            logger.debug(f"Successfully added transaction to MongoDB: {doc.id}")
+            return result
+        except Exception as e:
+            logger.error(f"Failed to add transaction to MongoDB: {str(e)}")
+            raise
 
     def get_for_project(self, project_id: str) -> list[Transaction]:
         """

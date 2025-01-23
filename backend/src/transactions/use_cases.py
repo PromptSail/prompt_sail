@@ -7,6 +7,9 @@ from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 from transactions.schemas import CreateTransactionSchema
 from utils import create_transaction_query_from_filters
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_transactions_for_project(
@@ -200,6 +203,7 @@ def store_transaction(
     :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
     :return: None
     """
+    logger.debug(f"store_transaction called for project {project_id}")
     
     response_content = utils.preprocess_buffer(ai_provider_request, ai_provider_response, buffer)
 

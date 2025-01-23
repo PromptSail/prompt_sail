@@ -55,9 +55,11 @@ async def iterate_stream(response, buffer):
     Yields:
     - Chunks of the response data as they are received
     """
+    logger.debug("Starting to iterate over response stream")
     async for chunk in response.aiter_raw():
         buffer.append(chunk)
         yield chunk
+    logger.debug(f"Finished stream iteration, buffer size: {len(buffer)}")
 
 
 async def close_stream(
@@ -88,27 +90,53 @@ async def close_stream(
     - **pricelist**: List of provider prices for cost calculation
     - **request_time**: Timestamp when the request was initiated
     """
+    logger = app.dependency_provider["logger"]  # Get logger first
+    logger.debug("Starting close_stream")
     await ai_provider_response.aclose()
+    
+    logger.debug(f"Storing transaction for project {project_id}")
+    logger.debug(f"Request URL: {ai_provider_request.url}")
+    logger.debug(f"Response status: {ai_provider_response.status_code}")
+    logger.debug(f"Buffer length: {len(buffer) if buffer else 0}")
+    
     with app.transaction_context() as ctx:
-        data = ctx.call(
-            store_transaction,
-            project_id=project_id,
-            ai_provider_request=ai_provider_request,
-            ai_provider_response=ai_provider_response,
-            buffer=buffer,
-            tags=tags,
-            ai_model_version=ai_model_version,
-            pricelist=pricelist,
-            request_time=request_time,
-        )
-        ctx.call(
-            store_raw_transactions,
-            request=ai_provider_request,
-            request_content=data["request_content"],
-            response=ai_provider_response,
-            response_content=data["response_content"],
-            transaction_id=data["transaction_id"],
-        )
+        try:
+            logger.debug("Calling store_transaction")
+            data = ctx.call(
+                store_transaction,
+                project_id=project_id,
+                ai_provider_request=ai_provider_request,
+                ai_provider_response=ai_provider_response,
+                buffer=buffer,
+                tags=tags,
+                ai_model_version=ai_model_version,
+                pricelist=pricelist,
+                request_time=request_time,
+            )
+            logger.debug(f"Transaction stored successfully with ID: {data.get('transaction_id')}")
+            
+            # Also store raw transaction data
+            try:
+                logger.debug("Storing raw transaction data")
+                ctx.call(
+                    store_raw_transactions,
+                    request=ai_provider_request,
+                    request_content=data["request_content"],
+                    response=ai_provider_response,
+                    response_content=data["response_content"],
+                    transaction_id=data["transaction_id"],
+                )
+                logger.debug("Raw transaction data stored successfully")
+            except Exception as raw_e:
+                logger.error(f"Failed to store raw transaction data: {str(raw_e)}")
+                logger.error(f"Error type: {type(raw_e)}")
+                logger.error(f"Error args: {raw_e.args}")
+                
+        except Exception as e:
+            logger.error(f"Failed to store transaction: {str(e)}")
+            logger.error(f"Error type: {type(e)}")
+            logger.error(f"Error args: {e.args}")
+            raise
 
 
 @app.api_route(
@@ -263,9 +291,26 @@ async def reverse_proxy(
     # If it's a streaming response, collect all chunks and return as one response
     buffer = []
     if ai_provider_response.headers.get("transfer-encoding") == "chunked":
+        logger.debug("Handling chunked response")
         async for chunk in ai_provider_response.aiter_bytes():
             buffer.append(chunk)
         content = b''.join(buffer)
+        
+        # Set up background task for chunked responses too
+        logger.debug("Setting up background task for chunked response")
+        background = BackgroundTask(
+            close_stream,
+            app=ctx["app"],
+            project_id=project.id,
+            ai_provider_request=ai_provider_request,
+            ai_provider_response=ai_provider_response,
+            buffer=buffer,
+            tags=tags,
+            ai_model_version=ai_model_version,
+            pricelist=pricelist,
+            request_time=request_time,
+        )
+        
         return Response(
             content=content,
             status_code=ai_provider_response.status_code,
@@ -273,24 +318,28 @@ async def reverse_proxy(
                 "Content-Type": "application/json",
                 **{k: v for k, v in ai_provider_response.headers.items() 
                    if k.lower() not in ("transfer-encoding", "content-encoding")}
-            }
+            },
+            background=background  # Add background task here too
         )
     else:
-        # For non-streaming responses, just pass through
+        # In the reverse_proxy function, before returning StreamingResponse
+        logger.debug("Setting up background task for transaction storage")
+        background = BackgroundTask(
+            close_stream,
+            app=ctx["app"],
+            project_id=project.id,
+            ai_provider_request=ai_provider_request,
+            ai_provider_response=ai_provider_response,
+            buffer=buffer,
+            tags=tags,
+            ai_model_version=ai_model_version,
+            pricelist=pricelist,
+            request_time=request_time,
+        )
+        logger.debug("Returning streaming response with background task")
         return StreamingResponse(
             iterate_stream(ai_provider_response, buffer),
             status_code=ai_provider_response.status_code,
             headers=ai_provider_response.headers,
-            background=BackgroundTask(
-                close_stream,
-                ctx["app"],
-                project.id,
-                ai_provider_request,
-                ai_provider_response,
-                buffer,
-                tags,
-                ai_model_version,
-                pricelist,
-                request_time,
-            ),
+            background=background,
         )

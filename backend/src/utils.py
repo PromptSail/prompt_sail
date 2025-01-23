@@ -37,6 +37,9 @@ from transactions.schemas import (
 
 from fastapi import HTTPException
 from datetime import datetime, timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def serialize_data(obj):
@@ -2055,87 +2058,90 @@ def resize_b64_image(b64_image: str | str, new_size: tuple[int, int]) -> str:
     return resized_b64_string
 
 
-def preprocess_buffer(request, response, buffer) -> dict:
-    decoder = response._get_content_decoder()
-    buf = b"".join(buffer)
-    if "localhost" in str(request.__dict__["url"]) or "host.docker.internal" in str(
-        request.__dict__["url"]
-    ):
-        content = buf.decode("utf-8").split("\n")
-        rest, content = content[-2], content[:-2]
-        response_content = {
-            pair.split(":")[0]: pair.split(":")[1]
-            for pair in rest.split(',"context"')[0][1:].replace('"', "").split(",")
+def preprocess_buffer(ai_provider_request, ai_provider_response, buffer):
+    """Preprocess the response buffer."""
+    logger.debug("Starting buffer preprocessing")
+    try:
+        # If we have raw bytes in buffer
+        if buffer and isinstance(buffer[0], bytes):
+            buf = b''.join(buffer)
+            logger.debug(f"Raw buffer size: {len(buf)} bytes")
+            
+            # Check content encoding
+            encoding = ai_provider_response.headers.get('content-encoding', '').lower()
+            logger.debug(f"Response content encoding: {encoding}")
+            
+            decoded_content = None
+            if encoding == 'br':  # Brotli
+                import brotli
+                try:
+                    decoded = brotli.decompress(buf)
+                    decoded_content = decoded.decode('utf-8')
+                except Exception as e:
+                    logger.error(f"Brotli decompression failed: {str(e)}")
+                    # Fall back to raw content
+                    decoded_content = buf.decode('utf-8', errors='ignore')
+            else:
+                # Handle other encodings or no encoding
+                decoded_content = buf.decode('utf-8', errors='ignore')
+                
+            # Try to parse as JSON
+            try:
+                logger.debug(f"Attempting to parse JSON from: {decoded_content[:200]}...")
+                return json.loads(decoded_content)
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON parsing failed: {str(e)}")
+                # Handle streaming response format
+                content = []
+                chunks = decoded_content.replace("data: ", "").split("\n\n")[::-1][3:][::-1]
+                for chunk in chunks:
+                    try:
+                        content.append(json.loads(chunk)["choices"][0]["delta"]["content"].replace("\n", " "))
+                    except (json.JSONDecodeError, KeyError, IndexError) as e:
+                        logger.error(f"Failed to parse chunk: {str(e)}")
+                        continue
+                
+                content = "".join(content)
+                example = json.loads(chunks[0])
+                messages = json.loads(ai_provider_request._content.decode("utf8"))["messages"]
+                
+                input_tokens = count_tokens_for_streaming_response(messages, example["model"])
+                output_tokens = count_tokens_for_streaming_response(content, example["model"])
+                
+                return {
+                    "id": example["id"],
+                    "object": "chat.completion",
+                    "created": example["created"],
+                    "model": example["model"],
+                    "choices": [{
+                        "index": 0,
+                        "message": {"role": "assistant", "content": content},
+                        "logprobs": None,
+                        "finish_reason": "stop"
+                    }],
+                    "system_fingerprint": example.get("system_fingerprint"),
+                    "usage": {
+                        "prompt_tokens": input_tokens,
+                        "completion_tokens": output_tokens,
+                        "total_tokens": input_tokens + output_tokens
+                    }
+                }
+        else:
+            # If buffer contains already decoded content
+            content = ''.join(buffer) if buffer else ''
+            try:
+                return json.loads(content)
+            except json.JSONDecodeError:
+                logger.error("Failed to parse non-bytes buffer as JSON")
+                return {"error": "Invalid JSON response"}
+            
+    except Exception as e:
+        logger.error(f"Buffer preprocessing failed: {str(e)}")
+        # Return a valid dict as fallback
+        return {
+            "error": str(e),
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         }
-        content = "".join(
-            list(
-                map(
-                    lambda msg: [
-                        text
-                        for text in [text for text in msg[1:-1].split('response":"')][
-                            1
-                        ].split('"')
-                    ][0],
-                    content,
-                )
-            )
-        )
-        response_content["response"] = content
-    else:
-        try:
-            response_content = decoder.decode(buf)
-            response_content = json.loads(response_content)
-        except json.JSONDecodeError:
-            content = []
-            for i in (
-                chunks := buf.decode()
-                .replace("data: ", "")
-                .split("\n\n")[::-1][3:][::-1]
-            ):
-                content.append(
-                    json.loads(i)["choices"][0]["delta"]["content"].replace("\n", " ")
-                )
-            content = "".join(content)
-            example = json.loads(chunks[0])
-            messages = [
-                message
-                for message in json.loads(request.__dict__["_content"].decode("utf8"))[
-                    "messages"
-                ]
-            ]
-            input_tokens = count_tokens_for_streaming_response(
-                messages, example["model"]
-            )
-            output_tokens = count_tokens_for_streaming_response(
-                content, example["model"]
-            )
-            response_content = dict(
-                id=example["id"],
-                object="chat.completion",
-                created=example["created"],
-                model=example["model"],
-                choices=[
-                    dict(
-                        index=0,
-                        message=dict(role="assistant", content=content),
-                        logprobs=None,
-                        finish_reason="stop",
-                    )
-                ],
-                system_fingerprint=example["system_fingerprint"],
-                usage=dict(
-                    prompt_tokens=input_tokens,
-                    completion_tokens=output_tokens,
-                    total_tokens=input_tokens + output_tokens,
-                ),
-            )
-    if isinstance(response_content, list):
-        response_content = response_content[0]
-    if "usage" not in response_content:
-        response_content["usage"] = dict(
-            prompt_tokens=0, completion_tokens=0, total_tokens=0
-        )
-    return response_content
 
 
 class PeriodEnum(str, Enum):
