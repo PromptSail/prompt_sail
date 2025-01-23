@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
 import logging
+import os
+from fastapi import FastAPI, Request
+from app.logging import logger, logging_context
 import json
 import sys
 from starlette.concurrency import iterate_in_threadpool
@@ -16,11 +18,16 @@ container.config.override(config)
 request_handler = logging.StreamHandler(sys.stdout)
 request_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 
+# Check logging settings
+log_to_stdout = os.getenv("LOG_TO_STDOUT", "True").lower() == "true"
+
 # Create a separate logger for request logging
+root_logger = logging.getLogger()
+root_logger.handlers = []  # Remove default handlers
 request_logger = logging.getLogger("request_logger")
 request_logger.addHandler(request_handler)
 request_logger.setLevel(logging.INFO)
-# Prevent logs from being passed to parent handlers
+# Prevent logs from being propagated to parent loggers
 request_logger.propagate = False
 
 @asynccontextmanager
@@ -39,6 +46,11 @@ async def fastapi_lifespan(app: FastAPI):
     with application.transaction_context() as ctx:
         project_repository = ctx["project_repository"]
         settings_repository = ctx["settings_repository"]
+
+        log_to_mongodb = os.getenv("LOG_TO_MONGODB", "False").lower() == "true"
+        logger.info(f"log_to_mongodb: {log_to_mongodb}")
+        logger.info(f"log_to_stdout: {log_to_stdout}")
+
 
         if project_repository.count() == 0:
             data1 = Project(
@@ -94,44 +106,31 @@ async def fastapi_lifespan(app: FastAPI):
     yield
     ...
 
-# Add this middleware function before creating the FastAPI app
+# Create the FastAPI app first
+app = FastAPI(
+    lifespan=fastapi_lifespan, 
+    title="PromptSail API",
+    description="API for PromptSail - prompt management and monitoring tool",
+    version="0.5.4",
+    openapi_version="3.1.0",
+)
+
+@app.middleware("http")
 async def log_request_middleware(request: Request, call_next):
+    if not log_to_stdout:
+        return await call_next(request)
+        
     request_logger.info(f"\n{'='*50}\nIncoming Request: {request.method} {request.url.path}\n{'='*50}")
     request_logger.info(f"Request Headers:\n{json.dumps(dict(request.headers), indent=2)}")
     
-    # Only try to log body for POST/PUT/PATCH requests
     if request.method in ["POST", "PUT", "PATCH"]:
         body = await request.body()
         if body:
             try:
                 body_json = json.loads(body)
-                
-                # Specifically log if this is an OpenAI request
-                if "chat/completions" in request.url.path:
-                    request_logger.info("\n=== OpenAI Request Details ===")
-                    request_logger.info(f"Model: {body_json.get('model', 'not specified')}")
-                    request_logger.info(f"Temperature: {body_json.get('temperature', 'not specified')}")
-                    request_logger.info(f"Stream: {body_json.get('stream', 'not specified')}")
-                    if "messages" in body_json:
-                        request_logger.info(f"Number of messages: {len(body_json['messages'])}")
-                        request_logger.info("\nSystem Message:")
-                        system_msg = next((m for m in body_json['messages'] if m['role'] == 'system'), None)
-                        if system_msg:
-                            request_logger.info(f"{system_msg['content'][:200]}...")
-                        request_logger.info("\nLast User Message:")
-                        last_user_msg = next((m for m in reversed(body_json['messages']) if m['role'] == 'user'), None)
-                        if last_user_msg:
-                            request_logger.info(last_user_msg['content'])
-                    request_logger.info("\nFull Request Payload:")
-                    request_logger.info(json.dumps(body_json, indent=2))
+                request_logger.info(f"Request Body:\n{json.dumps(body_json, indent=2)}")
             except json.JSONDecodeError:
-                request_logger.info(f"Request Body (raw): {body.decode()}")
-            
-            # Restore the request body
-            async def get_body():
-                return body
-            request._body = body
-            request.body = get_body
+                request_logger.info(f"Raw body: {body.decode()}")
 
     response = await call_next(request)
     
@@ -168,17 +167,5 @@ async def log_request_middleware(request: Request, call_next):
             request_logger.error(f"Error traceback: {traceback.format_exc()}")
     
     return response
-
-# Modify the FastAPI app creation to include the middleware
-app = FastAPI(
-    lifespan=fastapi_lifespan, 
-    title="PromptSail API",
-    description="API for PromptSail - prompt management and monitoring tool",
-    version="0.5.4",
-    openapi_version="3.1.0",
-)
-
-# Add the middleware to the app
-app.middleware("http")(log_request_middleware)
 
 app.container = container

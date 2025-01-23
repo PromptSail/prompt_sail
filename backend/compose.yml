@@ -9,6 +9,8 @@ services:
     environment:
       - MONGO_URL=mongodb://mongodb:27017
       - DEBUG=True
+      - LOG_TO_MONGODB=True
+      - LOG_TO_STDOUT=True
     depends_on:
       - mongodb
     command: poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload

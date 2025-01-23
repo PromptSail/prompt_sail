@@ -3,7 +3,7 @@ from typing import Annotated
 import httpx
 from _datetime import datetime, timezone
 from app.dependencies import get_logger, get_provider_pricelist, get_transaction_context
-from fastapi import Depends, Request
+from fastapi import Depends, Request, HTTPException
 from fastapi.responses import StreamingResponse, Response
 from lato import Application, TransactionContext
 from projects.use_cases import get_project_by_slug
@@ -14,6 +14,8 @@ from utils import ApiURLBuilder
 import logging
 import json
 import sys
+import os
+from .db_logging import MongoDBLogger, Direction
 
 from .app import app
 
@@ -21,11 +23,23 @@ from .app import app
 proxy_handler = logging.StreamHandler(sys.stdout)
 proxy_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 
+# Check if we should log to stdout
+log_to_mongodb = os.getenv("LOG_TO_MONGODB", "False").lower() == "true"
+log_to_stdout = os.getenv("LOG_TO_STDOUT", "True").lower() == "true"
+
 # Create a separate logger for proxy logging
 proxy_logger = logging.getLogger("proxy_logger")
-proxy_logger.addHandler(proxy_handler)
+if log_to_stdout:
+    proxy_logger.addHandler(proxy_handler)
 proxy_logger.setLevel(logging.INFO)
 proxy_logger.propagate = False
+
+# Initialize MongoDB logger if enabled
+mongo_logger = None
+if log_to_mongodb:
+    mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+    mongo_logger = MongoDBLogger(mongo_url)
+    proxy_logger.info("MongoDB logging enabled")
 
 async def iterate_stream(response, buffer):
     """
@@ -139,7 +153,20 @@ async def reverse_proxy(
     """
     logger = get_logger(request)
     tags = tags.split(",") if tags is not None else []
-    project = ctx.call(get_project_by_slug, slug=project_slug)
+    try:
+        project = ctx.call(get_project_by_slug, slug=project_slug)
+    except Exception:
+        if mongo_logger:
+            mongo_logger.log_request(
+                direction=Direction.OUTGOING, 
+                method=request.method, 
+                url=str(request.url), 
+                headers=dict(request.headers), 
+                body=None, 
+                status_code=404
+            )
+        raise HTTPException(status_code=404, detail=f"Project not found: {project_slug}")
+
     url = ApiURLBuilder.build(project, provider_slug, path, target_path)
     pricelist = get_provider_pricelist(request)
 
@@ -157,11 +184,12 @@ async def reverse_proxy(
         headers["Content-Length"] = str(len(body))
 
     # Log the outgoing request details
-    proxy_logger.info(f"\n{'='*50}\nOutgoing Request to OpenAI\n{'='*50}")
-    proxy_logger.info(f"URL: {url}")
-    proxy_logger.info(f"Method: {request.method}")
-    proxy_logger.info("Headers being sent to OpenAI:")
-    proxy_logger.info(json.dumps(headers, indent=2))
+    if log_to_stdout:
+        proxy_logger.info(f"\n{'='*50}\nOutgoing Request to OpenAI\n{'='*50}")
+        proxy_logger.info(f"URL: {url}")
+        proxy_logger.info(f"Method: {request.method}")
+        proxy_logger.info("Headers being sent to OpenAI:")
+        proxy_logger.info(json.dumps(headers, indent=2))
     
     # If it's a POST/PUT request, log the body
     if body:
@@ -171,6 +199,16 @@ async def reverse_proxy(
             proxy_logger.info(json.dumps(body_json, indent=2))
         except json.JSONDecodeError:
             proxy_logger.info(f"Raw body: {body.decode()}")
+
+    # Log to MongoDB if enabled
+    if mongo_logger:
+        mongo_logger.log_request(
+            direction=Direction.OUTGOING,
+            method=request.method,
+            url=str(url),
+            headers=dict(headers),
+            body=body.decode() if body else None
+        )
 
     # Make the request to the upstream server
     client = httpx.AsyncClient()
@@ -211,6 +249,16 @@ async def reverse_proxy(
     proxy_logger.info(f"Status: {ai_provider_response.status_code}")
     proxy_logger.info("Response Headers:")
     proxy_logger.info(json.dumps(dict(ai_provider_response.headers), indent=2))
+
+    # Log response to MongoDB if enabled
+    if mongo_logger:
+        mongo_logger.log_request(
+            direction=Direction.INCOMING,
+            method=request.method,
+            url=str(url),
+            headers=dict(ai_provider_response.headers),
+            status_code=ai_provider_response.status_code
+        )
 
     # If it's a streaming response, collect all chunks and return as one response
     buffer = []
