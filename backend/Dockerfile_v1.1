@@ -15,7 +15,8 @@ FROM python:3.10.2-slim-buster AS base
 ENV LANG=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    POETRY_VERSION=1.7.1 
+    POETRY_VERSION=1.7.1 \
+    PYTHONPATH=/src
 
     
 WORKDIR /src    
@@ -71,6 +72,7 @@ ARG BUILD_SHA
 ENV BUILD_SHA=${BUILD_SHA}
 
 ENV VIRTUAL_ENV=/src/.venv \
+    PYTHONPATH=/src \
     PATH="/src/.venv/bin:$PATH"
 
 # copy the packages build in runtime stage
@@ -84,4 +86,4 @@ COPY --from=runtime ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 EXPOSE 8000
 
 # Run the application
-CMD uvicorn app:app --proxy-headers --host 0.0.0.0 --port=${PORT:-8000}
+CMD cd /src && uvicorn app:app --proxy-headers --host 0.0.0.0 --port=${PORT:-8000}

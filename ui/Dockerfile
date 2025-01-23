@@ -27,9 +27,9 @@ FROM nginx:1.25-alpine-slim
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # copy the custom nginx configuration
-COPY /deployment/nginx-custom.conf /etc/nginx/conf.d/default.conf
+COPY ./deployment/nginx-custom.conf /etc/nginx/conf.d/default.conf
 # copy the custom entrypoint script that replaces the placeholders in the ui/.env.production file
-COPY /deployment/docker_env_replacement.sh /docker-entrypoint.d/docker_env_replacement.sh
+COPY ./deployment/docker_env_replacement.sh /docker-entrypoint.d/docker_env_replacement.sh
 
 RUN chmod +x /docker-entrypoint.d/docker_env_replacement.sh
 

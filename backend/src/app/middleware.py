@@ -1,6 +1,8 @@
 from config import config
 from fastapi import HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from starlette.requests import ClientDisconnect
+import json
 
 from .app import app
 from .dependencies import get_logger
@@ -115,3 +117,18 @@ async def __call__(request: Request, call_next):
 
 #     response = await call_next(request)
 #     return response
+
+class LoggingMiddleware:
+    async def __call__(self, request: Request, call_next):
+        try:
+            try:
+                response = await call_next(request)
+                return response
+            except ClientDisconnect:
+                return Response(
+                    content=json.dumps({"error": "Client disconnected"}),
+                    status_code=499
+                )
+        except Exception as e:
+            logger.error(f"Error message: {str(e)}. Args: {e.args}")
+            raise

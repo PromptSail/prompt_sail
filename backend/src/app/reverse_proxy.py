@@ -1,7 +1,7 @@
 from typing import Annotated
 
 import httpx
-from _datetime import datetime, timezone
+from datetime import datetime, timezone
 from app.dependencies import get_logger, get_provider_pricelist, get_transaction_context
 from fastapi import Depends, Request, HTTPException
 from fastapi.responses import StreamingResponse, Response
@@ -15,7 +15,9 @@ import logging
 import json
 import sys
 import os
+from app.logging import logger
 from .db_logging import MongoDBLogger, Direction
+from starlette.requests import ClientDisconnect
 
 from .app import app
 
@@ -24,7 +26,6 @@ proxy_handler = logging.StreamHandler(sys.stdout)
 proxy_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 
 # Check if we should log to stdout
-log_to_mongodb = os.getenv("LOG_TO_MONGODB", "False").lower() == "true"
 log_to_stdout = os.getenv("LOG_TO_STDOUT", "True").lower() == "true"
 
 # Create a separate logger for proxy logging
@@ -33,13 +34,6 @@ if log_to_stdout:
     proxy_logger.addHandler(proxy_handler)
 proxy_logger.setLevel(logging.INFO)
 proxy_logger.propagate = False
-
-# Initialize MongoDB logger if enabled
-mongo_logger = None
-if log_to_mongodb:
-    mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-    mongo_logger = MongoDBLogger(mongo_url)
-    proxy_logger.info("MongoDB logging enabled")
 
 async def iterate_stream(response, buffer):
     """
@@ -57,8 +51,16 @@ async def iterate_stream(response, buffer):
     """
     logger.debug("Starting to iterate over response stream")
     async for chunk in response.aiter_raw():
-        buffer.append(chunk)
-        yield chunk
+        try:
+            buffer.append(chunk)
+            yield chunk
+        except ClientDisconnect:
+            logger.warning("Client disconnected during stream")
+            await response.aclose()
+            return
+        except Exception as e:
+            logger.error(f"Error during stream iteration: {str(e)}")
+            raise
     logger.debug(f"Finished stream iteration, buffer size: {len(buffer)}")
 
 
@@ -184,15 +186,6 @@ async def reverse_proxy(
     try:
         project = ctx.call(get_project_by_slug, slug=project_slug)
     except Exception:
-        if mongo_logger:
-            mongo_logger.log_request(
-                direction=Direction.OUTGOING, 
-                method=request.method, 
-                url=str(request.url), 
-                headers=dict(request.headers), 
-                body=None, 
-                status_code=404
-            )
         raise HTTPException(status_code=404, detail=f"Project not found: {project_slug}")
 
     url = ApiURLBuilder.build(project, provider_slug, path, target_path)
@@ -201,7 +194,15 @@ async def reverse_proxy(
     logger.debug(f"got projects for {project}")
 
     # Get the body once and store it
-    body = await request.body() if request.method != "GET" else None
+    try:
+        body = await request.body() if request.method != "GET" else None
+    except ClientDisconnect:
+        return Response(
+            content=json.dumps({
+                "error": "Client disconnected during request"
+            }),
+            status_code=499
+        )
 
     # Create headers without transfer-encoding
     headers = {k: v for k, v in request.headers.items() 
@@ -210,6 +211,12 @@ async def reverse_proxy(
     # Add Content-Length if we have a body
     if body:
         headers["Content-Length"] = str(len(body))
+    
+    # Preserve WebSocket headers if present
+    if request.headers.get("upgrade", "").lower() == "websocket":
+        headers["Connection"] = request.headers.get("Connection")
+        headers["Upgrade"] = request.headers.get("Upgrade")
+        headers["Sec-WebSocket-Version"] = request.headers.get("Sec-WebSocket-Version")
 
     # Log the outgoing request details
     if log_to_stdout:
@@ -227,16 +234,6 @@ async def reverse_proxy(
             proxy_logger.info(json.dumps(body_json, indent=2))
         except json.JSONDecodeError:
             proxy_logger.info(f"Raw body: {body.decode()}")
-
-    # Log to MongoDB if enabled
-    if mongo_logger:
-        mongo_logger.log_request(
-            direction=Direction.OUTGOING,
-            method=request.method,
-            url=str(url),
-            headers=dict(headers),
-            body=body.decode() if body else None
-        )
 
     # Make the request to the upstream server
     client = httpx.AsyncClient()
@@ -278,22 +275,20 @@ async def reverse_proxy(
     proxy_logger.info("Response Headers:")
     proxy_logger.info(json.dumps(dict(ai_provider_response.headers), indent=2))
 
-    # Log response to MongoDB if enabled
-    if mongo_logger:
-        mongo_logger.log_request(
-            direction=Direction.INCOMING,
-            method=request.method,
-            url=str(url),
-            headers=dict(ai_provider_response.headers),
-            status_code=ai_provider_response.status_code
-        )
-
     # If it's a streaming response, collect all chunks and return as one response
     buffer = []
     if ai_provider_response.headers.get("transfer-encoding") == "chunked":
         logger.debug("Handling chunked response")
         async for chunk in ai_provider_response.aiter_bytes():
-            buffer.append(chunk)
+            try:
+                buffer.append(chunk)
+            except ClientDisconnect:
+                logger.warning("Client disconnected during chunked response")
+                await ai_provider_response.aclose()
+                return Response(status_code=499)
+            except Exception as e:
+                logger.error(f"Error processing chunk: {str(e)}")
+                raise
         content = b''.join(buffer)
         
         # Set up background task for chunked responses too

@@ -2,6 +2,7 @@ import copy
 import inspect
 import json
 import uuid
+import os
 from logging import Logger
 from typing import Optional
 from uuid import UUID
@@ -20,6 +21,7 @@ from raw_transactions.repositories import RawTransactionRepository
 from settings.repositories import SettingsRepository
 from transactions.repositories import TransactionRepository
 from utils import read_provider_pricelist
+from app.db_logging import MongoDBLogger  # Added import
 
 # logger = logging.getLogger("ps")
 # logger.setLevel(logging.DEBUG)
@@ -237,9 +239,17 @@ class TopLevelContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     logger = providers.Object(logger)
     db_client = providers.Singleton(
-        lambda config: pymongo.MongoClient(config.MONGO_URL).get_database(
-            config.DATABASE_NAME
-        ),
+        lambda config: (
+            logger.info(f"Attempting MongoDB connection with URL: {config.MONGO_URL} and database: {config.DATABASE_NAME}"),
+            pymongo.MongoClient(
+                config.MONGO_URL,
+                serverSelectionTimeoutMS=int(os.getenv("MONGO_SERVER_TIMEOUT_MS", "30000")),
+                connectTimeoutMS=int(os.getenv("MONGO_CONNECT_TIMEOUT_MS", "20000")),
+                socketTimeoutMS=int(os.getenv("MONGO_SOCKET_TIMEOUT_MS", "20000")),
+                retryWrites=True,
+                retryReads=True
+            ).get_database(config.DATABASE_NAME)
+        )[1],
         config=config,
     )
     application: Application = providers.Singleton(
@@ -253,6 +263,12 @@ class TopLevelContainer(containers.DeclarativeContainer):
     provider_pricelist = providers.Singleton(
         lambda config: read_provider_pricelist(config.PRICE_LIST_PATH),
         config=config
+    )
+
+    # MongoDB logger for proxy requests
+    mongo_logger = providers.Singleton(
+        MongoDBLogger,
+        db_client=db_client
     )
 
 

@@ -1,1 +1,1 @@
-docker buildx build -t registry.gitlab.com/sabside/promptsail:backend --push .
+docker buildx build --platform linux/amd64 -t registry.gitlab.com/sabside/promptsail:backend --push .
