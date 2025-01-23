@@ -217,48 +217,78 @@ def store_transaction(
     params = param_extractor.extract()
     logger.debug(f"Extracted params: {json.dumps(params)[:200]}...")
 
-    # Get token counts with safe defaults
-    prompt_tokens = params.get("prompt_tokens", 0)
-    completion_tokens = params.get("completion_tokens", 0)
-    total_tokens = params.get("total_tokens", 0)
+    # Extract params safely for logging
+    logger.debug(f"Token counts from params - input: {params.get('input_tokens')}, output: {params.get('output_tokens')}, total: {params.get('total_tokens')}")
 
     # Calculate costs based on pricelist
-    ai_model_version = ai_model_version if ai_model_version is not None else params.get("model", "")
-    matching_pricelist = [
-        item for item in pricelist
-        if item.provider == params.get("provider", "") and re.match(item.match_pattern, ai_model_version)
+    ai_model_version = (
+        ai_model_version if ai_model_version is not None else params["model"]
+    )
+    
+    pricelist = [
+        item
+        for item in pricelist
+        if item.provider == params["provider"]
+        and re.match(item.match_pattern, ai_model_version)
     ]
-    logger.debug(f"Found {len(matching_pricelist)} matching pricelist items")
 
-    # Calculate costs
-    input_cost = output_cost = total_cost = 0
-    if prompt_tokens is not None and completion_tokens is not None:
-        if matching_pricelist:
-            pricelist_item = matching_pricelist[0]
-            if pricelist_item.mode == "image_generation":
+    if (
+        params["status_code"] == 200
+        and params["input_tokens"] is not None
+        and params["output_tokens"] is not None
+    ):
+        if len(pricelist) > 0:
+            if pricelist[0].mode == "image_generation":
                 input_cost = 0
-                output_cost = int(param_extractor.request_content.get("n", 1)) * pricelist_item.total_price
+                output_cost = (
+                    int(param_extractor.request_content["n"]) * pricelist[0].total_price
+                )
                 total_cost = output_cost
             else:
-                if pricelist_item.input_price == 0:
-                    input_cost = output_cost = 0
-                    total_cost = (prompt_tokens + completion_tokens) / 1000 * pricelist_item.total_price
+                if pricelist[0].input_price == 0:
+                    input_cost, output_cost = 0, 0
+                    total_cost = (
+                        (params["input_tokens"] + params["output_tokens"])
+                        / 1000
+                        * pricelist[0].total_price
+                    )
                 else:
-                    input_cost = pricelist_item.input_price * (prompt_tokens / 1000)
-                    output_cost = pricelist_item.output_price * (completion_tokens / 1000)
+                    input_cost = pricelist[0].input_price * (
+                        params["input_tokens"] / 1000
+                    )
+                    output_cost = pricelist[0].output_price * (
+                        params["output_tokens"] / 1000
+                    )
                     total_cost = input_cost + output_cost
-            logger.debug(f"Calculated costs - input: {input_cost}, output: {output_cost}, total: {total_cost}")
         else:
-            logger.debug("No matching pricelist item found, costs set to 0")
+            input_cost, output_cost, total_cost = None, None, None
+    else:
+        input_cost, output_cost, total_cost = 0, 0, 0
 
-    # Calculate generation speed
-    generation_speed = None
-    if completion_tokens and completion_tokens > 0:
+    # Calculate generation speed with logging
+    if params.get("output_tokens") is not None and params.get("output_tokens") > 0:
         try:
-            generation_speed = completion_tokens / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
-            logger.debug(f"Calculated generation speed: {generation_speed}")
+            current_time = datetime.now(tz=timezone.utc)
+            time_diff = (current_time - request_time).total_seconds()
+            logger.debug(f"Speed calculation - tokens: {params.get('output_tokens')}, time_diff: {time_diff}")
+            
+            generation_speed = (
+                params["output_tokens"]
+                / time_diff
+            )
+            logger.debug(f"Calculated generation speed: {generation_speed} tokens/second")
         except Exception as e:
             logger.error(f"Failed to calculate generation speed: {str(e)}")
+            generation_speed = None
+    elif params.get("output_tokens") == 0:
+        generation_speed = None
+        logger.debug("Generation speed set to None - output_tokens is 0")
+    else:
+        generation_speed = 0
+        logger.debug("Generation speed set to 0 - output_tokens is None")
+
+    # Let's also log the params to see what we're getting from the extractor
+    logger.debug(f"Full params from extractor: {json.dumps(params)}")
 
     # Create transaction
     transaction = Transaction(
@@ -273,9 +303,9 @@ def store_transaction(
         ai_model_version=ai_model_version,
         provider=params.get("provider", "unknown"),
         model=params.get("model", "unknown"),
-        prompt_tokens=prompt_tokens,
-        completion_tokens=completion_tokens,
-        total_tokens=total_tokens,
+        prompt_tokens=params.get("prompt_tokens", 0),
+        completion_tokens=params.get("completion_tokens", 0),
+        total_tokens=params.get("total_tokens", 0),
         input_cost=input_cost,
         output_cost=output_cost,
         total_cost=total_cost,
@@ -284,8 +314,8 @@ def store_transaction(
         last_message=last_message,
         type="chat",
         os=params.get("os", "unknown"),
-        input_tokens=prompt_tokens,
-        output_tokens=completion_tokens,
+        input_tokens=params.get("input_tokens", 0),
+        output_tokens=params.get("output_tokens", 0),
         library=params.get("library", "unknown"),
         messages=params.get("messages", []),
         error_message=params.get("error_message", None)
