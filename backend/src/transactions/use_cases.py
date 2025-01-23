@@ -1,5 +1,6 @@
 import json
 import re
+import uuid
 
 import utils
 from _datetime import datetime, timezone
@@ -189,114 +190,106 @@ def store_transaction(
     request_time,
     transaction_repository: TransactionRepository,
 ) -> dict:
-    """
-    Store a transaction in the repository based on request, response, and additional information.
-
-    :param ai_provider_request: The request object.
-    :param ai_provider_response: The response object.
-    :param buffer: The buffer containing the response content.
-    :param project_id: The Project ID associated with the transaction.
-    :param tags: The tags associated with the transaction.
-    :param request_time: The timestamp of the request.
-    :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
-    :param pricelist: The pricelist for the models.
-    :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
-    :return: None
-    """
+    """Store a transaction in the repository."""
     logger.debug(f"store_transaction called for project {project_id}")
     
     response_content = utils.preprocess_buffer(ai_provider_request, ai_provider_response, buffer)
+    logger.debug(f"Preprocessed response content: {json.dumps(response_content)[:200]}...")
+
+    # Extract request content
+    try:
+        request_json = json.loads(ai_provider_request._content.decode("utf8"))
+        prompt = request_json.get("messages", [{}])[-1].get("content", "")
+    except Exception as e:
+        logger.error(f"Failed to extract prompt: {str(e)}")
+        prompt = ""
+
+    # Extract response content
+    try:
+        last_message = response_content.get("choices", [{}])[0].get("message", {}).get("content", "")
+    except Exception as e:
+        logger.error(f"Failed to extract last message: {str(e)}")
+        last_message = ""
 
     param_extractor = utils.TransactionParamExtractor(
         ai_provider_request, ai_provider_response, response_content
     )
     params = param_extractor.extract()
+    logger.debug(f"Extracted params: {json.dumps(params)[:200]}...")
 
-    ai_model_version = (
-        ai_model_version if ai_model_version is not None else params["model"]
-    )
-    
-    pricelist = [
-        item
-        for item in pricelist
-        if item.provider == params["provider"]
-        and re.match(item.match_pattern, ai_model_version)
+    # Calculate costs based on pricelist
+    ai_model_version = ai_model_version if ai_model_version is not None else params["model"]
+    matching_pricelist = [
+        item for item in pricelist
+        if item.provider == params["provider"] and re.match(item.match_pattern, ai_model_version)
     ]
+    logger.debug(f"Found {len(matching_pricelist)} matching pricelist items")
 
-    if (
-        params["status_code"] == 200
-        and params["input_tokens"] is not None
-        and params["output_tokens"] is not None
-    ):
-        if len(pricelist) > 0:
-            if pricelist[0].mode == "image_generation":
+    # Calculate costs
+    if params["prompt_tokens"] is not None and params["completion_tokens"] is not None:
+        if matching_pricelist:
+            pricelist_item = matching_pricelist[0]
+            if pricelist_item.mode == "image_generation":
                 input_cost = 0
-                output_cost = (
-                    int(param_extractor.request_content["n"]) * pricelist[0].total_price
-                )
+                output_cost = int(param_extractor.request_content.get("n", 1)) * pricelist_item.total_price
                 total_cost = output_cost
             else:
-                if pricelist[0].input_price == 0:
+                if pricelist_item.input_price == 0:
                     input_cost, output_cost = 0, 0
-                    total_cost = (
-                        (params["input_tokens"] + params["output_tokens"])
-                        / 1000
-                        * pricelist[0].total_price
-                    )
+                    total_cost = (params["prompt_tokens"] + params["completion_tokens"]) / 1000 * pricelist_item.total_price
                 else:
-                    input_cost = pricelist[0].input_price * (
-                        params["input_tokens"] / 1000
-                    )
-                    output_cost = pricelist[0].output_price * (
-                        params["output_tokens"] / 1000
-                    )
+                    input_cost = pricelist_item.input_price * (params["prompt_tokens"] / 1000)
+                    output_cost = pricelist_item.output_price * (params["completion_tokens"] / 1000)
                     total_cost = input_cost + output_cost
+            logger.debug(f"Calculated costs - input: {input_cost}, output: {output_cost}, total: {total_cost}")
         else:
-            input_cost, output_cost, total_cost = None, None, None
+            input_cost = output_cost = total_cost = None
+            logger.debug("No matching pricelist item found, costs set to None")
     else:
-        input_cost, output_cost, total_cost = 0, 0, 0
+        input_cost = output_cost = total_cost = 0
+        logger.debug("Token counts not available, costs set to 0")
 
-    if params["output_tokens"] is not None and params["output_tokens"] > 0:
-        generation_speed = (
-            params["output_tokens"]
-            / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
-        )
-    elif params["output_tokens"] == 0:
+    # Calculate generation speed
+    if params["completion_tokens"] is not None and params["completion_tokens"] > 0:
+        generation_speed = params["completion_tokens"] / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
+        logger.debug(f"Calculated generation speed: {generation_speed}")
+    else:
         generation_speed = None
-    else:
-        generation_speed = 0
+        logger.debug("Generation speed set to None")
 
-    try:
-        content = json.loads(ai_provider_request.content)
-    except UnicodeDecodeError:
-        content = param_extractor.request_content
-
+    # Create transaction
     transaction = Transaction(
+        id=str(uuid.uuid4()),
         project_id=project_id,
+        request_time=request_time,
+        response_time=datetime.now(timezone.utc),
+        status_code=ai_provider_response.status_code,
+        request_content=ai_provider_request._content.decode("utf8"),
+        response_content=json.dumps(response_content),
         tags=tags,
+        ai_model_version=ai_model_version,
         provider=params["provider"],
-        model=ai_model_version,
-        prompt=params["prompt"],
-        type=params["type"],
-        os=params["os"],
-        input_tokens=params["input_tokens"],
-        output_tokens=params["output_tokens"],
-        library=params["library"],
-        status_code=params["status_code"],
-        messages=params["messages"],
-        last_message=params["last_message"],
-        error_message=params["error_message"],
+        model=params["model"],
+        prompt_tokens=params["prompt_tokens"],
+        completion_tokens=params["completion_tokens"],
+        total_tokens=params["total_tokens"],
         input_cost=input_cost,
         output_cost=output_cost,
         total_cost=total_cost,
-        request_time=request_time,
         generation_speed=generation_speed,
+        prompt=prompt,
+        last_message=last_message,
     )
-    transaction_repository.add(transaction)
+    logger.debug(f"Created transaction object with id {transaction.id}")
+
+    # Store in repository
+    result = transaction_repository.add(transaction)
+    logger.debug(f"Stored transaction in repository: {result}")
+
     return {
-        "response_content": response_content,
-        "request_content": param_extractor.request_content,
         "transaction_id": transaction.id,
+        "request_content": transaction.request_content,
+        "response_content": transaction.response_content,
     }
 
 
@@ -337,6 +330,8 @@ def get_list_of_filtered_transactions(
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions
+
+
 def add_transaction(
     data: CreateTransactionSchema, transaction_repository: TransactionRepository
 ) -> Transaction:

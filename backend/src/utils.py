@@ -2079,16 +2079,40 @@ def preprocess_buffer(ai_provider_request, ai_provider_response, buffer):
                     decoded_content = decoded.decode('utf-8')
                 except Exception as e:
                     logger.error(f"Brotli decompression failed: {str(e)}")
-                    # Fall back to raw content
                     decoded_content = buf.decode('utf-8', errors='ignore')
             else:
-                # Handle other encodings or no encoding
                 decoded_content = buf.decode('utf-8', errors='ignore')
                 
             # Try to parse as JSON
             try:
                 logger.debug(f"Attempting to parse JSON from: {decoded_content[:200]}...")
-                return json.loads(decoded_content)
+                parsed = json.loads(decoded_content)
+                # Ensure the response has the expected structure
+                if isinstance(parsed, dict):
+                    if "choices" in parsed and isinstance(parsed["choices"], list):
+                        # Standard completion response
+                        return parsed
+                    else:
+                        # Wrap non-standard response in expected format
+                        return {
+                            "id": parsed.get("id", "unknown"),
+                            "object": "chat.completion",
+                            "created": parsed.get("created", int(datetime.now().timestamp())),
+                            "model": parsed.get("model", "unknown"),
+                            "choices": [{
+                                "index": 0,
+                                "message": {
+                                    "role": "assistant",
+                                    "content": str(parsed.get("content", ""))
+                                },
+                                "finish_reason": "stop"
+                            }],
+                            "usage": parsed.get("usage", {
+                                "prompt_tokens": 0,
+                                "completion_tokens": 0,
+                                "total_tokens": 0
+                            })
+                        }
             except json.JSONDecodeError as e:
                 logger.error(f"JSON parsing failed: {str(e)}")
                 # Handle streaming response format
@@ -2102,30 +2126,47 @@ def preprocess_buffer(ai_provider_request, ai_provider_response, buffer):
                         continue
                 
                 content = "".join(content)
-                example = json.loads(chunks[0])
-                messages = json.loads(ai_provider_request._content.decode("utf8"))["messages"]
-                
-                input_tokens = count_tokens_for_streaming_response(messages, example["model"])
-                output_tokens = count_tokens_for_streaming_response(content, example["model"])
-                
-                return {
-                    "id": example["id"],
-                    "object": "chat.completion",
-                    "created": example["created"],
-                    "model": example["model"],
-                    "choices": [{
-                        "index": 0,
-                        "message": {"role": "assistant", "content": content},
-                        "logprobs": None,
-                        "finish_reason": "stop"
-                    }],
-                    "system_fingerprint": example.get("system_fingerprint"),
-                    "usage": {
-                        "prompt_tokens": input_tokens,
-                        "completion_tokens": output_tokens,
-                        "total_tokens": input_tokens + output_tokens
+                try:
+                    example = json.loads(chunks[0])
+                    messages = json.loads(ai_provider_request._content.decode("utf8"))["messages"]
+                    
+                    input_tokens = count_tokens_for_streaming_response(messages, example["model"])
+                    output_tokens = count_tokens_for_streaming_response(content, example["model"])
+                    
+                    return {
+                        "id": example.get("id", "unknown"),
+                        "object": "chat.completion",
+                        "created": example.get("created", int(datetime.now().timestamp())),
+                        "model": example.get("model", "unknown"),
+                        "choices": [{
+                            "index": 0,
+                            "message": {"role": "assistant", "content": content},
+                            "finish_reason": "stop"
+                        }],
+                        "usage": {
+                            "prompt_tokens": input_tokens,
+                            "completion_tokens": output_tokens,
+                            "total_tokens": input_tokens + output_tokens
+                        }
                     }
-                }
+                except Exception as e:
+                    logger.error(f"Failed to process streaming response: {str(e)}")
+                    return {
+                        "id": "unknown",
+                        "object": "chat.completion",
+                        "created": int(datetime.now().timestamp()),
+                        "model": "unknown",
+                        "choices": [{
+                            "index": 0,
+                            "message": {"role": "assistant", "content": content},
+                            "finish_reason": "stop"
+                        }],
+                        "usage": {
+                            "prompt_tokens": 0,
+                            "completion_tokens": 0,
+                            "total_tokens": 0
+                        }
+                    }
         else:
             # If buffer contains already decoded content
             content = ''.join(buffer) if buffer else ''
@@ -2133,14 +2174,40 @@ def preprocess_buffer(ai_provider_request, ai_provider_response, buffer):
                 return json.loads(content)
             except json.JSONDecodeError:
                 logger.error("Failed to parse non-bytes buffer as JSON")
-                return {"error": "Invalid JSON response"}
+                return {
+                    "id": "unknown",
+                    "object": "chat.completion",
+                    "created": int(datetime.now().timestamp()),
+                    "model": "unknown",
+                    "choices": [{
+                        "index": 0,
+                        "message": {"role": "assistant", "content": content},
+                        "finish_reason": "stop"
+                    }],
+                    "usage": {
+                        "prompt_tokens": 0,
+                        "completion_tokens": 0,
+                        "total_tokens": 0
+                    }
+                }
             
     except Exception as e:
         logger.error(f"Buffer preprocessing failed: {str(e)}")
-        # Return a valid dict as fallback
         return {
-            "error": str(e),
-            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+            "id": "error",
+            "object": "chat.completion",
+            "created": int(datetime.now().timestamp()),
+            "model": "unknown",
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": str(e)},
+                "finish_reason": "error"
+            }],
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+            }
         }
 
 
