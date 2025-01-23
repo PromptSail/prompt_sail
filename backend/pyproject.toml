@@ -3,10 +3,13 @@ name = "PromptSail-backend"
 version = "0.5.4"
 description = "Prompt Sail - LLM governance, monitoring and analysis system"
 authors = ["Przemysław Górecki <przemyslaw.gorecki@gmail.com>, Krzysztof Sopyła <krzysztof.sopyla@gmail.com>"]
+packages = [
+    { include = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-uvicorn = {extras = ["stable"], version = "^0.23.2"}
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
 httpx = "^0.25.0"
 python-dotenv = "^1.0.0"
 dependency-injector = "^4.41.0"
@@ -23,17 +26,22 @@ tiktoken = "^0.5.2"
 pyjwt = "^2.8.0"
 cryptography = "^42.0.5"
 pillow = "^10.3.0"
+loguru = "^0.7.2"  # Better logging
+python-multipart = "^0.0.6"  # Required for FastAPI file uploads
 
-
-
-[tool.poetry.group.dev]
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
+pytest-cov = "^4.1.0"
+pytest-asyncio = "^0.23.5"
 pre-commit = "^3.5.0"
 requests-mock = "^1.11.0"
 locust = "^2.24.1"
+mypy = "^1.8.0"
+black = "^24.1.1"
+isort = "^5.13.2"
+flake8 = "^6.1.0"
 
 
 [build-system]
