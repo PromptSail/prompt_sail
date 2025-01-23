@@ -217,16 +217,22 @@ def store_transaction(
     params = param_extractor.extract()
     logger.debug(f"Extracted params: {json.dumps(params)[:200]}...")
 
+    # Get token counts with safe defaults
+    prompt_tokens = params.get("prompt_tokens", 0)
+    completion_tokens = params.get("completion_tokens", 0)
+    total_tokens = params.get("total_tokens", 0)
+
     # Calculate costs based on pricelist
-    ai_model_version = ai_model_version if ai_model_version is not None else params["model"]
+    ai_model_version = ai_model_version if ai_model_version is not None else params.get("model", "")
     matching_pricelist = [
         item for item in pricelist
-        if item.provider == params["provider"] and re.match(item.match_pattern, ai_model_version)
+        if item.provider == params.get("provider", "") and re.match(item.match_pattern, ai_model_version)
     ]
     logger.debug(f"Found {len(matching_pricelist)} matching pricelist items")
 
     # Calculate costs
-    if params["prompt_tokens"] is not None and params["completion_tokens"] is not None:
+    input_cost = output_cost = total_cost = 0
+    if prompt_tokens is not None and completion_tokens is not None:
         if matching_pricelist:
             pricelist_item = matching_pricelist[0]
             if pricelist_item.mode == "image_generation":
@@ -235,27 +241,24 @@ def store_transaction(
                 total_cost = output_cost
             else:
                 if pricelist_item.input_price == 0:
-                    input_cost, output_cost = 0, 0
-                    total_cost = (params["prompt_tokens"] + params["completion_tokens"]) / 1000 * pricelist_item.total_price
+                    input_cost = output_cost = 0
+                    total_cost = (prompt_tokens + completion_tokens) / 1000 * pricelist_item.total_price
                 else:
-                    input_cost = pricelist_item.input_price * (params["prompt_tokens"] / 1000)
-                    output_cost = pricelist_item.output_price * (params["completion_tokens"] / 1000)
+                    input_cost = pricelist_item.input_price * (prompt_tokens / 1000)
+                    output_cost = pricelist_item.output_price * (completion_tokens / 1000)
                     total_cost = input_cost + output_cost
             logger.debug(f"Calculated costs - input: {input_cost}, output: {output_cost}, total: {total_cost}")
         else:
-            input_cost = output_cost = total_cost = None
-            logger.debug("No matching pricelist item found, costs set to None")
-    else:
-        input_cost = output_cost = total_cost = 0
-        logger.debug("Token counts not available, costs set to 0")
+            logger.debug("No matching pricelist item found, costs set to 0")
 
     # Calculate generation speed
-    if params["completion_tokens"] is not None and params["completion_tokens"] > 0:
-        generation_speed = params["completion_tokens"] / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
-        logger.debug(f"Calculated generation speed: {generation_speed}")
-    else:
-        generation_speed = None
-        logger.debug("Generation speed set to None")
+    generation_speed = None
+    if completion_tokens and completion_tokens > 0:
+        try:
+            generation_speed = completion_tokens / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
+            logger.debug(f"Calculated generation speed: {generation_speed}")
+        except Exception as e:
+            logger.error(f"Failed to calculate generation speed: {str(e)}")
 
     # Create transaction
     transaction = Transaction(
@@ -268,17 +271,24 @@ def store_transaction(
         response_content=json.dumps(response_content),
         tags=tags,
         ai_model_version=ai_model_version,
-        provider=params["provider"],
-        model=params["model"],
-        prompt_tokens=params["prompt_tokens"],
-        completion_tokens=params["completion_tokens"],
-        total_tokens=params["total_tokens"],
+        provider=params.get("provider", "unknown"),
+        model=params.get("model", "unknown"),
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens,
         input_cost=input_cost,
         output_cost=output_cost,
         total_cost=total_cost,
         generation_speed=generation_speed,
         prompt=prompt,
         last_message=last_message,
+        type="chat",
+        os=params.get("os", "unknown"),
+        input_tokens=prompt_tokens,
+        output_tokens=completion_tokens,
+        library=params.get("library", "unknown"),
+        messages=params.get("messages", []),
+        error_message=params.get("error_message", None)
     )
     logger.debug(f"Created transaction object with id {transaction.id}")
 

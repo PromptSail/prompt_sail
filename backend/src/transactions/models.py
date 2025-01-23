@@ -33,6 +33,8 @@ class Transaction(BaseModel):
     response_time: datetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc)
     )
+    request_content: str | None = None  # Make it optional
+    response_content: str | None = None  # Make it optional
 
     # old fields
     # hate: Any = None
