@@ -176,8 +176,8 @@ def delete_multiple_transactions(
 
 
 def store_transaction(
-    request,
-    response,
+    ai_provider_request,
+    ai_provider_response,
     buffer,
     project_id,
     tags,
@@ -189,8 +189,8 @@ def store_transaction(
     """
     Store a transaction in the repository based on request, response, and additional information.
 
-    :param request: The request object.
-    :param response: The response object.
+    :param ai_provider_request: The request object.
+    :param ai_provider_response: The response object.
     :param buffer: The buffer containing the response content.
     :param project_id: The Project ID associated with the transaction.
     :param tags: The tags associated with the transaction.
@@ -200,17 +200,18 @@ def store_transaction(
     :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
     :return: None
     """
-    response_content = utils.preprocess_buffer(request, response, buffer)
+    
+    response_content = utils.preprocess_buffer(ai_provider_request, ai_provider_response, buffer)
 
     param_extractor = utils.TransactionParamExtractor(
-        request, response, response_content
+        ai_provider_request, ai_provider_response, response_content
     )
     params = param_extractor.extract()
 
     ai_model_version = (
         ai_model_version if ai_model_version is not None else params["model"]
     )
-
+    
     pricelist = [
         item
         for item in pricelist
@@ -262,7 +263,7 @@ def store_transaction(
         generation_speed = 0
 
     try:
-        content = json.loads(request.content)
+        content = json.loads(ai_provider_request.content)
     except UnicodeDecodeError:
         content = param_extractor.request_content
 
@@ -332,11 +333,11 @@ def get_list_of_filtered_transactions(
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions
-
-
 def add_transaction(
     data: CreateTransactionSchema, transaction_repository: TransactionRepository
 ) -> Transaction:
     transaction = Transaction(**data.model_dump())
     transaction_repository.add(transaction)
     return transaction
+
+

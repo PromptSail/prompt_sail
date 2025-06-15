@@ -20,6 +20,7 @@ class Config(BaseSettings):
     GOOGLE_CLIENT_ID: str | None = os.getenv("GOOGLE_CLIENT_ID", None)
     AZURE_CLIENT_ID: str | None = os.getenv("AZURE_CLIENT_ID", None)
     SSO_AUTH: bool = os.getenv("SSO_AUTH", "False").lower() in ("true", "1", "t")
+    PRICE_LIST_PATH: str = str((BASE_DIR / Path("config/data/provider_price_list.json")).resolve())
 
 
 config = Config()

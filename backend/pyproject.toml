@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "PromptSail"
-version = "0.1.0"
-description = "Prompt Sail - prompt management and monitoring tool"
+name = "PromptSail-backend"
+version = "0.5.4"
+description = "Prompt Sail - LLM governance, monitoring and analysis system"
 authors = ["Przemysław Górecki <przemyslaw.gorecki@gmail.com>, Krzysztof Sopyła <krzysztof.sopyla@gmail.com>"]
 
 [tool.poetry.dependencies]
@@ -15,7 +15,7 @@ pydantic-settings = "^2.0.3"
 gunicorn = "^22.0.0"
 brotli = "^1.1.0"
 pandas = "^2.2.1"
-lato = "^0.8.0"
+lato = "^0.11.0"
 python-slugify = "^8.0.4"
 fastapi = "^0.110.1"
 pyzmq = "~25"

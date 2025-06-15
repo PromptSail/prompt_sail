@@ -7,6 +7,7 @@ from typing import Optional
 from uuid import UUID
 
 import pymongo
+from pymongo.database import Database as MongoDatabase
 from app.logging import logger, logging_context
 from auth.repositories import UserRepository
 from dependency_injector import containers, providers
@@ -213,8 +214,9 @@ def create_application(container, **kwargs):
         :param ctx: The TransactionContext.
         :param exception: The exception (if any) that occurred during the transaction.
         """
-        logger.debug(f"transaction ended ")
+        logger.debug(f"transaction ended {exception}")
         logging_context.correlation_id = None
+        
 
     # @application.transaction_middleware
     # def null_middleware(ctx: TransactionContext, call_next):
@@ -246,7 +248,12 @@ class TopLevelContainer(containers.DeclarativeContainer):
         logger=logger,
         container=__self__,
     )
-    provider_pricelist = providers.Singleton(read_provider_pricelist)
+    
+    # todo: remove this, this logic should be in the use case
+    provider_pricelist = providers.Singleton(
+        lambda config: read_provider_pricelist(config.PRICE_LIST_PATH),
+        config=config
+    )
 
 
 class TransactionContainer(containers.DeclarativeContainer):
@@ -258,7 +265,7 @@ class TransactionContainer(containers.DeclarativeContainer):
 
     correlation_id = providers.Dependency(instance_of=UUID)
     logger = providers.Dependency(instance_of=Logger)
-    db_client = providers.Dependency(instance_of=pymongo.database.Database)
+    db_client = providers.Dependency(instance_of=MongoDatabase)
     app = providers.Dependency(instance_of=Application)
 
     project_repository = providers.Singleton(
@@ -278,3 +285,5 @@ class TransactionContainer(containers.DeclarativeContainer):
     user_repository = providers.Singleton(
         UserRepository, db_client=db_client, collection_name="users"
     )
+    
+    #todo: move price calculation provider here

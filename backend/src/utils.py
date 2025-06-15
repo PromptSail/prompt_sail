@@ -22,7 +22,21 @@ from transactions.schemas import (
     GetTransactionUsageStatisticsSchema,
     StatisticTransactionSchema,
     TagStatisticTransactionSchema,
+    GetTransactionLatencyStatisticsWithoutDateSchema,
+    GetTransactionPageResponseSchema,
+    GetTransactionSchema,
+    GetTransactionsLatencyStatisticsSchema,
+    GetTransactionStatusStatisticsSchema,
+    GetTransactionsUsageStatisticsSchema,
+    GetTransactionUsageStatisticsWithoutDateSchema,
+    GetTransactionWithProjectSlugSchema,
+    GetTransactionWithRawDataSchema,
+    StatisticTransactionSchema,
+    TagStatisticTransactionSchema,
 )
+
+from fastapi import HTTPException
+from datetime import datetime, timezone
 
 
 def serialize_data(obj):
@@ -1424,6 +1438,7 @@ def status_counter_for_transactions(
 
     return result_list
 
+# speed statistics utils functions
 
 def speed_counter_for_transactions(
     transactions: list[StatisticTransactionSchema],
@@ -1533,7 +1548,150 @@ def speed_counter_for_transactions(
 
     return result_list
 
+def prepare_transaction_dataframe(
+    transactions: list[Transaction],
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> pd.DataFrame:
+    """
+    Convert transactions to DataFrame and add boundary dates with zero values.
+    
+    Args:
+        transactions: List of transactions
+        date_from: Start date for analysis
+        date_to: End date for analysis
+        
+    Returns:
+        DataFrame with transactions and boundary dates
+    """
+    if not transactions:
+        return pd.DataFrame()
+        
+    # Convert transactions to DataFrame efficiently
+    df = pd.DataFrame([
+        {
+            "project_id": tx.project_id,
+            "provider": tx.provider,
+            "model": tx.model,
+            "total_input_tokens": tx.input_tokens or 0,
+            "total_output_tokens": tx.output_tokens or 0,
+            "total_input_cost": tx.input_cost or 0,
+            "total_output_cost": tx.output_cost or 0,
+            "total_cost": tx.total_cost or 0,
+            "date": tx.response_time,
+            "latency": (tx.response_time - tx.request_time).total_seconds(),
+            "generation_speed": tx.generation_speed or 0,
+            "total_transactions": 1,
+        }
+        for tx in transactions
+    ])
+    
+    # Add boundary dates if specified
+    if date_from or date_to:
+        boundary_records = _create_boundary_records(
+            df, date_from, date_to
+        )
+        if not boundary_records.empty:
+            df = pd.concat([df, boundary_records], ignore_index=True)
+    
+    return df
 
+def _create_boundary_records(
+    df: pd.DataFrame,
+    date_from: datetime | None,
+    date_to: datetime | None
+) -> pd.DataFrame:
+    """Create records for boundary dates with zero values."""
+    if df.empty:
+        return pd.DataFrame()
+        
+    # Get unique provider/model pairs
+    pairs = df[["provider", "model"]].drop_duplicates()
+    project_id = df["project_id"].iloc[0]
+    
+    records = []
+    for date in filter(None, [date_from, date_to]):
+        # Create zero-value records for each provider/model pair
+        zero_records = pairs.assign(
+            date=pd.Timestamp(date),
+            project_id=project_id,
+            total_input_tokens=0,
+            total_output_tokens=0,
+            total_input_cost=0,
+            total_output_cost=0,
+            total_cost=0,
+            # Set to NaN for values that should not affect mean calculations
+            latency=np.nan,
+            generation_speed=np.nan,
+        )
+        records.append(zero_records)
+    
+    return pd.concat(records) if records else pd.DataFrame()
+
+def calculate_speed_statistics(
+    df: pd.DataFrame,
+    period: str,
+) -> pd.DataFrame:
+    """
+    Calculate speed and latency statistics using pandas operations.
+    
+    Args:
+        df: DataFrame with transaction data
+        period: Time period for aggregation
+        
+    Returns:
+        DataFrame with aggregated statistics
+    """
+    if df.empty:
+        return pd.DataFrame()
+
+    # Set date as index for resampling
+    df = df.set_index('date')
+    
+    # Group by provider/model and resample by period
+    grouped = df.groupby(['provider', 'model']).resample(period).agg({
+        'latency': 'mean',  # Direct mean calculation
+        'generation_speed': 'mean',  # Direct mean calculation
+        'total_transactions': 'sum'
+    }).reset_index()
+    
+    # Clean up the results
+    grouped = grouped.fillna(0)
+    
+    return grouped
+
+def format_statistics_response(
+    df: pd.DataFrame
+) -> list[GetTransactionsLatencyStatisticsSchema]:
+    """Convert DataFrame to API response format."""
+    if df.empty:
+        return []
+    
+    # Group by date first
+    date_groups = df.groupby('date')
+    
+    # Convert to final format
+    return [
+        GetTransactionsLatencyStatisticsSchema(
+            date=date,
+            records=[
+                GetTransactionLatencyStatisticsWithoutDateSchema(
+                    provider=row.provider,
+                    model=row.model,
+                    mean_latency=row.latency,
+                    tokens_per_second=row.generation_speed,
+                    total_transactions=row.total_transactions,
+                )
+                for _, row in group.iterrows()
+            ]
+        )
+        for date, group in date_groups
+    ]
+
+
+
+
+# 
 def token_counter_for_transactions_by_tag(
     transactions: list[TagStatisticTransactionSchema],
     period: str,
@@ -1857,126 +2015,9 @@ def generate_mock_transactions(n: int, date_from: datetime, date_to: datetime):
     return transactions
 
 
-def check_dates_for_statistics(
-    date_from: datetime | str | None, date_to: datetime | str | None
-) -> tuple[datetime | None, datetime | None]:
-    if isinstance(date_from, str):
-        if len(date_from) == 10:
-            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
-        elif date_from.endswith("Z"):
-            date_from = datetime.fromisoformat(str(date_from)[:-1])
-        else:
-            date_from = datetime.fromisoformat(date_from)
-    if isinstance(date_to, str):
-        if len(date_to) == 10:
-            date_to = datetime.fromisoformat(date_to + "T23:59:59")
-        elif date_to.endswith("Z"):
-            date_to = datetime.fromisoformat(str(date_to)[:-1])
-        else:
-            date_to = datetime.fromisoformat(date_to)
-
-    if date_from is not None and date_to is not None and date_from == date_to:
-        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
-
-    return date_from, date_to
 
 
-def read_transactions_from_csv(
-    path: str = "../test_transactions.csv",
-) -> list[Transaction]:
-    df = pd.read_csv(path, sep=";")
-    data = df.to_dict(orient="records")
-    transactions = []
-    pricelist = read_provider_pricelist()
-    for idx, obj in enumerate(data):
-        transaction_id = f"test-transaction-{idx}"
-        request_time = datetime.fromisoformat(
-            obj["request_time"].replace("Z", "+00:00")
-        )
-        response_time = datetime.fromisoformat(
-            obj["response_time"].replace("Z", "+00:00")
-        )
-        latency = response_time - request_time
-        price = [
-            item
-            for item in pricelist
-            if item.provider == obj["provider"]
-            and re.match(item.match_pattern, obj["model"])
-        ]
-        if obj["status_code"] == 200:
-            if len(price) > 0:
-                price = price[0]
-                if price.input_price == 0:
-                    input_cost, output_cost = 0, 0
-                    total_cost = (
-                        (obj["input_tokens"] + obj["output_tokens"])
-                        / 1000
-                        * price.total_price
-                    )
-                else:
-                    input_cost = price.input_price * (obj["input_tokens"] / 1000)
-                    output_cost = price.output_price * (obj["output_tokens"] / 1000)
-                    total_cost = input_cost + output_cost
-            else:
-                input_cost, output_cost, total_cost = None, None, None
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag"],
-                    provider=obj["provider"],
-                    model=obj["model"],
-                    type="chat",
-                    os=None,
-                    input_tokens=obj["input_tokens"],
-                    output_tokens=obj["output_tokens"],
-                    library="PostmanRuntime/7.36.3",
-                    status_code=obj["status_code"],
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message=None,
-                    request_time=request_time,
-                    response_time=response_time,
-                    generation_speed=obj["output_tokens"] / latency.total_seconds()
-                    if latency.total_seconds() > 0
-                    else 0,
-                    input_cost=input_cost,
-                    output_cost=output_cost,
-                    total_cost=total_cost,
-                )
-            )
-        else:
-            transactions.append(
-                Transaction(
-                    id=transaction_id,
-                    project_id="project-test",
-                    request={},
-                    response={},
-                    tags=["tag"],
-                    provider=obj["provider"],
-                    model=obj["model"],
-                    type="chat",
-                    os=None,
-                    input_tokens=0,
-                    output_tokens=0,
-                    library="PostmanRuntime/7.36.3",
-                    status_code=obj["status_code"],
-                    messages=None,
-                    prompt="",
-                    last_message="",
-                    error_message="Error",
-                    request_time=request_time,
-                    response_time=response_time,
-                    generation_speed=0,
-                    input_cost=0,
-                    output_cost=0,
-                    total_cost=0,
-                )
-            )
-    return transactions
+
 
 
 def count_tokens_for_streaming_response(messages: list | str, model: str) -> int:
@@ -2000,13 +2041,7 @@ class MockResponse:
         return self.content
 
 
-def truncate_float(number, decimals):
-    if isinstance(number, float):
-        str_number = str(number)
-        integer_part, decimal_part = str_number.split(".")
-        truncated_decimal_part = decimal_part[:decimals]
-        return float(f"{integer_part}.{truncated_decimal_part}")
-    return number
+
 
 
 def resize_b64_image(b64_image: str | str, new_size: tuple[int, int]) -> str:
@@ -2143,3 +2178,90 @@ known_ai_providers = [
         "api_base_placeholder": "https://llmapi.provider.com/v1",
     },
 ]
+
+def validate_date_range(date_from: datetime | str, date_to: datetime | str) -> tuple[datetime, datetime]:
+    """
+    Validate and convert date strings to datetime objects, ensuring they form a valid date range.
+    If time zone is not specified, it is assumed to be UTC.
+    If time zone is specified, it is converted to UTC.
+    
+    
+    Parameters:
+    - date_from: Start date (datetime object or string in YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS format)
+    - date_to: End date (datetime object or string in YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS format)
+    
+    Returns:
+    - Tuple of validated datetime objects (date_from, date_to)
+    
+    Raises:
+    - HTTPException: 400 error if dates are invalid or in wrong format
+    """
+    
+    # initialize dates as datetime objects, ih they are strings they will be converted later
+    date_from_obj = date_from
+    date_to_obj = date_to
+    
+    try:
+        # Check if date_from and date_to are in ISO format with optional timezone offset or Z for UTC
+        if isinstance(date_from_obj, str):
+            # replace the space before the timezone offset with a +
+            date_from_obj = date_from_obj.replace(" ", "+")
+            if not re.match(r'^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}([+-]\d{2}:?\d{2}|Z)?)?$', date_from_obj):
+                raise ValueError("Invalid date format")
+            date_from_obj = datetime.fromisoformat(date_from_obj)
+            
+        if isinstance(date_to_obj, str):
+            # replace the space before the timezone offset with a +
+            date_to_obj = date_to_obj.replace(" ", "+")
+            if not re.match(r'^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}([+-]\d{2}:?\d{2}|Z)?)?$', date_to_obj):
+                raise ValueError("Invalid date format")
+            date_to_obj = datetime.fromisoformat(date_to_obj)
+            
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS: {e}"
+        )
+
+    
+    # Validate date range
+    if date_from_obj > date_to_obj:
+        raise HTTPException(
+            status_code=400,
+            detail="date_from cannot be after date_to"
+        )
+
+    # we don't validate dates are not in the future, because we want to allow to get statistics for future dates
+    
+    # convert to UTC if date_from or date_to are in UTC
+    date_from_obj = date_from_obj.astimezone(timezone.utc) if date_from_obj.tzinfo else date_from_obj
+    date_to_obj = date_to_obj.astimezone(timezone.utc) if date_to_obj.tzinfo else date_to_obj
+    
+    # remove the timezone offset for already converted dates to utc
+    date_from_obj = date_from_obj.replace(tzinfo=None)
+    date_to_obj = date_to_obj.replace(tzinfo=None)
+    
+    return date_from_obj, date_to_obj
+
+def check_dates_for_statistics(
+    date_from: datetime | str | None, date_to: datetime | str | None
+) -> tuple[datetime | None, datetime | None]:
+    if isinstance(date_from, str):
+        if len(date_from) == 10:
+            date_from = datetime.fromisoformat(str(date_from) + "T00:00:00")
+        elif date_from.endswith("Z"):
+            date_from = datetime.fromisoformat(str(date_from)[:-1])
+        else:
+            date_from = datetime.fromisoformat(date_from)
+    if isinstance(date_to, str):
+        if len(date_to) == 10:
+            date_to = datetime.fromisoformat(date_to + "T23:59:59")
+        elif date_to.endswith("Z"):
+            date_to = datetime.fromisoformat(str(date_to)[:-1])
+        else:
+            date_to = datetime.fromisoformat(date_to)
+
+    if date_from is not None and date_to is not None and date_from == date_to:
+        date_to = date_to + timedelta(days=1) - timedelta(seconds=1)
+
+    return date_from, date_to

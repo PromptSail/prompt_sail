@@ -47,13 +47,15 @@ To learn more about Prompt Sail’s features and capabilities, see
     * [Langchain SDK -> Azure OpenAI](/examples/langchain_azure_openai.ipynb)
     * [Langchain SDK -> Azure OpenAI Ada embeddings](/examples/langchain_azure_oai_embeddings.ipynb)
 
-<!-- * [API Reference](https://promptsail.github.io/prompt_sail/api/). -->
+* [API Reference](https://try-promptsail.azurewebsites.net/api/docs). -->
 
 
 
 ## Getting started 🚀
 
-Checkout the documenttion [how to run PromptSail locally via docker.](https://promptsail.com/docs/quick-start-guide/)
+The easiest way is to test our demo at **https://try-promptsail.azurewebsites.net/** (every new deployment erases the database)
+
+Check out the documentation [how to run PromptSail locally via docker.](https://promptsail.com/docs/quick-start-guide/)
 
 
 ### Run Prompt Sail locally via Docker Compose 🐳

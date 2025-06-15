@@ -64,7 +64,7 @@ async def fastapi_lifespan(app: FastAPI):
             ctx.call(add_project, data2)
 
         if settings_repository.count() == 0:
-            organization_name = os.getenv("ORGANIZATION_NAME", None)
+            organization_name = os.getenv("ORGANIZATION_NAME", "PromptSail")
 
             if organization_name is not None:
                 data = OrganizationSettings(
@@ -80,5 +80,10 @@ async def fastapi_lifespan(app: FastAPI):
     ...
 
 
-app = FastAPI(lifespan=fastapi_lifespan)
+app = FastAPI(lifespan=fastapi_lifespan, 
+              title="PromptSail API",
+              description="API for PromptSail - prompt management and monitoring tool",
+              version="0.5.4",
+              openapi_version="3.1.0",
+              )
 app.container = container
