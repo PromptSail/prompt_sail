@@ -1,5 +1,5 @@
 ---
-title:  "Prompt Sail - No longer maintain"
+title:  "Prompt Sail is no longer maintained"
 last_modified_at: 2025-06-15T10:00:58
 tags: 
     - ""
@@ -12,7 +12,7 @@ toc_label: "Unique Title"
 toc_icon: "heart"
 ---
 
-## Prompt Sail is no longer maintain
+## Prompt Sail is no longer maintained
 
 
 ### Charting a New Course: Sunsetting PromptSail and Unveiling a PyTorch Adventure!
