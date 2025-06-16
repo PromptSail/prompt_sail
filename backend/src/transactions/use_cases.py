@@ -1,5 +1,6 @@
 import json
 import re
+import uuid
 
 import utils
 from _datetime import datetime, timezone
@@ -7,6 +8,9 @@ from transactions.models import Transaction
 from transactions.repositories import TransactionRepository
 from transactions.schemas import CreateTransactionSchema
 from utils import create_transaction_query_from_filters
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_transactions_for_project(
@@ -186,28 +190,37 @@ def store_transaction(
     request_time,
     transaction_repository: TransactionRepository,
 ) -> dict:
-    """
-    Store a transaction in the repository based on request, response, and additional information.
-
-    :param ai_provider_request: The request object.
-    :param ai_provider_response: The response object.
-    :param buffer: The buffer containing the response content.
-    :param project_id: The Project ID associated with the transaction.
-    :param tags: The tags associated with the transaction.
-    :param request_time: The timestamp of the request.
-    :param ai_model_version: Optional. Specific tag for AI model. Helps with cost count.
-    :param pricelist: The pricelist for the models.
-    :param transaction_repository: An instance of TransactionRepository used for storing transaction data.
-    :return: None
-    """
+    """Store a transaction in the repository."""
+    logger.debug(f"store_transaction called for project {project_id}")
     
     response_content = utils.preprocess_buffer(ai_provider_request, ai_provider_response, buffer)
+    logger.debug(f"Preprocessed response content: {json.dumps(response_content)[:200]}...")
+
+    # Extract request content
+    try:
+        request_json = json.loads(ai_provider_request._content.decode("utf8"))
+        prompt = request_json.get("messages", [{}])[-1].get("content", "")
+    except Exception as e:
+        logger.error(f"Failed to extract prompt: {str(e)}")
+        prompt = ""
+
+    # Extract response content
+    try:
+        last_message = response_content.get("choices", [{}])[0].get("message", {}).get("content", "")
+    except Exception as e:
+        logger.error(f"Failed to extract last message: {str(e)}")
+        last_message = ""
 
     param_extractor = utils.TransactionParamExtractor(
         ai_provider_request, ai_provider_response, response_content
     )
     params = param_extractor.extract()
+    logger.debug(f"Extracted params: {json.dumps(params)[:200]}...")
 
+    # Extract params safely for logging
+    logger.debug(f"Token counts from params - input: {params.get('input_tokens')}, output: {params.get('output_tokens')}, total: {params.get('total_tokens')}")
+
+    # Calculate costs based on pricelist
     ai_model_version = (
         ai_model_version if ai_model_version is not None else params["model"]
     )
@@ -252,47 +265,71 @@ def store_transaction(
     else:
         input_cost, output_cost, total_cost = 0, 0, 0
 
-    if params["output_tokens"] is not None and params["output_tokens"] > 0:
-        generation_speed = (
-            params["output_tokens"]
-            / (datetime.now(tz=timezone.utc) - request_time).total_seconds()
-        )
-    elif params["output_tokens"] == 0:
+    # Calculate generation speed with logging
+    if params.get("output_tokens") is not None and params.get("output_tokens") > 0:
+        try:
+            current_time = datetime.now(tz=timezone.utc)
+            time_diff = (current_time - request_time).total_seconds()
+            logger.debug(f"Speed calculation - tokens: {params.get('output_tokens')}, time_diff: {time_diff}")
+            
+            generation_speed = (
+                params["output_tokens"]
+                / time_diff
+            )
+            logger.debug(f"Calculated generation speed: {generation_speed} tokens/second")
+        except Exception as e:
+            logger.error(f"Failed to calculate generation speed: {str(e)}")
+            generation_speed = None
+    elif params.get("output_tokens") == 0:
         generation_speed = None
+        logger.debug("Generation speed set to None - output_tokens is 0")
     else:
         generation_speed = 0
+        logger.debug("Generation speed set to 0 - output_tokens is None")
 
-    try:
-        content = json.loads(ai_provider_request.content)
-    except UnicodeDecodeError:
-        content = param_extractor.request_content
+    # Let's also log the params to see what we're getting from the extractor
+    logger.debug(f"Full params from extractor: {json.dumps(params)}")
 
+    # Create transaction
     transaction = Transaction(
+        id=str(uuid.uuid4()),
         project_id=project_id,
+        request_time=request_time,
+        response_time=datetime.now(timezone.utc),
+        status_code=ai_provider_response.status_code,
+        request_content=ai_provider_request._content.decode("utf8"),
+        response_content=json.dumps(response_content),
         tags=tags,
-        provider=params["provider"],
-        model=ai_model_version,
-        prompt=params["prompt"],
-        type=params["type"],
-        os=params["os"],
-        input_tokens=params["input_tokens"],
-        output_tokens=params["output_tokens"],
-        library=params["library"],
-        status_code=params["status_code"],
-        messages=params["messages"],
-        last_message=params["last_message"],
-        error_message=params["error_message"],
+        ai_model_version=ai_model_version,
+        provider=params.get("provider", "unknown"),
+        model=params.get("model", "unknown"),
+        prompt_tokens=params.get("prompt_tokens", 0),
+        completion_tokens=params.get("completion_tokens", 0),
+        total_tokens=params.get("total_tokens", 0),
         input_cost=input_cost,
         output_cost=output_cost,
         total_cost=total_cost,
-        request_time=request_time,
         generation_speed=generation_speed,
+        prompt=prompt,
+        last_message=last_message,
+        type="chat",
+        os=params.get("os", "unknown"),
+        input_tokens=params.get("input_tokens", 0),
+        output_tokens=params.get("output_tokens", 0),
+        library=params.get("library", "unknown"),
+        messages=params.get("messages", []),
+        error_message=params.get("error_message", None)
     )
-    transaction_repository.add(transaction)
+    logger.debug(f"Created transaction object with id {transaction.id}")
+
+    # Store in repository
+    result = transaction_repository.add(transaction)
+    logger.debug(f"Stored transaction in repository: {result}")
+
     return {
-        "response_content": response_content,
-        "request_content": param_extractor.request_content,
         "transaction_id": transaction.id,
+        "request_content": transaction.request_content,
+        "response_content": transaction.response_content,
     }
 
 
@@ -333,6 +370,8 @@ def get_list_of_filtered_transactions(
     )
     transactions = transaction_repository.get_filtered(query)
     return transactions
+
+
 def add_transaction(
     data: CreateTransactionSchema, transaction_repository: TransactionRepository
 ) -> Transaction:

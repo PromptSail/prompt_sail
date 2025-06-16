@@ -19,14 +19,16 @@ interface Props {
     projectFilters?: boolean;
 }
 
-const DisplayMessage: React.FC<{ str: string }> = ({ str }) => {
+const DisplayMessage: React.FC<{ str: string | null }> = ({ str }) => {
+    if (!str) return <>-</>;  // Handle null/undefined case
     const message = useHandleTransactionImage(str);
     if (typeof message === 'string')
         return <>{message.length > 25 ? message.substring(0, 23) + '...' : message}</>;
-    else {
+    else if (message) {  // Check if message exists before accessing props
         const element = cloneElement(message, { ...message.props, className: 'max-h-[25px]' });
         return element;
     }
+    return <>-</>;  // Fallback for any other case
 };
 
 const TransactionsTable: React.FC<Props> = ({

@@ -1,9 +1,11 @@
 from datetime import datetime
 from operator import attrgetter
+import json
 
 from seedwork.exceptions import NotFoundException
-from seedwork.repositories import MongoRepository
+from seedwork.repositories import MongoRepository, deserialize_data
 from transactions.models import Transaction
+from app.logging import logger
 
 
 class TransactionNotFoundException(NotFoundException):
@@ -28,8 +30,13 @@ class TransactionRepository(MongoRepository):
         :param doc: The document to be added to the repository.
         :return: The result of the add operation.
         """
-        result = super().add(doc)
-        return result
+        try:
+            result = super().add(doc)
+            logger.debug(f"Successfully added transaction to MongoDB: {doc.id}")
+            return result
+        except Exception as e:
+            logger.error(f"Failed to add transaction to MongoDB: {str(e)}")
+            raise
 
     def get_for_project(self, project_id: str) -> list[Transaction]:
         """
@@ -92,13 +99,38 @@ class TransactionRepository(MongoRepository):
         ]
         return paginated
 
-    def get_filtered(self, query: dict[str, str | datetime | None]):
-        """
-        Retrieve a paginated and filtered list of transactions from the repository.
-        :param query: Query parameters to filter transactions.
-        :return: A filtered list of Transaction objects based on the specified criteria.
-        """
-        return self.find(query)
+    def get_filtered(self, query: dict) -> list[Transaction]:
+        """Get transactions based on filter query."""
+        logger.debug(f"Getting filtered transactions with query: {query}")
+        transactions = list(self._collection.find(query))
+        logger.debug(f"Found {len(transactions)} transactions")
+        
+        # Transform transactions to include required frontend fields
+        transformed = []
+        for t in transactions:
+            t = deserialize_data(t)
+            try:
+                # Extract prompt from request content
+                request_content = json.loads(t.get('request_content', '{}'))
+                messages = request_content.get('messages', [])
+                prompt = messages[-1].get('content', '') if messages else ''
+                
+                # Extract last message from response content
+                response_content = json.loads(t.get('response_content', '{}'))
+                last_message = response_content.get('choices', [{}])[0].get('message', {}).get('content', '')
+                
+                # Add these to the transaction data
+                t['prompt'] = prompt
+                t['last_message'] = last_message
+                
+            except (json.JSONDecodeError, IndexError, KeyError) as e:
+                logger.error(f"Error extracting messages: {str(e)}")
+                t['prompt'] = ''
+                t['last_message'] = ''
+                
+            transformed.append(t)
+        
+        return [Transaction(**t) for t in transformed]
 
     def delete_cascade(self, project_id: str):
         """

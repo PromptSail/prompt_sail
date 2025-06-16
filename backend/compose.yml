@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
+      - DEBUG=True
+      - LOG_TO_MONGODB=True
+      - LOG_TO_STDOUT=False
+    depends_on:
+      - mongodb
+    command: poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

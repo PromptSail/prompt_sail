@@ -955,5 +955,181 @@
         "total_price": 0,
         "is_active": true,
         "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o)$",
+        "input_price": 2.50,
+        "output_price": 10.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-2024-08-06",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-2024-08-06)$",
+        "input_price": 2.50,
+        "output_price": 10.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-audio-preview",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-audio-preview)$",
+        "input_price": 2.50,
+        "output_price": 10.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-audio-preview-2024-12-17",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-audio-preview-2024-12-17)$",
+        "input_price": 2.50,
+        "output_price": 10.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-realtime-preview",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-realtime-preview)$",
+        "input_price": 5.00,
+        "output_price": 20.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-realtime-preview-2024-12-17",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-realtime-preview-2024-12-17)$",
+        "input_price": 5.00,
+        "output_price": 20.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-mini",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-mini)$",
+        "input_price": 0.15,
+        "output_price": 0.60,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-mini-2024-07-18",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-mini-2024-07-18)$",
+        "input_price": 0.15,
+        "output_price": 0.60,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-mini-audio-preview",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-mini-audio-preview)$",
+        "input_price": 0.15,
+        "output_price": 0.60,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-mini-audio-preview-2024-12-17",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-mini-audio-preview-2024-12-17)$",
+        "input_price": 0.15,
+        "output_price": 0.60,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-mini-realtime-preview",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-mini-realtime-preview)$",
+        "input_price": 0.60,
+        "output_price": 2.40,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "gpt-4o-mini-realtime-preview-2024-12-17",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(gpt-4o-mini-realtime-preview-2024-12-17)$",
+        "input_price": 0.60,
+        "output_price": 2.40,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "o1",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(o1)$",
+        "input_price": 15.00,
+        "output_price": 60.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "o1-2024-12-17",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(o1-2024-12-17)$",
+        "input_price": 15.00,
+        "output_price": 60.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "o1-mini",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(o1-mini)$",
+        "input_price": 3.00,
+        "output_price": 12.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
+    },
+    {
+        "model_name": "o1-mini-2024-09-12",
+        "provider": "OpenAI",
+        "start_date": "",
+        "match_pattern": "(?i)^(o1-mini-2024-09-12)$",
+        "input_price": 3.00,
+        "output_price": 12.00,
+        "total_price": 0,
+        "is_active": true,
+        "mode": "chat"
     }
 ]

@@ -3,6 +3,7 @@ from typing import Any
 from pydantic import BaseModel
 from seedwork.exceptions import NotFoundException
 from utils import deserialize_data, serialize_data
+from app.logging import logger
 
 
 class DocumentNotFoundException(NotFoundException):
@@ -34,9 +35,15 @@ class MongoRepository:
         :param doc: The BaseModel object to be added.
         :return: The result of the add operation.
         """
-        data = serialize_data(doc.model_dump())
-        result = self._collection.insert_one(data)
-        return result
+        try:
+            data = serialize_data(doc.model_dump())
+            logger.debug(f"Attempting to insert document into {self._collection.name}")
+            result = self._collection.insert_one(data)
+            logger.debug(f"MongoDB insert result: {result.inserted_id}")
+            return result
+        except Exception as e:
+            logger.error(f"MongoDB insert error in collection {self._collection.name}: {str(e)}")
+            raise
 
     def update(self, doc: BaseModel):
         """

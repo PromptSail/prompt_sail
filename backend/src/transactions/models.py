@@ -33,9 +33,16 @@ class Transaction(BaseModel):
     response_time: datetime = Field(
         default_factory=lambda: datetime.now(tz=timezone.utc)
     )
+    request_content: str | None = None  # Make it optional
+    response_content: str | None = None  # Make it optional
 
     # old fields
     # hate: Any = None
     # self_harm: Any = None
     # violence: Any = None
     # sexual: Any = None
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.prompt = data.get('prompt', '')
+        self.last_message = data.get('last_message', '')
